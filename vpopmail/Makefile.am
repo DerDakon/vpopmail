@@ -136,7 +136,7 @@ install-data-local:
 	  fi ; \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
 	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
-	  chmod 0600        $(MYSQLCONF) ; \
+	  chmod 0640        $(MYSQLCONF) ; \
 	fi
 
 	$(INSTALL) -o root -m 0644 \
@@ -161,7 +161,7 @@ fix-priv:
 	if test -r $(MYSQLCONF); then \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
 	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
-	  chmod 0600        $(MYSQLCONF) ; \
+	  chmod 0640        $(MYSQLCONF) ; \
 	fi
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"
