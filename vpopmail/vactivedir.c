@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.15 2004-12-28 00:31:05 rwidmer Exp $
+ * $Id: vactivedir.c,v 1.16 2004-12-30 07:46:14 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,13 @@
 #include "vlimits.h"
 #include "file_lock.h"
 #include "vactivedir.h"
+
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
 
 #define PACKET_SIZE 388
 
@@ -405,9 +412,18 @@ int vauth_setpw( struct vqpasswd *vpw, char *domain )
 
 int vauth_open( int will_update ) {
 
-#ifdef SHOW_TRACE
-    fprintf( stderr, "vauth_open()\n");
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
 #endif 
+
 
 
 /*

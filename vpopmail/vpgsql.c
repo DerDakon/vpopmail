@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.31 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.32 2004-12-30 07:46:14 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,13 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "vpgsql.h"
+
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
 
 /* pgsql has no built-in replication, yet.
    #ifdef PGSQL_REPLICATION
@@ -120,9 +127,18 @@ int pg_end(void)
 /*** Open a connection to pgsql ***/
 int vauth_open( int will_update )
 {
-#ifdef SHOW_TRACE
-    fprintf( stderr, "vauth_open()\n");
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
 #endif 
+
 
 /*
  *  If the connection to this authentication database can fail

@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.16 2004-12-27 08:13:12 rwidmer Exp $
+ * $Id: vchkpw.c,v 1.17 2004-12-30 07:46:14 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -553,6 +553,25 @@ void login_virtual_user()
   /* If authentication logging is enabled
    * update the authentication time on the account
    */
+
+  /*  NOTE:  Need to extend this to handle 
+   *  grace count.  Each time a login is
+   *  attempted up to grace count it should
+   *  be allowed, and the grace counter 
+   *  incremented.  Once the number of attempts
+   *  exceeds the grace value then start to 
+   *  deny logins.  This allows someone to
+   *  check their email extra often for a short
+   *  time, if they are expecting an important
+   *  message without penalty, but if they just
+   *  set the pop3 login interval below the 
+   *  min interval eventually logins will be
+   *  denied.
+   *
+   *  the grace count limit is already stored in
+   *  MIN_LOGIN_GRACE
+   */
+
 #ifdef ENABLE_AUTH_LOGGING
 #ifdef MIN_LOGIN_INTERVAL
   last_time = vget_lastauth(vpw, TheDomain );

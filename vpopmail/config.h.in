@@ -196,6 +196,12 @@
 #undef MD5_PASSWORDS
 
 /* "" */
+#undef MIN_LOGIN_GRACE
+
+/* "" */
+#undef MIN_LOGIN_INTERVAL
+
+/* "" */
 #undef MYSQL_REPLICATION
 
 /* "" */
@@ -325,7 +331,13 @@
 #undef VPOPMAILUID
 
 /* "" */
+#undef VPOPMAIL_DEBUG
+
+/* "" */
 #undef VPOPUSER
+
+/* "" */
+#undef WEBMAIL_IP
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

@@ -1,0 +1,52 @@
+
+
+There is now a bit of debug code built into the system.  Currently
+it is only in MySQL, but I plan to instrument vcdb next.  I have
+also added a variable showerrors, which defaults to 1.  When it is
+1 the MySQL back end will compose good error messages which may
+include the query string that failed and a way to identify exactly
+what went wrong.
+
+If you are calling the library from your own program and want to
+supress these errors, set showerrors to 0.
+
+
+
+If --enable-debug is set, then VPOPMAIL_DEBUG is defined in
+congig.h.  You can put code in ifdef blocks that always show
+things, but you can also be more selective.
+
+Within each authentication back end, but only if VPOPMAIL_DEBUG 
+is defined, there are three variables set.  show_trace, show_query
+and dump_data.  The values are set to 0 (false) in the variable
+declaration of the modules.  When vauth_open is called three 
+environment variables are checked:  VPSHOW_TRACE, VPSHOW_QUERY and
+VPDUMP_DATA.  If the environment variable is set, the variable in
+the program is set to 1.
+
+So, you can save space in the program by not using --enable-debug.
+
+When --enable-debug is set, you can control the amount of debug
+data sent to stderr with the environment variables.  Please
+consider placing all your permanent debug code within an if of
+one or more of these variables.
+
+In general SHOW_TRACE should be used to show when a function
+is executed, and may show the parameters it is called with.
+
+SHOW_QUERY should display the completed query string just before
+it is passed to the database.
+
+DUMP_DATA should show the data returned from the database just
+before it is used.
+
+Debug output is sent to stderr.  If you are running something
+like qmailadmin under a web server you will find the debug
+output in the error log.  For Apache that may be 
+/var/log/error_log.  tail -f /var/log/error_log is very handy
+to watch what is happening as the program runs.
+
+Of course, you will have to set the controlling environment 
+variables in the environment where Apache is running.
+
+

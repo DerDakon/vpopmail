@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.19 2004-12-28 00:31:05 rwidmer Exp $
+ * $Id: vcdb.c,v 1.20 2004-12-30 07:46:14 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.19 2004-12-28 00:31:05 rwidmer Exp $
+** $Id: vcdb.c,v 1.20 2004-12-30 07:46:14 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -44,6 +44,13 @@
 #include "vlimits.h"
 
 #define TOKENS " \n"
+
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
@@ -116,7 +123,7 @@ int make_vpasswd_cdb(char *domain)
         while (*ptr != '\n') { ptr++; }
         *ptr = 0;
         keylen = strlen(key); datalen = strlen(data);
-#ifdef DEBUG
+#ifdef VPOPMAIL_DEBUG
         fprintf (stderr,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
 #endif
 
@@ -314,15 +321,17 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     vlimits_setflags (&pwent, in_domain);
 
-#ifdef DEBUG
-    fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
-    fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
-    fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
-    fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
-    fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
-    fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
-    fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
-    fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
+#ifdef VPOPMAIL_DEBUG
+    if( dump_data ) {
+        fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
+        fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
+        fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
+        fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
+        fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
+        fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
+        fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
+        fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
+    }
 #endif
 
     return(&pwent);
@@ -738,8 +747,16 @@ int vmkpasswd( char *domain )
 
 int vauth_open( int will_update ) {
 
-#ifdef SHOW_TRACE
-    fprintf( stderr, "vauth_open()\n");
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
 #endif 
 
 

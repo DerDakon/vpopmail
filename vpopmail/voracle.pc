@@ -31,6 +31,13 @@
 #include "voracle.h"
 #include "vlimits.h"
 
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
+
 #ifndef SQL_CRSR
 #define SQL_CRSR
   struct sql_cursor
