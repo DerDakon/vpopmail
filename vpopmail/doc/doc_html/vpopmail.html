@@ -240,8 +240,9 @@ the vdelivermail program. This program takes two parameters, the
 first is not used (it is there for backward compatibility). The
 second parameter is the default delivery if a virtual domain user can
 not be found. Basicly, it can be a directory to deliver the email to,
-an email address to forward the email to or the string
-&quot;bounce-no-mailbox&quot; to bounce the mail back to the sender.</P>
+an email address to forward the email to, the string
+&quot;bounce-no-mailbox&quot; to bounce the mail back to the sender
+or the string &quot;delete&quot; to drop/delete the mail.</P>
 <P>Once vdelivermail is started up, it uses the core vpopmail api
 calls to check for a virtual domain user. If the user exists, the
 email is delivered into their directory. If vpopmail was configured
