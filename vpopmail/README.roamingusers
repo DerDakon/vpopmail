@@ -81,9 +81,8 @@ Over time POP-before-SMTP seems to slowly becoming a less favored way of
 allowing roaming users to relay mail. SMTP-Auth appears to becoming the more 
 preferred option, as it scales much more easily on a busy server. However 
 for a small to medium sized server, POP-before-SMTP is still quite a workable 
-option. If you would like investigate the use of SMTP-Auth, patches for qmail 
-are available from http://www.interazioni.it/qmail/ and 
-http://members.elysium.pl/brush/qmail-smtpd-auth/ 
+option. If you would like investigate the use of SMTP-Auth, take a look at this
+patch http://www.fehcom.de/qmail/smtpauth.html#PATCHES  
 
 ----------------------------------------------------------------------------
 
