@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.3 2003-09-14 05:15:39 tomcollins Exp $
+** $Id: vcdb.c,v 1.4 2003-09-29 19:43:52 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -91,7 +91,7 @@ int make_vpasswd_cdb(char *domain)
 
     for (i=0; i < sizeof(cdbm.final); i++) {
         if (putc(' ',tmfile) == EOF) {
-                fprintf(stdout,"Error:error writing temp file\n");
+                fprintf(stderr,"Error:error writing temp file\n");
             return(-1);
         }
     }
@@ -107,7 +107,7 @@ int make_vpasswd_cdb(char *domain)
         *ptr = 0;
         keylen = strlen(key); datalen = strlen(data);
 #ifdef DEBUG
-        fprintf (stdout,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
+        fprintf (stderr,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
 #endif
 
         cdbmake_pack(packbuf, (uint32)keylen);
@@ -170,7 +170,7 @@ int make_vpasswd_cdb(char *domain)
             op = pos;
             pos += (uint32)8;
             if (pos < op) {
-                fprintf (stdout, "Error 12: too much data\n");
+                fprintf (stderr, "Error 12: too much data\n");
                 return(-1);
             }
         }
