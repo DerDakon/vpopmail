@@ -250,9 +250,6 @@
 #undef IP_ALIAS_DOMAINS
 
 /*  */
-#undef HARD_QUOTA
-
-/*  */
 #undef DOMAIN_QUOTAS
 
 /*  */
