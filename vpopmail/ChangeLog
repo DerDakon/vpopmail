@@ -31,6 +31,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vpopmail.c: If setting user quota for new user fails because newly
 	  created user does not exist, sleep 5 seconds and try again.  
 	  (This can happen on servers using MySQL replication.)
+	- Remove convert/vcalias.c and related files; vcalias was replaced
+	  by dotqmail2valias.
 
 	Michael Bowe
 	- configure.in: fix typo of where the configure script says it
