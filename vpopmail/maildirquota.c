@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.6 2003-12-17 04:22:14 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.7 2003-12-19 05:16:36 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -130,16 +130,26 @@ struct dirent *de;
 		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
 			continue;
 
-		snprintf(checkdir, sizeof(checkdir), "%s%s/Maildir/", dir, de->d_name);
-		tries = 5;
-		while (tries-- && readuserquota(checkdir, sizep, cntp))
-		{
-			if (errno != EAGAIN)
+#ifdef USERS_BIG_DIR
+		if (strlen(de->d_name) == 1) {
+			/* recursive call for hashed directory */
+			snprintf (checkdir, sizeof(checkdir), "%s/%s", dir, de->d_name);
+			if (readdomainquota (checkdir, sizep, cntp) == -1) {
 				return -1;
-			sleep(1);
+			}
+		} else
+#endif
+		{
+			snprintf(checkdir, sizeof(checkdir), "%s/%s/Maildir/", dir, de->d_name);
+			tries = 5;
+			while (tries-- && readuserquota(checkdir, sizep, cntp))
+			{
+				if (errno != EAGAIN) return -1;
+				sleep(1);
+			}
+			if (tries <= 0)
+				return -1;
 		}
-		if (tries <= 0)
-			return -1;
 	}
 	if (dirp)
 	{
