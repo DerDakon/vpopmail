@@ -5,7 +5,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	
 	Michael Bowe
 	- Updated README.xxxauthbackend files to include indication
-	  of which auth systems are of production quality (cbd, mysql),
+	  of which auth systems are of production quality (cdb, mysql),
 	  which ones are believed to be generally functional (ldap,
           pgsql) and which ones are not recommended (oracle, sybase,
 	  activedir) [832302]
