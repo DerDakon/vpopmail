@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.41 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.42 2004-05-27 00:53:01 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -188,7 +188,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
    * We dont want to start creating dirs and putting entries in
    * the assign file etc if the path is going to be too long
    */
-  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) >= MAX_PW_DOMAIN) {
+  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) >= MAX_PW_DIR) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);

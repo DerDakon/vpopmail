@@ -2,6 +2,14 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
+
+	Tom Collins - 26 May 2004 - patches from 5.4.4
+	- Link math lib when compiling for MySQL.
+	- Create ~vpopmail and ~vpopmail/etc in configure script. [930939]
+	  Note that any code creating files in ~vpopmail should probably
+	  be moved from configure and into Makefile (under make install).
+	- Use MAX_PW_DIR when checking max size of domain's directory.
+
 	Rick Widmer - 22 May 2004
         vpopmail
         - Update vconvert to use Tom's domain_get_entry function.
