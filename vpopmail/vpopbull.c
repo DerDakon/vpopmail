@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vpopbull.c,v 1.3 2003-12-10 04:47:52 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -195,18 +195,15 @@ int process_domain(domain, fsi, fsx )
 		first = 0;
 
 		if ( !in_exclude_list( fsx, domain, pwent->pw_name) ) {
-			if ( Verbose == 1 ) {
+			if (DoNothing) {
 				printf("%s@%s\n", pwent->pw_name, domain);
-			}
-			if ( DoNothing == 0 ) {
-				if(copy_email( fsi, filename, domain, pwent) == 0) {
-			        if ( Verbose == 1 ) {
-				        printf("%s@%s\n", pwent->pw_name, domain);
-			        }
-                } else {
-				    printf("%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
-                        domain, pwent->pw_dir);
-                }
+			} else {
+				if(copy_email( fsi, filename, domain, pwent) != 0) {
+					printf(stderr, "%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
+						domain, pwent->pw_dir);
+				} else if (Verbose) {
+					printf("%s@%s\n", pwent->pw_name, domain);
+                		}
 			}
 		}
 	}	
