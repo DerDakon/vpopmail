@@ -30,7 +30,7 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Domain[MAX_BUFF];
 char Passwd[MAX_BUFF];
@@ -38,57 +38,64 @@ char User[MAX_BUFF];
 char Dir[MAX_BUFF];
 char Quota[MAX_BUFF];
 char BounceEmail[MAX_BUFF];
-char TmpBuf1[MAX_BUFF];
-char a_dir[MAX_BUFF];
+
 int  Apop;
 int  Bounce;
 int  RandomPw;
 uid_t Uid;
 gid_t Gid;
-uid_t a_uid;
-gid_t a_gid;
 
-int usage();
-void get_options(int argc,char **argv);
+void usage();
+void get_options(int argc, char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int err;
  FILE *fs;
 
+ char a_dir[MAX_BUFF];
+ uid_t a_uid;
+ gid_t a_gid;
+
+ char TmpBuf1[MAX_BUFF];
+ 
     get_options(argc,argv);
 
-    if ( strlen(Passwd) <= 0 ) { 
-        strncpy( Passwd, vgetpasswd("postmaster"), MAX_BUFF);
-    }
-
+    /* create the domain */
     if ( (err=vadddomain(Domain,Dir,Uid,Gid)) != VA_SUCCESS ) {
         printf("Error: %s\n", verror(err));
         vexit(err);
     }
 
+    /* create the postmaster account on the domain */
     if ((err=vadduser("postmaster", Domain, Passwd, "Postmaster", Apop )) != 
         VA_SUCCESS ) {
-        printf("Error: %s\n", verror(err));
+        printf("Error: (vadduser) %s\n", verror(err));
         vexit(err);
     }
 
+    /* set the quota (if one has been nominated) */
     if ( Quota[0] != 0 ) {
-        vsetuserquota( "postmaster", Domain, Quota ); 
+        if ((err=vsetuserquota("postmaster", Domain, Quota )) != VA_SUCCESS)
+        {
+          printf("Error: %s\n", verror(err));
+          vexit(err);
+        } 
     }
+
+    /* if a catchall has been chosen,
+     * then create an appropriate .qmail-default file
+     */
     if ( BounceEmail[0] != 0 ) {
-        vget_assign(Domain, a_dir, 156, &a_uid, &a_gid );
-        snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-default", a_dir);
+        vget_assign(Domain, a_dir, sizeof(a_dir), &a_uid, &a_gid );
+        snprintf(TmpBuf1, sizeof(TmpBuf1), "%s/.qmail-default", a_dir);
         if ( (fs = fopen(TmpBuf1, "w+"))!=NULL) {
 
+            /* if catchall address is an email address... */
             if ( strstr(BounceEmail, "@") != NULL ) { 
                 fprintf(fs, "| %s/bin/vdelivermail '' %s\n", VPOPMAILDIR, 
                     BounceEmail);
-
-            /* No '@' - assume it's a mailbox name */
-            /* James Raftery <james@now.ie> 8th. Jan. 2003 */
+            /* No '@' - so assume catchall is a mailbox name */
             } else {
                 fprintf(fs, "| %s/bin/vdelivermail '' %s/%s\n", VPOPMAILDIR,
                     a_dir, BounceEmail);
@@ -99,6 +106,7 @@ int main(argc,argv)
 
         } else {
             printf("Error: could not open %s\n", TmpBuf1);
+            vexit(-1);
         }
     }
     if ( RandomPw == 1 ) printf("Random password: %s\n", Passwd );
@@ -106,7 +114,7 @@ int main(argc,argv)
     return(vexit(0));
 }
 
-int usage()
+void usage()
 {
 	printf("vadddomain: usage: vadddomain [options] virtual_domain [postmaster password]\n");
 	printf("options: -v prints the version\n");
@@ -122,7 +130,6 @@ int usage()
 	printf("         -r generate a random password for postmaster\n");
 	printf("\n");
 	printf(" [*] omit @-sign to deliver directly into user's Maildir: '-e postmaster'\n");
-	exit(0);
 }
 
 void get_options(int argc,char **argv)
@@ -133,18 +140,21 @@ void get_options(int argc,char **argv)
  extern char *optarg;
  extern int optind;
 
-    memset(Domain, 0, MAX_BUFF);
-    memset(Passwd, 0, MAX_BUFF);
-    memset(Quota, 0, MAX_BUFF);
-    memset(Dir, 0, MAX_BUFF);
-    memset(BounceEmail, 0, MAX_BUFF);
-    memset(TmpBuf1, 0, MAX_BUFF);
+    memset(Domain, 0, sizeof(Domain));
+    memset(Passwd, 0, sizeof(Passwd));
+    memset(User, 0, sizeof(User));
+    memset(Quota, 0, sizeof(Quota));
+    memset(Dir, 0, sizeof(Dir));
+    memset(BounceEmail, 0, sizeof(BounceEmail));
+
     Uid = VPOPMAILUID;
     Gid = VPOPMAILGID;
+
     Apop = USE_POP;
     Bounce = 1;
     RandomPw = 0;
 
+    /* grab the options */
     errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"q:be:u:vi:g:d:Or")) != -1 ) {
 	switch(c) {
@@ -152,16 +162,16 @@ void get_options(int argc,char **argv)
 	    printf("version: %s\n", VERSION);
 	    break;
 	case 'd':
-	    strncpy(Dir,optarg,MAX_BUFF);
+	    snprintf(Dir, sizeof(Dir), "%s", optarg);
 	    break;
 	case 'u':
-	    strncpy(User,optarg,MAX_BUFF);
+	    snprintf(User, sizeof(User), "%s", optarg);
 	    break;
 	case 'q':
-	    strncpy(Quota,optarg,MAX_BUFF);
+	    snprintf(Quota, sizeof(Quota), "%s", optarg);
 	    break;
 	case 'e':
-	    strncpy(BounceEmail,optarg,MAX_BUFF);
+	    snprintf(BounceEmail, sizeof(BounceEmail), "%s", optarg);
 	    break;
 	case 'i':
 	    Uid = atoi(optarg);
@@ -185,28 +195,45 @@ void get_options(int argc,char **argv)
 	}
     }
 
-    if ( optind < argc ) {
-	strncpy(Domain, argv[optind], MAX_BUFF);
-	++optind;
-    }
-
-    if ( optind < argc ) {
-	strncpy(Passwd, argv[optind], MAX_BUFF);
-	++optind;
-    }
-
+    /* if a user account has been nominated... */
     if ( User[0] != 0 ) {
-	if ( (mypw = getpwnam(User)) != NULL ) {
-	    if ( Dir[0] == 0 ) {
-		strncpy(Dir, mypw->pw_dir, MAX_BUFF);
-	    }
-	    Uid = mypw->pw_uid;
-	    Gid = mypw->pw_gid;
-	} else {
-	    printf("Error: user %s not found in /etc/passwd\n", User);
-	    exit(-1);
-	}
+        if ( (mypw = getpwnam(User)) != NULL ) {
+            /* if a home dir hasnt been specified,
+             * use the one from the etc/passwd file
+             */
+            if ( Dir[0] == 0 ) {
+		snprintf(Dir, sizeof(Dir), "%s", mypw->pw_dir);
+            }
+            /* Grab the uid/gid from the etc/passwd file */
+            Uid = mypw->pw_uid;
+            Gid = mypw->pw_gid;
+        } else {
+            printf("Error: user %s not found in /etc/passwd\n", User);
+            vexit(-1);
+        }
     }
-    if ( Dir[0] == 0 ) strncpy(Dir, VPOPMAILDIR, MAX_BUFF);
-    if ( Domain[0] == 0 ) usage();
+
+    /* if a home dir hasnt been chosen, default to the vpopmail dir */
+    if ( Dir[0] == 0 ) {
+	snprintf(Dir, sizeof(Dir), "%s", VPOPMAILDIR);
+    }
+
+    /* Grab the domain */
+    if ( optind < argc ) {
+	snprintf(Domain, sizeof(Domain), "%s", argv[optind]);
+	++optind;
+    } else {
+      /* if no domain has been chosen, then display usage and exit*/
+      usage();
+      vexit(0);
+    }
+
+    /* Grab the postmaster password */
+    if ( optind < argc ) {
+	snprintf(Passwd, sizeof(Passwd), "%s", argv[optind]);
+	++optind;
+    } else {
+      /* if no postmaster password specified, then prompt user to enter one */
+	snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd("postmaster"));
+    }
 }

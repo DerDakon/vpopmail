@@ -38,13 +38,10 @@
 
 int do_all_domains();
 
-#define MAX_BUFF 500
-
-#define QMAIL_ASSIGN "/var/qmail/users/assign"
+#define MAX_BUFF 256
 
 char User[MAX_BUFF];
 char Passwd[MAX_BUFF];
-char Quota[MAX_BUFF];
 char Gecos[MAX_BUFF];
 char Dir[MAX_BUFF];
 
@@ -79,7 +76,7 @@ void usage();
 void get_options(int argc, char **argv);
 int passwd_to_vpopmail( char *domain );
 
-char PasswdFile[128];
+char PasswdFile[MAX_BUFF];
 int  PasswdFormat;
 
 int main(int argc, char *argv[])
@@ -94,33 +91,36 @@ int main(int argc, char *argv[])
 			lowerit(argv[optind]);
 			if ( conv_domain( argv[optind] ) != 0 ) {
 				printf("domain conversion failed\n");
+				/* should exit -1 here? */
 			} else {
 				printf("done\n");
 			}
 		}
 	}
-	return(0);
+	return(vexit(0));
 }
 
 int do_all_domains()
 {
  FILE *fs;
- static char tmpbuf[400];
+ char assign_file[MAX_BUFF];
+ static char tmpbuf[MAX_BUFF];
  int i;
 
-    if ( (fs=fopen(QMAIL_ASSIGN, "r"))==NULL ) {
-       char error_buf[200];
-       sprintf(error_buf, "could not open qmail assign file at %s", QMAIL_ASSIGN);
-       perror(error_buf);
-       return(-1);
+    snprintf(assign_file, sizeof(assign_file), "%s/users/assign",  QMAILDIR); 
+    if ( (fs=fopen(assign_file, "r"))==NULL ) {
+       snprintf(tmpbuf, sizeof(tmpbuf), "could not open qmail assign file at %s\n", assign_file);
+       perror(tmpbuf);
+       vexit(-1);
     }
-    while ( fgets(tmpbuf,400,fs) != NULL ) {
+    while ( fgets(tmpbuf, sizeof(tmpbuf),fs) != NULL ) {
         for(i=1;tmpbuf[i]!=':';++i);
         tmpbuf[i-1] = 0;
 	if ( tmpbuf[1] != '\n' ) {
             printf("converting %s ...", &tmpbuf[1] );
             if ( conv_domain( &tmpbuf[1] ) != 0 ) {
                 printf("domain conversion failed\n");
+                /* should vexit -1 here? */
             } else {
                 printf("done\n");
             }
@@ -143,7 +143,7 @@ int conv_domain( char *domain )
 				case CDB_SITE:
 					return(sql_to_cdb( domain));
 				default:
-					printf("unknown converstion\n");
+					printf("unknown conversion\n");
 					return(-1);
 			}
 			break;
@@ -157,7 +157,7 @@ int conv_domain( char *domain )
 				case CDB_SITE:
 					return(etc_to_default( domain ));
 				default:
-					printf("unknown converstion\n");
+					printf("unknown conversion\n");
 					return(-1);
 			}
 			break;
@@ -174,23 +174,24 @@ int cdb_to_default( char *domain )
 {
 #ifdef USE_SQL
  FILE *fs;
- char tmpbuf[200];
+ char tmpbuf[MAX_BUFF];
  struct vqpasswd *pw;
 
  int domain_str_len = strlen( domain );
- char domain_dir[200];
+ char domain_dir[MAX_BUFF];
  FILE *assign_fs;
- static char assignbuf[400];
+ static char assignbuf[MAX_BUFF];
  int i, colon_count, dir_count;
  int bFoundDomain = 0;
+ char assign_file[MAX_BUFF];
 
-    if ( (assign_fs=fopen(QMAIL_ASSIGN, "r"))==NULL ) {
-       char error_buf[200];
-       sprintf(error_buf, "could not open qmail assign file at %s", QMAIL_ASSIGN);
-       perror(error_buf);
+    snprintf(assign_file, sizeof(assign_file), "%s/users/assign",  QMAILDIR);      
+    if ( (assign_fs=fopen(assign_file, "r"))==NULL ) {
+       snprintf(tmpbuf, sizeof(tmpbuf), "could not open qmail assign file at %s\n", assign_file);
+       perror(tmpbuf);
        return(-1);
     }
-    while ( fgets(assignbuf,400,assign_fs) != NULL && !bFoundDomain )
+    while ( fgets(assignbuf, sizeof(assignbuf), assign_fs) != NULL && !bFoundDomain )
     {
 	/* search for the matching domain record */
 	if ( strncmp( domain, &assignbuf[1], domain_str_len ) == 0 )
@@ -221,24 +222,25 @@ int cdb_to_default( char *domain )
     
     fclose(assign_fs);
 
+    vauth_deldomain(domain);
+    vauth_adddomain(domain);
 
-	vauth_deldomain(domain);
-	vauth_adddomain(domain);
+    vget_assign(domain, Dir, sizeof(Dir), NULL, NULL );
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s/vpasswd", Dir);
+    fs = fopen(tmpbuf,"r");
+    if ( fs == NULL ) return(-1);
 
-        vget_assign(domain, Dir, 156, NULL, NULL );
-	snprintf(tmpbuf, 200, "%s/vpasswd", Dir);
-	fs = fopen(tmpbuf,"r");
-	if ( fs == NULL ) {
-		return(-1);
-	}
-	while( (pw=vgetent(fs)) != NULL ) {
- 		vauth_adduser(pw->pw_name, domain, pw->pw_passwd, 
-                        pw->pw_gecos, pw->pw_dir, pw->pw_uid);
-                vauth_setpw(pw, domain);
-	}
-        fclose(fs);
-#endif
-	return(0);
+    while( (pw=vgetent(fs)) != NULL ) {
+      if (vauth_adduser(pw->pw_name, domain, pw->pw_passwd, 
+                        pw->pw_gecos, pw->pw_dir, pw->pw_uid) != 0) {
+        printf("User %s domain %s did not add\n", pw->pw_name, domain);
+        continue;
+      }
+      vauth_setpw(pw, domain);
+    }
+    fclose(fs);
+#endif /* USE_SQL */
+    return(0);
 }
 
 int sql_to_cdb( char *domain)
@@ -246,15 +248,18 @@ int sql_to_cdb( char *domain)
 #ifdef USE_SQL
  struct vqpasswd *pw;
  FILE *fs;
- char tmpbuf[255];
+ char tmpbuf[MAX_BUFF];
 
-        vget_assign(domain, Dir, 156, NULL, NULL );
-	snprintf(tmpbuf, 255, "%s/vpasswd", Dir);
+        if (vget_assign(domain, Dir, sizeof(Dir), NULL, NULL ) == NULL) {
+		printf("Error. Domain not found\n");
+		return (-1);
+	}
+	snprintf(tmpbuf, sizeof(tmpbuf), "%s/vpasswd", Dir);
 	if ( (fs = fopen(tmpbuf,"w")) == NULL ) {
 		printf("could not open vpasswd file %s\n", tmpbuf);
 		return(-1);
 	}
-	pw = vauth_getall(domain, 1, 0);
+	pw = vauth_getall(domain, 1, 1);
 	while( pw != NULL ) {
 #ifdef CLEAR_PASS
 		fprintf(fs, "%s:%s:%d:%d:%s:%s:%s:%s\n",
@@ -266,7 +271,7 @@ int sql_to_cdb( char *domain)
 			pw->pw_dir,
 			pw->pw_shell,
 			pw->pw_clear_passwd);
-#else
+#else /* CLEAR_PASS */ 
 		fprintf(fs, "%s:%s:%d:%d:%s:%s:%s\n", 
 			pw->pw_name,
 			pw->pw_passwd,
@@ -275,12 +280,12 @@ int sql_to_cdb( char *domain)
 			pw->pw_gecos,
 			pw->pw_dir,
 			pw->pw_shell);
-#endif
-		pw = vauth_getall(domain, 0, 0);
+#endif /* CLEAR_PASS */
+		pw = vauth_getall(domain, 0, 1);
 	}
 	fclose(fs);
 	printf("%s done\n", domain);
-#endif
+#endif /* USE_SQL */
 	return(0);
 }
 
@@ -299,11 +304,11 @@ int etc_to_default( char *domain )
 		if ( (smypw = getspnam(mypw->pw_name)) == NULL) continue;
 		i = strlen(smypw->sp_pwdp)+1;
 		passwd = malloc(i);
-		strncpy( passwd, smypw->sp_pwdp, i );
+		snprintf( passwd, i, "%s", smypw->sp_pwdp );
 #else
 		i = strlen(mypw->pw_passwd)+1;
 		passwd = malloc(i);
-		strncpy( passwd, mypw->pw_passwd, i );
+		snprintf( passwd, i, "%s", mypw->pw_passwd );
 #endif
 		if ( strlen(passwd) > 2 ) {
 			if (vadduser( mypw->pw_name, domain, "xxxx", 
@@ -352,7 +357,8 @@ void get_options(int argc, char **argv)
 	PasswdFile[0] = 0;
 	PasswdFormat = 0;
 	Debug = 0;
-    while( !errflag && (c=getopt(argc,argv,"mcep:Svd")) != -1 ) {
+
+	while( !errflag && (c=getopt(argc,argv,"mcep:Svd")) != -1 ) {
 		switch(c) {
 			case 'd':
 				Debug = 1;
@@ -380,7 +386,7 @@ void get_options(int argc, char **argv)
 				if ( FromFormat == -1 ) FromFormat = PASSWD_SITE;
 				else ToFormat = PASSWD_SITE;
 				PasswdFormat = FORMAT_USERPASS;
-				strncpy(PasswdFile, optarg, 128);
+				snprintf(PasswdFile, sizeof(PasswdFile), "%s", optarg);
 				break;
 			default:
 				errflag = 1;
@@ -396,8 +402,8 @@ void get_options(int argc, char **argv)
 int passwd_to_vpopmail( char *domain )
 {
  FILE *fs,*fs1;
- char tmpbuf[200];
- char tmpbuf1[200];
+ char tmpbuf[MAX_BUFF];
+ char tmpbuf1[MAX_BUFF];
  char *user;
  char *crypted_passwd;
  struct vqpasswd *mypw;
@@ -410,10 +416,10 @@ int passwd_to_vpopmail( char *domain )
 		return(-1);
 	}
 
-	while( fgets(tmpbuf, 200, fs) != NULL ) {
+	while( fgets(tmpbuf, sizeof(tmpbuf), fs) != NULL ) {
 		if ( (user=strtok(tmpbuf, PASSWD_TOKENS))==NULL) continue;
 		if ( (crypted_passwd=strtok(NULL, PASSWD_TOKENS))==NULL) continue;
-		strncpy( Gecos, user, MAX_BUFF);
+		snprintf(Gecos, sizeof(Gecos), "%s", user);
 
 	    if ( (err=vadduser(user, domain, "foob", user, USE_POP )) < 0 ) {
 	        printf("Error: %s\n", verror(err));
@@ -430,7 +436,7 @@ int passwd_to_vpopmail( char *domain )
 			printf("Error: %s\n", verror(err));
 			break;
 		}
-		snprintf(tmpbuf1, 200, 
+		snprintf(tmpbuf1, sizeof(tmpbuf1), 
                     "%s/Maildir/sqwebmail-pass", mypw->pw_dir);
 		if ( (fs1=fopen(tmpbuf1, "w")) == NULL) {
 			break;

@@ -30,16 +30,12 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
-
+#define MAX_BUFF 256
 char Domain[MAX_BUFF];
-char TmpBuf1[MAX_BUFF];
 
 void usage();
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
 #ifdef USE_CDB
  int i;
@@ -49,12 +45,11 @@ int main(argc,argv)
 		vexit(-1);
 	}
 
-	memset(Domain, 0, MAX_BUFF);
-	memset(TmpBuf1, 0, MAX_BUFF);
+	memset(Domain, 0, sizeof(Domain));
 
 	for(i=1;i<argc;++i){
 		if ( Domain[0] == 0 ) {
-			strncpy( Domain, argv[i], MAX_BUFF-1);
+			snprintf(Domain, sizeof(Domain), "%s", argv[i]);
 		}
 	}
 	lowerit(Domain);

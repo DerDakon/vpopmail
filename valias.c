@@ -30,7 +30,7 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char Alias[MAX_BUFF];
@@ -46,9 +46,7 @@ int AliasAction;
 void usage();
 void get_options(int argc,char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  char *tmpalias;
 
@@ -56,6 +54,7 @@ int main(argc,argv)
 
 	switch( AliasAction ) {
 	case VALIAS_SELECT:
+		/* did the user nominate an email address or a domain? */
 		if ( strstr(Email, "@") == NULL ) {
 			tmpalias = valias_select_all( Alias, Email );
 			while (tmpalias != NULL ) {
@@ -83,7 +82,7 @@ int main(argc,argv)
 		printf("error, Alias Action is invalid %d\n", AliasAction);
 		break;
 	}
-	exit(0);
+	return(vexit(0));
 }
 
 void usage()
@@ -102,10 +101,10 @@ void get_options(int argc,char **argv)
  extern char *optarg;
  extern int optind;
 
-	memset(Alias, 0, MAX_BUFF);
-	memset(Email, 0, MAX_BUFF);
-	memset(Domain, 0, MAX_BUFF);
-	memset(AliasLine, 0, MAX_BUFF);
+	memset(Alias, 0, sizeof(Alias));
+	memset(Email, 0, sizeof(Email));
+	memset(Domain, 0, sizeof(Domain));
+	memset(AliasLine, 0, sizeof(AliasLine));
 	AliasAction = VALIAS_SELECT;
 
     	while( (c=getopt(argc,argv,"vsdi:")) != -1 ) {
@@ -121,7 +120,7 @@ void get_options(int argc,char **argv)
 			break;
 		case 'i':
 			AliasAction = VALIAS_INSERT;
-			strncpy( AliasLine, optarg, MAX_BUFF-1);
+			snprintf(AliasLine, sizeof(AliasLine), "%s", optarg);
 			break;
 		default:
 			usage();
@@ -130,8 +129,8 @@ void get_options(int argc,char **argv)
 	}
 
 	if ( optind < argc ) {
-		strncpy(Email, argv[optind], MAX_BUFF);
-                if ( (i = parse_email( Email, Alias, Domain, MAX_BUFF)) != 0 ) {
+		snprintf(Email, sizeof(Email), "%s", argv[optind]);
+                if ( (i = parse_email( Email, Alias, Domain, sizeof(Alias))) != 0 ) {
                   printf("Error: %s\n", verror(i));
                   vexit(i);
                 }
@@ -141,6 +140,6 @@ void get_options(int argc,char **argv)
 	if ( Email[0] == 0 ) {
 		printf("must supply alias email address\n");
 		usage();
-		exit(-1);
+		vexit(-1);
 	}
 }

@@ -25,10 +25,9 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 char Domain[MAX_BUFF];
 char Dir[MAX_BUFF];
-char TmpBuf[MAX_BUFF];
 uid_t Uid;
 gid_t Gid;
 
@@ -48,14 +47,14 @@ void display_all_domains();
 
 extern vdir_type vdir;
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
     get_options(argc,argv);
 
+    /* did we want to view a single domain domain? */
     if (Domain[0] != 0 ) {
-        if ( vget_assign(Domain, Dir, 156, &Uid, &Gid ) == NULL ) {
+        /* yes, just lookup a single domain */
+        if ( vget_assign(Domain, Dir, sizeof(Dir), &Uid, &Gid ) == NULL ) {
             printf("domain %s does not exist\n", Domain );
             vexit(-1);
         }
@@ -91,7 +90,7 @@ void get_options(int argc, char **argv)
     DisplayTotalUsers = 0;
     DisplayAll = 1;
 
-    memset(Domain, 0, MAX_BUFF);
+    memset(Domain, 0, sizeof(Domain));
 
     errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"vanugdt")) != -1 ) {
@@ -133,8 +132,8 @@ void get_options(int argc, char **argv)
         vexit(-1);
     }
 
-    if ( optind < argc ) { 
-        strncpy(Domain, argv[optind], MAX_BUFF);
+    if ( optind < argc ) {
+	snprintf(Domain, sizeof(Domain), "%s", argv[optind]); 
         ++optind;
     }
 }
@@ -166,33 +165,61 @@ void display_all_domains()
 {
  FILE *fs;
  char *tmpstr;
+ char TmpBuf[MAX_BUFF];
+ char RealName[MAX_BUFF];
 
-    snprintf(TmpBuf, MAX_BUFF, "%s/users/assign", QMAILDIR);
+    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign", QMAILDIR);
     if ((fs=fopen(TmpBuf, "r"))==NULL) {
         printf("could not open assign file %s\n", TmpBuf);
+        vexit(-1);
     }
 
-    while( fgets(TmpBuf, MAX_BUFF, fs) != NULL ) {
+    /* users/assign looks like
+     * +alias.domain.com-:real.domain.com:89:89:/var/vpopmail/domains/real.domain.com:-::
+     */
+
+    while( fgets(TmpBuf, sizeof(TmpBuf), fs) != NULL ) {
+
+        /* skip over any lines that do not contain tokens */
 	if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
-        /* users/assign looks like
-        +alias.domain.com-:real.domain.com:89:89:/var/vpopmail/domains/real.domain.com:-::
-        so we have to drop the leading '+' and the trailing "-" */
-        strncpy( Domain, tmpstr+1, MAX_BUFF);
-        Domain[MAX_BUFF-1] = 0;
+
+	/* suck out the "alias name" of the domain 
+         * (we have to drop the leading '+' and the trailing "-") 
+         */
+	snprintf(Domain, sizeof(Domain), "%s", tmpstr+1);
         Domain[strlen(Domain)-1] = 0;
 
+        /* jump over the tken between the alias and real domain */
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
 
+        /* suck out the "real name" of the domain */
+	snprintf(RealName, sizeof(RealName), "%s", tmpstr);
+
+	/* jump over the token between real domain and uid */
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+
+	/* suck out the uid */
 	Uid = atol(tmpstr);
 
+	/* jump over the token between the uid and the gid */
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+
+	/* suck out the gid */
 	Gid = atol(tmpstr);
 
+	/* jump over the token between the gid and the dir */
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-	strncpy( Dir, tmpstr, MAX_BUFF);
+
+        /* suck out the dir */
+	snprintf(Dir, sizeof(Dir), "%s", tmpstr);
 
 	display_domain(Domain, Dir, Uid, Gid);
+
+	if (strcmp(Domain, RealName) != 0) {
+ 		printf ("Note:   %s is an alias for %s\n",Domain,RealName);
+	}
+     
+	printf ("\n");
     }
     fclose(fs);
 }

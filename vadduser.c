@@ -29,16 +29,14 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
-char User[MAX_BUFF];
-char Domain[MAX_BUFF];
 char Passwd[MAX_BUFF];
 char Quota[MAX_BUFF];
 char Gecos[MAX_BUFF];
-char EncryptedPasswd[MAX_BUFF];
-char TmpBuf1[MAX_BUFF];
+char Crypted[MAX_BUFF];
+
 int apop;
 int RandomPw;
 int NoPassword = 0;
@@ -49,17 +47,19 @@ void get_options(int argc,char **argv);
 int main(int argc,char **argv)
 {
  int i;
+ char User[MAX_BUFF];
+ char Domain[MAX_BUFF];
  struct vqpasswd *vpw;
 
     get_options(argc,argv);
 
-    for(i=0;i<MAX_BUFF;++i) {
-      User[i] = 'x';
-      Domain[i] = 'x';
-    }
+    memset (User, 0, sizeof(User));
+    memset (Domain, 0, sizeof(Domain));
 
-    /* parse the email address into user and domain */
-    if ( (i=parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
+    /* parse the email address into user and domain
+     * If the user didnt specify a domain, the default domain will returned
+     */
+    if ( (i=parse_email( Email, User, Domain, sizeof(Email))) != 0 ) {
         printf("Error: %s\n", verror(i));
         vexit(i);
     }
@@ -70,19 +70,22 @@ int main(int argc,char **argv)
       vexit(-1);
     }
 
-    /* if the comment field is blank use the user name */
-    if ( Gecos[0] == 0 ) strncpy(Gecos, User, MAX_BUFF);
+    /* if the comment field is blank, use the user name */
+    if ( Gecos[0] == 0 ) {
+      snprintf(Gecos, sizeof(Gecos), "%s", User);
+    }
 
     /* get the password if not set on command line */
     if ( NoPassword == 0 ) {
         if ( strlen(Passwd) <= 0 ) {
-            strncpy(Passwd,vgetpasswd(Email),MAX_BUFF);
+            /* Prompt the user to enter a password */
+            snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd(Email));
         }
 
         if ( strlen(Passwd) <= 0 ) {
-            printf("Please input password\n");
+            printf("Error: No password entered\n");
             usage();
-            exit(-1);
+            vexit(-1);
         }
     }
 
@@ -93,14 +96,29 @@ int main(int argc,char **argv)
     }
 
     /* set the users quota if set on the command line */
-    if ( Quota[0] != 0 ) vsetuserquota( User, Domain, Quota ); 
+    if ( Quota[0] != 0 ) {
+      if (vsetuserquota( User, Domain, Quota ) != 0) {
+        printf ("Error in vsetuserquota()\n");
+        vexit(-1);
+      } 
+    }
 
     /* Check for encrypted password */
-    if ( EncryptedPasswd[0] != 0 ) {
-        vpw = vauth_getpw( User,Domain);
-        vpw->pw_passwd = EncryptedPasswd;
-        vauth_setpw( vpw, Domain);
+    if ( Crypted[0] != 0 ) {
+        /* User has entered an encrypted password, so store this directly
+         * into the auth records for this user
+         */
+        if(( vpw = vauth_getpw( User,Domain)) == NULL) {
+          printf ("Error in vauth_getpw()\n");
+          vexit (-1);
+        }
+        vpw->pw_passwd = Crypted;
+        if ( vauth_setpw( vpw, Domain) != 0) {
+          printf ("Error in vauth_setpw()\n");
+          vexit (-1);
+        }
     }
+
     if ( RandomPw == 1 ) printf("Random password: %s\n", Passwd );
 
     return(vexit(0));
@@ -125,13 +143,13 @@ void get_options(int argc,char **argv)
  int errflag;
  extern char *optarg;
  extern int optind;
+ 
+    memset(Email, 0, sizeof(Email));
+    memset(Passwd, 0, sizeof(Passwd));
+    memset(Quota, 0, sizeof(Quota));
+    memset(Gecos, 0, sizeof(Gecos));
+    memset(Crypted, 0, sizeof(Crypted));
 
-    memset(Email, 0, MAX_BUFF);
-    memset(Passwd, 0, MAX_BUFF);
-    memset(Domain, 0, MAX_BUFF);
-    memset(Quota, 0, MAX_BUFF);
-    memset(EncryptedPasswd, 0, MAX_BUFF);
-    memset(TmpBuf1, 0, MAX_BUFF);
     apop = USE_POP; 
     RandomPw = 0;
 
@@ -142,13 +160,13 @@ void get_options(int argc,char **argv)
             printf("version: %s\n", VERSION);
             break;
           case 'c':
-            strncpy( Gecos, optarg, MAX_BUFF-1);
+            snprintf(Gecos, sizeof(Gecos), "%s", optarg);
             break;
           case 'q':
-            strncpy( Quota, optarg, MAX_BUFF-1);
+            snprintf(Quota, sizeof(Quota), "%s", optarg);
             break;
           case 'e':
-            strncpy( EncryptedPasswd, optarg, MAX_BUFF-1);
+            snprintf(Crypted, sizeof(Crypted), "%s", optarg);
             break;
           case 's':
             NoMakeIndex = 1;
@@ -158,7 +176,7 @@ void get_options(int argc,char **argv)
             break;
           case 'r':
             RandomPw = 1;
-            strcpy( Passwd, vgen_pass(8));
+            snprintf(Passwd, sizeof(Passwd), "%s", vgen_pass(8));
             break;
           default:
             errflag = 1;
@@ -167,17 +185,17 @@ void get_options(int argc,char **argv)
     }
 
     if ( optind < argc  ) {
-        strncpy(Email, argv[optind], MAX_BUFF);
+	snprintf(Email, sizeof(Email), "%s", argv[optind]);
         ++optind;
     }
 
     if ( (NoPassword == 0) && (optind < argc) ) {
-        strncpy(Passwd, argv[optind], MAX_BUFF);
+	snprintf(Passwd, sizeof(Passwd), "%s", argv[optind]);
         ++optind;
     }
 
     if ( Email[0] == 0 ) { 
         usage();
-        exit(-1);
+        vexit(-1);
     }
 }

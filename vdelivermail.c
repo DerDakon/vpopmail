@@ -557,6 +557,7 @@ int deliver_mail(char *address, char *quota)
                 "%sDelivered-To: %s@%s\n", getenv("RPLINE"), 
                  TheUser, TheDomain);
         } else {
+        
             snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s\n", getenv("RPLINE"), 
                 maildir_to_email(address));

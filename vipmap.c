@@ -28,7 +28,7 @@
 void usage();
 void get_options(int argc,char **argv);
 
-#define MAX_BUFF 200
+#define MAX_BUFF 256
 
 int Action;
 char Ip[MAX_BUFF];
@@ -38,9 +38,7 @@ char Domain[MAX_BUFF];
 #define ADD_IT    1
 #define DELETE_IT 2
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
 #ifdef IP_ALIAS_DOMAINS
  int result;
@@ -97,8 +95,8 @@ void get_options(int argc,char **argv)
  int errflag;
 
 	Action = PRINT_IT;
-	memset( Ip, 0, MAX_BUFF);
-	memset( Domain, 0, MAX_BUFF);
+	memset( Ip, 0, sizeof(Ip));
+	memset( Domain, 0, sizeof(Ip));
 
 	errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"vpda")) != -1 ) {
@@ -128,7 +126,7 @@ void get_options(int argc,char **argv)
 
 	if ( Action == ADD_IT || Action == DELETE_IT ) {
 		if ( optind < argc ) {
-			strncpy(Ip, argv[optind], MAX_BUFF);
+			snprintf(Ip, sizeof(Ip), "%s", argv[optind]);
 			++optind;
 		} else {
 			usage();
@@ -136,7 +134,7 @@ void get_options(int argc,char **argv)
 		}
 
 		if ( optind < argc ) {
-			strncpy(Domain, argv[optind], MAX_BUFF);
+			snprintf(Domain, sizeof(Domain), "%s", argv[optind]);
 			++optind;
 		} else {
 			usage();

@@ -31,49 +31,52 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
-char User[MAX_BUFF];
-char Domain[MAX_BUFF];
 char Quota[MAX_BUFF];
-char TmpBuf1[MAX_BUFF];
 
 void get_options(int argc,char **argv);
 void usage();
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int i;
  int ret;
  static int virgin;
  struct vqpasswd *mypw;
 
+ char User[MAX_BUFF];
+ char Domain[MAX_BUFF];
+
 	get_options(argc,argv);
 
-	for(i=1;i<argc;++i){
-		if ( Email[0] == 0 ) {
-			strncpy( Email, argv[i], MAX_BUFF-1);
-		} else {
-			strncpy( Quota, argv[i], MAX_BUFF-1);
-		}
-	}
-	lowerit(Email);
+	/* Michael Bowe 13th Aug 2003
+         * Mmmm, isnt this code redundant? Already in get_options
+         *
+	*for(i=1;i<argc;++i){
+	*	if ( Email[0] == 0 ) {
+	*		strncpy( Email, argv[i], MAX_BUFF-1);
+	*	} else {
+	*		strncpy( Quota, argv[i], MAX_BUFF-1);
+	*	}
+	*}
+	 */
 
 	/* check to see if email address has an @ sign in it */
 	if ( strstr(Email, "@") == NULL ) {
-		/* this is a domain */
-		strncpy( Domain, Email, MAX_BUFF);
+		/* user has nominated a domain name rather than an email address */
+		snprintf(Domain, sizeof(Domain), "%s", Email);
+
 		virgin = 1;
+                /* Check to see if domain exists */
   		if ( vget_assign(Domain, NULL, 0, NULL, NULL)==NULL) {
 			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
    			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}
 
 		/* walk through the whole domain */
-		while( (mypw=vauth_getall(Domain, virgin, 0)) != NULL ) {
+		while( (mypw=vauth_getall(Domain, virgin, 1)) != NULL ) {
 			virgin = 0;
 			if ((ret = vauth_setquota( mypw->pw_name, Domain, Quota )) != VA_SUCCESS) {
 			printf("Error: %s\n", verror(ret));
@@ -83,14 +86,17 @@ int main(argc,argv)
 
 	/* just a single user */
 	} else {
-                if ( parse_email( Email, User, Domain, MAX_BUFF) != 0 ) {
+		/* Extract the user and domain from the Email address */
+                if ((i= parse_email( Email, User, Domain, sizeof(Email))) != 0 ) {
                     printf("Error: %s\n", verror(i));
                     vexit(i);
                 }
+		/* Check to see if the domain exists */
   		if ( vget_assign(Domain, NULL, 0, NULL, NULL)==NULL) {
 			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
    			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}
+		/* Set the quota for the user */
 		if ((ret = vauth_setquota( User, Domain, Quota )) != VA_SUCCESS) {
 			printf("Error: %s\n", verror(ret));
 			vexit(ret);
@@ -102,9 +108,11 @@ int main(argc,argv)
 
 void usage()
 {
-	printf("vsetuserquota: [options] email_address quota_in_bytes\n"); 
+	printf("vsetuserquota: [options] email_address|domain_name quota_in_bytes\n"); 
 	printf("options:\n");
 	printf("-v (print version number)\n");
+        printf("\nIf you specify a domain name rather than an email address,\n");
+        printf("the quota will be applied to all users in that domain\n");
 }
 
 void get_options(int argc,char **argv)
@@ -112,12 +120,10 @@ void get_options(int argc,char **argv)
  int c;
  int errflag;
 
-	memset(Email, 0, MAX_BUFF);
-	memset(Quota, 0, MAX_BUFF);
-	memset(Domain, 0, MAX_BUFF);
-	memset(TmpBuf1, 0, MAX_BUFF);
+    memset(Email, 0, sizeof(Email));
+    memset(Quota, 0, sizeof(Quota));
 
-	errflag = 0;
+    errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
 		switch(c) {
 			case 'v':
@@ -129,13 +135,15 @@ void get_options(int argc,char **argv)
 		}
 	}
 
+	/* Grab the email|domain */
 	if ( optind < argc ) {
-		strncpy(Email, argv[optind], MAX_BUFF);
+		snprintf(Email, sizeof(Email), "%s", argv[optind]);
 		++optind;
 	}
 
+        /* Grab the quota */
 	if ( optind < argc ) {
-		strncpy(Quota, argv[optind], MAX_BUFF);
+		snprintf(Quota, sizeof(Quota), "%s", argv[optind]);
 		for(c=0;Quota[c]!=0;++c){
 			if ( islower((int)Quota[c]) ) {
 				Quota[c] = (char)toupper((int)Quota[c]);

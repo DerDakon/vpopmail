@@ -425,6 +425,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  struct vlimits limits;
 
     vget_assign(domain,NULL,0,&uid,&gid);
+
     myuid = geteuid();
     if ( myuid != 0 && myuid != uid ) return(NULL);
 
@@ -437,8 +438,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     lowerit(user);
     lowerit(domain);
 
-    memset(in_domain,0,156);
-    strncpy(in_domain, domain, 155);
+    snprintf (in_domain, sizeof(in_domain), "%s", domain);
 
     vset_default_domain( in_domain );
 
@@ -455,7 +455,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 , in_domain
 #endif
 );
-
     if (mysql_query(&mysql_read,SqlBufRead)) {
         printf("vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
         return(NULL);
@@ -513,6 +512,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     return(&vpw);
 }
 
+/* del a domain from the auth backend
+ * - drop the domain's table, or del all users from users table
+ * - delete domain's entries from lastauth table
+ * - delete domain's limit's entries
+ */
 int vauth_deldomain( char *domain )
 {
  char *tmpstr;
@@ -522,6 +526,7 @@ int vauth_deldomain( char *domain )
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
+    /* convert the domain name to the table name (eg convert . to _ ) */
     tmpstr = vauth_munch_domain( domain );
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, "drop table %s", tmpstr);
 #else

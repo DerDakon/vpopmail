@@ -29,32 +29,31 @@
 #include "vpopmail.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
-char Domain_old[MAX_BUFF];
-char Domain_new[MAX_BUFF];
+char Domain_real[MAX_BUFF];
+char Domain_alias[MAX_BUFF];
 
 void usage();
 void get_options(int argc,char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int err;
 
     get_options(argc,argv);
 
-    err = vaddaliasdomain( Domain_new, Domain_old);
+    err = vaddaliasdomain( Domain_alias, Domain_real);
     if ( err != VA_SUCCESS ) {
-        printf("vaddaliasdomain: %s\n", verror(err));
+        printf("Error: %s\n", verror(err));
+	vexit(err);
     }
     return(vexit(0));
 }
 
 void usage()
 {
-    printf("vaddaliasdomain: usage: [options] new_domain old_domain\n");
+    printf("vaddaliasdomain: usage: [options] alias_domain real_domain\n");
     printf("options: -v (print version number)\n");
 }
 
@@ -63,8 +62,8 @@ void get_options(int argc,char **argv)
  int c;
  int errflag;
 
-    memset(Domain_old, 0, MAX_BUFF);
-    memset(Domain_new, 0, MAX_BUFF);
+    memset(Domain_real, 0, sizeof(Domain_real));
+    memset(Domain_alias, 0, sizeof(Domain_alias));
 
     errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
@@ -79,21 +78,21 @@ void get_options(int argc,char **argv)
     }
 
     if ( optind < argc ) { 
-        strncpy(Domain_new, argv[optind], MAX_BUFF); 
+	snprintf(Domain_alias, sizeof(Domain_alias), "%s", argv[optind]);
         ++optind;
     }
 
     if ( optind < argc ) {
-        strncpy(Domain_old, argv[optind], MAX_BUFF);
+	snprintf(Domain_real, sizeof(Domain_real), "%s", argv[optind]);
         ++optind;
     }
 
-    if ( Domain_new[0] == 0 || Domain_old[0] == 0 ) { 
+    if ( Domain_alias[0] == 0 || Domain_real[0] == 0 ) { 
         usage();
         vexit(-1);
     }
 
-    if ( strcmp( Domain_old, Domain_new ) == 0 ) {
+    if ( strcmp( Domain_real, Domain_alias ) == 0 ) {
         printf("new domain and old domain are the same!\n");
         usage();
         vexit(-1);

@@ -36,7 +36,7 @@ int main()
 
 
 
-#define MAX_BUFF     500
+#define MAX_BUFF     256
 #define DEFAULT_AGE  180
 #define TOKENS ":\n"
 
@@ -54,9 +54,7 @@ void process_all_domains(time_t nowt);
 void deloldusers(char *Domain, time_t nowt);
 
 #ifdef ENABLE_AUTH_LOGGING
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  time_t nowt;
 
@@ -105,7 +103,7 @@ void get_options(int argc,char **argv)
  int c;
  int errflag;
 
-	memset(Domain, 0, MAX_BUFF);
+	memset(Domain, 0, sizeof(Domain));
 	Age = DEFAULT_AGE;
         EveryDomain = 0;
         Verbose = 0;
@@ -124,7 +122,7 @@ void get_options(int argc,char **argv)
                                 Verbose = 1;
 				break;
 			case 'd':
-				strncpy(Domain, optarg, MAX_BUFF);
+				snprintf(Domain, sizeof(Domain), "%s", optarg);
                                 EveryDomain = 0;
 				break;
 			case 'a':
@@ -132,7 +130,7 @@ void get_options(int argc,char **argv)
 				break;
 			case 'v':
 				printf("version: %s\n", VERSION);
-		        vexit(-1);
+		        	vexit(-1);
 				break;
 			default:
 				errflag = 1;
@@ -188,16 +186,17 @@ void process_all_domains(time_t nowt)
  char *tmpstr;
  char TmpBuf[MAX_BUFF];
 
-    snprintf(TmpBuf, MAX_BUFF, "%s/users/assign", QMAILDIR);
+    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign", QMAILDIR);
     if ((fs=fopen(TmpBuf, "r"))==NULL) {
         printf("could not open assign file %s\n", TmpBuf);
+	vexit(-1);
     }
 
-    while( fgets(TmpBuf, MAX_BUFF, fs) != NULL ) {
+    while( fgets(TmpBuf, sizeof(TmpBuf), fs) != NULL ) {
 	    if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
 
 	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-	    strncpy( Domain, tmpstr, MAX_BUFF);
+	    snprintf(Domain, sizeof(Domain), "%s", tmpstr); 
 
 	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
 

@@ -31,7 +31,7 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 #define MSG_BUF_SIZE  32768
 #define TOKENS ":\r\n"
 
@@ -40,6 +40,7 @@ static char CurDir[MAX_BUFF];
 static char ExcludeFile[MAX_BUFF];
 static char Domain[MAX_BUFF];
 static char TmpBuf[MAX_BUFF];
+
 static char MsgBuf[MSG_BUF_SIZE];
 
 static int Verbose;
@@ -59,9 +60,7 @@ int in_exclude_list( FILE *, char *, char *);
 void get_options(int argc,char **argv);
 void usage();
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  FILE *fsi = NULL;
  FILE *fsx = NULL;
@@ -71,8 +70,8 @@ int main(argc,argv)
  char *tmpstr;
  static struct stat statbuf;
 
-  memset(TmpBuf,0,MAX_BUFF);
-  memset(MsgBuf,0,MSG_BUF_SIZE);
+  memset(TmpBuf,0,sizeof(TmpBuf));
+  memset(MsgBuf,0,sizeof(MsgBuf));
 
 
   Verbose = 0;
@@ -85,7 +84,7 @@ int main(argc,argv)
 
   get_options(argc,argv);
 
-  getcwd(CurDir,MAX_BUFF);
+  getcwd(CurDir,sizeof(CurDir));
 
   if ( EmailFileFlag == 1 ) {
     if ( (fsi = fopen(EmailFile, "r")) == NULL ) {
@@ -118,7 +117,7 @@ int main(argc,argv)
     /* Process list of domains */
     domain = strtok(Domain, " ");
     while (domain != NULL ) {
-        if((vget_assign(domain, domain_dir, 156, NULL, NULL)) != NULL) {
+        if((vget_assign(domain, domain_dir, sizeof(domain_dir), NULL, NULL)) != NULL) {
             process_domain(domain,  fsi, fsx );
         } else {
             printf("Error: domain %s does not exist\n", domain);
@@ -130,13 +129,13 @@ int main(argc,argv)
   } else if ( (EmailFile[0] != 0 || DoNothing == 1)  && Domain[0] == 0 ) {
 
     /* Process ALL domains */
-    snprintf(TmpBuf, MAX_BUFF, "%s/users/assign",  QMAILDIR);
+    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign",  QMAILDIR);
     if ( (fsassign = fopen(TmpBuf, "r")) == NULL ) {
         perror("can not open assign file");
         vexit(0);
     }
 
-    while ( fgets(TmpBuf, 500, fsassign) != NULL ) {
+    while ( fgets(TmpBuf, sizeof(TmpBuf), fsassign) != NULL ) {
       if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
       if ( (domain=strtok(NULL, TOKENS)) == NULL ) continue;
       if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
@@ -157,7 +156,7 @@ int process_domain(domain, fsi, fsx )
  FILE *fsx;
 {
  char filename[MAX_BUFF];
- char hostname[128];
+ char hostname[MAX_BUFF];
  static struct vqpasswd *pwent;
  time_t tm;
  int pid;
@@ -166,7 +165,7 @@ int process_domain(domain, fsi, fsx )
 	gethostname(hostname,sizeof(hostname));
 	pid=getpid();
 	time (&tm);
-	sprintf(filename,"%lu.%lu.%s",(long unsigned)tm,
+	snprintf(filename, sizeof(filename), "%lu.%lu.%s",(long unsigned)tm,
 		(long unsigned)pid,hostname);
 
 	first = 1;
@@ -198,7 +197,7 @@ int copy_email( fs_file, name, domain, pwent)
  char *domain;
  struct vqpasswd *pwent;
 {
- static char tmpbuf[512];
+ static char tmpbuf[MAX_BUFF];
  static char tmpbuf1[MAX_BUFF];
  FILE *fs;
  int count;
@@ -212,7 +211,7 @@ int copy_email( fs_file, name, domain, pwent)
         }
     }
 
-	sprintf(tmpbuf, "%s/Maildir/new/%s", pwent->pw_dir, name );
+	snprintf(tmpbuf, sizeof(tmpbuf), "%s/Maildir/new/%s", pwent->pw_dir, name );
 	
 	if ( DeliveryMethod == COPY_IT ) {
 		rewind(fs_file);
@@ -227,12 +226,12 @@ int copy_email( fs_file, name, domain, pwent)
 		}
 		fclose(fs);
 	} else if ( DeliveryMethod == HARD_LINK_IT ) {
-		sprintf(tmpbuf1, "%s/%s", CurDir, EmailFile);
+		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( link( tmpbuf1, tmpbuf) < 0 ) {
 			perror("link");
 		}
 	} else if ( DeliveryMethod == SYMBOLIC_LINK_IT ) {
-		sprintf(tmpbuf1, "%s/%s", CurDir, EmailFile);
+		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( symlink( tmpbuf1, tmpbuf) < 0 ) {
 			perror("symlink");
 		}
@@ -244,8 +243,8 @@ int copy_email( fs_file, name, domain, pwent)
 
 int in_exclude_list( FILE *fsx, char *domain, char *user )
 {
- static char tmpbuf[512];
- static char emailaddr[512];
+ static char tmpbuf[MAX_BUFF];
+ static char emailaddr[MAX_BUFF];
  int  i;
 
 	if ( fsx == NULL ) {
@@ -253,9 +252,9 @@ int in_exclude_list( FILE *fsx, char *domain, char *user )
 	}
 	rewind(fsx);
 
-	sprintf(emailaddr, "%s@%s", user, domain);
+	snprintf(emailaddr, sizeof(emailaddr), "%s@%s", user, domain);
 
-	while (fgets(tmpbuf,512,fsx) != NULL) {
+	while (fgets(tmpbuf, sizeof(tmpbuf), fsx) != NULL) {
 		for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
 		if ( strcmp( tmpbuf, emailaddr ) == 0 ) {
 			return(1);
@@ -272,9 +271,9 @@ void get_options(int argc, char **argv)
  extern char *optarg;
  extern int optind;
 
-    memset(Domain, 0, MAX_BUFF);
-    memset(EmailFile, 0, MAX_BUFF);
-    memset(ExcludeFile, 0, MAX_BUFF);
+    memset(Domain, 0, sizeof(Domain));
+    memset(EmailFile, 0, sizeof(EmailFile));
+    memset(ExcludeFile, 0, sizeof(ExcludeFile));
 
     errflag = 0;
     EmailFileFlag = 0;
@@ -295,11 +294,11 @@ void get_options(int argc, char **argv)
                 break;
             case 'f':
                 EmailFileFlag = 1;
-                strncpy( EmailFile, optarg, MAX_BUFF-1);
+		snprintf(EmailFile, sizeof(EmailFile), "%s", optarg);
                 break;
             case 'e':
                 ExcludeFileFlag = 1;
-                strncpy( ExcludeFile, optarg, MAX_BUFF-1);
+		snprintf(ExcludeFile, sizeof(ExcludeFile), "%s", optarg);
                 break;
             case 'h':
                 DeliveryMethod = HARD_LINK_IT; 
@@ -321,8 +320,8 @@ void get_options(int argc, char **argv)
 
     n = 0;
     while ( optind < argc ) { 
-        if((n=1)) strncat(Domain, " ", MAX_BUFF);
-        strncat(Domain, argv[optind], MAX_BUFF);
+        if((n=1)) strncat(Domain, " ", sizeof(Domain)-strlen(Domain)-1);
+        strncat(Domain, argv[optind], sizeof(Domain)-strlen(Domain)-1);
         n = 1;
         ++optind;
     }
