@@ -2,6 +2,10 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
+        Rick Widmer - 13 May 2004
+        vpopmail
+        - Add 'Expert' bit to gid flags.  Users with this bit set will
+          be able to edit .qmail files from within qmailadmin. 
 
         Rick Widmer - 29 Apr 2004
         vpopmail
@@ -19,6 +23,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
           (int)s into many compares and a few function declarations.
  
         vpopmaild
+        - Add compact output mode to login command.  If you login with
+          'login user@domain.ext password compact' vpopmaild returns the
+          flags field name and its numeric value, resulting in much 
+          smaller output, but requiring the client to do the bitmap
+          decoding.  Currently this only affects user_info() but may
+          be added to any other bitmap decode operations.
         - Add add_alias_domain command
         - Finish dom_info command
         - delete get_lastauthip command
