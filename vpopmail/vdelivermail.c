@@ -755,6 +755,9 @@ int check_forward_deliver(char *dir)
          * then skip this line
          */
         if ( strcmp( qmail_line, tmpbuf) == 0 ) continue;
+        /* check for &user@example.com as well */
+        if ((*qmail_line == '&') && (strcmp (qmail_line + 1, tmpbuf) == 0))
+            continue;
 
         deliver_err = deliver_mail(qmail_line, "NOQUOTA");
         if (deliver_err == -2) {
@@ -1089,12 +1092,12 @@ void usernotfound()
 
     /* check if it is a path add the /Maildir/ for delivery */
     if ( bounce[0] == '/' ) {
-        strcat( bounce, "/");
+        if (bounce[strlen(bounce)-1] != '/') strcat( bounce, "/");
         printf ("user does not exist, but will deliver to %s\n", bounce);
         if( check_forward_deliver(bounce) == 1 )
             vexit(0);
         else
-            strcat( bounce, "/Maildir/");
+            strcat( bounce, "Maildir/");
     }
 
     ret = deliver_mail(bounce, "NOQUOTA" );
