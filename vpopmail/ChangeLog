@@ -4,6 +4,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.5.2 - unreleased
 
         Rick Widmer
+        - sort entries added to the qmail control files:
+          rcpthosts, morercpthosts, virtualdomains, users/assign
+          See the note in README!
         - add support for Tom's get_domain_entries() function
           vdelolddomains, vpopbull, vdominfo and vpopmaild have 
           been updated.  vdotqmail2valias and vconvert have not 

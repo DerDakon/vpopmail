@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.12 2004-04-26 08:04:16 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.13 2004-04-26 10:21:26 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -135,7 +135,7 @@ int add_user_assign( char *, char *);
 int del_user_assign( char *);
 void lowerit( char *);
 char *crypt();
-int update_file(char *, char *);
+int update_file(char *, char *, int);
 int count_rcpthosts();
 int compile_morercpthosts();
 char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid);

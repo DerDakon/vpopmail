@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.35 2004-04-26 08:04:16 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.36 2004-04-26 10:21:26 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -873,7 +873,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
     alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
 
   /* update the file and add the above line and remove duplicates */
-  if (update_file(tmpstr1, tmpstr2) !=0 ) {
+  if (update_file(tmpstr1, tmpstr2, 1) !=0 ) {
    fprintf (stderr, "Failed while attempting to update_file() the assign file\n");
    return (-1);
   }
@@ -894,7 +894,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
    */
   if ( count_rcpthosts() >= 50 ) {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/morercpthosts", QMAILDIR);
-    if (update_file(tmpstr1, alias_domain) !=0) {
+    if (update_file(tmpstr1, alias_domain, 2) !=0) {
       fprintf (stderr, "Failed while attempting to update_file() the morercpthosts file\n");
       return (-1);
     }
@@ -906,7 +906,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   /* or just add to rcpthosts */
   } else {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/rcpthosts", QMAILDIR);
-    if (update_file(tmpstr1, alias_domain) != 0) {
+    if (update_file(tmpstr1, alias_domain, 2) != 0) {
       fprintf (stderr, "Failed while attempting to update_file() the rcpthosts file\n");
       return (-1);
     }
@@ -917,7 +917,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   /* Add to virtualdomains file and remove duplicates  and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/virtualdomains", QMAILDIR );
   snprintf(tmpstr2, sizeof(tmpstr2), "%s:%s", alias_domain, alias_domain );
-  if (update_file(tmpstr1, tmpstr2) !=0 ) {
+  if (update_file(tmpstr1, tmpstr2, 3) !=0 ) {
     fprintf (stderr, "Failed while attempting to update_file() the virtualdomains file\n");
     return (-1);
   };
@@ -1540,7 +1540,109 @@ void lowerit(char *instr )
 
 /************************************************************************/
 
-int update_file(char *filename, char *update_line)
+int extract_domain(char *domain, char *update_line, int file_type )
+{
+int i,j;
+char *parts[10];
+char *t, *u;
+char tmpbuf[MAX_BUFF];
+
+
+//  fprintf( stderr, "extract_domain - line: %s\n", update_line );
+
+  i=0;
+
+  //  If users/assign - need to start at first character
+  if( 1 == file_type ) {
+    j=1;
+  } else {
+    j=0;
+  }
+
+  //  Chop our string off at the first :
+  while( j < MAX_BUFF && 
+         0 != update_line[j] && 
+         ':' != update_line[j] ) {
+     domain[i++] = update_line[j++];  
+     }
+
+  //  If users/assign - need to delete last character
+  if( 1 == file_type ) {
+    domain[--i] = 0;
+  } else {
+    domain[i] = 0;
+  }
+
+//  fprintf( stderr, "extract_domain - result: %s\n", domain );
+
+
+  //  Take the domain name string apart on '.'s.
+  i=0;
+  strcpy(tmpbuf, domain);
+
+  t = strtok( tmpbuf, "." );
+  while( t && i < 10 ) {
+    parts[i++] = t;
+    t = strtok( NULL, "." );
+  }
+
+  //  Get a look at the array before shuffle
+//  for(j=0;j<i;j++) {
+//    fprintf( stderr, "extract_domain - i: %d part: %s\n", j, parts[j] );
+//  }
+  
+  //  Juggle the order of stuff in the domain name
+
+  //  Save the last two terms
+  t = parts[--i];
+  u = parts[--i];
+
+  //  Make room for two elements at the beginning of the name
+  for(j=0;j<i;j++) {
+    parts[j+2]=parts[j];
+  }
+
+  //  Put the parts you saved back in the beginning of the domain name
+#ifdef SORTTLD
+  parts[0] = t;
+  parts[1] = u;
+#else
+  parts[0] = u;
+  parts[1] = t;
+#endif
+
+  i=i+2;
+
+  //  Clean out the domain variable
+  for(j=0;j<MAX_BUFF;j++) {
+    domain[j] = 0;
+  }
+
+  //  Get one last look at the array before assembling it
+//  for(j=0;j<i;j++) {
+//    fprintf( stderr, "extract_domain - modified i: %d part: %s\n", 
+//             j, parts[j] );
+//  }
+  
+  //  Copy the first term into the domain name
+  strcpy(domain, parts[0] );
+
+  //  Copy the rest of the terms into the domain name
+  for(j=1;j<i;j++) {
+    strncat( domain, ".", MAX_BUFF );
+    strncat( domain, parts[j], MAX_BUFF );
+  }
+  
+
+//  fprintf( stderr, "extract_domain - final result: %s\n", domain );
+
+return 0;
+}
+
+
+/************************************************************************/
+
+int update_file(char *filename, char *update_line, int file_type )
 {
  FILE *fs = NULL;
  FILE *fs1 = NULL;
@@ -1549,8 +1651,15 @@ int update_file(char *filename, char *update_line)
 #endif
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
- int user_assign = 0;
- int i;
+ int i, x=0;
+ char new_domain[MAX_BUFF];
+ char cur_domain[MAX_BUFF];
+ int hit = 0;
+
+//  fprintf( stderr, "\n***************************************\n" 
+//                   "update_file - line: %s\n", update_line );
+
+  extract_domain( new_domain, update_line, file_type );
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
@@ -1585,24 +1694,44 @@ int update_file(char *filename, char *update_line)
   }
 
   while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
-    snprintf(tmpbuf2, sizeof(tmpbuf2), "%s", tmpbuf1);
+
+    //  Trim \n off end of line.
     for(i=0;tmpbuf1[i]!=0;++i) {
       if (tmpbuf1[i]=='\n') {
         tmpbuf1[i]=0;
       }
     }
 
-    /* special case for users/assign */
-    if ( strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
+    //  Don't paint the last line of users/assign from the file
+    if ( 1 == file_type && strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
+      continue;
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    extract_domain( cur_domain, tmpbuf1, file_type );
+   
+    if( 0 == hit && ( x=strncmp(cur_domain, new_domain, MAX_BUFF)) > 0  ) {
+//      fprintf( stderr, "HIT!\n" );
+      hit=1;
       fprintf(fs1, "%s\n", update_line);
-      user_assign = 1;
-    } else if ( strncmp(tmpbuf1, update_line, sizeof(tmpbuf1)) != 0 ) {
-      fputs(tmpbuf2, fs1);
-      }
+    }
+
+//    fprintf( stderr, "UpdateUsers - cur_domain: %s new_domain: %s x: %i\n", 
+//             cur_domain, new_domain, x );
+
+    fprintf(fs1, "%s\n", tmpbuf1);
   }
 
-  if ( user_assign == 1 ) fprintf(fs1, ".\n");
-  else fprintf(fs1, "%s\n", update_line);
+  if( 0 == hit ) {
+//    fprintf( stderr, "Add at end\n" );
+    fprintf(fs1, "%s\n", update_line);
+    }
+
+  //  Now we print the period line to users/assign, if needed
+  if( 1 == file_type ) {
+    fprintf(fs1, ".\n");
+  }
 
   fclose(fs);
   fclose(fs1);
