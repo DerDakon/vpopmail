@@ -14,6 +14,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Temporarily disable -s option to vadduser (since it's broken).
 	  [895375]
 
+	Anders Brander
+	- Add contrib/checkpassword_debug.[README,c] for testing and
+	  debugging problems with vchkpw. [862608]
+
 5.4.1 - released 10-Feb-04
 
 	Tom Collins
