@@ -1,5 +1,5 @@
 /*
- * $Id: vsetuserquota.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vsetuserquota.c,v 1.3 2004-03-01 05:38:07 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -144,12 +144,7 @@ void get_options(int argc,char **argv)
 
         /* Grab the quota */
 	if ( optind < argc ) {
-		snprintf(Quota, sizeof(Quota), "%s", argv[optind]);
-		for(c=0;Quota[c]!=0;++c){
-			if ( islower((int)Quota[c]) ) {
-				Quota[c] = (char)toupper((int)Quota[c]);
-			}
-		}
+		snprintf(Quota, sizeof(Quota), "%s", format_maildirquota(argv[optind]));
 		++optind;
 	}
 
