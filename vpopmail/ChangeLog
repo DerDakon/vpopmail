@@ -19,6 +19,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  determine where the roaming IPs were being stored [876016]
 	- Update INSTALL and other guides to mention that vchkpw group
 	  does not need to be gid 89. [877154]
+	- Update README.pgsql to include security warning regarding
+	  the postgres username/password [879124]
 
 	Ken Nonaka
 	- Fixes to vpgsql.c to clear compile errors when 

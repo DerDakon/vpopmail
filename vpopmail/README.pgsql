@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.8 2004-01-16 11:22:13 mbowe Exp $
+   $Id: README.pgsql,v 1.9 2004-01-19 19:56:40 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -17,6 +17,16 @@ A QUICK GUIDE TO VPOPMAIL WITH POSTGRESQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Full doc available from :
 http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-postgresql.htm
+
+Note :
+  You should not permit end-users to have shell access to this server.
+  PostgreSQL by default allows any local user to access any database on 
+  the server. You can certainly tighten the security of the default 
+  PostgreSQL installation, but it is pretty much futile considering that 
+  vpopmail stores the PostgresSQL login/pass in the "libvpopmail.a" file. 
+  It is straightforward for any knowledgeable local user to be able to 
+  extract the user/pass from this file
+
 
 PostgreSQL:
 
