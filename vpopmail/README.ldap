@@ -123,7 +123,7 @@ comments you will not find them in vldap.h :) )
                                      // setting from /etc/openldap/slapd.conf
 --------
 then type 
-"./configure --enable-ldap=y " and that "should" setup ldap in vpopmail 
+"./configure --enable-auth-module=ldap " and that "should" setup ldap in vpopmail 
 without hasle :) 
 "make" "make install" and that should get you to running version of vpopmail
 in ~vpopmail/bin dir 

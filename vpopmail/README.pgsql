@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.3 2003-11-21 12:10:08 mbowe Exp $
+   $Id: README.pgsql,v 1.4 2003-12-19 11:04:46 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -109,7 +109,7 @@ Now, build the program with a configure something like this :
 	  --enable-passwd=n \
 	  --enable-clear-passwd=y \
 	  --enable-domain-quotas=n \
-	  --enable-postgres=y \
+	  --enable-auth-module=pgsql \
 	  --enable-many-domains=n \
 	  --enable-auth-logging=y \
 	  --enable-pgsql-logging=y \
