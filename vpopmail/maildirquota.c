@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.4 2003-11-20 22:56:29 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.5 2003-12-07 16:18:29 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -176,7 +176,7 @@ struct dirent *de;
 	return 0;
 }
 
-int readuserquota(const char* dir, long *sizep, int *cntp)
+int wrapreaduserquota(const char* dir, off_t *sizep, int *cntp)
 {
 time_t	tm;
 time_t	maxtime;
@@ -248,6 +248,16 @@ struct dirent *de;
 	errno=0;
 
 	return 0;
+}
+int readuserquota(const char* dir, long *sizep, int *cntp)
+{
+	int retval;
+	off_t s;
+	
+	s = (off_t) *sizep;
+	retval = wrapreaduserquota(dir, &s, cntp);
+	*sizep = (long) s;
+	return retval;
 }
 
 int user_over_maildirquota( const char *dir, const char *q)
