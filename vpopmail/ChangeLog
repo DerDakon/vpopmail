@@ -8,6 +8,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- Check for comments earlier in deliver_mail().
+	- Remove unused --enable-defaultquota and code related to it.
+	  (Replaced by settings in vlimits.default.)
 
 5.4.0-rc1 - released 1-Jan-04
 
