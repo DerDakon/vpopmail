@@ -950,7 +950,7 @@ case $AUTH_MODULE in
         AC_MSG_ERROR([Unable to find your MySQL lib dir, specify --enable-libdir.])
     fi
 
-    auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
+    auth_libs="-L$libdir $extralibflags -lmysqlclient -lz -lm"
     AC_SUBST(auth_libs)
     ;;
 
