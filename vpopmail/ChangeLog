@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.8 - unreleased
 
+	Rick Widmer
+	- vadddomain: Check for existing domain before prompting for
+	  password.
+
 	Tom Collins
 	- Fix problems with valias code in vmysql.c and vpgsql.c.  Storing
 	  aliases in Postgres should work now, and it should fix problems
