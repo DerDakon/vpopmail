@@ -1,5 +1,5 @@
 /* 
- * $Id: vldap.c,v 1.8 2003-10-16 22:41:13 tomcollins Exp $
+ * $Id: vldap.c,v 1.9 2003-11-02 11:53:28 jheesemann Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -287,7 +287,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   } 
 #endif
 
-  if ((! vpw->pw_gid && V_OVERRIDE)
+  if ((! vpw->pw_gid & V_OVERRIDE)
     && (vget_limits (domain, &limits) == 0)) {
       vpw->pw_flags = vpw->pw_gid | vlimits_get_flag_mask (&limits);
   } else vpw->pw_flags = vpw->pw_gid;
