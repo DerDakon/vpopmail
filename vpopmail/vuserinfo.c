@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.4.2.1 2004-06-11 04:55:50 tomcollins Exp $
+ * $Id: vuserinfo.c,v 1.4.2.2 2004-10-19 17:43:10 tomcollins Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -208,7 +208,7 @@ void get_options(int argc, char **argv)
 				DisplayAll = 0;
 				break;
 			case 'a':
-				DisplayAll = 0;
+				DisplayAll = 1;
 				break;
 			default:
 				errflag = 1;
@@ -277,6 +277,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("name:   %s\n", mypw->pw_name);
         printf("passwd: %s\n", mypw->pw_passwd);
         printf("clear passwd: %s\n", mypw->pw_clear_passwd);
+        printf("comment/gecos: %s\n", mypw->pw_gecos);
         printf("uid:    %lu\n", (long unsigned)mypw->pw_uid);
         printf("gid:    %lu\n", (long unsigned)mypw->pw_gid);
         printf("flags:  %lu\n", (long unsigned)mypw->pw_flags);

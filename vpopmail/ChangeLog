@@ -16,6 +16,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix bug in vmoddomlimits that wiped out the Domain Quota 
 	  when editing default limits.
 
+	Gentoo Port
+	- Integrate vuserinfo patch to fix the -a option and to display 
+	  the comment/gecos field (used for "real name").
+
 5.4.7 - released 23-Sep-04
 
 	Michael Bowe
