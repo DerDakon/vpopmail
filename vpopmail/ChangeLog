@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.0-pre2 - unreleased
 
+	*** Note that the configure option for setting the authentication
+	*** module has changed.  Instead of --enable-mysql, use
+	*** --enable-auth-module=mysql.
+
 	Casey Zacek
 	- Keep vlimits_setflags() in vlimits.c when mysql-limits is
 	  enabled. [858109]
@@ -10,7 +14,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- open_smtp_relay(): fix address conversion of '::ffff:127.0.0.1'
-	  ip format. [858586]
+	  ip format, move code to function and replace calls to
+	  getenv("TCPREMOTEIP"). [858586]
+	- When optimizing adddomain, rebuild users/cdb after each addition
+	  instead of postponing. [859707, temporary fix]
+	- Move maildir_to_email() from vdelivermail.c into vpopmail.c,
+	  replace dupe code that tries to do the same thing. [859098]
 
 	Michael Bowe
 	- Revise configure script so choice of auth module is now "OR" 
