@@ -28,6 +28,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- md5.h: use cdb/uint32.h (built by configure)  for defining 
 	  uint32. [1144851]
 	- vpopmail.c: fix vauth_user() to not clobber pw_uid and pw_gid.
+	- vpopmail.c: If setting user quota for new user fails because newly
+	  created user does not exist, sleep 5 seconds and try again.  
+	  (This can happen on servers using MySQL replication.)
 
 	Michael Bowe
 	- configure.in: fix typo of where the configure script says it
