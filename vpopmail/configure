@@ -72,7 +72,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-log-name=TEXT     Set syslog name [vpopmail]."
 ac_help="$ac_help
-  --enable-auth-logging      Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir."
+  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir."
 ac_help="$ac_help
   --enable-mysql-logging     Enable authentication logging to MySQL.  Uses setting from --enable-auth-logging."
 ac_help="$ac_help
@@ -613,7 +613,7 @@ fi
 
 
 PACKAGE="vpopmail"
-VERSION="5.4.0-pre2"
+VERSION="5.4.0-rc1"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -4925,10 +4925,10 @@ esac
 
 case $ENABLE_AUTH_LOGGING in
   1*|y*|Y*)
-    echo "      auth logging = ON  --enable-auth-logging"
+    echo "      auth logging = ON  --enable-auth-logging (default)"
     ;;
   *)
-    echo "      auth logging = OFF --disable-auth-logging (default)"
+    echo "      auth logging = OFF --disable-auth-logging"
     ;;
 esac
 

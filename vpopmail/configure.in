@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
 
 PACKAGE="vpopmail"
-VERSION="5.4.0-pre2"
+VERSION="5.4.0-rc1"
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_CONFIG_HEADER(config.h)
@@ -1189,7 +1189,7 @@ AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
 
 AC_MSG_CHECKING(whether auth-logging is enabled)
 AC_ARG_ENABLE(auth-logging,
-        [  --enable-auth-logging      Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
+        [  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
         ENABLE_AUTH_LOGGING=$enableval,
                 [
                         ENABLE_AUTH_LOGGING=y
@@ -1699,10 +1699,10 @@ esac
 
 case $ENABLE_AUTH_LOGGING in
   1*|y*|Y*)
-    echo "      auth logging = ON  --enable-auth-logging"
+    echo "      auth logging = ON  --enable-auth-logging (default)"
     ;;
   *)
-    echo "      auth logging = OFF --disable-auth-logging (default)"
+    echo "      auth logging = OFF --disable-auth-logging"
     ;;
 esac
 
