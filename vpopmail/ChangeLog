@@ -8,6 +8,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  aliases in Postgres should work now, and it should fix problems
 	  with processing Maildir valias entries in vdelivermail. [985011,
 	  1024706, 1033801]
+	- Fix bug in vmoddomlimits that wiped out the Domain Quota 
+	  when editing default limits.
 
 5.4.7 - released 23-Sep-04
 

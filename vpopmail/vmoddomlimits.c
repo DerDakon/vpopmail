@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.8 2004-01-23 15:45:33 tomcollins Exp $
+ * $Id: vmoddomlimits.c,v 1.8.2.1 2004-10-18 05:35:06 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -473,6 +473,7 @@ void get_options(int argc,char **argv)
             case 'd':
                 EditDefaultLimits = 1;
                 snprintf(Domain, sizeof(Domain), "Default limits: %s", VLIMITS_DEFAULT_FILE);
+                break;
             case 'Q':
                 snprintf(DomainQuota, sizeof(DomainQuota), "%s", optarg);
                 break;
