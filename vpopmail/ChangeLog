@@ -22,6 +22,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- configure.in: fix typo of where the configure script says it
 	  is checking for qmail-inject when in fact it was checking for
 	  qmail-newmrh 
+	- Documentation updates to README.roamingusers. Mention the 
+	  requirement of tcpserver for POP-before-SMTP. Also include
+	  some documentation on IMAP-before-SMTP. [1110269]
 
 5.4.9 - released 26-Dec-04
 
