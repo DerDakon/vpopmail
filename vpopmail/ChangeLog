@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.30 - unreleased
+5.3.30 - 20-Nov-03
 
 	Michael Bowe
 	- Fixed logic error in update_rules(), to prevent "update_rules
@@ -35,6 +35,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Bill Shupp
 	- Set uid/gid when creating maildirsize in vuserinfo. [832588,832592]
+
+	Dmitry Vodennikov
+	- Save/restore current working directory before/after calling
+	  vdelfiles() in vdeldomain(). [835724]
 
 5.3.29 - 20-Oct-03
 

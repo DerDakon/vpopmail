@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.16 2003-11-02 05:41:18 mbowe Exp $
+ * $Id: vpopmail.c,v 1.17 2003-11-20 22:44:07 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -397,8 +397,11 @@ int vdeldomain( char *domain )
          */
       }
     } else {
+      char cwdbuff[MAX_BUFF];
+      char *cwd
       /* Not a symlink.. so we have to del some files structure now */
       /* zap the domain's directory tree */
+      cwd = getcwd (cwdbuff, sizeof(cwdbuff));  /* save calling directory */
       if ( vdelfiles(Dir) != 0 ) {
         fprintf(stderr, "Failed to delete directory tree: %s\n", domain);
         /* Michael Bowe 23rd August 2003
@@ -408,6 +411,7 @@ int vdeldomain( char *domain )
          * calling function?
          */
       }
+      if (cwd != NULL) chdir (cwd);
     }
 
     /* decrement the master domain control info */
