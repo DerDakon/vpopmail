@@ -1,8 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
-AM_INIT_AUTOMAKE(vpopmail,5.3.31)
+AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
+
+PACKAGE="vpopmail"
+VERSION="5.3.31"
 
 dnl Checks for programs.
 AC_PROG_CC
