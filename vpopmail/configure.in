@@ -207,18 +207,6 @@ case "$host" in
     ;;
 esac
 
-
-#----------------------------------------------------------------------
-
-if test ! -d $vpopmaildir/etc
-then
-  mkdir $vpopmaildir/etc
-  chown $vpopmailuid "$vpopmaildir"/etc
-  chgrp $vpopmailgid "$vpopmaildir"/etc
-  chmod 755 "$vpopmaildir"/etc
-  AC_MSG_WARN( making a vpopmail etc directory )
-fi
-
 #----------------------------------------------------------------------
 
 AC_MSG_CHECKING(whether we can locate the qmail directory)
@@ -467,6 +455,25 @@ vpopmailgid=`cat vpopmail.gid`
 AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid,"")
 rm -f vpopmail.gid
 rm -f vpopusername
+
+#----------------------------------------------------------------------
+
+if test ! -d $vpopmaildir/etc
+then
+  if test ! -d $vpopmaildir
+  then
+    AC_MSG_WARN( creating $vpopmaildir )
+    mkdir -p $vpopmaildir
+    chown $vpopmailuid $vpopmaildir
+    chgrp $vpopmailgid $vpopmaildir
+    chmod 755 $vpopmaildir
+  fi
+  AC_MSG_WARN( making a vpopmail etc directory )
+  mkdir $vpopmaildir/etc
+  chown $vpopmailuid "$vpopmaildir"/etc
+  chgrp $vpopmailgid "$vpopmaildir"/etc
+  chmod 755 "$vpopmaildir"/etc
+fi
 
 #----------------------------------------------------------------------
 

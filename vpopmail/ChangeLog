@@ -5,6 +5,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- Link math lib when compiling for MySQL.
+	- Create ~vpopmail and ~vpopmail/etc in configure script. [930939]
+	  Note that any code creating files in ~vpopmail should probably
+	  be moved from configure and into Makefile (under make install).
 
 5.4.3 - released 11-Mar-04
 
