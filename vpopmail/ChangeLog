@@ -6,6 +6,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- Don't try to delete dir-control for domain unless users-big-dir
 	  is enabled.
+	- Verify user exists before trying to set quota in vsetuserquota().
+	  [984698]
 
 5.4.6 - released 30-Jun-04
 
