@@ -484,7 +484,7 @@ int mod_user()
   } 
 
   /* domain administrator */
-  if ( AuthVpw.pw_gid&QA_ADMIN ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,TmpDomain)!= 0 )  {
