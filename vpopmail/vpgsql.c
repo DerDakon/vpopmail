@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.3 2004-06-26 02:20:56 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.4 2004-10-07 19:40:24 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,6 @@ void vcreate_relay_table();
 #endif
 
 #ifdef VALIAS
-PGresult *pgvalias = NULL;
 void vcreate_valias_table();
 #endif
 
@@ -1216,17 +1215,23 @@ void vcreate_lastauth_table()
 #endif /* ENABLE_AUTH_LOGGING */
 
 #ifdef VALIAS
+struct linklist *valias_current = NULL;
+
 char *valias_select( char *alias, char *domain )
 {
+  PGresult *pgvalias;
   int err, verrori;
+  unsigned ntuples, ctuple;
+  struct linklist *temp_entry = NULL;
+
+  /* remove old entries as necessary */
+  while (valias_current != NULL)
+    valias_current = linklist_del (valias_current);
 
   if ( (err=vauth_open()) != 0 ) {
     verrori = err;
     return(NULL);
   }
-
-  /* if we're already in a query, clear it out before starting a new one */
-  if (pgvalias) PQclear(pgvalias);
 
   qnprintf( SqlBufRead, SQL_BUF_SIZE, 
 	    "select valias_line from valias where alias='%s' and domain='%s'",
@@ -1243,17 +1248,27 @@ char *valias_select( char *alias, char *domain )
       return(NULL);
     }
   }
-  
-  return valias_select_next();
+
+  ntuples = PQntuples (pgvalias);
+  for (ctuple = 0; ctuple < ntuples; ctuple++) {
+    temp_entry = linklist_add (temp_entry, PQgetvalue (pgvalias, ctuple, 0), "");
+    if (valias_current == NULL) valias_current = temp_entry;
+  }
+  PQclear (pgvalias);
+  pgvalias = NULL;
+
+  if (valias_current == NULL) return NULL; /* no results */
+  else return(valias_current->data);
 }
 
 char *valias_select_next()
 {
-  if ( PQntuples(pgvalias) > 0 ) {
-    return( PQgetvalue( pgvalias, 0, 0 ) );
-  }
-  if(pgvalias) PQclear(pgvalias);
-  return(NULL);
+  if (valias_current == NULL) return NULL;
+
+  valias_current = linklist_del (valias_current);
+
+  if (valias_current == NULL) return NULL; 
+  else return valias_current->data; 
 }
 
 int valias_insert( char *alias, char *domain, char *alias_line)
@@ -1391,6 +1406,12 @@ char *valias_select_all( char *alias, char *domain )
 {
   PGresult *pgres;
   int err;
+  unsigned ntuples, ctuple;
+  struct linklist *temp_entry = NULL;
+
+  /* remove old entries as necessary */
+  while (valias_current != NULL)
+    valias_current = linklist_del (valias_current);
 
   if ( (err=vauth_open()) != 0 ) return(NULL);
 
@@ -1409,17 +1430,32 @@ char *valias_select_all( char *alias, char *domain )
       return(NULL);
     }
   }
-  if ( PQntuples(pgres) > 0 ) {
-    strcpy( alias, PQgetvalue( pgres, 0, 0 ) );
-    return( PQgetvalue( pgres, 0, 1 ) );
+
+  ntuples = PQntuples (pgres);
+  for (ctuple = 0; ctuple < ntuples; ctuple++) {
+    temp_entry = linklist_add (temp_entry, PQgetvalue (pgres, ctuple, 1), PQgetvalue (pgres, ctuple, 0));
+    if (valias_current == NULL) valias_current = temp_entry;
   }
-  if(pgres) PQclear(pgres);
-  return(NULL);
+  PQclear (pgres);
+  pgres = NULL; 
+
+  if (valias_current == NULL) return NULL; /* no results */
+  else {
+    strcpy (alias, valias_current->d2);
+    return(valias_current->data);
+  }
 }
 
 char *valias_select_all_next(char *alias)
 {
-  /* moved to last bit of valias_select_all */
+  if (valias_current == NULL) return NULL;
+  valias_current = linklist_del (valias_current);
+     
+  if (valias_current == NULL) return NULL; 
+  else {
+    strcpy (alias, valias_current->d2);
+    return valias_current->data; 
+  }
 }
 #endif
 

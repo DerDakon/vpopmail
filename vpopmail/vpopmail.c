@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.8 2004-08-27 17:57:45 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.9 2004-10-07 19:40:24 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3250,5 +3250,40 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	}
 	
 	return printed;
+}
+
+/* Linked-list code for handling valias entries in SQL database (read
+ * all entries into memory, close connection to DB, return one entry
+ * at a time, freeing old entries as we go.)
+ *
+ * linklist_{add|del} written September 2004 by Tom Collins <tom@tomlogic.com>
+ */
+
+/* create a new entry for data, point list->next to it and return a pointer to it */
+struct linklist * linklist_add (struct linklist *list, const char *d1, const char *d2) {
+	size_t dlen;
+	int i;
+	struct linklist *entry;
+	
+	dlen = strlen (d1) + 1 + strlen (d2);
+	/* new entry to hold string, NULL and a pointer to the next entry */
+	entry = (struct linklist *) malloc (dlen + 1 + sizeof(struct linklist*) + sizeof(char *));
+	if (entry != NULL) {
+		if (list != NULL) list->next = entry;
+		entry->next = NULL;
+		i = sprintf (entry->data, "%s", d1);
+		entry->d2 = &entry->data[i+1];
+		sprintf (entry->d2, "%s", d2);
+	}
+	return entry;
+}
+
+/* delete the passed entry and return a pointer to the next entry */
+struct linklist * linklist_del (struct linklist *list) {
+	struct linklist *next;
+	
+	next = list->next;
+	free (list);
+	return next;
 }
 

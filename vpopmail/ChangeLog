@@ -3,6 +3,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.8 - unreleased
 
+	Tom Collins
+	- Fix problems with valias code in vmysql.c and vpgsql.c.  Storing
+	  aliases in Postgres should work now, and it should fix problems
+	  with processing Maildir valias entries in vdelivermail.
+
 5.4.7 - released 23-Sep-04
 
 	Michael Bowe

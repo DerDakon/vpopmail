@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.2 2004-06-26 02:20:56 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.3 2004-10-07 19:40:24 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1199,9 +1199,16 @@ void vcreate_lastauth_table()
 #endif /* ENABLE_AUTH_LOGGING */
 
 #ifdef VALIAS
+struct linklist *valias_current = NULL;
+
 char *valias_select( char *alias, char *domain )
 {
  int err;
+ struct linklist *temp_entry = NULL;
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
 
     /* if we can not connect, set the verrori value */
     if ( (err=vauth_open_read()) != 0 ) {
@@ -1219,16 +1226,24 @@ where alias = '%s' and domain = '%s'", alias, domain );
         }
     }
     res_read = mysql_store_result(&mysql_read);
-    return(valias_select_next());
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[0], "");
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else return(valias_current->data);
 }
 
 char *valias_select_next()
 {
-    if((row = mysql_fetch_row(res_read))) {
-        return(row[0]);
-    }
-    mysql_free_result(res_read);
-    return(NULL);
+    if (valias_current == NULL) return NULL;
+
+    valias_current = linklist_del (valias_current);
+
+    if (valias_current == NULL) return NULL;
+    else return valias_current->data;
 }
 
 int valias_insert( char *alias, char *domain, char *alias_line)
@@ -1321,6 +1336,11 @@ void vcreate_valias_table()
 char *valias_select_all( char *alias, char *domain )
 {
  int err;
+ struct linklist *temp_entry = NULL;
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
 
     if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
@@ -1335,17 +1355,29 @@ char *valias_select_all( char *alias, char *domain )
         }
     }
     res_read = mysql_store_result(&mysql_read);
-    return(valias_select_all_next(alias));
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[1], row[0]);
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
 }
 
 char *valias_select_all_next(char *alias)
 {
-    if((row = mysql_fetch_row(res_read))) {
-        strcpy( alias, (row[0]));
-        return(row[1]);
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+            
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
     }
-    mysql_free_result(res_read);
-    return(NULL);
 }
 #endif
 
