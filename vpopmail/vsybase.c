@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vsybase.c,v 1.10 2004-02-22 22:45:00 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ static int is_open = 0;
 static LOGINREC *login;
 static DBPROCESS *dbproc;
 
-#define SQL_BUF_SIZE 600
+#define SQL_BUF_SIZE 2048
 static char SqlBuf[SQL_BUF_SIZE];
 static char SqlBuf1[SQL_BUF_SIZE];
 

@@ -60,7 +60,7 @@ typedef struct { unsigned short len; unsigned char arr[1]; } VARCHAR;
 
 static int update_open = 0;
 
-#define SQL_BUF_SIZE 600
+#define SQL_BUF_SIZE 2048
 EXEC SQL BEGIN DECLARE SECTION;
   char SqlBufRead[SQL_BUF_SIZE];
   char SqlBufUpdate[SQL_BUF_SIZE];

@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20 2004-02-11 15:40:17 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.21 2004-02-22 22:45:00 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ static PGconn *pgc_read_getall;
 static PGconn *pgc; /* pointer to pgsql connection */
 static int is_open = 0;
 
-#define SQL_BUF_SIZE 600
+#define SQL_BUF_SIZE 2048
 static char SqlBufRead[SQL_BUF_SIZE];
 static char SqlBufUpdate[SQL_BUF_SIZE];
 static char SqlBufCreate[SQL_BUF_SIZE];
