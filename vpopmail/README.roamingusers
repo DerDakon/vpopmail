@@ -102,15 +102,16 @@ for a small to medium sized server, POP-before-SMTP is still quite a workable
 option. If you would like investigate the use of SMTP-Auth, take a look at this
 patch http://www.fehcom.de/qmail/smtpauth.html#PATCHES  
 
-IMAP-before-SMTP is possible when using Courier-IMAP v3.0.0 or later.
-However it only works when Courier-IMAP is configured "--with-authvchkpw 
---without-authdaemon". When running --without-authdaemon, Courier-IMAP's 
-authvchkpw code is able to make use of vpopmail's roaming user functions 
-to allow IMAP-before-SMTP functionality. It is my understanding that 
-IMAP-before-SMTP is not possible when Courier-IMAP has been complied
---with-authdaemon, because in this mode, the user's IP address is not 
-made available to the authvchkpw code.
-
+IMAP-before-SMTP is possible when using Courier-IMAP v3.x. However it only 
+works when configured "--with-authvchkpw --without-authdaemon". When running 
+--without-authdaemon, Courier-IMAP's authvchkpw code is able to make use of 
+vpopmail's roaming user functions to allow IMAP-before-SMTP functionality. 
+IMAP-before-SMTP is not possible when Courier-IMAP has been complied 
+--with-authdaemon, because in this mode, the user's IP address is not made 
+available to the authvchkpw code (the TCPREMOTEIP env var is not set). Also, 
+in Courier-IMAP v4.x and later, a new authentication system has been 
+implemented, and TCPREMOTEIP is no longer available regardless of which 
+configure settings have been used.
 
 ----------------------------------------------------------------------------
 
