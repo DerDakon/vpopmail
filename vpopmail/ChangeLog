@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.9 - unreleased
 
+	Tom Collins
+	- vchkpw: Fix problem in md5.h causing segfault in SMTP AUTH on 
+	  amd64. [964843, 958799]
+
 5.4.8 - released 12-Nov-2004
 
 	Rick Widmer
