@@ -11,6 +11,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Update cdb/Makefile so you can 'make install' without doing 
 	  'make' first.
 	- Fix size comparisons to MAX_PW_X (should be ">", not ">=").
+	- Fix possible buffer overflows in vsybase.c.
 
 5.4.6 - released 30-Jun-04
 
