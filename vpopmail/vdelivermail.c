@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.8 2004-01-03 07:05:39 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.9 2004-01-08 23:30:28 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -611,7 +611,7 @@ int deliver_mail(char *address, char *quota)
 
     if ( lseek(0, 0L, SEEK_SET) < 0 ) {
         printf("lseek errno=%d\n", errno);
-        return(errno);
+        return(-2);
     }
 
     /* write the Return-Path: and Delivered-To: headers */
@@ -624,7 +624,7 @@ int deliver_mail(char *address, char *quota)
             return(-1);
         } else {
             printf("failed to write delivered to line errno=%d\n",errno);
-           return(errno);
+           return(-2);
         }
     }
 
@@ -639,7 +639,7 @@ int deliver_mail(char *address, char *quota)
              */
             if ( unlink(local_file) != 0 ) {
                 printf("unlink failed %s errno = %d\n", local_file, errno);
-                return(errno);
+                return(-2);
             }
 
             /* Check if the user is over quota */
@@ -647,7 +647,7 @@ int deliver_mail(char *address, char *quota)
                 return(-1);
             } else {
                 printf("write failed errno = %d\n", errno);
-                return(errno);
+                return(-2);
             }
         }
     }
@@ -689,7 +689,7 @@ int deliver_mail(char *address, char *quota)
                     printf("rename failed %s %s errno = %d\n", 
                         local_file, local_file_new, errno);
                     /* shouldn't we unlink the file here? */
-                    return(errno);
+                    return(-2);
 
                 /* rename worked, so we are okay now */
                 } else {
@@ -701,7 +701,7 @@ int deliver_mail(char *address, char *quota)
                 printf("link REALLY failed %s %s errno = %d\n", 
                     local_file, local_file_new, errno);
                 unlink(local_file);
-                return(errno);
+                return(-2);
             }
         }
     }
