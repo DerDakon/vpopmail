@@ -229,7 +229,6 @@ void get_arguments(int argc, char **argv)
 
 #endif
 
-    vget_real_domain(TheDomain,AUTH_SIZE);
     vget_assign(TheDomain,TheDomainDir,156,&TheDomainUid,&TheDomainGid);
 
 }
@@ -558,7 +557,6 @@ int deliver_mail(char *address, char *quota)
                 "%sDelivered-To: %s@%s\n", getenv("RPLINE"), 
                  TheUser, TheDomain);
         } else {
-        
             snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s\n", getenv("RPLINE"), 
                 maildir_to_email(address));
@@ -567,27 +565,44 @@ int deliver_mail(char *address, char *quota)
     /* must be an email address */
     } else {
       char *dtline;
-      char *tstr;
+      char *atpos;
+      int dtlen;
 
-        qmail_inject_open(address);
-        write_fd = fdm;
-        inject = 1;
+      qmail_inject_open(address);
+      write_fd = fdm;
+      inject = 1;
 
-        /* use the DTLINE variable, but skip past the dash in 
-         * domain-user@domain 
-         */
+      /* use the DTLINE variable, but skip past the dash in 
+       * domain-user@domain 
+       */
 
-        if ( (dtline = getenv("DTLINE")) != NULL ) {
-            while (*dtline!=0 && *dtline!=':' ) ++dtline;
-            while (*dtline!=0 && *dtline!='-' ) ++dtline;
-            if ( *dtline != 0 ) ++dtline;
-                for(tstr=dtline;*tstr!=0;++tstr) if (*tstr=='\n') *tstr=0;
-            } else {
-                if (*address=='&') ++address;
-                dtline = address;
-            }
-            snprintf(DeliveredTo, sizeof(DeliveredTo), 
-                "%sDelivered-To: %s\n", getenv("RPLINE"), dtline);
+      if ( (dtline = getenv("DTLINE")) != NULL ) {
+        dtlen = strlen(dtline);
+        /* make sure dtline is at least as long as "Delivered-To: " */
+        if (dtlen < 15) {
+          dtline = NULL;
+        } else {
+          dtline += 14;  /* skip "Delivered-To: " */
+          dtlen -= 14;
+          atpos = strchr (dtline, '@');
+          /* ex: dtline = "x-y-z.com-fred@x-y-z.com\n"
+           * dtlen = 25, atpos = dtline+14
+           * add 25 - 14 - 1 = 10 bytes to dtline,
+           * now points to "fred@x-y-z.com\n".
+           */
+          if (atpos != NULL) {
+            dtline += (dtlen - (atpos - dtline) - 1);
+          }
+        }
+      }
+      if (dtline == NULL) {
+        if (*address=='&') ++address;  /* will this case ever happen? */
+        snprintf(DeliveredTo, sizeof(DeliveredTo), 
+          "%sDelivered-To: %s\n", getenv("RPLINE"), address);
+      } else {
+        snprintf(DeliveredTo, sizeof(DeliveredTo), 
+          "%sDelivered-To: %s", getenv("RPLINE"), dtline);
+      }
     }
 
 #ifdef MAKE_SEEKABLE

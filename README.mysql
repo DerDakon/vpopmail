@@ -1,3 +1,7 @@
+You might want to refer to Michael Bowe's excellent guide to vpopmail with 
+MySQL, available at:
+
+   http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
 
 NOTE: make sure you are running the latest stable release of mysql.
 If you have 3.22 installed, you will need to upgrade. The dir_control
@@ -10,17 +14,20 @@ get it running.
 
 There are some things you need to edit by hand to get it to work.
 
-1) edit vmysql.h
+1) Create a ~vpopmail/etc/vpopmail.mysql file and put these fields in 
+the file:
 
-Change these lines to match the configuration on your network
+read server|read port|read user|read password|read database
+update server|update port|update user|update password|update database
 
-#define MYSQL_UPDATE_SERVER "localhost"
-#define MYSQL_UPDATE_USER   "root"
-#define MYSQL_UPDATE_PASSWD "secret"
+For example:
 
-#define MYSQL_READ_SERVER   "localhost"
-#define MYSQL_READ_USER     "root"
-#define MYSQL_READ_PASSWD   "secret"
+# This is the MySQL configuration file for vpopmail.
+localhost|0|readonly|somepass|vpopmail
+localhost|0|root|secret|vpopmail
+
+You can make changes to this file at any time without needing to
+recompile vpopmail.
 
 If you are NOT using mysql replication then set both of
 these sets to be your primary mysql server information.
@@ -95,4 +102,3 @@ for any other programs to access and use.
 Edit vmysql.h and add fields to either SMALL_TABLE_LAYOUT or LARGE_TABLE_LAYOUT 
 be sure not to delete any of the fields. Each field in the default layout
 is required for vpopmail. 
-

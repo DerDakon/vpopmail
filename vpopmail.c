@@ -38,6 +38,7 @@
 #include "vpopmail.h"
 #include "file_lock.h"
 #include "vauth.h"
+#include "vlimits.h"
 
 #define MAX_BUFF 500
 static char Crypted[MAX_BUFF];
@@ -223,7 +224,7 @@ int vdeldomain( char *domain )
 {
  struct stat statbuf;
  char Dir[156];
- char real_domain[156];
+ char domain_to_del[156];
  char *tmpstr;
  uid_t uid;
  gid_t gid;
@@ -231,19 +232,14 @@ int vdeldomain( char *domain )
   getcwd(TmpBuf1, MAX_BUFF);
 
   lowerit(domain);
-  strcpy(real_domain, domain);
+  strcpy(domain_to_del, domain);
   tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
   if ( tmpstr == NULL ) {
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
-  /* Because this function was not called, the rest of the code, treats 
-   * real_domain = domain due to the strcpy above, that i think it's used 
-   * to initialize the var
-   */
-  vget_real_domain(real_domain,  1);
 
   /* if this is an NOT aliased domain */
-  if ( strcmp(real_domain, domain) == 0 ) {
+  if ( strcmp(domain_to_del, domain) == 0 ) {
     if ( stat(Dir, &statbuf) != 0 ) {
       chdir(TmpBuf1);
       return(VA_DOMAIN_DOES_NOT_EXIST);
@@ -266,19 +262,15 @@ int vdeldomain( char *domain )
       }
     }
   }
-  /* Actually the real_domain and domain are switched, before, the real_domain
-   * pointed to our aliased domain, now, it is correct, it's the real fisical 
-   *  one.
-   */
 
   /* delete the assign file line */
-  del_domain_assign(domain, real_domain, Dir, uid, gid);
+  del_domain_assign(domain_to_del, domain, Dir, uid, gid);
 
   /* delete the email domain from the qmail control files */
-  del_control(domain);
+  del_control(domain_to_del);
 
   /* delete the dir control info for this domain */
-  vdel_dir_control(domain);
+  vdel_dir_control(domain_to_del);
 
   /* decrement the master domain control info */
   snprintf(Dir, 156, "dom_%lu", (long unsigned)uid);
@@ -289,6 +281,9 @@ int vdeldomain( char *domain )
 
   /* return back to the callers directory */
   chdir(TmpBuf1);
+
+  /* remove eventual limits */
+  vdel_limits(domain);
 
   return(VA_SUCCESS);
 
@@ -1060,7 +1055,6 @@ int parse_email( email, user, domain, buff_size )
    * if it was configured with --enable-default-domain=something
    */
   vset_default_domain(domain);
-  vget_real_domain(domain, buff_size);
 
   return(0);
 } 
@@ -1798,6 +1792,8 @@ char *verror(int va_err )
     return("null pointer");
    case VA_INVALID_EMAIL_CHAR:
     return("invalid email character");
+   case VA_PARSE_ERROR:
+    return("error parsing data");
    default:
     return("Unknown error");
   }
@@ -1854,11 +1850,14 @@ int vdeldotqmail( char *alias, char *domain )
 /*
  * Given the domain name:
  * 
- * Fill in dir, uid, gid if not passed as NULL
- * And return the name of the domain on success
- * or return NULL if the domain does not exist.
+ *   get dir, uid, gid from the users/cdb file (if they are not passed as NULL)
  *
- * get uid, gid, dir from users/assign with caching
+ *   If domain is an alias domain, then domain gets updated to be the real domain
+ *   
+ * Function will return the domain directory on success
+ * or return NULL if the domain does not exist.
+ * 
+ * This function caches last lookup in memory to increase speed
  */
 char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
 {
@@ -1923,9 +1922,13 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
     tmpbuf = malloc(dlen);
     i = fread(tmpbuf,sizeof(char),dlen,fs);
 
-    /* get the domain line */
+    /* get the domain */
     strncpy(in_domain, tmpbuf, 155);
-
+    /* replace domain passed to vget_assign() with real domain
+     * from file (in case an alias was passed in).
+     */
+    strncpy(domain, tmpbuf, 155);
+    
     /* get the uid */
     ptr = tmpbuf;
     while( *ptr != 0 ) ++ptr;
@@ -1958,33 +1961,6 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
   return(in_dir);
 }
 
-int vget_real_domain(char *domain, int len )
-{
- char *tmpstr;
- char Dir[156];
- uid_t uid;
- gid_t gid;
- int i;
-
-  if ( domain == NULL ) return(0);
-
-  /* process the default domain 
-  if ( domain[0] == 0 ) {
-    strncpy(domain, DEFAULT_DOMAIN, len);
-    domain[len-1] = '\0';
-    return(0);
-  }
-  */
-
-  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-  if ( tmpstr == NULL ) return(0);
-
-  for(gid=strlen(Dir),uid=gid;Dir[uid]!='/';--uid);
-  for(i=0,++uid;Dir[uid]!=0&&uid<gid;++uid,++i) domain[i] = Dir[uid];
-  domain[i] = 0;
-
-  return(0);
-}
 
 int vmake_maildir(char *domain, char *dir )
 {

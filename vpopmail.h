@@ -79,7 +79,7 @@
 #define VA_ALIAS_LINE_TOO_LONG          -32
 #define VA_NULL_POINTER                 -33
 #define VA_INVALID_EMAIL_CHAR           -34
-
+#define VA_PARSE_ERROR			-35
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01
@@ -95,6 +95,7 @@
 #define V_USER3       0x400
 #define NO_SMTP       0x800
 #define QA_ADMIN     0x1000
+#define V_OVERRIDE   0x2000
 
 extern int OptimizeAddDomain;
 extern int NoMakeIndex;

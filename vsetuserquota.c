@@ -67,7 +67,7 @@ int main(argc,argv)
 		/* this is a domain */
 		strncpy( Domain, Email, MAX_BUFF);
 		virgin = 1;
-  		if ( vget_assign(Domain, NULL, 156, NULL, NULL)==NULL) {
+  		if ( vget_assign(Domain, NULL, 0, NULL, NULL)==NULL) {
 			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
    			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}
@@ -87,7 +87,7 @@ int main(argc,argv)
                     printf("Error: %s\n", verror(i));
                     vexit(i);
                 }
-  		if ( vget_assign(Domain, NULL, 156, NULL, NULL)==NULL) {
+  		if ( vget_assign(Domain, NULL, 0, NULL, NULL)==NULL) {
 			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
    			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}

@@ -232,6 +232,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
  char *domstr;
  int mem_size;
  static struct vqpasswd pwent;
+ struct vlimits limits;
 
 	lowerit(user);
 	lowerit(domain);
@@ -281,6 +282,15 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	}
 	dbcancel(dbproc);
 	if ( mem_size == 0 ) return(NULL);
+	/* this is necessary to enforce the qmailadmin-limits
+	a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
+	unless the user has the V_OVERRIDE flag set
+	*/
+	if (vget_limits (in_domain,&limits) == 0) {
+		if (! pwent.pw_gid && V_OVERRIDE) {
+		pwent.pw_gid |= vlimits_get_gid_mask (&limits);
+		}
+	}
 	return(&pwent);
 }
 
@@ -391,7 +401,7 @@ int vauth_vpasswd_size( char *user, char *domain, char *pass,
  uid_t myuid;
 
  	myuid = geteuid();
-	vget_assign(domain,NULL,156,&uid,&gid);
+	vget_assign(domain,NULL,0,&uid,&gid);
 	if (myuid != 0 && myuid != uid ) {
 		return(VA_BAD_UID);
 	}

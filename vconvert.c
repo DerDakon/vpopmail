@@ -256,6 +256,17 @@ int sql_to_cdb( char *domain)
 	}
 	pw = vauth_getall(domain, 1, 0);
 	while( pw != NULL ) {
+#ifdef CLEAR_PASS
+		fprintf(fs, "%s:%s:%d:%d:%s:%s:%s:%s\n",
+			pw->pw_name,
+			pw->pw_passwd,
+			pw->pw_uid,
+			pw->pw_gid,
+			pw->pw_gecos,
+			pw->pw_dir,
+			pw->pw_shell,
+			pw->pw_clear_passwd);
+#else
 		fprintf(fs, "%s:%s:%d:%d:%s:%s:%s\n", 
 			pw->pw_name,
 			pw->pw_passwd,
@@ -264,6 +275,7 @@ int sql_to_cdb( char *domain)
 			pw->pw_gecos,
 			pw->pw_dir,
 			pw->pw_shell);
+#endif
 		pw = vauth_getall(domain, 0, 0);
 	}
 	fclose(fs);
