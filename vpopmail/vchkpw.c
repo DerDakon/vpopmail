@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.13 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vchkpw.c,v 1.14 2004-06-03 23:47:38 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -390,6 +390,9 @@ void login_virtual_user()
   int apopaccepted = -1;
   int cramaccepted = -1;
   char AuthType[15] = "PLAIN";
+#ifdef MIN_LOGIN_INTERVAL
+  time_t last_time;
+#endif
 
   /* If thier directory path is empty make them a new one */
   if ( vpw->pw_dir == NULL || vpw->pw_dir[0]==0 ) {
@@ -524,7 +527,15 @@ void login_virtual_user()
    * update the authentication time on the account
    */
 #ifdef ENABLE_AUTH_LOGGING
+#ifdef MIN_LOGIN_INTERVAL
+  last_time = vget_lastauth(vpw, TheDomain );
+#endif
   vset_lastauth(TheUser,TheDomain,IpAddr);
+#ifdef MIN_LOGIN_INTERVAL
+  if(( vget_lastauth(vpw,TheDomain ) - last_time ) < MIN_LOGIN_INTERVAL ) { 
+    vchkpw_exit(1);
+  }
+#endif
 #endif
 
 #ifdef POP_AUTH_OPEN_RELAY
