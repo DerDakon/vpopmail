@@ -18,6 +18,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  formatting, and helpstrings. Also added tests for many new
 	  functions/libraries as per suggestions from autoscan tool.
 	  [828680]
+	- Contributed README.ipaliasdomains file that provices some
+	  explanation of the how the vpopmail IP Alias Domains system
+	  works
 
 	Tom Collins
 	- Update more files involved in the build process.
