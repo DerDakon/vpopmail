@@ -1364,7 +1364,7 @@ and domain = \"%s\"", alias, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1386,7 +1386,7 @@ int valias_delete_domain( char *domain)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[m]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1537,12 +1537,12 @@ int vget_limits(const char *domain, struct vlimits *limits)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_limits_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[p]: %s\n", mysql_error(&mysql_read));
             return(-1);
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vmysql: store result failed\n");
+        fprintf(stderr, "vmysql: store result failed 7\n");
         return -1;
     }
 
@@ -1634,15 +1634,10 @@ int vset_limits(const char *domain, const struct vlimits *limits)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_limits_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[q]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
-    if (!(res_update = mysql_store_result(&mysql_update))) {
-        fprintf(stderr, "vmysql: store result failed\n");
-        return -1;
-    }
-    mysql_free_result(res_update);
 
     return 0;
 }
