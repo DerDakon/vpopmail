@@ -49,11 +49,11 @@ set to be your local mysql server.
 After changing the file, make sure it has the correct permissions:
 
 chown vpopmail.vchkpw vpopmail.mysql
-chmod 0600 vpopmail.mysql
+chmod 0640 vpopmail.mysql
 
 2) configure options for mysql support.
 
---enable-mysql=y
+--enable-auth-module=mysql
 
 First thing. This turns on mysql code and authentication module.
 
@@ -71,7 +71,7 @@ If your library files are not in /usr/lib/mysql or in
 --enable-libdir=/path-to-your-lib-dir
 
 On my machine I do:
-$ ./configure --enable-mysql=y
+$ ./configure --enable-auth-module=mysql
 
 3) make the software 
 
