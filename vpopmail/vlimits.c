@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.7 2003-11-02 11:53:28 jheesemann Exp $
+ * $Id: vlimits.c,v 1.8 2003-11-23 19:27:39 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -326,7 +326,6 @@ int vset_limits(const char *domain, const struct vlimits *limits)
     char dir[MAX_BUFF];
     uid_t uid;
     gid_t gid;
-    FILE * fs;
 
     /* use copy of name as vget_assign may change it on us */
     snprintf(mydomain, sizeof(mydomain), "%s", domain);
