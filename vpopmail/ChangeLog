@@ -6,6 +6,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Casey Zacek
 	- Keep vlimits_setflags() in vlimits.c when mysql-limits is
 	  enabled. [858109]
+	- Create maildirsize file when adding new user. [858994]
 
 	Tom Collins
 	- open_smtp_relay(): fix address conversion of '::ffff:127.0.0.1'
