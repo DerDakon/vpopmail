@@ -42,6 +42,10 @@ FOR ALL AUTHENICATION MODULES
     You should review the contents of this file to ensure it contains
     appropriate values for your site.
 
+  * Instead of using --enable-defaultquota when configuring vpopmail,
+    set the default_quota and default_maxmsgcount values in your
+    ~vpopmail/etc/vlimits.default file.
+
 MYSQL SPECIFIC
 
   * Rather than storing the database connection settings in in vmysql.h,
