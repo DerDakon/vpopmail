@@ -6180,7 +6180,7 @@ _ACEOF
 
 # cant contain this following block in the mysql section, as it is also used by oracle
 incdir=""
-for f in /usr/local/mysql/include /usr/local/include/mysql /usr/include/mysql
+for f in /usr/local/mysql/include/mysql /usr/local/mysql/include /usr/local/include/mysql /usr/include/mysql
 do
     if test -d $f
     then
@@ -6196,7 +6196,7 @@ if test "${enable_incdir+set}" = set; then
 fi;
 
 libdir=""
-for f in /usr/local/mysql/lib /usr/local/lib/mysql /usr/lib/mysql
+for f in /usr/local/mysql/lib/mysql /usr/local/mysql/lib  /usr/local/lib/mysql /usr/lib/mysql
 do
     if test -d $f
     then
