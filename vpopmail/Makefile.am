@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.5 2003-11-04 01:57:25 mbowe Exp $
+# $Id: Makefile.am,v 1.6 2003-11-20 22:58:03 tomcollins Exp $
 # Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
@@ -23,7 +23,7 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
@@ -33,6 +33,9 @@ vdominfo_LDADD = libvpopmail.a @auth_libs@
 
 vchkpw_SOURCES = vchkpw.c md5.c hmac_md5.c
 vchkpw_LDADD = libvpopmail.a @auth_libs@
+
+vchangepw_SOURCES = vchangepw.c
+vchangepw_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
