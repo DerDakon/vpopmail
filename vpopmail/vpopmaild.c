@@ -93,7 +93,6 @@ int get_limits();
 int set_limits();
 int del_limits();
 int get_lastauth();
-int get_lastauthip();
 int add_list();
 int del_list();
 int mod_list();
@@ -149,7 +148,6 @@ func_t Functions[] = {
 {"set_limits", set_limits, "domain (option lines)<crlf>.<crlf>"},
 {"del_limits", del_limits, "domain<crlf>" },
 {"get_lastauth", get_lastauth, "user@domain<crlf>" },
-{"get_lastauthip", get_lastauthip, "user@domain<crlf>" },
 {"add_list", add_list, "domain listname (command line options)<crlf>" },
 {"del_list", del_list, "domain listname<crlf>"},
 {"mod_list", mod_list, "domain listname (command line options)<crlf>" },
@@ -2032,6 +2030,7 @@ int get_lastauth()
 {
  char *email_address;
  time_t last_auth_time;
+ char *last_auth_ip;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
@@ -2064,55 +2063,15 @@ int get_lastauth()
   } 
 
   last_auth_time = vget_lastauth(tmpvpw, TmpDomain);
-
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
-
-  snprintf(WriteBuf, sizeof(WriteBuf), "%ld" RET_CRLF,(long int)last_auth_time);
-  return(0);
-}
-
-int get_lastauthip()
-{
- char *email_address;
- char *last_auth_ip;
-
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
-    return(-1);
-  }
-
-  if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
-    return(-1);
-  }
-
-  if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
-    return(-1);
-  } 
-
-  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
-        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
-    return(-1);
-  }
-
-  if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX user does not exist" RET_CRLF);
-    return(-1);
-  } 
-
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
-
   last_auth_ip = vget_lastauthip(tmpvpw, TmpDomain);
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "%s" RET_CRLF, last_auth_ip);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,(long int)last_auth_time);
+  wait_write();
+
+  snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF, last_auth_ip);
   return(0);
 }
 

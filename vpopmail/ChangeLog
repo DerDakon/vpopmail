@@ -3,6 +3,29 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
 
+        Rick Widmer - 29 Apr 2004
+        vpopmail
+        - vdeldomain() function deletes all aliases when passed a parent 
+          domain.  When passed an alias it deletes only the alias.
+        - vdeldomain program has new -f option.  If set all alias domains
+          are deleted.  If alias domains exist, a warning is printed, 
+          including a list.
+        - qmail control files are now sorted.  Most add operations use an
+          insertion sort.  If out of order entries are found, the file is
+          sorted using qsort() and re-written.  Two sort orders are 
+          available based on ifdef.  Consider special handling of country
+          code domain names.
+        - eliminate _all_ warnings on my machine.  This was mostly sprinkling
+          (int)s into many compares and a few function declarations.
+ 
+        vpopmaild
+        - Add add_alias_domain command
+        - Finish dom_info command
+        - delete get_lastauthip command
+        - add display of ip address to get_lastauth command, and make
+          the output consistant with other commands that return multi
+          line data.
+
         Rick Widmer
         - sort entries added to the qmail control files:
           rcpthosts, morercpthosts, virtualdomains, users/assign
