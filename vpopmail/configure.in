@@ -304,7 +304,7 @@ AC_DEFINE_UNQUOTED(QMAILINJECT,"$qmailinject","")
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether we can locate the qmail-inject program)
+AC_MSG_CHECKING(whether we can locate the qmail-newmrh program)
 qmailnewmrh=""
 for f in "$qmaildir"/bin/qmail-newmrh /usr/sbin/qmail-newmrh
 do

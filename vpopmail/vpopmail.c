@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.47 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.48 2005-03-11 11:43:44 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -642,6 +642,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   }
         
   /* add the user to the auth backend */
+  /* NOTE: We really need to update this method to include the quota */
   if (vauth_adduser(username, domain, password, gecos, user_hash, apop )!=0) {
     fprintf(stderr, "Failed while attempting to add user to auth backend\n");
     /* back out of changes made so far */
@@ -662,7 +663,11 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     else
       strcpy (quota, "NOQUOTA");
   }
-  vsetuserquota (username, domain, quota);
+
+  if(vsetuserquota (username, domain, quota)==VA_USER_DOES_NOT_EXIST){
+    sleep(5);
+    vsetuserquota (username, domain, quota);
+  }
 
 #ifdef SQWEBMAIL_PASS
   {
@@ -2241,18 +2246,12 @@ char *dec2hex(unsigned char *digest)
 struct vqpasswd *vauth_user(char *user, char *domain, char* password, char *apop)
  {
   struct vqpasswd *mypw;
-  char *tmpstr;
-  uid_t uid;
-  gid_t gid;
  
    if ( password == NULL ) return(NULL);
    mypw = vauth_getpw(user, domain);
    if ( mypw == NULL ) return(NULL);
    if ( vauth_crypt(user, domain, password, mypw) != 0 ) return(NULL);
  
-   tmpstr = vget_assign(domain, NULL, 0, &uid, &gid );
-   mypw->pw_uid = uid;
-   mypw->pw_gid = gid;
    return(mypw);
  }
 

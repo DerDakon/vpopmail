@@ -5,6 +5,37 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.1 - unreleased  (Some more stuff before release)
 
+        Rick Widmer 10-Mar-2005
+        -Make 5.5 include all patches to 5.4 as of this date
+
+        README.roamingusers
+        Documentation updates.  Mention the requirement for tcpserver for
+        POP-before-SMTP.  Also include some documentation on IMAP-before-SMTP.
+        Include all later mods.
+        
+        configure.in (and all files generated from it) 
+        fix typo where the configure script says it is checking 
+        for qmail-inject when in fact it was checking for 
+        qmail-newmrh
+
+        maildirquota.c 
+        Remove double free() and fix use of free'd memory in 
+        docheckquota().  (Patch from Niki Denev)
+
+        vcdb.c
+        fixes in vauth_getpw()
+
+        vlimits.c
+        print errors to stderr
+
+        vmoduser.c
+        add clarity to usage/help for bit flags
+
+        vpopmail.c
+        fix vauth_user to not clobber pw_uid and pw_gid
+
+        
+
 	Rick Widmer 27-Dec-2004
 	-Add Bill Shupp's patch to vuserinfo to display spamassassin info.
 

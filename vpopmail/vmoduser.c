@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.10 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vmoduser.c,v 1.11 2005-03-11 11:43:44 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -134,25 +134,28 @@ void usage()
     printf("         -e encrypted_passwd (set the password field )\n");
     printf("         -C clear_text_passwd (set the password field )\n");
     printf("the following options are bit flags in the gid int field\n");
-    printf("         -u ( set no dialup flag )\n");
-    printf("         -d ( set no password changing flag )\n");
-    printf("         -p ( set no pop access flag )\n");
-    printf("         -s ( set no smtp access flag )\n");
-    printf("         -w ( set no web mail access flag )\n");
-    printf("         -i ( set no imap access flag )\n");
-    printf("         -b ( set bounce mail flag )\n");
-    printf("         -o ( set override domain limits flag )\n");
-    printf("         -r ( set no external relay flag )\n");
+    printf("         -x ( clear all flags )\n");
+    printf("         -d ( don't allow user to change password )\n");
+    printf("         -p ( disable pop access )\n");
+    printf("         -s ( disable smtp auth access )\n");
+    printf("         -w ( disable webmail [IMAP from localhost*] access )\n");
+    printf("            ( *full list of webmail server IPs in vchkpw.c)\n");
+    printf("         -i ( disable non-webmail IMAP access )\n");
+    printf("         -b ( bounce all mail )\n");
+    printf("         -o ( user is not subject to domain limits )\n");
+    printf("         -r ( disable roaming user/pop-before-smtp )\n");
     printf("         -a ( grant qmailadmin administrator privileges )\n");
-    printf("         -S ( system administrator privileges - access all domains )\n");
-    printf("         -E ( expert privileges - edit .qmail files )\n");
+    printf("         -S ( gramt system administrator privileges - access all domains )\n");
+    printf("         -E ( grant expert privileges - edit .qmail files )\n");
+    printf("         -f ( disable spamassassin)\n");
+    printf("         -F ( delete spam)\n");
+    printf("  [The following flags aren't used directly by vpopmail but are]\n");
+    printf("  [included for other programs that share the user database.]\n");
+    printf("         -u ( set no dialup flag )\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
     printf("         -1 ( set V_USER1 flag )\n"); 
     printf("         -2 ( set V_USER2 flag )\n"); 
     printf("         -3 ( set V_USER3 flag )\n"); 
-    printf("         -x ( clear all flags )\n");
-    printf("         -f ( disable spamassassin)\n");
-    printf("         -F ( delete spam)\n");
 
 }
 

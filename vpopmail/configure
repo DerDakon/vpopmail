@@ -5572,8 +5572,8 @@ _ACEOF
 
 #----------------------------------------------------------------------
 
-echo "$as_me:$LINENO: checking whether we can locate the qmail-inject program" >&5
-echo $ECHO_N "checking whether we can locate the qmail-inject program... $ECHO_C" >&6
+echo "$as_me:$LINENO: checking whether we can locate the qmail-newmrh program" >&5
+echo $ECHO_N "checking whether we can locate the qmail-newmrh program... $ECHO_C" >&6
 qmailnewmrh=""
 for f in "$qmaildir"/bin/qmail-newmrh /usr/sbin/qmail-newmrh
 do
