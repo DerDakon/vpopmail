@@ -1282,7 +1282,7 @@ AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
 
 AC_MSG_CHECKING(whether auth-logging is enabled)
 AC_ARG_ENABLE(auth-logging,
-        [  --enable-auth-logging   Record time and ip of last auth attempt. Valid only for CDB, MySQL, LDAP.],
+        [  --enable-auth-logging   Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
         ENABLE_AUTH_LOGGING=$enableval,
                 [
                         ENABLE_AUTH_LOGGING=y
