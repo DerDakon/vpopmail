@@ -1,13 +1,15 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.3 - unreleased
+5.4.3 - released 11-Mar-04
 
 	Tom Collins
 	- Add missing link libs (m, nsl, socket) on Solaris installs.
 	- Fix vsetuserquota() to write properly formatted quota to 
 	  maildirsize file.
 	- Update vdominfo to ignore non-domains in users/assign.
+	- Update vconvert and dotqmail2valias to ignore non-domains in
+	  users/assign.
 
 5.4.2 - released 22-Feb-04
 
