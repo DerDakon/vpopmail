@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpasswd.c,v 1.2 2003-10-07 21:16:40 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +38,7 @@ char User[MAX_BUFF];
 char Domain[MAX_BUFF];
 char Passwd[MAX_BUFF];
 int apop;
+int RandomPw;
 
 void usage();
 void get_options(int argc,char **argv);
@@ -60,6 +62,7 @@ int main(int argc, char *argv[])
 		printf("Error: %s\n", verror(i));
 		vexit(i);
 	}
+	if (RandomPw) printf("Random password: %s\n", Passwd);
 	return(vexit(0));
 
 }
@@ -68,6 +71,7 @@ void usage()
 {
 	printf("vpasswd: usage: [options] email_address [password]\n");
 	printf("options: -v (print version number)\n");
+	printf("         -r generate a random password\n");
 }
 
 void get_options(int argc,char **argv)
@@ -80,12 +84,17 @@ void get_options(int argc,char **argv)
 	memset(Passwd, 0, sizeof(Passwd));
 	memset(Domain, 0, sizeof(Domain));
 	apop = USE_POP;
+	RandomPw = 0;
 
 	errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"vr")) != -1 ) {
 		switch(c) {
 			case 'v':
 				printf("version: %s\n", VERSION);
+				break;
+			case 'r':
+				RandomPw = 1;
+				vrandom_pass (Passwd, 8);
 				break;
 			default:
 				errflag = 1;
