@@ -7,6 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- install Bill Shupp's patch to vuserinfo to display spamassassin
 	  info.
 
+	Anonymous
+	- vpopmail.c: Add missing ifdef that preventing modification of
+	  one-character username accounts.
+
 5.4.9 - released 26-Dec-04
 
 	Jeremy Kister
