@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.15 2004-01-09 20:43:42 mbowe Exp $
+ * $Id: vpgsql.c,v 1.16 2004-01-13 23:41:53 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1409,7 +1409,7 @@ char *valias_select_all( char *alias, char *domain )
   if ( (err=vauth_open()) != 0 ) return(NULL);
 
   snprintf( SqlBufRead, SQL_BUF_SIZE, 
-	    "select alias, valias_line from valias where domain = '%s'", 
+	    "select alias, valias_line from valias where domain = '%s' order by alias", 
 	    domain );
   if ( ! (pgres=PQexec(pgc, SqlBufRead))
        || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {

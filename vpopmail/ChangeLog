@@ -35,6 +35,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  (fixed problem with ::ffff: in relay file). [876019]
 	- Fix bug in vpalias where .qmailadmin-limits was incorrectly
 	  thought to be alias for user 'dmin-limits'.
+	- Sort by alias in valias_select_all (needed for QmailAdmin).
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
