@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.32 2004-04-01 22:54:13 kbo Exp $
+ * $Id: vpopmail.c,v 1.33 2004-04-07 14:30:40 kbo Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1460,7 +1460,7 @@ int update_file(char *filename, char *update_line)
  FILE *fs = NULL;
  FILE *fs1 = NULL;
 #ifdef FILE_LOCKING
- int fd3 = NULL;
+ int fd3 = 0;
 #endif
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];

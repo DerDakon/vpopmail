@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.5 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vuserinfo.c,v 1.6 2004-04-07 14:30:40 kbo Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -271,6 +271,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
             display_limit (mypw, NO_DIALUP,      "no dialup flag has been set");
             display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
             display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");
+            display_limit (mypw, SA_ADMIN,       "has system administrator access");
             display_limit (mypw, V_USER0,        "user flag 0 is set");
             display_limit (mypw, V_USER1,        "user flag 1 is set");
             display_limit (mypw, V_USER2,        "user flag 2 is set");

@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vmoduser.c,v 1.5 2004-04-07 14:30:40 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -142,6 +142,7 @@ void usage()
     printf("         -o ( set override domain limits flag )\n");
     printf("         -r ( set no external relay flag )\n");
     printf("         -a ( grant qmailadmin administrator privileges)\n");
+    printf("         -S ( system administrator privileges)\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
     printf("         -1 ( set V_USER1 flag )\n"); 
     printf("         -2 ( set V_USER2 flag )\n"); 
@@ -171,7 +172,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fF")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFS")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -241,12 +242,15 @@ void get_options(int argc,char **argv)
             case 'a':
                 GidFlag |= QA_ADMIN;
                 break;
+            case 'S':
+                if ( getuid()==0 ) GidFlag |= SA_ADMIN;
+                break;
             case 'f':
-                 GidFlag |= NO_SPAMASSASSIN;
-                 break;
+                GidFlag |= NO_SPAMASSASSIN;
+                break;
             case 'F':
-                 GidFlag |= DELETE_SPAM;
-                 break;
+                GidFlag |= DELETE_SPAM;
+                break;
             case 'h':
                 usage();
                 vexit(0);
