@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.1 2004-03-04 05:17:54 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1543,6 +1543,7 @@ int update_file(char *filename, char *update_line)
 int vsetuserquota( char *username, char *domain, char *quota )
 {
  struct vqpasswd *mypw;
+ char *formattedquota;
  int ret;
 
   if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
@@ -1558,7 +1559,8 @@ int vsetuserquota( char *username, char *domain, char *quota )
   /* correctly format the quota string,
    * and then store the quota into the auth backend
    */
-  ret = vauth_setquota( username, domain, format_maildirquota(quota));
+  formattedquota = format_maildirquota(quota);
+  ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
   mypw = vauth_getpw( username, domain );
@@ -1569,7 +1571,7 @@ int vsetuserquota( char *username, char *domain, char *quota )
    char maildir[MAX_BUFF];
     snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
     umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, quota);
+    (void)vmaildir_readquota(maildir, formattedquota);
     if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
       strcat(maildir, "maildirsize");
       chown(maildir,uid,gid);
