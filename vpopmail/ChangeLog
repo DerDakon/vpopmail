@@ -12,7 +12,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Niki Denev
 	- maildirquota.c: Remove double free() and fix use of free'd
-	  memory in docheckquota().
+	  memory in docheckquota(). [1101316]
 
 5.4.9 - released 26-Dec-04
 
