@@ -1,5 +1,6 @@
 /*
- * *Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpopmail.c,v 1.6 2003-09-29 23:24:46 tomcollins Exp $
+ * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
