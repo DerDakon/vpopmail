@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vdeldomain.c,v 1.2.2.1 2004-10-18 05:44:54 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ void get_options(int argc,char **argv);
 
 int main(int argc, char *argv[])
 {
- int err;
+ int err=0;
 
 	get_options(argc,argv);
 

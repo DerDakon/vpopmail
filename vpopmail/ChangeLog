@@ -6,6 +6,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Rick Widmer
 	- vadddomain: Check for existing domain before prompting for
 	  password.
+	- vdeldomain: Fix uninitialized variable warning.
 
 	Tom Collins
 	- Fix problems with valias code in vmysql.c and vpgsql.c.  Storing
