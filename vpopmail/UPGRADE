@@ -30,6 +30,13 @@ No adjustment to your various qmail run scripts etc should be required.
 
 There are only a couple of issues to be aware of :
 
+IF USING SMTP AUTH PATCH TO QMAIL-SMTPD
+
+  * This release of vpopmail includes fixes for vchkpw that may break
+    certain SMTP AUTH implementations.  If SMTP AUTH fails after 
+    installing vpopmail 5.4.x, you may need to use the 
+    qmail-smtpd-auth-0.4.2 patch included in the contrib directory.
+
 FOR ALL AUTHENICATION MODULES
 
   * Some of the configure settings have changed names. Please
