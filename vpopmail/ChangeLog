@@ -10,6 +10,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  [984698]
 	- Update cdb/Makefile so you can 'make install' without doing 
 	  'make' first.
+	- Fix size comparisons to MAX_PW_X (should be ">", not ">=").
 
 5.4.6 - released 30-Jun-04
 
