@@ -6,6 +6,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- Remove acconfig.h; update configure.in to work without it.
 	- Update 'missing' script with version from automake 1.6.
+	- Send errors to stderr instead of stdout (vpopmail, vchkpw).
+	- Add support for port 587 (submission) to vchkpw.
+	- Increase size of VchkpwLogName in vchkpw.c to eliminate a
+	  buffer overflow.
 
 5.3.28 - released 3-Oct-03
 
