@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.2.2.2 2004-11-11 06:50:22 tomcollins Exp $
+ * $Id: vdominfo.c,v 1.2.2.3 2004-11-11 07:09:17 tomcollins Exp $
  * Copyright (C) 2001,2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 
 #define MAX_BUFF 256
 char Domain[MAX_BUFF];
+char RealName[MAX_BUFF];
 char Dir[MAX_BUFF];
 uid_t Uid;
 gid_t Gid;
@@ -41,7 +42,7 @@ int DisplayTotalUsers;
 
 void usage();
 void get_options(int argc, char **argv);
-void display_domain(char *domain, char *dir, uid_t uid, gid_t gid);
+void display_domain(char *domain, char *real, char *dir, uid_t uid, gid_t gid);
 void display_all_domains();
 
 #define TOKENS ":\n"
@@ -55,11 +56,12 @@ int main(int argc, char *argv[])
     /* did we want to view a single domain domain? */
     if (Domain[0] != 0 ) {
         /* yes, just lookup a single domain */
-        if ( vget_assign(Domain, Dir, sizeof(Dir), &Uid, &Gid ) == NULL ) {
+        strcpy (RealName, Domain);
+        if ( vget_assign(RealName, Dir, sizeof(Dir), &Uid, &Gid ) == NULL ) {
             printf("domain %s does not exist\n", Domain );
             vexit(-1);
         }
-        display_domain(Domain, Dir, Uid, Gid);
+        display_domain(Domain, RealName, Dir, Uid, Gid);
     } else {
         display_all_domains();
     }
@@ -139,10 +141,13 @@ void get_options(int argc, char **argv)
     }
 }
 
-void display_domain(char *domain, char *dir, uid_t uid, gid_t gid)
+void display_domain(char *domain, char *real, char *dir, uid_t uid, gid_t gid)
 {
     if ( DisplayAll ) {
-        printf("domain: %s\n", domain); 
+        if (strcmp (domain, real) == 0)
+            printf("domain: %s\n", domain);
+        else
+            printf("domain: %s (alias of %s)\n", domain, real); 
         printf("uid:    %lu\n", (long unsigned)uid);
         printf("gid:    %lu\n", (long unsigned)gid);
         printf("dir:    %s\n",  dir);
@@ -150,7 +155,8 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid)
         printf("users:  %lu\n",  vdir.cur_users);
         close_big_dir(domain,uid,gid);
     } else {
-        if ( DisplayName ) printf("%s\n", domain); 
+        /* show real domain name if original was alias */
+        if ( DisplayName ) printf("%s\n", real); 
         if ( DisplayUid ) printf("%lu\n", (long unsigned)uid);
         if ( DisplayGid ) printf("%lu\n", (long unsigned)gid);
         if ( DisplayDir ) printf("%s\n",  dir);
@@ -167,7 +173,6 @@ void display_all_domains()
  FILE *fs;
  char *tmpstr;
  char TmpBuf[MAX_BUFF];
- char RealName[MAX_BUFF];
 
     snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign", QMAILDIR);
     if ((fs=fopen(TmpBuf, "r"))==NULL) {
@@ -220,12 +225,8 @@ void display_all_domains()
         /* suck out the dir */
 	snprintf(Dir, sizeof(Dir), "%s", tmpstr);
 
-	display_domain(Domain, Dir, Uid, Gid);
+	display_domain(Domain, RealName, Dir, Uid, Gid);
 
-	if (strcmp(Domain, RealName) != 0) {
- 		printf ("Note:   %s is an alias for %s\n",Domain,RealName);
-	}
-     
 	printf ("\n");
     }
     fclose(fs);
