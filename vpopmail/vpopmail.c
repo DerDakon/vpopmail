@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.24 2003-12-17 04:21:10 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.25 2003-12-19 05:27:41 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2982,7 +2982,7 @@ char	*p;
 static char    tempquota[128];
 
     if (strcmp (q, "NOQUOTA") == 0) {
-      strcat (tempquota, "NOQUOTA");
+      strcpy (tempquota, "NOQUOTA");
       return tempquota;
     }
 
