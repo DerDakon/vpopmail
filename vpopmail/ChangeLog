@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.0-pre2 - unreleased
+5.4.0-pre2 - released 21-Dec-03
 
 	*** Note that the configure option for setting the authentication
 	*** module has changed.  Instead of --enable-mysql, use
