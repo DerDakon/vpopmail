@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.7 2004-01-13 06:05:27 tomcollins Exp $
+ * $Id: vadduser.c,v 1.8 2004-02-16 06:48:41 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -134,7 +134,7 @@ void usage()
     printf( "vadduser: usage: [options] email_address [passwd]\n");
     printf("options: -v (print the version)\n");
     printf("         -q quota_in_bytes (sets the users quota, use NOQUOTA for unlimited)\n");
-    printf("         -s (don't rebuild the vpasswd.cdb file, faster for large sites)\n");
+//  printf("         -s (don't rebuild the vpasswd.cdb file, faster for large sites)\n");
     printf("         -c comment (sets the gecos comment field)\n");
     printf("         -e standard_encrypted_password\n");
     printf("         -n no_password\n");
@@ -173,7 +173,8 @@ void get_options(int argc,char **argv)
             snprintf(Crypted, sizeof(Crypted), "%s", optarg);
             break;
           case 's':
-            NoMakeIndex = 1;
+            fprintf (stderr, "Warning: The -s option has been temporarily disabled.\n");
+            /* NoMakeIndex = 1; */
             break;
           case 'n':
             NoPassword = 1;
