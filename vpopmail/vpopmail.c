@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.4 2004-06-26 02:20:56 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.5 2004-07-01 05:29:45 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -262,9 +262,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
       fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
+#ifdef USERS_BIG_DIR
     if (vdel_dir_control(domain) != 0) {
-      fprintf (stderr, "Failed while attempting to delete domain from dir_control\n");
+      fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
     }
+#endif
 
     /* send a HUP signal to qmail-send process to reread control files */
     signal_process("qmail-send", SIGHUP);
@@ -379,10 +381,12 @@ int vdeldomain( char *domain )
      */  
     vdel_limits(domain);
 
+#ifdef USERS_BIG_DIR
     /* delete the dir control info for this domain */
     if (vdel_dir_control(domain) != 0) {
       fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
     }
+#endif
 
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
