@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.10 2003-11-07 11:59:47 mbowe Exp $
+ * $Id: vpgsql.c,v 1.11 2003-11-15 06:55:44 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1273,7 +1273,7 @@ void vcreate_lastauth_table()
   if( pgres ) PQclear( pgres );
   return;
 }
-#endif
+#endif /* ENABLE_AUTH_LOGGING */
 
 #ifdef VALIAS
 char *valias_select( char *alias, char *domain )

@@ -1,5 +1,5 @@
 /*
- * $Id: vdeloldusers.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vdeloldusers.c,v 1.3 2003-11-15 06:55:44 mbowe Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,15 +27,7 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-#ifndef ENABLE_AUTH_LOGGING
-int main()
-{
-	printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
-	return(vexit(-1));
-}
-#endif
-
-
+#ifdef ENABLE_AUTH_LOGGING
 
 #define MAX_BUFF     256
 #define DEFAULT_AGE  180
@@ -54,7 +46,6 @@ void get_options(int argc,char **argv);
 void process_all_domains(time_t nowt);
 void deloldusers(char *Domain, time_t nowt);
 
-#ifdef ENABLE_AUTH_LOGGING
 int main(int argc, char *argv[])
 {
  time_t nowt;
@@ -84,8 +75,6 @@ int main(int argc, char *argv[])
 
 	return(vexit(0));
 }
-#endif
-
 
 void usage()
 {
@@ -209,3 +198,12 @@ void process_all_domains(time_t nowt)
     }
     fclose(fs);
 }
+
+#else
+
+int main()
+{
+        printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
+        return(vexit(-1));
+}
+#endif /* ENABLE_AUTH_LOGGING */

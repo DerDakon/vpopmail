@@ -17,6 +17,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Cleared two bugs in the vauth_getall() funcion of vpgsql.c
 	  These bugs were in particular causing qmailadmin not to be
 	  able to display a list of users for a domain [837139]
+	- Modified ifdefs throughout suite to clear compile failures
+	  with some of the auth backends if you configured with 
+	  --enable-auth-logging=n [842393]
 
 	Tom Collins
 	- Install a vlimits.default file if none exists.

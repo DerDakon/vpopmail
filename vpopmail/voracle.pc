@@ -1197,7 +1197,7 @@ void vcreate_lastauth_table()
     EXEC SQL COMMIT;
     return;
 }
-#endif
+#endif /* ENABLE_AUTH_LOGGING */
 
 #ifdef VALIAS
 char *valias_select( char *alias, char *domain )

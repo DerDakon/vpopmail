@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.7 2003-11-02 11:53:28 jheesemann Exp $
+ * $Id: vactivedir.c,v 1.8 2003-11-15 06:55:43 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -676,9 +676,9 @@ int vdel_dir_control(char *domain)
   return(unlink(dir_control_file));
 }
 
+#ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
-#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  FILE *fs;
  struct vqpasswd *vpw;
@@ -699,13 +699,11 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
   vget_assign(domain,NULL,0,&uid,&gid);
   chown(tmpbuf,uid,gid);
   free(tmpbuf);
-#endif
   return(0);
 }
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 {
-#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  struct stat mystatbuf;
 
@@ -717,14 +715,10 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
   }
   free(tmpbuf);
   return(mystatbuf.st_mtime);
-#else
-  return(0);
-#endif
 }
 
 char *vget_lastauthip( struct vqpasswd *pw, char *domain)
 {
-#ifdef ENABLE_AUTH_LOGGING
  static char tmpbuf[MAX_BUFF];
  FILE *fs;
 
@@ -733,10 +727,8 @@ char *vget_lastauthip( struct vqpasswd *pw, char *domain)
   fgets(tmpbuf,MAX_BUFF,fs);
   fclose(fs);
   return(tmpbuf);
-#else
-  return(NULL);
-#endif
 }
+#endif /* ENABLE_AUTH_LOGGING */
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid)
 {
