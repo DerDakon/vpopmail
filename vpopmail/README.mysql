@@ -110,10 +110,10 @@ Make the user accounts
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.0.tar.gz
-	tar xzf vpopmail-5.4.0.tar.gz
-	chown -R root.root vpopmail-5.4.0
-	cd vpopmail-5.4.0
+	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.3.tar.gz
+	tar xzf vpopmail-5.4.3.tar.gz
+	chown -R root.root vpopmail-5.4.3
+	cd vpopmail-5.4.3
 
 Setup the MySQL support in the vpopmail sources
 

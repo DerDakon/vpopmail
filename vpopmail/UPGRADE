@@ -12,8 +12,8 @@ Upgrading to 5.4 from 5.3.x or 5.2.x is straight forward.
 
 It should really be a case of following these basic steps
 
-  tar xzf vpopmail-5.4.0.tar.gz
-  cd vpopmail-5.4.0
+  tar xzf vpopmail-5.4.3.tar.gz
+  cd vpopmail-5.4.3
 
   ./configure --help    
   # (review the available options)

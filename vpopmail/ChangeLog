@@ -7,7 +7,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Add SpamAssassin support for vdelivermail.
 
 	Michael Bowe
-	- Minor documentation tweaks for README.mysql and README.pgsql
+	- Minor documentation tweaks
 
 5.5.0 - released 11-Mar-04
 
