@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.8 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vmoduser.c,v 1.9 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         if ( GidFlag != 0 ) mypw->pw_gid |= GidFlag; 
         if ( QuotaFlag == 1 ) {
             mypw->pw_shell = Quota;
-            remove_maildirsize(mypw->pw_dir);
+            update_maildirsize(Domain, mypw->pw_dir, Quota);
         }
         if ( (i=vauth_setpw( mypw, Domain )) != 0 ) {
             printf("Error: %s\n", verror(i));
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             if ( GidFlag != 0 ) mypw->pw_gid |= GidFlag; 
             if ( QuotaFlag == 1 ) {
                 mypw->pw_shell = Quota;
-                remove_maildirsize(mypw->pw_dir);
+                update_maildirsize(Domain, mypw->pw_dir, Quota);
             }
             if ( (i=vauth_setpw( mypw, Email )) != 0 ) {
                 printf("Error: %s\n", verror(i));

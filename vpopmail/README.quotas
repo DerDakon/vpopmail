@@ -56,6 +56,8 @@ VPOPMAIL AND MAILDIRQUOTAS                               (updated 16/Jan/2004)
 
 * DOMAIN QUOTAS
 
+    ** NOTE: Domain quotas are currently broken.  Do not use them. **
+
     If you want to implement a quota for a whole domain, you have 2 options.
     You can either put the domain under a unique system id and implement
     system quotas, or (as of 5.3.18) you can use a non-system domain quota.  To 

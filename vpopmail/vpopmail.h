@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.19 2004-06-22 00:41:34 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.20 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -185,6 +185,7 @@ int vfd_move(int,int);
 int update_rules();
 char *vversion(char *);
 void remove_maildirsize(char *dir);
+void update_maildirsize(char *domain, char *dir, char *quota);
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain);
 char *vgen_pass(int len);
 char *vrandom_pass (char *buffer, int len);
@@ -197,6 +198,17 @@ char *date_header();
 char *get_remote_ip();
 char *maildir_to_email(const char *maildir);
 int qnprintf (char *buffer, size_t size, const char *format, ...);
+
+/* Even though this definition defines data as 4096 bytes, we only allocate just
+ * enough memory to hold the data.
+ */
+struct linklist {
+	struct linklist *next;
+	char *d2;
+	char data[4096];
+};
+struct linklist * linklist_add (struct linklist *list, const char *d1, const char *d2);
+struct linklist * linklist_del (struct linklist *list);
 
 #ifdef APOP
 char *dec2hex(unsigned char *);

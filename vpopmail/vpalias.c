@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.9 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vpalias.c,v 1.10 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -63,12 +63,12 @@ char *valias_select( char *alias, char *domain )
       return( NULL );
     }
 
-    if ( strlen(alias) >= MAX_PW_NAME ) {
+    if ( strlen(alias) > MAX_PW_NAME ) {
       verrori = VA_USER_NAME_TOO_LONG;
       return( NULL );
     }
 
-    if ( strlen(domain) >= MAX_PW_DOMAIN ) {
+    if ( strlen(domain) > MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
     }
@@ -127,8 +127,8 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     if ( alias == NULL ) return(VA_NULL_POINTER);
     if ( domain == NULL ) return(VA_NULL_POINTER);
     if ( alias_line == NULL ) return(VA_NULL_POINTER);
-    if ( strlen(alias) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(alias_line) >= MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
 
     if ((tmpstr = vget_assign(domain, Dir, sizeof(Dir), &uid, &gid )) == NULL) {
@@ -166,8 +166,8 @@ int valias_delete( char *alias, char *domain)
 
     if ( alias == NULL ) return(VA_NULL_POINTER); 
     if ( domain == NULL ) return(VA_NULL_POINTER);
-    if ( strlen(alias) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
     if ((tmpstr = vget_assign(domain, Dir, 156, &uid, &gid )) == NULL) {
 	printf("invalid domain, not in qmail assign file\n");
@@ -200,7 +200,7 @@ char *valias_select_names( char *domain )
       return( NULL );
     }
   
-    if ( strlen(domain) >= MAX_PW_DOMAIN ) {
+    if ( strlen(domain) > MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
     }

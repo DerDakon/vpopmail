@@ -1,5 +1,5 @@
 /*
- * $Id: vconvert.c,v 1.6 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vconvert.c,v 1.7 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -184,6 +184,8 @@ int cdb_to_default( char *domain )
  int i, colon_count, dir_count;
  int bFoundDomain = 0;
  char assign_file[MAX_BUFF];
+ uid_t uid;
+ gid_t gid;
 
     snprintf(assign_file, sizeof(assign_file), "%s/users/assign",  QMAILDIR);      
     if ( (assign_fs=fopen(assign_file, "r"))==NULL ) {
@@ -223,9 +225,13 @@ int cdb_to_default( char *domain )
     fclose(assign_fs);
 
     vauth_deldomain(domain);
+    vdel_dir_control(domain);
     vauth_adddomain(domain);
 
-    vget_assign(domain, Dir, sizeof(Dir), NULL, NULL );
+    vget_assign(domain, Dir, sizeof(Dir), &uid, &gid );
+#ifdef USERS_BIG_DIR
+    open_big_dir (domain, uid, gid);
+#endif
     snprintf(tmpbuf, sizeof(tmpbuf), "%s/vpasswd", Dir);
     fs = fopen(tmpbuf,"r");
     if ( fs == NULL ) return(-1);
@@ -237,8 +243,14 @@ int cdb_to_default( char *domain )
         continue;
       }
       vauth_setpw(pw, domain);
+#ifdef USERS_BIG_DIR
+      next_big_dir (uid, gid);  /* increment user count */
+#endif
     }
     fclose(fs);
+#ifdef USERS_BIG_DIR
+    close_big_dir (domain, uid, gid);
+#endif
 #endif /* USE_SQL */
     return(0);
 }

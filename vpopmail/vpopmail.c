@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.44 2004-06-22 00:41:34 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.45 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,9 +25,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#ifdef HAVE_SYS_VARARGS_H
-#include <sys/varargs.h>
-#endif
 #include <signal.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -117,7 +114,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if ( strlen( domain) <3) return (VA_INVALID_DOMAIN_NAME);
 
   /* reject domain names that exceed our max permitted/storable size */
-  if ( strlen( domain ) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen( domain ) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
   /* check invalid email domain characters */
   for(i=0;domain[i]!=0;++i) {
@@ -190,7 +187,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
    * We dont want to start creating dirs and putting entries in
    * the assign file etc if the path is going to be too long
    */
-  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) >= MAX_PW_DIR) {
+  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) > MAX_PW_DIR) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
@@ -278,9 +275,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
       fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
+#ifdef USERS_BIG_DIR
     if (vdel_dir_control(domain) != 0) {
-      fprintf (stderr, "Failed while attempting to delete domain from dir_control\n");
+      fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
     }
+#endif
 
     /* send a HUP signal to qmail-send process to reread control files */
     signal_process("qmail-send", SIGHUP);
@@ -332,7 +331,7 @@ int vdeldomain( char *domain )
    * asking to del that domain, because such a domain
    * wouldnt be able to exist in the 1st place
    */
-  if (strlen(domain) >= MAX_PW_DOMAIN) return (VA_DOMAIN_NAME_TOO_LONG);
+  if (strlen(domain) > MAX_PW_DOMAIN) return (VA_DOMAIN_NAME_TOO_LONG);
 
   /* now we want to check a couple for things :
    * a) if the domain to del exists in the system
@@ -435,10 +434,12 @@ int vdeldomain( char *domain )
      */  
     vdel_limits(domain);
 
+#ifdef USERS_BIG_DIR
     /* delete the dir control info for this domain */
     if (vdel_dir_control(domain) != 0) {
       fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
     }
+#endif
 
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
@@ -597,15 +598,15 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   /* check gecos for : characters - bad */
   if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(domain) < 3) return(VA_INVALID_DOMAIN_NAME);
 
-  if ( strlen(password) >= MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
-  if ( strlen(gecos) >= MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(gecos) > MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
 
   umask(VPOPMAIL_UMASK);
   lowerit(username);
@@ -751,6 +752,19 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 
   tmpstr = crypt(clearpass,salt);
   if ( tmpstr == NULL ) return(VA_CRYPT_FAILED);
+
+#ifdef MD5_PASSWORDS
+  /* Make sure this host's crypt supports MD5 passwords.  If not,
+   * fall back on old-style crypt
+   */
+  if (tmpstr[2] != '$') {
+    salt[0] = randltr();
+    salt[1] = randltr();
+    salt[2] = 0;
+    tmpstr = crypt(clearpass,salt);
+    if ( tmpstr == NULL ) return(VA_CRYPT_FAILED);
+  }
+#endif
 
   strncpy(crypted,tmpstr, ssize);
   return(VA_SUCCESS);
@@ -1448,12 +1462,12 @@ int vpasswd( char *username, char *domain, char *password, int apop )
  gid_t gid;
 #endif
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR  
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(password) >= MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
 
   lowerit(username);
   lowerit(domain);
@@ -1953,15 +1967,18 @@ int vsetuserquota( char *username, char *domain, char *quota )
  char *formattedquota;
  int ret;
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR  
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif  
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(quota) >= MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
   lowerit(username);
   lowerit(domain);
+
+  mypw = vauth_getpw( username, domain );
+  if (mypw == NULL) return VA_USER_DOES_NOT_EXIST;
 
   /* correctly format the quota string,
    * and then store the quota into the auth backend
@@ -1970,20 +1987,7 @@ int vsetuserquota( char *username, char *domain, char *quota )
   ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
-  mypw = vauth_getpw( username, domain );
-  remove_maildirsize(mypw->pw_dir);
-  if (strcmp (quota, "NOQUOTA") != 0) {
-   uid_t uid;
-   gid_t gid;
-   char maildir[MAX_BUFF];
-    snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
-    umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, formattedquota);
-    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
-      strcat(maildir, "maildirsize");
-      chown(maildir,uid,gid);
-    }
-  }
+  update_maildirsize(domain, mypw->pw_dir, formattedquota);
   return(0);
 }
 
@@ -2130,7 +2134,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 #endif
   /* check the length of the dir path to make sure it is not too 
      long to save back to the auth backend */
-  if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) >= MAX_PW_DIR) {
+  if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) > MAX_PW_DIR) {
     fprintf (stderr, "Error. Path exceeds maximum permitted length\n");
     chdir(calling_dir);
     return (NULL);
@@ -2171,11 +2175,11 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
   if ( mypw != NULL ) { 
 
     /* user does exist in the auth backend, so fill in the dir field */
-    mypw->pw_dir = malloc(MAX_PW_DIR);
+    mypw->pw_dir = malloc(MAX_PW_DIR+1);
     if ( strlen(user_hash) > 0 ) {
-      snprintf(mypw->pw_dir, MAX_PW_DIR, "%s/%s/%s", domain_dir, user_hash, username);
+      snprintf(mypw->pw_dir, MAX_PW_DIR+1, "%s/%s/%s", domain_dir, user_hash, username);
     } else {
-      snprintf(mypw->pw_dir, MAX_PW_DIR, "%s/%s", domain_dir, username);
+      snprintf(mypw->pw_dir, MAX_PW_DIR+1, "%s/%s", domain_dir, username);
     }
     /* save these values to the auth backend */
     vauth_setpw( mypw, domain );
@@ -2264,7 +2268,7 @@ struct vqpasswd *vauth_user(char *user, char *domain, char* password, char *apop
 char *default_domain()
 {
    static int init = 0;
-   static char d[MAX_PW_DOMAIN];
+   static char d[MAX_PW_DOMAIN+1];
    char path[MAX_BUFF];
    int dlen;
    FILE *fs;
@@ -2316,8 +2320,9 @@ void vset_default_domain( char *domain )
     /* Michael Bowe 14th August 2003
      * How can we prevent possible buffer overflows here
      * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+     * (plus 1 for the NULL)
      */
-    snprintf(domain, MAX_PW_DOMAIN, "%s", tmpstr);
+    snprintf(domain, MAX_PW_DOMAIN+1, "%s", tmpstr);
     return;
   }
 
@@ -2352,8 +2357,9 @@ void vset_default_domain( char *domain )
       /* Michael Bowe 14th August 2003
        * How can we prevent possible buffer overflows here
        * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+       * (plus 1 for the NULL)
        */
-      snprintf(domain, MAX_PW_DOMAIN, "%s", host);
+      snprintf(domain, MAX_PW_DOMAIN+1, "%s", host);
     }
     return;
   }
@@ -2362,8 +2368,9 @@ void vset_default_domain( char *domain )
   /* Michael Bowe 14th August 2003
    * How can we prevent possible buffer overflows here
    * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+   * (plus 1 for the NULL)
    */
-  snprintf(domain, MAX_PW_DOMAIN, "%s", DEFAULT_DOMAIN);
+  snprintf(domain, MAX_PW_DOMAIN+1, "%s", DEFAULT_DOMAIN);
 }
 
 /************************************************************************/
@@ -2721,10 +2728,11 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
      *
      * Michael Bowe 21st Aug 2003. Need to watch out for buffer overflows here.
      * We dont know what size domain is, so stick with a conservative limit of MAX_PW_DOMAIN
+     * (plus 1 for the NULL)
      * Not sure if this is our best option? the pw entry shouldnt contain any dirs larger
      * than this.
      */
-    snprintf(domain, MAX_PW_DOMAIN, "%s", in_domain); 
+    snprintf(domain, MAX_PW_DOMAIN+1, "%s", in_domain); 
 
   } else {
     free(in_domain);
@@ -3215,6 +3223,26 @@ void remove_maildirsize(char *dir) {
 }
 
 /************************************************************************/
+/* update_maildirsize first appeared in 5.4.8 */
+void update_maildirsize (char *domain, char *dir, char *quota)
+{
+  uid_t uid;
+  gid_t gid;
+  char maildir[MAX_BUFF];
+
+  remove_maildirsize(dir);
+  if (strcmp (quota, "NOQUOTA") != 0) {
+    snprintf(maildir, sizeof(maildir), "%s/Maildir/", dir);
+    umask(VPOPMAIL_UMASK);
+    (void)vmaildir_readquota(maildir, quota);
+    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
+      strcat(maildir, "maildirsize");
+      chown(maildir,uid,gid);
+    }
+  }
+}
+
+/************************************************************************/
 
 /* run some tests on the contents of a vpqw struct */
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
@@ -3235,15 +3263,15 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
   /* when checking for excess size using strlen, the check needs use >= because you
    * have to allow 1 char for null termination
    */ 
-  if ( strlen(inpw->pw_name) >= MAX_PW_NAME )   return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(inpw->pw_name) > MAX_PW_NAME )    return(VA_USER_NAME_TOO_LONG);
   if ( strlen(inpw->pw_name) == 1 )             return(VA_ILLEGAL_USERNAME);
-  if ( strlen(domain) >= MAX_PW_DOMAIN )        return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(inpw->pw_passwd) >= MAX_PW_PASS ) return(VA_PASSWD_TOO_LONG);
-  if ( strlen(inpw->pw_gecos) >= MAX_PW_GECOS ) return(VA_GECOS_TOO_LONG);
-  if ( strlen(inpw->pw_dir) >= MAX_PW_DIR )     return(VA_DIR_TOO_LONG);
-  if ( strlen(inpw->pw_shell) >= MAX_PW_QUOTA ) return(VA_QUOTA_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN )         return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(inpw->pw_passwd) > MAX_PW_PASS )  return(VA_PASSWD_TOO_LONG);
+  if ( strlen(inpw->pw_gecos) > MAX_PW_GECOS )  return(VA_GECOS_TOO_LONG);
+  if ( strlen(inpw->pw_dir) > MAX_PW_DIR )      return(VA_DIR_TOO_LONG);
+  if ( strlen(inpw->pw_shell) > MAX_PW_QUOTA )  return(VA_QUOTA_TOO_LONG);
 #ifdef CLEAR_PASS
-  if ( strlen(inpw->pw_clear_passwd) >= MAX_PW_CLEAR_PASSWD )
+  if ( strlen(inpw->pw_clear_passwd) > MAX_PW_CLEAR_PASSWD )
                                                 return(VA_CLEAR_PASSWD_TOO_LONG);
 #endif
   return(VA_SUCCESS);
@@ -3377,7 +3405,7 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
   if ( (err=is_domain_valid(alias_domain)) != VA_SUCCESS ) return(err);
 
   /* make sure the alias domain does not exceed the max storable size */
-  if (strlen(alias_domain) >= MAX_PW_DOMAIN) {
+  if (strlen(alias_domain) > MAX_PW_DOMAIN) {
     return(VA_DOMAIN_NAME_TOO_LONG);
   }
 
@@ -3523,47 +3551,70 @@ char *get_remote_ip()
   return ipaddr;  
 }
 
-
-char *maildir_to_email(const char *maildir)
+char *maildir_to_email (const char *maildir)
 {
- static char email[256];
- int i, j=0;
- char *pnt, *last;
+	static char email[256];
+	int i;
+	char *pnt, *last;
+	char *mdcopy;
+	char *user;
+	int sawdot;
+	
+	mdcopy = malloc (strlen (maildir) + 1);
+	if (mdcopy == NULL) return "";
+	strcpy (mdcopy, maildir);
+	
+	/* find the last occurrence of /Maildir/ */
+	pnt = mdcopy;
+	do {
+		last = pnt;
+		pnt = strstr (pnt + 1, "/Maildir/");
+	} while (pnt != NULL);
 
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    pnt = last + strlen(DOMAINS_DIR) + 2;
-    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
+	if (last == pnt) {
+		/* no occurrences of "/Maildir/" in path */
+		free (mdcopy);
+		return "";
+	}
+	
+	/* last points to /Maildir/ after username, so null terminate
+	 * username by changing the '/' to a NUL
+	 */
+	*last = '\0';
+ 
+ 	/* find start of username */
+ 	i = (int) (last - mdcopy);
+ 	while (i > 0 && mdcopy[i] != '/') { i--; }
+ 	
+ 	if (i == 0) {
+ 		/* invalid maildir path */
+ 		free (mdcopy);
+ 		return "";
+	}
+	
+	user = &mdcopy[i+1];
+	
+	/* look for first directory name that contains a '.', that's the domain */
+	sawdot = 0;
+	do {
+		mdcopy[i] = '\0';	/* change '/' to NUL to NUL-terminate domain */
+		/* search backwards for '/' */
+		while (i > 0 && (mdcopy[i] != '/')) {
+			if (mdcopy[i] == '.') sawdot = 1;
+			i--;
+		}
+	} while ((i > 0) && !sawdot);
+	
+	if (i == 0) {
+		/* couldn't find domain name */
+		free (mdcopy);
+		return "";
+	}
+		
+	snprintf (email, sizeof(email), "%s@%s", user, &mdcopy[i+1]);
+	free (mdcopy);
+	
+	return email;
 }
 
 /* escape these characters out of strings: ', \, " */
@@ -3676,5 +3727,40 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	}
 	
 	return printed;
+}
+
+/* Linked-list code for handling valias entries in SQL database (read
+ * all entries into memory, close connection to DB, return one entry
+ * at a time, freeing old entries as we go.)
+ *
+ * linklist_{add|del} written September 2004 by Tom Collins <tom@tomlogic.com>
+ */
+
+/* create a new entry for data, point list->next to it and return a pointer to it */
+struct linklist * linklist_add (struct linklist *list, const char *d1, const char *d2) {
+	size_t dlen;
+	int i;
+	struct linklist *entry;
+	
+	dlen = strlen (d1) + 1 + strlen (d2);
+	/* new entry to hold string, NULL and a pointer to the next entry */
+	entry = (struct linklist *) malloc (dlen + 1 + sizeof(struct linklist*) + sizeof(char *));
+	if (entry != NULL) {
+		if (list != NULL) list->next = entry;
+		entry->next = NULL;
+		i = sprintf (entry->data, "%s", d1);
+		entry->d2 = &entry->data[i+1];
+		sprintf (entry->d2, "%s", d2);
+	}
+	return entry;
+}
+
+/* delete the passed entry and return a pointer to the next entry */
+struct linklist * linklist_del (struct linklist *list) {
+	struct linklist *next;
+	
+	next = list->next;
+	free (list);
+	return next;
 }
 

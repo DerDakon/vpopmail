@@ -4,8 +4,8 @@ SHELL=/bin/sh
 
 default: all
 
-install:
-install-strip:
+install: all
+install-strip: all
 
 cdb.a: \
 makelib cdb_hash.o cdb_unpack.o cdb_seek.o

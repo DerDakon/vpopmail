@@ -1,5 +1,10 @@
+/* This program, intended as a Maildir++-aware replacement for qmail-local
+ * has not been maintained and may never have worked properly.  It
+ * should not be used.
+ */
+
 /*
- * $Id: vqmaillocal.c,v 1.5 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vqmaillocal.c,v 1.6 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 2002-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.11 2004-06-26 01:38:47 tomcollins Exp $
+   $Id: README.pgsql,v 1.12 2004-11-23 15:47:02 tomcollins Exp $
 */
 --------------------------------------------------------------------------
 
@@ -8,7 +8,34 @@ The PostgreSQL modules are understood to be functional, but because it not
 as popular as using CDB or MySQL auth systems, you should be wary of 
 implementing the PostgreSQL system on a production server. 
 
+The PostgreSQL backend has improved greatly as of vpopmail 5.4.8, and many 
+have been using it on production servers.
+
 --------------------------------------------------------------------------
+
+If you are upgrading an existing PostgreSQL installation (that is using
+valiases) to version 5.4.8 or later for the first time, please run the
+following script to convert the columns from char to varchar:
+
+BEGIN;
+ALTER TABLE valias RENAME alias TO alias2;
+ALTER TABLE valias RENAME domain TO domain2;
+ALTER TABLE valias RENAME valias_line TO valias_line2;
+ALTER TABLE valias ADD alias varchar(32);
+ALTER TABLE valias ADD domain varchar(64);
+ALTER TABLE valias ADD valias_line varchar(160);
+UPDATE valias SET alias=trim(alias2), domain=trim(domain2),
+valias_line=trim(valias_line2);
+ALTER TABLE valias ALTER alias SET NOT NULL;
+ALTER TABLE valias ALTER domain SET NOT NULL;
+ALTER TABLE valias ALTER valias_line SET NOT NULL;
+ALTER TABLE valias DROP alias2;
+ALTER TABLE valias DROP domain2;
+ALTER TABLE valias DROP valias_line2;
+COMMIT;
+VACUUM ANALYZE valias;
+
+(Thanks to Sven Willenberger for the previous script.)
 
 ------------------------------------------------------------------------------
 2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>

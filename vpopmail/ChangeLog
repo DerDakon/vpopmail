@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
 
+	Tom Collins - 23 November 2004
+	- Forward port changes made between 5.4.4 and 5.4.8.
+
         Michael Bowe - 9th September 2004
         - Mention in README.mysql that is is possible to create mailboxes 
 	by inserting entries directly into the MySQL table.

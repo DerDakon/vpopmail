@@ -23,8 +23,8 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
- dotqmail2valias vpopmaild
+ vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias \
+ vpopmaild
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
@@ -47,8 +47,8 @@ dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
 
-vqmaillocal_SOURCES = vqmaillocal.c 
-vqmaillocal_LDADD = libvpopmail.a @auth_libs@
+#vqmaillocal_SOURCES = vqmaillocal.c 
+#vqmaillocal_LDADD = libvpopmail.a @auth_libs@
 
 vkill_SOURCES = vkill.c 
 vkill_LDADD = libvpopmail.a @auth_libs@

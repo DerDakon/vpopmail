@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.22 2004-06-22 00:41:34 rwidmer Exp $
+ * $Id: vmysql.c,v 1.23 2004-11-23 15:47:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2135,13 +2135,19 @@ void vcreate_lastauth_table()
  */
 
 #ifdef VALIAS
+struct linklist *valias_current = NULL;
 char *valias_select( char *alias, char *domain )
 {
+ struct linklist *temp_entry = NULL;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_select( alias: %s domain: %s )\n",
                      alias, domain );
 #endif
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
 
     /* if we can not connect, set the verrori value */
     if ( vauth_open_read() ) return(NULL);
@@ -2189,7 +2195,14 @@ where alias = '%s' and domain = '%s'", alias, domain );
         return(NULL);
     }
 
-    return(valias_select_next());
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[0], "");
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else return(valias_current->data);
 }
 
 /************************************************************************
@@ -2203,14 +2216,17 @@ char *valias_select_next()
     fprintf( stderr, "valias_select_next()\n");
 #endif
 
-    if((row = mysql_fetch_row(res_read))) {
+    if (valias_current == NULL) return NULL;
+ 
+    valias_current = linklist_del (valias_current);
+
+    if (valias_current == NULL) return NULL;
+    else {
 #ifdef DUMP_DATA
-        fprintf(stderr, "   %s\n", row[0] );
+        fprintf(stderr, "   %s\n", valias_current->data );
 #endif
-        return(row[0]);
+        return valias_current->data;
     }
-    mysql_free_result(res_read);
-    return(NULL);
 }
 
 int valias_insert( char *alias, char *domain, char *alias_line)
@@ -2405,11 +2421,15 @@ void vcreate_valias_table()
 
 char *valias_select_all( char *alias, char *domain )
 {
-
+ struct linklist *temp_entry = NULL;
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_select_all( alias: %s domain: %s )\n", 
              alias, domain );
 #endif
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
 
     if ( vauth_open_read() ) return(NULL);
 
@@ -2456,7 +2476,17 @@ char *valias_select_all( char *alias, char *domain )
         return(NULL);
     }
 
-    return(valias_select_all_next(alias));
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[1], row[0]);
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
 }
 
 /************************************************************************
@@ -2466,15 +2496,20 @@ char *valias_select_all( char *alias, char *domain )
 
 char *valias_select_all_next(char *alias)
 {
-    if((row = mysql_fetch_row(res_read))) {
-        strcpy( alias, (row[0]));
-#ifdef DUMP_DATA
-        fprintf(stderr, "   alias: %s something: %s\n", row[0], row[1] );
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select_all_next( alias: %s )\n", alias );
 #endif
-        return(row[1]);
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+     
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+#ifdef DUMP_DATA
+        fprintf(stderr, "   alias: %s something: %s\n", alias, valias_current->data );
+#endif
+        return(valias_current->data);
     }
-    mysql_free_result(res_read);
-    return(NULL);
 }
 
 /************************************************************************
@@ -2484,10 +2519,16 @@ char *valias_select_all_next(char *alias)
 
 char *valias_select_names( char *alias, char *domain )
 {
+ struct linklist *temp_entry = NULL;
 
 #ifdef SHOW_TRACE
-    fprintf( stderr, "valias_select_all_next( alias: %s )\n", alias );
-#endif
+    fprintf( stderr, "valias_select_names( alias: %s domain: %s )\n",
+             alias, domain );
+#endif      
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
 
     if ( vauth_open_read() ) return(NULL);
 
@@ -2533,11 +2574,18 @@ char *valias_select_names( char *alias, char *domain )
         }
         return(NULL);
     }
-#ifdef DUMP_DATA
-        fprintf(stderr, "   %s - %s\n", row[0], row[1] );
-#endif
 
-    return(valias_select_all_next(alias));
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[1], row[0]);
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+ 
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
 }
 
 /************************************************************************
@@ -2547,15 +2595,20 @@ char *valias_select_names( char *alias, char *domain )
 
 char *valias_select_names_next(char *alias)
 {
-    if((row = mysql_fetch_row(res_read))) {
-        strcpy( alias, (row[0]));
-#ifdef DUMP_DATA
-        fprintf(stderr, "   alias: %s something: %s\n", row[0], row[1] );
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select_names_next( alias: %s )\n", alias );
 #endif
-        return(row[1]);
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+ 
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+#ifdef DUMP_DATA
+        fprintf(stderr, "   alias: %s something: %s\n", alias, valias_current->data );
+#endif
+        return(valias_current->data);
     }
-    mysql_free_result(res_read);
-    return(NULL);
 }
 
 
