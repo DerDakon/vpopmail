@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.9 2004-10-07 19:40:24 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.10 2004-11-03 18:00:49 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2785,6 +2785,26 @@ void remove_maildirsize(char *dir) {
   if ( (fs = fopen(maildirsize, "r+"))!=NULL) {
     fclose(fs);
     unlink(maildirsize);
+  }
+}
+
+/************************************************************************/
+/* update_maildirsize first appeared in 5.4.8 */
+void update_maildirsize (char *domain, char *dir, char *quota)
+{
+  uid_t uid;
+  gid_t gid;
+  char maildir[MAX_BUFF];
+
+  remove_maildirsize(dir);
+  if (strcmp (quota, "NOQUOTA") != 0) {
+    snprintf(maildir, sizeof(maildir), "%s/Maildir/", dir);
+    umask(VPOPMAIL_UMASK);
+    (void)vmaildir_readquota(maildir, quota);
+    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
+      strcat(maildir, "maildirsize");
+      chown(maildir,uid,gid);
+    }
   }
 }
 
