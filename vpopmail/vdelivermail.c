@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.9 2004-01-08 23:30:28 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.10 2004-01-11 03:53:40 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -976,6 +976,13 @@ void checkuser()
                TheDomainUid, TheDomainGid)==NULL){
             printf("Auto creation of maildir failed. vpopmail (#5.9.8)\n");
             vexit(100);
+        }
+        /* Re-read the vpw entry, because we need to lookup the newly created
+         * pw_dir entry
+         */
+        if ((vpw=vauth_getpw(TheUser, TheDomain)) == NULL ) {
+           printf("Failed to vauth_getpw(). vpopmail (#5.9.8.1)\n");
+           vexit(100);
         }
     }
 

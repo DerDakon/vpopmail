@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.8 2003-10-09 23:59:04 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.9 2004-01-11 03:53:40 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -402,7 +402,16 @@ void login_virtual_user()
                                 TheName, IpAddr, LogLine);
       vchkpw_exit(14);
     }
-
+    /* Re-read the vpw entry, because we need to lookup the newly created
+     * pw_dir entry
+     */
+    if ((vpw=vauth_getpw(TheUser, TheDomain)) == NULL ) {
+      snprintf(LogLine, sizeof(LogLine), "%s: failed to vauth_getpw() after dir auto create %s@%s:%s",
+        VchkpwLogName, TheUser, TheDomain, IpAddr);
+      vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass,
+                                TheName, IpAddr, LogLine);
+      vchkpw_exit(14);
+    }
   }
 
 #ifdef CLEAR_PASS 

@@ -7,6 +7,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Added some basic 5.4 upgrade notes to the UGPRADE file
 	- Fix typo's in configure.in that relate to the errors generated
 	  when a discontinued configure option is used
+	- Fix bug when autocreating a user dir for a user who exists
+	  in the auth backend, but does not yet have a user dir 
+	  allocated. [873007] 
 
 	Ken Nonaka
 	- Fixes to vpgsql.c to clear compile errors when 
