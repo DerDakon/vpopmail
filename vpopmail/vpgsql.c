@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.19 2004-02-11 14:59:57 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20 2004-02-11 15:40:17 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1413,6 +1413,16 @@ void vcreate_valias_table()
     if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
       if( pgres ) PQclear(pgres);
       fprintf(stderr,"vpgsql:sql error[n]:%s\n", PQresultErrorMessage(pgres));
+      return;
+    }
+    if( pgres ) PQclear(pgres);
+    snprintf( SqlBufCreate, SQL_BUF_SIZE,
+	"create index valias_idx on valias ( %s )", VALIAS_INDEX_LAYOUT );
+
+    pgres=PQexec( pgc, SqlBufCreate );
+    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
+      if( pgres ) PQclear(pgres);
+      fprintf(stderr,"vpgsql:sql error[n.i]:%s\n", PQresultErrorMessage(pgres));
       return;
     }
     if( pgres ) PQclear(pgres);
