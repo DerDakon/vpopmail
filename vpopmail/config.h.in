@@ -262,10 +262,16 @@
 #undef DOMAINS_DIR
 
 /*  */
+#undef USE_CDB
+
+/*  */
 #undef USE_SQL
 
 /*  */
 #undef USE_MYSQL
+
+/*  */
+#undef USE_SQL
 
 /*  */
 #undef USE_POSTGRES
@@ -274,16 +280,19 @@
 #undef USE_LDAP
 
 /*  */
+#undef USE_SQL
+
+/*  */
 #undef USE_ORACLE
+
+/*  */
+#undef USE_SQL
 
 /*  */
 #undef USE_SYBASE
 
 /*  */
 #undef USE_ACTIVE_DIR
-
-/*  */
-#undef USE_CDB
 
 /*  */
 #undef ENABLE_PASSWD

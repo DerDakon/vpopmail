@@ -152,10 +152,10 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
+	  doc/man_html/*.* $(DESTDIR)@vpopmaildir@/doc/man_html/
 
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
-	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
+	  doc/doc_html/*.* $(DESTDIR)@vpopmaildir@/doc/doc_html/
 
 fix-priv:
 	if test -r $(MYSQLCONF); then \
