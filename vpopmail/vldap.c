@@ -1,4 +1,6 @@
-/* * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+/* 
+ * $Id: vldap.c,v 1.8 2003-10-16 22:41:13 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
