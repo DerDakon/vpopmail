@@ -109,9 +109,8 @@ vpopmail's roaming user functions to allow IMAP-before-SMTP functionality.
 IMAP-before-SMTP is not possible when Courier-IMAP has been complied 
 --with-authdaemon, because in this mode, the user's IP address is not made 
 available to the authvchkpw code (the TCPREMOTEIP env var is not set). Also, 
-in Courier-IMAP v4.x and later, a new authentication system has been 
-implemented, and TCPREMOTEIP is no longer available regardless of which 
-configure settings have been used.
+in Courier-IMAP v4.x and later, --without-authdaemon functionality is no
+longer available, which will prevent IMAP-before-SMTP from working.
 
 ----------------------------------------------------------------------------
 
