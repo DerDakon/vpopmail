@@ -3,6 +3,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.3.30 - unreleased
 
+	Michael Bowe
+	- Fixed logic error in update_rules(), to prevent "update_rules
+          failed" error being generated on the first attempt for a 
+	  roaming user to POP auth [833926]   
+
 	Tom Collins
 	- Install a vlimits.default file if none exists.
 	- Allow for comments in vlimits.default and .qmailadmin-limits.
