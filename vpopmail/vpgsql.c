@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.24 2004-03-09 06:09:18 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.25 2004-03-10 16:09:23 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1021,6 +1021,7 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
 
 void vcreate_dir_control(char *domain)
 {
+  PGresult *pgres;
   vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1);
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "insert into dir_control ( \
@@ -1367,6 +1368,7 @@ int valias_delete_domain( char *domain)
 
 void vcreate_valias_table()
 {
+  PGresult *pgres;
   char SqlBufCreate[SQL_BUF_SIZE];
 
   vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);

@@ -12,6 +12,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  voracle.pc, and vsybase.c.
 	- Multiple fixes to vpgsql.c related to freeing PGresults and
 	  attempting to access NULL PGresults when reporting errors.
+	- Add missing pgres variable declarations.
 
 5.4.3 - unreleased
 
