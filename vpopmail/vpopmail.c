@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.1 2004-03-04 05:17:54 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.2 2004-04-17 22:10:09 mbowe Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2461,6 +2461,10 @@ int open_smtp_relay()
  char tmpbuf2[MAX_BUFF];
 
   mytime = time(NULL);
+  ipaddr = get_remote_ip();
+  if ( ipaddr == NULL ) {
+      return 0;
+  }
 
 #ifdef FILE_LOCKING
   /* by default the OPEN_SMTP_LOK_FILE is ~vpopmail/etc/open-smtp.lock */
@@ -2481,10 +2485,10 @@ int open_smtp_relay()
     }
   }
 
-  /* by default the OPEN_SMTP_TMP_FILE is ~vpopmail/etc/open-smtp.tmp */
+  /* by default the OPEN_SMTP_TMP_FILE is ~vpopmail/etc/open-smtp.tmp.pid */
   snprintf(open_smtp_tmp_filename, sizeof(open_smtp_tmp_filename),
            "%s.%lu", OPEN_SMTP_TMP_FILE, (long unsigned)getpid());
-  /* create the tmp file as open-smtp.tmp.pid */
+  /* create the tmp file */
   fs_tmp_file = fopen(open_smtp_tmp_filename, "w+");
 
   if ( fs_tmp_file == NULL ) {
@@ -2493,17 +2497,6 @@ int open_smtp_relay()
     fclose(fs_lok_file);
 #endif /* FILE_LOCKING */
     /* failed to create the tmp file */
-    return(-1);
-  }
-
-  ipaddr = get_remote_ip();
-
-  if ( ipaddr == NULL ) {     
-#ifdef FILE_LOCKING
-    unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-    fclose(fs_lok_file);
-#endif /* FILE_LOCKING */
-    /* failed to get user's ip address */
     return(-1);
   }
 
