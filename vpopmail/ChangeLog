@@ -21,6 +21,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Michael Bowe
 	- Minor documentation tweaks
+	- Fix for : If roaming users were enabled, and auth module was not
+	  SQL based, and user's IP address was not available (eg being
+	  called from Courier-IMAP with authdaemon enabled), then
+	  open_smtp.tmp.pid files would be created for each auth 
+	  but never removed.
 
 5.5.0 - released 11-Mar-04
 
