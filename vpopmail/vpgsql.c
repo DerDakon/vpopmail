@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.17 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.18 2004-01-14 00:03:02 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1197,7 +1197,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     if( pgres ) PQclear(pgres);
     vcreate_lastauth_table();
     snprintf( SqlBufRead,  SQL_BUF_SIZE, "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", pw->pw_name, domain);
-    pgres=PQexec(pgc, SqlBufUpdate);
+    pgres=PQexec(pgc, SqlBufRead);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf(stderr,"vpgsql: sql error[g]: %s\n", PQerrorMessage(pgc));
       return(0);
@@ -1229,7 +1229,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     vcreate_lastauth_table();
     snprintf( SqlBufRead,  SQL_BUF_SIZE, "select remote_ip from lastauth where userid='%s' and domain='%s'", pw->pw_name, domain);
 
-    pgres=PQexec(pgc, SqlBufUpdate);
+    pgres=PQexec(pgc, SqlBufRead);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf( stderr,"vpgsql: sql error[h]: %s\n", PQerrorMessage(pgc));
       return(NULL);
@@ -1415,7 +1415,7 @@ void vcreate_valias_table()
   snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table valias ( %s )", 
 	    VALIAS_TABLE_LAYOUT );
 
-    pgres=PQexec( pgc, SqlBufUpdate );
+    pgres=PQexec( pgc, SqlBufCreate );
     if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
       if( pgres ) PQclear(pgres);
       fprintf(stderr,"vpgsql:sql error[n]:%s\n", PQresultErrorMessage(pgres));
