@@ -1,6 +1,13 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.0-pre3 - unreleased
+
+	Michael Bowe
+	- Minor code fixes and major documentation work for LDAP module. 
+	  Incl updated README.ldap, vldap.c, vldap.h, ldap/slapd.conf, 
+	  ldap/vpopmail.ldif. [863881] [811000]
+ 
 5.4.0-pre2 - released 21-Dec-03
 
 	*** Note that the configure option for setting the authentication
