@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.5 - unreleased
 
+	fernando (at) telemacro (dot) com (dot) br
+	- Patch for vpgsql.c fixes bug with Postgres and roaming users
+	  (POP before SMTP). [895501]
+
 5.4.4 - released 26-May-04
 
 	Tom Collins
