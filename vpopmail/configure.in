@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.4.1)
+AC_INIT(vpopmail,5.4.2)
 PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
 
