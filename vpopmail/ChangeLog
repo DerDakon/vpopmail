@@ -12,6 +12,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  'make' first.
 	- Fix size comparisons to MAX_PW_X (should be ">", not ">=").
 	- Fix possible buffer overflows in vsybase.c.
+	- Have vconvert reset dir_control and increment it for each user
+	  added when converting from cdb to MySQL.
 
 5.4.6 - released 30-Jun-04
 
