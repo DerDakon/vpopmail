@@ -8,6 +8,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Create ~vpopmail and ~vpopmail/etc in configure script. [930939]
 	  Note that any code creating files in ~vpopmail should probably
 	  be moved from configure and into Makefile (under make install).
+	- Use MAX_PW_DIR when checking max size of domain's directory.
 
         Michael Bowe
         - Minor documentation tweaks
