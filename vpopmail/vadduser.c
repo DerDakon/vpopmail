@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.2 2003-09-30 00:30:49 tomcollins Exp $
+ * $Id: vadduser.c,v 1.3 2003-10-12 21:38:44 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -77,13 +77,13 @@ int main(int argc,char **argv)
     }
 
     /* get the password if not set on command line */
-    if ( NoPassword == 0 ) {
-        if ( strlen(Passwd) <= 0 ) {
+    if ( (NoPassword == 0) && (*Crypted == '\0') ) {
+        if ( *Passwd == '\0' ) {
             /* Prompt the user to enter a password */
             snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd(Email));
         }
 
-        if ( strlen(Passwd) <= 0 ) {
+        if ( *Passwd == '\0' ) {
             printf("Error: No password entered\n");
             usage();
             vexit(-1);
@@ -105,7 +105,7 @@ int main(int argc,char **argv)
     }
 
     /* Check for encrypted password */
-    if ( Crypted[0] != 0 ) {
+    if ( *Crypted != '\0' ) {
         /* User has entered an encrypted password, so store this directly
          * into the auth records for this user
          */
@@ -113,7 +113,10 @@ int main(int argc,char **argv)
           printf ("Error in vauth_getpw()\n");
           vexit (-1);
         }
+        /* Set the crypted pass and get rid of the cleartext pass (if any)
+	 * since it won't match the crypted pass. */
         vpw->pw_passwd = Crypted;
+        vpw->pw_clear_passwd = "";
         if ( vauth_setpw( vpw, Domain) != 0) {
           printf ("Error in vauth_setpw()\n");
           vexit (-1);
