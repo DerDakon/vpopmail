@@ -896,7 +896,7 @@ AC_MSG_CHECKING(whether an auth module has been specified)
 AUTH_MODULE="cdb"
 
 AC_ARG_ENABLE(auth-module,
-    [  --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir        Nominate how to store the vpopmail account information. (default cdb)],
+    [  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, sybase, or activedir).],
     AUTH_MODULE="$enableval",
 )
 
