@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.3 2003-12-10 04:47:52 tomcollins Exp $
+ * $Id: vpopbull.c,v 1.4 2003-12-10 04:55:32 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
 
   if ( EmailFileFlag == 1 ) {
     if ( (fsi = fopen(EmailFile, "r")) == NULL ) {
-        printf("Could not open file %s\n", EmailFile);
+        fprintf(stderr, "Could not open file %s\n", EmailFile);
         vexit(-1);
     } else {
         /* make sure the file size is not 0 */
         stat(EmailFile, &statbuf);
         if(statbuf.st_size == 0) {
-            printf("Error: %s is empty\n", EmailFile);
+            fprintf(stderr, "Error: %s is empty\n", EmailFile);
             vexit(-1);
         }
         /* check for existing date header */
@@ -114,14 +114,14 @@ int main(int argc, char *argv[])
     }
   } else if (! DoNothing) {
     /* require -f [email_file] */
-    printf("Error: email_file not specified\n");
+    fprintf(stderr, "Error: email_file not specified\n");
     usage();
     vexit(-1);
   }
 
   if ( ExcludeFileFlag == 1 ) {
     if ( (fsx = fopen(ExcludeFile, "r")) == NULL ) {
-        printf("Could not open file %s\n", ExcludeFile);
+        fprintf(stderr, "Could not open file %s\n", ExcludeFile);
         vexit(-1);
     }
   }
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         if((vget_assign(domain, domain_dir, sizeof(domain_dir), NULL, NULL)) != NULL) {
             process_domain(domain,  fsi, fsx );
         } else {
-            printf("Error: domain %s does not exist\n", domain);
+            fprintf(stderr, "Error: domain %s does not exist\n", domain);
         }
         domain = strtok(NULL, " ");
     }
@@ -199,7 +199,7 @@ int process_domain(domain, fsi, fsx )
 				printf("%s@%s\n", pwent->pw_name, domain);
 			} else {
 				if(copy_email( fsi, filename, domain, pwent) != 0) {
-					printf(stderr, "%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
+					fprintf(stderr, "%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
 						domain, pwent->pw_dir);
 				} else if (Verbose) {
 					printf("%s@%s\n", pwent->pw_name, domain);
@@ -225,7 +225,7 @@ int copy_email( fs_file, name, domain, pwent)
     /* check if the directory exists and create if needed */
     if ( stat(pwent->pw_dir, &mystatbuf ) == -1 ) {
         if ( vmake_maildir(domain, pwent->pw_dir )!= VA_SUCCESS ) {
-            printf("Auto re-creation of maildir failed. vpopmail (#5.9.9)\n");
+            fprintf(stderr, "Auto creation of maildir failed. vpopmail (#5.9.9)\n");
             return(-1);
         }
     }
@@ -246,17 +246,23 @@ int copy_email( fs_file, name, domain, pwent)
 		}
 		fclose(fs);
 	} else if ( DeliveryMethod == HARD_LINK_IT ) {
-		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
+		if (*EmailFile == '/')
+			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", EmailFile);
+		else
+			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( link( tmpbuf1, tmpbuf) < 0 ) {
 			perror("link");
 		}
 	} else if ( DeliveryMethod == SYMBOLIC_LINK_IT ) {
-		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
+		if (*EmailFile == '/')
+			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", EmailFile);
+		else
+			snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( symlink( tmpbuf1, tmpbuf) < 0 ) {
 			perror("symlink");
 		}
 	} else {
-		printf("no delivery method set\n");
+		fprintf(stderr, "no delivery method set\n");
 		return -1;
 	}
 	/* fix permissions */
