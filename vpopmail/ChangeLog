@@ -7,6 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove attempts to free() static buffers in vpgsql.c. [888888]
 	- Fix problems with creating valias table in vpgsql.c. [892595]
 	- Remove unnecessary check for C++ from configure[.in].
+	- Don't include DESTDIR when building inc_deps and lib_deps.
+	  [886988]
 
 5.4.1 - released 10-Feb-04
 
