@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.4 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vmoddomlimits.c,v 1.5 2003-10-21 21:00:13 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -175,8 +175,8 @@ int main(int argc, char *argv[])
             printf ((limits.perm_defaultquota & VLIMIT_DISABLE_DELETE ? "DENY_DELETE  " :"ALLOW_DELETE ") );
             
             printf("\n");
-            printf("Domain Quota: %d\n", limits.diskquota);
-            printf("Default User Quota: %d\n", limits.defaultquota);
+            printf("Domain Quota: %d MB\n", limits.diskquota);
+            printf("Default User Quota: %d bytes\n", limits.defaultquota);
             printf("Max Domain Messages: %d\n", limits.maxmsgcount);
             printf("Default Max Messages per User: %d\n", limits.defaultmaxmsgcount);
             return(vexit(0));
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         
         /* quota & message count limits */
         if (DomainQuota[0] != 0) {
-            limits.diskquota = atoi(format_maildirquota(DomainQuota));
+            limits.diskquota = atoi(DomainQuota);
         }
         if (DomainMaxMsgCount[0] != 0) {
             limits.maxmsgcount = atoi(DomainMaxMsgCount);
@@ -348,8 +348,8 @@ void usage()
     printf("options: -v ( display the vpopmail version number )\n");
     printf("         -S ( show current settings )\n");
     printf("         -D ( delete limits for this domain, i.e. switch to default limits)\n");
-    printf("         -Q quota ( set domain quota )\n");
-    printf("         -q quota ( set default user quota )\n");
+    printf("         -Q quota-in-megabytes ( set domain disk quota, '100' = 100 MB )\n");
+    printf("         -q quota-in-bytes ( set default user quota, '10M' = 10 MB )\n");
     printf("         -M count ( set domain max msg count )\n");
     printf("         -m count ( set default user max msg count )\n");
     printf("         -P count ( set max ammount of pop accounts )\n");
