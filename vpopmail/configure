@@ -7176,8 +7176,8 @@ if test "${enable_hardquota+set}" = set; then
 
         echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-        { { echo "$as_me:$LINENO: error: --enable-hardquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." >&5
-echo "$as_me: error: --enable-hardquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." >&2;}
+        { { echo "$as_me:$LINENO: error: --enable-hardquota has been superceded. Please use the ~vpopmail/etc/vlimits.default file instead." >&5
+echo "$as_me: error: --enable-hardquota has been superceded. Please use the ~vpopmail/etc/vlimits.default file instead." >&2;}
    { (exit 1); exit 1; }; }
 
 
@@ -7189,8 +7189,8 @@ if test "${enable_defaultquota+set}" = set; then
 
         echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-        { { echo "$as_me:$LINENO: error: --enable-defaultquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." >&5
-echo "$as_me: error: --enable-defaultquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." >&2;}
+        { { echo "$as_me:$LINENO: error: --enable-defaultquota has been superceded. Please use the ~vpopmail/etc/vlimits.default file instead." >&5
+echo "$as_me: error: --enable-defaultquota has been superceded. Please use the ~vpopmail/etc/vlimits.default file instead." >&2;}
    { (exit 1); exit 1; }; }
 
 
