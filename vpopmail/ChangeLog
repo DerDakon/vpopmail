@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.0 - unreleased
 
+	Tom Collins
+	- Update configure with correct location of vlimits.default.
+
 5.4.0-rc2 - released 19-Jan-04
 
 	Michael Bowe
