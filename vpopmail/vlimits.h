@@ -56,5 +56,4 @@ int vset_limits(const char * domain, const struct vlimits * limits);
 int vdel_limits(const char * domain);
 int vlimits_read_limits_file(const char * dir, struct vlimits * limits);
 int vlimits_get_flag_mask(struct vlimits *limits);
-int vlimits_check_capability (struct vqpasswd *pw, struct vlimits *limits, int flags);
 #endif

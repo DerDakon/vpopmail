@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.4 2003-10-07 01:00:29 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.5 2003-10-08 22:45:02 jheesemann Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -461,28 +461,20 @@ void login_virtual_user()
   }
 #endif
 #endif
-
-  struct vlimits limits;
-  if (vget_limits (TheDomain, &limits)) {
-    snprintf(LogLine, sizeof(LogLine), "%s: No default vlimits and no vlimits for domain %s found",
-             VchkpwLogName, TheDomain);
-    vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
-    vchkpw_exit(1);
-  }
-
+  
   /* They are authenticated now, check for restrictions
-   * Check if they are allowed pop access 
+   * Check if they are allowed pop access
    */
-  if ( ConnType == POP_CONN && vlimits_check_capability (vpw, &limits, NO_POP)) {
-    snprintf(LogLine, sizeof(LogLine), "%s: pop access denied %s@%s:%s", 
+  if ( ConnType == POP_CONN && (vpw->pw_flags & NO_POP)) {
+    snprintf(LogLine, sizeof(LogLine), "%s: pop access denied %s@%s:%s",
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
   }
-     /* Check if they are allowed smtp access 
+     /* Check if they are allowed smtp access
       */
-  else if ( ConnType == SMTP_CONN && vlimits_check_capability (vpw, &limits, NO_SMTP)) {
-    snprintf(LogLine, sizeof(LogLine), "%s: smtp access denied %s@%s:%s", 
+  else if ( ConnType == SMTP_CONN && (vpw->pw_flags & NO_SMTP)) {
+    snprintf(LogLine, sizeof(LogLine), "%s: smtp access denied %s@%s:%s",
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
@@ -490,7 +482,7 @@ void login_virtual_user()
 
     /* Check if they are allowed imap access
     */
-  else if ( ConnType == IMAP_CONN && vlimits_check_capability (vpw, &limits, NO_IMAP)) {
+  else if ( ConnType == IMAP_CONN && (vpw->pw_flags & NO_IMAP)) {
     snprintf(LogLine, sizeof(LogLine), "%s: imap access denied %s@%s:%s",
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
