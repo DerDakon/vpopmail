@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.31 - unreleased
+5.4.0-pre1 - released 10-Dec-03
 	
 	Michael Bowe
 	- Updated README.xxxauthbackend files to include indication
@@ -35,6 +35,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Correctly apply domain limits to user accounts.
 	- Fix problem in maildirquota.c where off_t was assumed to be
 	  long.  Created wrapper function to do conversion. [797011]
+	- Fix double-printing of email address with vpopbull -V.
+	- vpopbull: Fix incorrect link building when file starts with '/'.
+	- vpopbull: Send errors to STDERR.
 
 5.3.30 - 20-Nov-03
 
