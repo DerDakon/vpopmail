@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.3 2004-01-13 05:16:55 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -139,6 +139,7 @@ void usage()
     printf("         -w ( set no web mail access flag )\n");
     printf("         -i ( set no imap access flag )\n");
     printf("         -b ( set bounce mail flag )\n");
+    printf("         -o ( set override domain limits flag )\n");
     printf("         -r ( set no external relay flag )\n");
     printf("         -a ( grant qmailadmin administrator privileges)\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
@@ -168,7 +169,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibr0123he:C:")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -213,6 +214,9 @@ void get_options(int argc,char **argv)
                 break;
             case 'b':
                 GidFlag |= BOUNCE_MAIL;
+                break;
+            case 'o':
+                GidFlag |= V_OVERRIDE;
                 break;
             case 'r':
                 GidFlag |= NO_RELAY;

@@ -26,6 +26,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  (Replaced by settings in vlimits.default.) [869411]
 	- Remove references to --eanble-defaultquota in documentation.
 	- vdelivermail.c: Consistent return values in deliver_mail().
+	- More updates to build files. [874831]
+
+	Bill Shupp
+	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
 
 5.4.0-rc1 - released 1-Jan-04
 
