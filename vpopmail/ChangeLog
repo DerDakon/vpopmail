@@ -7,6 +7,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         - Add 'Expert' bit to gid flags.  Users with this bit set will
           be able to edit .qmail files from within qmailadmin. 
 
+        vpopmaild
+        -Add find_domain command.  Return the page on which the named 
+         domain will appear.
+        -Add domain_count command.  Return the number of domains. 
+
         Rick Widmer - 29 Apr 2004
         vpopmail
         - vdeldomain() function deletes all aliases when passed a parent 
