@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.6 2004-07-03 20:23:24 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.7 2004-08-19 05:42:35 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -101,7 +101,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if ( strlen( domain) <3) return (VA_INVALID_DOMAIN_NAME);
 
   /* reject domain names that exceed our max permitted/storable size */
-  if ( strlen( domain ) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen( domain ) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
   /* check invalid email domain characters */
   for(i=0;domain[i]!=0;++i) {
@@ -174,7 +174,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
    * We dont want to start creating dirs and putting entries in
    * the assign file etc if the path is going to be too long
    */
-  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) >= MAX_PW_DIR) {
+  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) > MAX_PW_DIR) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
@@ -313,7 +313,7 @@ int vdeldomain( char *domain )
    * asking to del that domain, because such a domain
    * wouldnt be able to exist in the 1st place
    */
-  if (strlen(domain) >= MAX_PW_DOMAIN) return (VA_DOMAIN_NAME_TOO_LONG);
+  if (strlen(domain) > MAX_PW_DOMAIN) return (VA_DOMAIN_NAME_TOO_LONG);
 
   /* now we want to check a couple for things :
    * a) if the domain to del exists in the system
@@ -451,15 +451,15 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   /* check gecos for : characters - bad */
   if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(domain) < 3) return(VA_INVALID_DOMAIN_NAME);
 
-  if ( strlen(password) >= MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
-  if ( strlen(gecos) >= MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(gecos) > MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
 
   umask(VPOPMAIL_UMASK);
   lowerit(username);
@@ -1325,12 +1325,12 @@ int vpasswd( char *username, char *domain, char *password, int apop )
  gid_t gid;
 #endif
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR  
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(password) >= MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
 
   lowerit(username);
   lowerit(domain);
@@ -1550,12 +1550,12 @@ int vsetuserquota( char *username, char *domain, char *quota )
  char *formattedquota;
  int ret;
 
-  if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR  
   if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
 #endif  
-  if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(quota) >= MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
   lowerit(username);
   lowerit(domain);
@@ -1729,7 +1729,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 #endif
   /* check the length of the dir path to make sure it is not too 
      long to save back to the auth backend */
-  if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) >= MAX_PW_DIR) {
+  if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) > MAX_PW_DIR) {
     fprintf (stderr, "Error. Path exceeds maximum permitted length\n");
     chdir(calling_dir);
     return (NULL);
@@ -1770,11 +1770,11 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
   if ( mypw != NULL ) { 
 
     /* user does exist in the auth backend, so fill in the dir field */
-    mypw->pw_dir = malloc(MAX_PW_DIR);
+    mypw->pw_dir = malloc(MAX_PW_DIR+1);
     if ( strlen(user_hash) > 0 ) {
-      snprintf(mypw->pw_dir, MAX_PW_DIR, "%s/%s/%s", domain_dir, user_hash, username);
+      snprintf(mypw->pw_dir, MAX_PW_DIR+1, "%s/%s/%s", domain_dir, user_hash, username);
     } else {
-      snprintf(mypw->pw_dir, MAX_PW_DIR, "%s/%s", domain_dir, username);
+      snprintf(mypw->pw_dir, MAX_PW_DIR+1, "%s/%s", domain_dir, username);
     }
     /* save these values to the auth backend */
     vauth_setpw( mypw, domain );
@@ -1863,7 +1863,7 @@ struct vqpasswd *vauth_user(char *user, char *domain, char* password, char *apop
 char *default_domain()
 {
    static int init = 0;
-   static char d[MAX_PW_DOMAIN];
+   static char d[MAX_PW_DOMAIN+1];
    char path[MAX_BUFF];
    int dlen;
    FILE *fs;
@@ -1915,8 +1915,9 @@ void vset_default_domain( char *domain )
     /* Michael Bowe 14th August 2003
      * How can we prevent possible buffer overflows here
      * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+     * (plus 1 for the NULL)
      */
-    snprintf(domain, MAX_PW_DOMAIN, "%s", tmpstr);
+    snprintf(domain, MAX_PW_DOMAIN+1, "%s", tmpstr);
     return;
   }
 
@@ -1951,8 +1952,9 @@ void vset_default_domain( char *domain )
       /* Michael Bowe 14th August 2003
        * How can we prevent possible buffer overflows here
        * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+       * (plus 1 for the NULL)
        */
-      snprintf(domain, MAX_PW_DOMAIN, "%s", host);
+      snprintf(domain, MAX_PW_DOMAIN+1, "%s", host);
     }
     return;
   }
@@ -1961,8 +1963,9 @@ void vset_default_domain( char *domain )
   /* Michael Bowe 14th August 2003
    * How can we prevent possible buffer overflows here
    * For the moment, stick with a conservative size of MAX_PW_DOMAIN
+   * (plus 1 for the NULL)
    */
-  snprintf(domain, MAX_PW_DOMAIN, "%s", DEFAULT_DOMAIN);
+  snprintf(domain, MAX_PW_DOMAIN+1, "%s", DEFAULT_DOMAIN);
 }
 
 /************************************************************************/
@@ -2288,10 +2291,11 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
      *
      * Michael Bowe 21st Aug 2003. Need to watch out for buffer overflows here.
      * We dont know what size domain is, so stick with a conservative limit of MAX_PW_DOMAIN
+     * (plus 1 for the NULL)
      * Not sure if this is our best option? the pw entry shouldnt contain any dirs larger
      * than this.
      */
-    snprintf(domain, MAX_PW_DOMAIN, "%s", in_domain); 
+    snprintf(domain, MAX_PW_DOMAIN+1, "%s", in_domain); 
 
   } else {
     free(in_domain);
@@ -2792,15 +2796,15 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
   /* when checking for excess size using strlen, the check needs use >= because you
    * have to allow 1 char for null termination
    */ 
-  if ( strlen(inpw->pw_name) >= MAX_PW_NAME )   return(VA_USER_NAME_TOO_LONG);
+  if ( strlen(inpw->pw_name) > MAX_PW_NAME )    return(VA_USER_NAME_TOO_LONG);
   if ( strlen(inpw->pw_name) == 1 )             return(VA_ILLEGAL_USERNAME);
-  if ( strlen(domain) >= MAX_PW_DOMAIN )        return(VA_DOMAIN_NAME_TOO_LONG);
-  if ( strlen(inpw->pw_passwd) >= MAX_PW_PASS ) return(VA_PASSWD_TOO_LONG);
-  if ( strlen(inpw->pw_gecos) >= MAX_PW_GECOS ) return(VA_GECOS_TOO_LONG);
-  if ( strlen(inpw->pw_dir) >= MAX_PW_DIR )     return(VA_DIR_TOO_LONG);
-  if ( strlen(inpw->pw_shell) >= MAX_PW_QUOTA ) return(VA_QUOTA_TOO_LONG);
+  if ( strlen(domain) > MAX_PW_DOMAIN )         return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(inpw->pw_passwd) > MAX_PW_PASS )  return(VA_PASSWD_TOO_LONG);
+  if ( strlen(inpw->pw_gecos) > MAX_PW_GECOS )  return(VA_GECOS_TOO_LONG);
+  if ( strlen(inpw->pw_dir) > MAX_PW_DIR )      return(VA_DIR_TOO_LONG);
+  if ( strlen(inpw->pw_shell) > MAX_PW_QUOTA )  return(VA_QUOTA_TOO_LONG);
 #ifdef CLEAR_PASS
-  if ( strlen(inpw->pw_clear_passwd) >= MAX_PW_CLEAR_PASSWD )
+  if ( strlen(inpw->pw_clear_passwd) > MAX_PW_CLEAR_PASSWD )
                                                 return(VA_CLEAR_PASSWD_TOO_LONG);
 #endif
   return(VA_SUCCESS);
@@ -2934,7 +2938,7 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
   if ( (err=is_domain_valid(alias_domain)) != VA_SUCCESS ) return(err);
 
   /* make sure the alias domain does not exceed the max storable size */
-  if (strlen(alias_domain) >= MAX_PW_DOMAIN) {
+  if (strlen(alias_domain) > MAX_PW_DOMAIN) {
     return(VA_DOMAIN_NAME_TOO_LONG);
   }
 
