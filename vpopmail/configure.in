@@ -58,7 +58,7 @@ AC_ARG_ENABLE(qmaildir, [  --enable-qmaildir=dir   directory where qmail control
             AC_MSG_ERROR([Unable to find your qmaildir directory, specify --enable-qmaildir.])
         fi
     ] )
-AC_DEFINE_UNQUOTED(QMAILDIR,"$qmaildir")
+AC_DEFINE_UNQUOTED(QMAILDIR,"$qmaildir","")
 
 qmailnewu=""
 for f in "$qmaildir"/bin/qmail-newu /usr/sbin/qmail-newu
@@ -82,7 +82,7 @@ then
     AC_MSG_ERROR([Unable to find your qmail-newu file, specify --enable-qmail-newu=/full/path/to/qmail-newu])
 fi
 
-AC_DEFINE_UNQUOTED(QMAILNEWU,"$qmailnewu")
+AC_DEFINE_UNQUOTED(QMAILNEWU,"$qmailnewu","")
 
 qmailinject=""
 for f in "$qmaildir"/bin/qmail-inject /usr/sbin/qmail-inject /usr/bin/qmail-inject
@@ -105,7 +105,7 @@ then
     AC_MSG_ERROR([Unable to find your qmail-inject file, specify --enable-qmail-inject=/full/path/to/qmail-inject])
 fi
 
-AC_DEFINE_UNQUOTED(QMAILINJECT,"$qmailinject")
+AC_DEFINE_UNQUOTED(QMAILINJECT,"$qmailinject","")
 
 qmailnewmrh=""
 for f in "$qmaildir"/bin/qmail-newmrh /usr/sbin/qmail-newmrh
@@ -128,7 +128,7 @@ then
     AC_MSG_ERROR([Unable to find your qmail-newmrh file, specify --enable-qmail-qmail-newmrh=/full/path/to/qmail-newmrh])
 fi
 
-AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh")
+AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh","")
 
 
 vpopuser="vpopmail"
@@ -140,7 +140,7 @@ AC_ARG_ENABLE(vpopuser, [  --enable-vpopuser=vpopmail   user vchkpw was installe
             AC_MSG_ERROR([Unable to find your vpopuser user, specify --enable-vpopuser.])
         fi
     ] )
-AC_DEFINE_UNQUOTED(VPOPUSER,"$vpopuser")
+AC_DEFINE_UNQUOTED(VPOPUSER,"$vpopuser","")
 AC_SUBST(vpopuser)
 echo $vpopuser > vpopusername
 
@@ -153,7 +153,7 @@ AC_ARG_ENABLE(vpopgroup, [  --enable-vpopgroup=vchkpw   group vchkpw was install
             AC_MSG_ERROR([Unable to find your vpopgroup group, specify --enable-vpopgroup.])
         fi
     ] )
-AC_DEFINE_UNQUOTED(VPOPGROUP,"$vpopgroup")
+AC_DEFINE_UNQUOTED(VPOPGROUP,"$vpopgroup","")
 AC_SUBST(vpopgroup)
 
 AC_TRY_RUN( [
@@ -225,21 +225,21 @@ fi
 
 vpopmaildir=`cat vpopmail.dir`
 AC_SUBST(vpopmaildir)
-AC_DEFINE_UNQUOTED(VPOPMAILDIR,"$vpopmaildir")
+AC_DEFINE_UNQUOTED(VPOPMAILDIR,"$vpopmaildir","")
 rm -f vpopmail.dir
 
 vpopmailuid=`cat vpopmail.uid`
-AC_DEFINE_UNQUOTED(VPOPMAILUID,$vpopmailuid)
+AC_DEFINE_UNQUOTED(VPOPMAILUID,$vpopmailuid,"")
 rm -f vpopmail.uid
 
 vpopmailgid=`cat vpopmail.gid`
-AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid)
+AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid,"")
 rm -f vpopmail.gid
 rm -f vpopusername 
 
 vlimits_default="$vpopmaildir/etc/vlimits.default"
 
-AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default")
+AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 
 if test ! -d $vpopmaildir/etc
 then 
@@ -259,7 +259,7 @@ AC_ARG_ENABLE(roaming-users,
 case $POPRELAY in
 1*|y*|Y*)
 		POPRELAY=1
-		AC_DEFINE_UNQUOTED(POP_AUTH_OPEN_RELAY,$POPRELAY)
+		AC_DEFINE_UNQUOTED(POP_AUTH_OPEN_RELAY,$POPRELAY,"")
 for f in /usr/local/bin/tcprules /usr/bin/tcprules
 do
     if test -f $f
@@ -280,7 +280,7 @@ if test ! -f "$tcprules_prog"
 then
     AC_MSG_ERROR([Unable to find your tcprulesfile, specify --enable-tcprules-prog=/full/path/to/tcprules])
 fi
-AC_DEFINE_UNQUOTED(TCPRULES_PROG,"$tcprules_prog")
+AC_DEFINE_UNQUOTED(TCPRULES_PROG,"$tcprules_prog","")
 
 tcpserver_file=""
 for f in "$vpopmaildir"/etc/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
@@ -304,14 +304,14 @@ AC_ARG_ENABLE(tcpserver_file, [  --enable-tcpserver-file=~vpopmail/etc/tcp.smtp 
             AC_MSG_WARN([Creating tcp.smtp in "$vpopmaildir"/etc/tcp.smtp.])
         fi
     ] )
-AC_DEFINE_UNQUOTED(TCP_FILE,"$tcpserver_file")
+AC_DEFINE_UNQUOTED(TCP_FILE,"$tcpserver_file","")
 
 open_smtp_cur="$vpopmaildir/etc/open-smtp"
 open_smtp_tmp="$vpopmaildir/etc/open-smtp.tmp"
 open_smtp_lok="$vpopmaildir/etc/open-smtp.lock"
-AC_DEFINE_UNQUOTED(OPEN_SMTP_CUR_FILE,"$open_smtp_cur")
-AC_DEFINE_UNQUOTED(OPEN_SMTP_TMP_FILE,"$open_smtp_tmp")
-AC_DEFINE_UNQUOTED(OPEN_SMTP_LOK_FILE,"$open_smtp_lok")
+AC_DEFINE_UNQUOTED(OPEN_SMTP_CUR_FILE,"$open_smtp_cur","")
+AC_DEFINE_UNQUOTED(OPEN_SMTP_TMP_FILE,"$open_smtp_tmp","")
+AC_DEFINE_UNQUOTED(OPEN_SMTP_LOK_FILE,"$open_smtp_lok","")
 
         ;;
 *)
@@ -324,7 +324,7 @@ tcprules_prog=""
 relay_clear_minutes="180"
 AC_ARG_ENABLE(relay-clear-minutes, [  --enable-relay-clear-minutes=180   expire time for roaming users after pop authentication.],
     relay_clear_minutes="$enableval", )
-AC_DEFINE_UNQUOTED(RELAY_CLEAR_MINUTES,$relay_clear_minutes)
+AC_DEFINE_UNQUOTED(RELAY_CLEAR_MINUTES,$relay_clear_minutes,"")
 
 AC_ARG_ENABLE(learn-passwords,
         [  --enable-learn-passwords=y|n   Turn on (y) or off (n, default) if password is blank, learn password when they pop auth.],
@@ -336,7 +336,7 @@ AC_ARG_ENABLE(learn-passwords,
 case $ENABLE_LEARN_PASSWORDS in
 1*|y*|Y*)
       ENABLE_LEARN_PASSWORDS=1
-	  AC_DEFINE_UNQUOTED(ENABLE_LEARN_PASSWORDS,$ENABLE_LEARN_PASSWORDS)
+	  AC_DEFINE_UNQUOTED(ENABLE_LEARN_PASSWORDS,$ENABLE_LEARN_PASSWORDS,"")
       ;;
 *)
 	  ;;
@@ -352,7 +352,7 @@ AC_ARG_ENABLE(md5-passwords,
 case $ENABLE_MD5_PASSWORDS in
 1*|y*|Y*)
       ENABLE_MD5_PASSWORDS=1
-	  AC_DEFINE_UNQUOTED(MD5_PASSWORDS,$ENABLE_MD5_PASSWORDS)
+	  AC_DEFINE_UNQUOTED(MD5_PASSWORDS,$ENABLE_MD5_PASSWORDS,"")
       ;;
 *)
 	  ;;
@@ -369,7 +369,7 @@ AC_ARG_ENABLE(auth-logging,
 case $ENABLE_AUTH_LOGGING in
 1*|y*|Y*)
       ENABLE_AUTH_LOGGING=1
-	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,$ENABLE_AUTH_LOGGING)
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,$ENABLE_AUTH_LOGGING,"")
       ;;
 *)
 	  ;;
@@ -385,7 +385,7 @@ AC_ARG_ENABLE(mysql-logging,
 case $ENABLE_MYSQL_LOGGING in
 1*|y*|Y*)
       ENABLE_MYSQL_LOGGING=1
-          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LOGGING,$ENABLE_MYSQL_LOGGING)
+          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LOGGING,$ENABLE_MYSQL_LOGGING,"")
       ;;
 *)
           ;;
@@ -401,7 +401,7 @@ AC_ARG_ENABLE(mysql-limits,
 case $ENABLE_MYSQL_LIMITS in
 1*|y*|Y*)
       ENABLE_MYSQL_LIMITS=1
-          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,$ENABLE_MYSQL_LIMITS)
+          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,$ENABLE_MYSQL_LIMITS,"")
       ;;
 *)
           ;;
@@ -417,7 +417,7 @@ AC_ARG_ENABLE(pgsql-logging,
 case $ENABLE_PGSQL_LOGGING in
 1*|y*|Y*)
       ENABLE_PGSQL_LOGGING=1
-          AC_DEFINE_UNQUOTED(ENABLE_PGSQL_LOGGING,$ENABLE_PGSQL_LOGGING)
+          AC_DEFINE_UNQUOTED(ENABLE_PGSQL_LOGGING,$ENABLE_PGSQL_LOGGING,"")
       ;;
 *)
           ;;
@@ -435,7 +435,7 @@ AC_ARG_ENABLE(clear-passwd,
 case $CLEAR_PASS in
 1*|y*|Y*)
       CLEAR_PASS=1
-	  AC_DEFINE_UNQUOTED(CLEAR_PASS,$CLEAR_PASS)
+	  AC_DEFINE_UNQUOTED(CLEAR_PASS,$CLEAR_PASS,"")
       ;;
 *)
 	  ;;
@@ -451,7 +451,7 @@ AC_ARG_ENABLE(users-big-dir,
 case $USERS_BIG_DIR in
 1*|y*|Y*)
       USERS_BIG_DIR=1
-	  AC_DEFINE_UNQUOTED(USERS_BIG_DIR,$USERS_BIG_DIR)
+	  AC_DEFINE_UNQUOTED(USERS_BIG_DIR,$USERS_BIG_DIR,"")
       ;;
 *)
 	  ;;
@@ -467,23 +467,23 @@ AC_ARG_ENABLE(logging,
 case $ENABLE_LOGGING in
 1*|y*|Y*)
       ENABLE_LOGGING=1
-	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
       ;;
 e*|E*)
       ENABLE_LOGGING=2
-	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
 	  ;;
 p*|P*)
       ENABLE_LOGGING=3
-	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
 	  ;;
 v*|V*)
        ENABLE_LOGGING=4
-          AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
+          AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
 *)
       ENABLE_LOGGING=0
-	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
 	  ;;
 esac
 
@@ -497,7 +497,7 @@ AC_ARG_ENABLE(sqwebmail-pass,
 case $ENABLE_SQWEBMAIL_PASS in
 1*|y*|Y*)
 	  ENABLE_SQWEBMAIL_PASS=1 
-	  AC_DEFINE_UNQUOTED(SQWEBMAIL_PASS,$ENABLE_SQWEBMAIL_PASS)
+	  AC_DEFINE_UNQUOTED(SQWEBMAIL_PASS,$ENABLE_SQWEBMAIL_PASS,"")
 	  ;;
 *)
 esac
@@ -505,12 +505,12 @@ esac
 log_name="vpopmail"
 AC_ARG_ENABLE(log-name, [  --enable-log-name=vpopmail   set syslog name.],
     log_name="$enableval", )
-AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name")
+AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
 
 domains_dir="domains"
 AC_ARG_ENABLE(domains-dir, [  --enable-domains-dir=domains   set domains directory name for ~vpopmail/[domains]/user/.],
     domains_dir="$enableval", )
-AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir")
+AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir","")
 AC_SUBST(domains_dir)
 
 defaultdomain=""
@@ -572,8 +572,8 @@ case $USE_MYSQL in
 		rm -rf vauth.c
 		ln -sf vmysql.c vauth.c 
 		AC_SUBST(USE_MYSQL)
-		AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL)
-		AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL)
+		AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+		AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL,"")
 		AC_CHECK_LIB(m,floor)
 		AC_CHECK_LIB(z,compress)
 
@@ -611,7 +611,7 @@ case $MYSQL_REPLICATION in
 		echo "mysql replication is only supported in the mysql module"
 	else 	
       		MYSQL_REPLICATION=1
-		AC_DEFINE_UNQUOTED(MYSQL_REPLICATION,$MYSQL_REPLICATION)
+		AC_DEFINE_UNQUOTED(MYSQL_REPLICATION,$MYSQL_REPLICATION,"")
 	fi
       ;;
 *)
@@ -633,7 +633,7 @@ case $VALIAS in
 		echo "valias is only supported in the mysql module"
 	else 	
       		VALIAS=1
-		AC_DEFINE_UNQUOTED(VALIAS,$VALIAS)
+		AC_DEFINE_UNQUOTED(VALIAS,$VALIAS,"")
 	fi
       ;;
 *)
@@ -650,7 +650,7 @@ AC_ARG_ENABLE(file-locking,
 case $FILE_LOCKING in
 1*|y*|Y*)
 	FILE_LOCKING=1
-	AC_DEFINE_UNQUOTED(FILE_LOCKING,$FILE_LOCKING)
+	AC_DEFINE_UNQUOTED(FILE_LOCKING,$FILE_LOCKING,"")
       ;;
 *)
 	  ;;
@@ -666,7 +666,7 @@ AC_ARG_ENABLE(file-sync,
 case $FILE_SYNC in
 1*|y*|Y*)
 	FILE_SYNC=1
-	AC_DEFINE_UNQUOTED(FILE_SYNC,$FILE_SYNC)
+	AC_DEFINE_UNQUOTED(FILE_SYNC,$FILE_SYNC,"")
       ;;
 *)
 	  ;;
@@ -682,7 +682,7 @@ AC_ARG_ENABLE(make-seekable,
 case $MAKE_SEEKABLE in
 1*|y*|Y*)
 	MAKE_SEEKABLE=1
-	AC_DEFINE_UNQUOTED(MAKE_SEEKABLE,$MAKE_SEEKABLE)
+	AC_DEFINE_UNQUOTED(MAKE_SEEKABLE,$MAKE_SEEKABLE,"")
       ;;
 *)
 	  ;;
@@ -697,7 +697,7 @@ AC_ARG_ENABLE(many-domains,
 case $MANY_DOMAINS in
 1*|y*|Y*)
 		MANY_DOMAINS=1
-		AC_DEFINE_UNQUOTED(MANY_DOMAINS,$MANY_DOMAINS)
+		AC_DEFINE_UNQUOTED(MANY_DOMAINS,$MANY_DOMAINS,"")
         ;;
 *)
 		MANY_DOMAINS=0
@@ -716,7 +716,7 @@ case $USE_LDAP in
 		USE_LDAP=1
 		rm -rf vauth.c
 		ln -sf vldap.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_LDAP,$USE_LDAP)
+		AC_DEFINE_UNQUOTED(USE_LDAP,$USE_LDAP,"")
 		auth_libs="-L/usr/local/lib -lldap -llber -lresolv"
 		AC_SUBST(auth_libs)
 		auth_inc="-I/usr/local/include"
@@ -739,7 +739,7 @@ case $USE_ORACLE in
 		USE_ORACLE=1
 		rm -rf vauth.c
 		ln -sf voracle.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_ORACLE,$USE_ORACLE)
+		AC_DEFINE_UNQUOTED(USE_ORACLE,$USE_ORACLE,"")
 		auth_libs="-L$libdir -lclntsh -lclient8" 
 		AC_SUBST(auth_libs)
 		auth_inc="-I$incdir"
@@ -771,7 +771,7 @@ case $USE_POSTGRES in
 		USE_POSTGRES=1
 		rm -rf vauth.c
 		ln -sf vpgsql.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES)
+		AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES,"")
 
 		if test "$pgconfig" = ""
 		then
@@ -800,7 +800,7 @@ case $USE_SYBASE in
 		USE_SYBASE=1
 		rm -rf vauth.c
 		ln -sf vsybase.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_SYBASE,$USE_SYBASE)
+		AC_DEFINE_UNQUOTED(USE_SYBASE,$USE_SYBASE,"")
 		auth_libs="-L/opt/sybase/lib -lsybdb -lm"
 		AC_SUBST(auth_libs)
 		auth_inc="-I/opt/sybase/include"
@@ -822,7 +822,7 @@ case $USE_ACTIVE_DIR in
 		USE_ACTIVE_DIR=1
 		rm -rf vauth.c
 		ln -sf vactivedir.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR)
+		AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR,"")
 		authlib=""
 		AC_SUBST(authlib)
 		auth_inc=""
@@ -836,7 +836,7 @@ case $USE_CDB in
 1*|y*|Y*)
 		rm -rf vauth.c
 		ln -sf vcdb.c vauth.c 
-		AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB)
+		AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB,"")
 		authlib=""
 		AC_SUBST(authlib)
 		auth_inc="-Icdb"
@@ -855,7 +855,7 @@ AC_ARG_ENABLE(qmail-ext,
 case $QMAIL_EXT in
 1*|y*|Y*)
 		QMAIL_EXT=1
-		AC_DEFINE_UNQUOTED(QMAIL_EXT,$QMAIL_EXT)
+		AC_DEFINE_UNQUOTED(QMAIL_EXT,$QMAIL_EXT,"")
         ;;
 *)
         ;;
@@ -870,7 +870,7 @@ AC_ARG_ENABLE(rebuild-tcpserver-file,
 case $REBUILD_TCPSERVER in
 1*|y*|Y*)
 		REBUILD_TCPSERVER=1
-		AC_DEFINE_UNQUOTED(REBUILD_TCPSERVER,$REBUILD_TCPSERVER)
+		AC_DEFINE_UNQUOTED(REBUILD_TCPSERVER,$REBUILD_TCPSERVER,"")
         ;;
 *)
         ;;
@@ -885,7 +885,7 @@ AC_ARG_ENABLE(ip-alias-domains,
 case $IPALIAS in
 1*|y*|Y*)
 		IPALIAS=1
-		AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,$IPALIAS)
+		AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,$IPALIAS,"")
         ;;
 *)
         ;;
@@ -915,7 +915,7 @@ case $ENABLE_PASSWD in
         then
                 AC_CHECK_LIB(shadow, setspent)
         fi
-		AC_DEFINE_UNQUOTED(ENABLE_PASSWD,$ENABLE_PASSWD)
+		AC_DEFINE_UNQUOTED(ENABLE_PASSWD,$ENABLE_PASSWD,"")
         ;;
 *)
         ENABLE_PASSWD=0
@@ -925,16 +925,8 @@ esac
 if test -f /etc/shadow 
 then
 	HAS_SHADOW=1
-	AC_DEFINE_UNQUOTED(HAS_SHADOW,$HAS_SHADOW)
+	AC_DEFINE_UNQUOTED(HAS_SHADOW,$HAS_SHADOW,"")
 fi
-
-
-if test -f /etc/shadow 
-then
-	HAS_SHADOW=1
-	AC_DEFINE_UNQUOTED(HAS_SHADOW,$HAS_SHADOW)
-fi
-
 
 
 case "$host" in
@@ -1026,7 +1018,7 @@ case "$host" in
 	PS_COMMAND="ps axww"
     ;;
 esac
-AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND")
+AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
 
 
 AC_ARG_ENABLE(hardquota,
@@ -1046,7 +1038,7 @@ case $ENABLE_HARD_QUOTA in
 0*|n*|N*)
       ;;
 *)
-	  AC_DEFINE_UNQUOTED(HARD_QUOTA,"$ENABLE_HARD_QUOTA")
+	  AC_DEFINE_UNQUOTED(HARD_QUOTA,"$ENABLE_HARD_QUOTA","")
 	  ;;
 esac
 
@@ -1062,7 +1054,7 @@ case $ENABLE_DOMAIN_QUOTAS in
       ;;
 *)
       ENABLE_DOMAIN_QUOTAS=1
-	  AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS)
+	  AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
 	  ;;
 esac
 
