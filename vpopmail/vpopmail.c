@@ -534,7 +534,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 
 char randltr(void)
 {
-  static const char saltchar =
+  static const char saltchar[] =
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   return saltchar[(random() % 64)];
