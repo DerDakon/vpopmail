@@ -7,6 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Code fixes and documentation work for LDAP module. 
 	  Incl updated README.ldap, vldap.c, vldap.h, ldap/slapd.conf, 
 	  ldap/vpopmail.ldif. [863881] [811000] [864643]
+	- Rewrote the README.mysql based on my web based guide.
+	- Documentation tweaks for README.pgsql, README.roamingusers.
 
 	Tom Collins
 	- Remove unused var (cp), change random/srandom to rand/srand in

@@ -7,8 +7,21 @@ system on a production server.
 
 --------------------------------------------------------------------------
 
-USING VPOPMAIL WITH LDAP
-~~~~~~~~~~~~~~~~~~~~~~~~
+2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
+
+A QUICK GUIDE TO VPOPMAIL WITH LDAP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Latest version of this guide is available from
+http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-ldap.htm
+
+Note that I am not an LDAP expert, so some of the terminology used within
+this guide may not be 100% correct. I wrote this guide because many people
+on the vchkpw mailing list had questions about how to get vpopmail/ldap
+running. The docs we had so far (below) were a little difficult to understand
+and follow for an LDAP beginner, so I decided to put together this doc
+in the hope of presenting an easy-to-follow installation guide.
+
+
 
 OpenLDAP can operate with a number of database filesystems. For this example
 we are going to use the bdb database system.
@@ -56,10 +69,10 @@ Download/configure/compile vpopmail
   Download and unpack the source
 
     cd /usr/local/src
-    wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4-pre2.tar.gz
-    tar xzf vpopmail-5.4-pre2.tar.gz
-    chown -R root.root vpopmail-5.4-pre2
-    cd vpopmail-5.4-pre2
+    wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.0.tar.gz
+    tar xzf vpopmail-5.4.0.tar.gz
+    chown -R root.root vpopmail-5.4.0
+    cd vpopmail-5.4.0
 
   Setup the LDAP support in the vpopmail sources
 
@@ -125,17 +138,6 @@ As you start adding domains and users, the ldap directory tree will eventually l
       someuser2
       someuser3
 
-This guide was contributed by Michael Bowe 22nd Dec 2003.
-
-Latest version of this guide is available from
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-ldap.htm
-
-Note that I am not an LDAP expert, so some of the terminology used within 
-this guide may not be 100% correct. I wrote this guide because many people
-on the vchkpw mailing list had questions about how to get vpopmail/ldap
-running. The docs we had so far (below) were a little difficult to understand
-and follow for an LDAP beginner, so I decided to put together this doc
-in the hope of presenting an easy-to-follow installation guide.
 
 Other useful references I found on the net :
 
