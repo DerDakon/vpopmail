@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vcdb.c,v 1.12.2.1 2005-02-11 17:24:46 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
+** $Id: vcdb.c,v 1.12.2.1 2005-02-11 17:24:46 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -236,7 +236,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     lowerit(user);
     lowerit(domain);
 
-    vget_assign(domain,NULL,0,&tuid,&tgid);
+    if (vget_assign(domain,NULL,0,&tuid,&tgid) == NULL) {
+        /* domain does not exist */
+        return(NULL);
+    }
+
     myuid = geteuid();
     if ( myuid != 0 && myuid != tuid ) {
 	return(NULL);
@@ -271,13 +275,12 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     ptr++;
     switch (cdb_seek(fileno(pwf),user,strlen(user),&dlen)) {
         case -1:
-            fclose(pwf);
-            return NULL;
         case 0:
             fclose(pwf);
             return NULL;
     }
     if (fread(ptr,sizeof(char),dlen,pwf) != dlen) {
+        fclose(pwf);
         return NULL;
     }
     fclose(pwf);
