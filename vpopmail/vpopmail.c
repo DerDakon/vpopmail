@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.9 2003-10-07 21:38:18 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.10 2003-10-09 00:39:43 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1316,7 +1316,7 @@ int vpasswd( char *username, char *domain, char *password, int apop )
   if ( mypw == NULL ) return(-1); 
 
   /* dont update password, if password updates are disabled */
-  if ( mypw->pw_gid & NO_PASSWD_CHNG ) return(-1);
+  if ( mypw->pw_flags & NO_PASSWD_CHNG ) return(-1);
 
   /* encrypt their supplied password, and save it */
   mkpasswd3(password,Crypted, sizeof(Crypted));

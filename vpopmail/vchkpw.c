@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.5 2003-10-08 22:45:02 jheesemann Exp $
+ * $Id: vchkpw.c,v 1.6 2003-10-09 00:39:43 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -508,7 +508,7 @@ void login_virtual_user()
   /* Check if we should open up relay for this account
    * there is no need to open up relay for smtp authentication
    */ 
-  if ( (vpw->pw_gid & NO_RELAY)==0 && LocalPort!=25 && LocalPort!=465 ) {
+  if ( (vpw->pw_flags & NO_RELAY)==0 && (ConnType != SMTP_CONN) ) {
     open_smtp_relay();        
   }
 #endif
