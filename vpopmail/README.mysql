@@ -7,6 +7,9 @@ as stable as the default CDB authentication system.
 --------------------------------------------------------------------------
 
 2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
+(Document originally contributed on this date, but has had some
+minor tweaks done since that time)
+
 
 A QUICK GUIDE TO VPOPMAIL WITH MYSQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,10 +113,10 @@ Make the user accounts
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://telia.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.4.tar.gz
-	tar xzf vpopmail-5.4.4.tar.gz
-	chown -R root.root vpopmail-5.4.4
-	cd vpopmail-5.4.4
+	wget http://telia.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.7.tar.gz
+	tar xzf vpopmail-5.4.7.tar.gz
+	chown -R root.root vpopmail-5.4.7
+	cd vpopmail-5.4.7
 
 Setup the MySQL support in the vpopmail sources
 
@@ -176,6 +179,100 @@ POP3 etc using just their username. Users from all other domains need to use
 their full email address as their login name.
 
 	echo "yourdomain.com" > /home/vpopmail/etc/defaultdomain
+
+
+--------------------------------------------------------------------------
+
+A HANDY TRICK :
+
+----- Original Message ----- 
+From: "Ken Jones" <kbo@inter7.com>
+To: <vchkpw@inter7.com>
+Sent: Thursday, September 09, 2004 3:48 AM
+Subject: Re: [vchkpw] vpopmail + billing server integration
+> On Wednesday 08 September 2004 12:25 pm, Chris Ess wrote:
+> > On Wed, 8 Sep 2004, Ken Jones wrote:
+> > > Hi,
+> > >
+> > > Here is something we built into vpopmail for sites like yours.
+> > >
+> > > Use mysql on the email server. Have the billing system
+> > > insert an entry in the vpopmail table, leaving the directory
+> > > field blank. vpopmail will automatically create the users
+> > > directory and update the database when any program
+> > > tries to deliver mail to the user, or authenticate as the user.
+> >
+> > That's really neat!  I didn't realize you could do this.  (Now someone
+> > will tell me that it's in the documentation that I seem to've not read
+> > recently.)
+> 
+> It is probably in the mailing list archives. I'm not sure if anyone has
+> updated the documentation.
+> 
+> >
+> > (I know this is getting offtopic...) So I could use an INSERT statement in
+> > SQL instead of vadduser?  Or am I not understanding this correctly?
+>
+> That is the idea. A while back some folks wanted to hook up their billing
+> systems to vpopmail. Basicly they would insert into the vpopmail sql table.
+> The only thing they couldn't do easily was create the hashed directory path.
+> So we put in vpopmail code to check if the path is blank and automatically
+> create the new path and update the database.
+> 
+> You will also need to set the encrypted password using mysql's CRYPT function. 
+> Mysql's standard encryption functions are not compatible with unix/linux.
+> 
+> Ken
+> 
+
+
+----- Original Message ----- 
+From: "Michael Bowe" <mbowe@pipeline.com.au>
+To: <vchkpw@inter7.com>
+Sent: Thursday, September 09, 2004 7:32 AM
+Subject: Re: [vchkpw] vpopmail + billing server integration
+> 
+> ----- Original Message ----- 
+> From: "Chris Ess" <inter7@cae.tokimi.net>
+> 
+> > On Wed, 8 Sep 2004, Ken Jones wrote:
+> 
+> > > Use mysql on the email server. Have the billing system
+> > > insert an entry in the vpopmail table, leaving the directory
+> > > field blank. vpopmail will automatically create the users
+> > > directory and update the database when any program
+> > > tries to deliver mail to the user, or authenticate as the user.
+> >
+> > That's really neat!  I didn't realize you could do this.  (Now someone
+> > will tell me that it's in the documentation that I seem to've not read
+> > recently.)
+> >
+> > (I know this is getting offtopic...) So I could use an INSERT statement in
+> > SQL instead of vadduser?  Or am I not understanding this correctly?
+> 
+> Yes that feature has been around for a while
+> 
+> It has definitely been discussed in the archives of this list, but I would
+> agree that I don't remember seeing it mentioned in the docs.
+> 
+> I use this feature to allow an IIS webserver to create mailboxes on my
+> vpopmail server. This is achieved by using an ASP script that creates an
+> appropriate record and inserts it into the vpopmail MySQL. Of course the
+> same sort of thing could be achieved using Apache/PHP.
+> 
+> I have some more information and some example code here :
+> http://www.pipeline.com.au/staff/mbowe/isp/webmail-server.htm#Example_scripts
+> 
+> ps. one catch with inserting users directly... The mailbox on the disk isnt
+> created until the 1st POP/IMAP login is done, or the 1st mailbox message is
+> received. This can cause a glitch with qmailadmin, because if the user tries
+> to login to qmailadmin before their mailbox on the disk exists, qmailadmin
+> will barf because it cant write a lockfile to the user's dir. So when I
+> insert users directly, the same script also sends the user a "welcome"
+> message to ensure that the mailbox is created immediately.
+> 
+> Michael.
+
 
 --------------------------------------------------------------------------
 
@@ -251,6 +348,8 @@ $ su
 # make install-strip
 
 
+## CONVERSION FROM CDB TO MYSQL: ##
+
 If you have domains that are already setup as cdb modules and
 you want to convert them to sql:
 
@@ -275,7 +374,9 @@ gets a table named test_dom_com
 Next, the conversion program reads the contents of the vpasswd file and
 adds those records to the mysql database.
 
-Table customization (optional)
+
+## OPTIONAL TABLE CUSTOMISATION: ##
+
 1) Customizing the fields in the sql tables.
 
 It is possible to add additional fields to the database table layout.
