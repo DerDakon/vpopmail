@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.9 2004-01-11 03:53:40 mbowe Exp $
+ * $Id: vchkpw.c,v 1.10 2004-01-13 06:09:18 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,8 +62,8 @@ unsigned int LocalPort;
 #define AUTH_INC_SIZE 155
 char TheName[AUTH_SIZE];
 char TheUser[AUTH_SIZE];
-char ThePass[AUTH_SIZE];
-char TheResponse[AUTH_SIZE];
+char ThePass[AUTH_SIZE]; 	/* for C/R this is 'TheResponse' */
+char TheChallenge[AUTH_SIZE];
 char TheCrypted[AUTH_SIZE];
 char TheDomain[AUTH_SIZE];
 
@@ -92,7 +92,7 @@ void read_user_pass();
 void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
 void vchkpw_exit(int err);
 void run_command(char *prog);
-int authcram(unsigned char *challenge, unsigned char *response, unsigned char *password);
+int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password);
 int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *clearpass);
 
 #define POP_CONN  0
@@ -347,7 +347,7 @@ It is not for runnning on the command line.\n", VchkpwLogName);
     if ( l==i ) break;
   }
 
-  /* parse out the password */
+  /* parse out the password  (or response or C/R) */
   memset(ThePass,0,AUTH_SIZE);
   for(j=0,++l;l<AUTH_INC_SIZE;++j,++l){
     ThePass[j] = TheDomain[l];
@@ -355,11 +355,11 @@ It is not for runnning on the command line.\n", VchkpwLogName);
     if ( l==i ) break;
   }
 
-  /* parse out the response */
-  memset(TheResponse,0,AUTH_SIZE);
+  /* parse out the challenge */
+  memset(TheChallenge,0,AUTH_SIZE);
   for(j=0,++l;l<AUTH_INC_SIZE;++j,++l){
-    TheResponse[j] = TheDomain[l];
-    if ( TheResponse[j] == 0 ) break;
+    TheChallenge[j] = TheDomain[l];
+    if ( TheChallenge[j] == 0 ) break;
     if ( l==i ) break;
   }
 
@@ -418,13 +418,13 @@ void login_virtual_user()
   /* Check CRAM-MD5 auth */
   if(ConnType == SMTP_CONN) {
 	  /* printf("vchkpw: smtp auth\n"); */
-    cramaccepted = authcram(ThePass,TheResponse,vpw->pw_clear_passwd);
+    cramaccepted = authcram(ThePass,TheChallenge,vpw->pw_clear_passwd);
     if(cramaccepted == 0) strcpy(AuthType, "CRAM-MD5");
   }
 
   /* Check APOP auth */
   if(ConnType == POP_CONN) {
-    apopaccepted = authapop(ThePass,TheResponse,vpw->pw_clear_passwd);
+    apopaccepted = authapop(ThePass,TheChallenge,vpw->pw_clear_passwd);
     if(apopaccepted == 0) strcpy(AuthType, "APOP");
   }
 #endif
@@ -674,7 +674,7 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 #endif
 }
 
-int authcram(unsigned char *challenge, unsigned char *response, unsigned char *password)
+int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password)
 {
    unsigned char digest[16];
    unsigned char digascii[33];
