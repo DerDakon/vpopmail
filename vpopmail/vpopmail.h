@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.3 2003-10-13 22:26:45 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.4 2003-12-08 17:38:23 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@
 /* modes for vpopmail dirs, files and qmail files */
 #define VPOPMAIL_UMASK          0077
 #define VPOPMAIL_TCPRULES_UMASK 0022
-#define VPOPMAIL_DIR_MODE        488
+#define VPOPMAIL_DIR_MODE       0750
 #define VPOPMAIL_QMAIL_MODE S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 
 #define USE_POP      0x00
