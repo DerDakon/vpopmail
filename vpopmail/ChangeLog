@@ -33,6 +33,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  to fix CRAM-MD5 SMTP AUTH in vchkpw. [871493]
 	- Have vchkpw.c use get_remote_ip() to convert IPv6 to IPv4
 	  (fixed problem with ::ffff: in relay file). [876019]
+	- Fix bug in vpalias where .qmailadmin-limits was incorrectly
+	  thought to be alias for user 'dmin-limits'.
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
