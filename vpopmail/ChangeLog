@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.28 - released ???
+5.3.28 - unreleased
 
 	Michael Bowe
 	- Remove vget_real_domain() declaration from vpopmail.h. [800738]
