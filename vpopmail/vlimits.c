@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.8 2003-11-23 19:27:39 tomcollins Exp $
+ * $Id: vlimits.c,v 1.9 2003-12-03 16:41:14 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -365,4 +365,13 @@ int vdel_limits(const char *domain)
     return unlink(dir);
 }
 
+void vlimits_setflags (struct vqpasswd *pw, char *domain)
+{
+    struct vlimits limits;
+
+    if ((! (pw->pw_gid & V_OVERRIDE))
+      && (vget_limits (domain, &limits) == 0)) {
+        pw->pw_flags = pw->pw_gid | vlimits_get_flag_mask (&limits);
+    } else pw->pw_flags = pw->pw_gid;
+}
 #endif
