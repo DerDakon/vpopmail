@@ -68,6 +68,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   uid_t myuid; 
   uid_t uid; 
   gid_t gid;
+  struct vlimits limits;
 
   verrori = 0;
   lowerit(user);
@@ -284,7 +285,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   } 
 #endif
 
-  vpw->pw_flags = vpw->pw_gid;
+  if ((! vpw->pw_gid && V_OVERRIDE)
+    && (vget_limits (in_domain, &limits) == 0)) {
+      vpw->pw_flags = vpw->pw_gid | vlimits_get_flag_mask (&limits);
+  } else vpw->pw_flags = vpw->pw_gid;
 
  return vpw;
 

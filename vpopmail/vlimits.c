@@ -220,16 +220,6 @@ int vlimits_get_flag_mask(struct vlimits *limits)
     //return 0;
 }
 
-int vlimits_check_capability (struct vqpasswd *pw, struct vlimits *limits, int flags) {
-    if (pw->pw_flags & V_OVERRIDE) {
-        if ( pw->pw_flags & flags) return 1;
-        else return 0;
-    } else if (vlimits_get_flag_mask (limits) & flags) {
-        return 1;
-    }
-    return 0;
-}
-
 #ifndef ENABLE_MYSQL_LIMITS
 
 /* grab the limits for this domain

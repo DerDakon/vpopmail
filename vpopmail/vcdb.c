@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.6 2003-10-05 20:25:17 jheesemann Exp $
+** $Id: vcdb.c,v 1.7 2003-10-08 22:45:02 jheesemann Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -230,6 +230,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #ifdef FILE_LOCKING
  FILE *lock_fs;
 #endif
+ struct vlimits limits;
 
     verrori = 0;
     lowerit(user);
@@ -309,7 +310,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*uid) { pwent.pw_uid = 0; } else { pwent.pw_uid = atoi(uid); }
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
-    pwent.pw_flags = pwent.pw_gid;
+    if ((! pwent.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0)) {
+        pwent.pw_flags = pwent.pw_gid | vlimits_get_flag_mask (&limits);
+    } else pwent.pw_flags = pwent.pw_gid;
 
 #ifdef DEBUG
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);

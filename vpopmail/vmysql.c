@@ -422,6 +422,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t myuid;
  uid_t uid;
  gid_t gid;
+ struct vlimits limits;
 
     vget_assign(domain,NULL,0,&uid,&gid);
 
@@ -500,7 +501,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     }
     mysql_free_result(res_read);
 
-    vpw.pw_flags = vpw.pw_gid;
+    if ((! vpw.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0)) {
+        vpw.pw_flags = vpw.pw_gid | vlimits_get_flag_mask (&limits);
+    } else vpw.pw_flags = vpw.pw_gid;
 
     return(&vpw);
 }

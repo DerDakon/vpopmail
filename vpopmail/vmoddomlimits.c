@@ -67,6 +67,7 @@ int PermDefaultQuotaFlag = 0;
 
 int QuotaFlag = 0;
 int ShowLimits = 0;
+int DeleteLimits = 0;
 struct vlimits limits;
 
 void usage();
@@ -86,7 +87,15 @@ int main(int argc, char *argv[])
           printf ("Failed to vget_limits\n");
           vexit(-1);
         }
-
+        if (DeleteLimits) {
+            if (vdel_limits(Domain)==0) {
+                printf ("Limits deleted\n");
+                vexit(0);
+            } else {
+                printf ("Failed to delete limits\n");
+                vexit(-1);
+            }
+        }
         if (ShowLimits) {
             memset (OptionString, 0, sizeof(OptionString));
             printf("Domain: %s\n", Domain);
@@ -337,6 +346,7 @@ void usage()
     printf( "vmoddomlimits: usage: [options] domain \n");
     printf("options: -v ( display the vpopmail version number )\n");
     printf("         -S ( show current settings )\n");
+    printf("         -D ( delete limits for this domain, i.e. switch to default limits)\n");
     printf("         -Q quota ( set domain quota )\n");
     printf("         -q quota ( set default user quota )\n");
     printf("         -M count ( set domain max msg count )\n");
@@ -419,8 +429,9 @@ void get_options(int argc,char **argv)
     PermDefaultQuotaFlag = 0;
     //NoMakeIndex = 0;
     ShowLimits = 0;
+    DeleteLimits = 0;
     errflag = 0;
-    while( (c=getopt(argc,argv,"vSQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
+    while( (c=getopt(argc,argv,"vSDQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -428,8 +439,11 @@ void get_options(int argc,char **argv)
             case 'S':
                 ShowLimits = 1;
                 break;
+            case 'D':
+                DeleteLimits = 1;
+                break;
             case 'Q':
-		snprintf(DomainQuota, sizeof(DomainQuota), "%s", optarg);
+                snprintf(DomainQuota, sizeof(DomainQuota), "%s", optarg);
                 break;
             case 'q':
                 snprintf(DefaultUserQuota, sizeof(DefaultUserQuota), "%s", optarg);
@@ -441,7 +455,7 @@ void get_options(int argc,char **argv)
                 snprintf(DefaultUserMaxMsgCount, sizeof(DefaultUserMaxMsgCount), "%s", optarg);
                 break;
             case 'P':
-		snprintf(MaxPopAccounts, sizeof(MaxPopAccounts), "%s", optarg);
+                snprintf(MaxPopAccounts, sizeof(MaxPopAccounts), "%s", optarg);
                 break;
             case 'A':
                 snprintf(MaxAliases, sizeof(MaxAliases), "%s", optarg);
