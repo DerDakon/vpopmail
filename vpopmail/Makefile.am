@@ -10,7 +10,7 @@ noinst_LIBRARIES=libvpopmail.a
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES=vauth.c
 
-INSTALL= @INSTALL@ -o @vpopuser@ -m 711 -g @vpopgroup@ 
+INSTALL_PROGRAM= ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ 
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
