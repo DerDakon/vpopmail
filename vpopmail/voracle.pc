@@ -1294,7 +1294,7 @@ char *valias_select_all( char *alias, char *domain )
     if ( (err=vauth_open_update()) != 0 ) return(NULL);
 
     sprintf( SqlBufUpdate,
-        "select alias, valias_line from valias where  domain = '%s'",
+        "select alias, valias_line from valias where domain = '%s' order by alias",
         domain );
 
     EXEC SQL PREPARE SB FROM :SqlBufUpdate;
