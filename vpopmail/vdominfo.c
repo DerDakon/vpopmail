@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.2.2.1 2004-03-10 15:06:54 tomcollins Exp $
+ * $Id: vdominfo.c,v 1.2.2.2 2004-11-11 06:50:22 tomcollins Exp $
  * Copyright (C) 2001,2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ void get_options(int argc, char **argv)
                 DisplayAll = 0;
                 break;
             case 'a':
-                DisplayAll = 0;
+                DisplayAll = 1;
                 break;
             default:
                 errflag = 1;
