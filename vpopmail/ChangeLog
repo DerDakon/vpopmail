@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.10 - unreleased
+5.4.10 - released 20-Mar-05
 
 	Stephan Tesch
 	- md5.h: fix related to segfaults in vchkpw on Sparc64. [1144851]
