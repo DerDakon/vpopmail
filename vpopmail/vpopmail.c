@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.43 2004-06-03 23:54:00 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.44 2004-06-22 00:41:34 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -77,6 +77,8 @@ static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
    char *value;
  } sortrec;
 
+
+void vsqlerror( FILE *f, char *comment );
 
 /************************************************************************/
 
@@ -2494,9 +2496,9 @@ char *verror(int va_err )
 
 /************************************************************************/
 
-int vexiterror( FILE *f, char *comment )
-{
 
+void vsqlerror( FILE *f, char *comment )
+{
     fprintf( f, "Error - %s. %s\n", verror( verrori ), comment );
 
     if( NULL != sqlerr && strlen(sqlerr) > 0 ) {
@@ -2506,7 +2508,15 @@ int vexiterror( FILE *f, char *comment )
     if( NULL != last_query && strlen( last_query ) > 0 ) {
         fprintf( f,"%s", last_query);
     }
+}
 
+
+/************************************************************************/
+
+int vexiterror( FILE *f, char *comment )
+{
+
+    vsqlerror( f, comment );
     vclose();
     exit(verrori);
 }
@@ -2864,12 +2874,21 @@ int vsqwebmail_pass( char *dir, char *crypted, uid_t uid, gid_t gid )
 int open_smtp_relay()
 {
 #ifdef USE_SQL
+
+int result;
+
+//  NOTE: vopen_smpt_relay returns <0 on error 0 on duplicate 1 added
+//  check for failure.
+
   /* store the user's ip address into the sql relay table */
-  if (vopen_smtp_relay()) {
+  if (( result = vopen_smtp_relay()) < 0 ) {   //   database error
+      vsqlerror( stderr, "Error. vopen_smpt_relay failed" );
+      return (verrori);
+  } else if ( result == 1 ) {
     /* generate a new tcp.smtp.cdb file */
-    if (update_rules() != 0) {
-      fprintf (stderr, "Error. update_rules failed\n");
-      return (-1);
+    if (update_rules()) {
+      vsqlerror( stderr, "Error. vupdate_rules failed" );
+      return (verrori);
     }
   }
 #else

@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.18 2004-06-04 02:17:02 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.19 2004-06-22 00:41:34 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -95,6 +95,14 @@
 #define VA_PARSE_ERROR                  -35
 #define VA_CANNOT_READ_LIMITS           -36
 #define VA_CANNOT_READ_ASSIGN           -37
+#define VA_CANNOT_OPEN_DATABASE         -38
+#define VA_INVALID_IP_ADDRESS           -39
+#define VA_QUERY_FAILED                 -40
+#define VA_STORE_RESULT_FAILED          -41
+#define VA_INVALID_OPEN_MODE            -42
+#define VA_CANNOT_CREATE_DATABASE       -43
+#define VA_CANNOT_CREATE_TABLE          -44
+
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01

@@ -2,8 +2,19 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
+        Rick Widmer - 
+        vpopmail
 
-        Rick WIdmer - 3 June 2004
+        WARNING:  vopen_smtp_relay() return has changed.  It used to return
+                  true if a new entry was added, or 0.  Now it returns <0
+                  on database error, 0 if the entry already exists, 1 if
+                  a new record was added.  I have changed how it is used
+                  in vpopmail.c.  Other callers probaly want to check for
+                  vopen_smtp_relay() > 0 to trigger  update_rules().
+       
+
+
+        Rick Widmer - 3 June 2004
         vpopmail
         - In vadddomain program check for existing domain before prompting
           for password.

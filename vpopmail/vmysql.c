@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.21 2004-06-04 02:17:02 rwidmer Exp $
+ * $Id: vmysql.c,v 1.22 2004-06-22 00:41:34 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -82,6 +82,7 @@ char IClearPass[SMALL_BUFF];
 
 char sqlerr[MAX_BUFF] = "";
 char *last_query = NULL;
+int  showerrors=1;
 
 void vcreate_dir_control(char *domain);
 void vcreate_vlog_table();
@@ -98,9 +99,11 @@ void vcreate_valias_table();
 void vcreate_lastauth_table();
 #endif
 
-/* 
+/**************************************************************************
+ *
  * get mysql connection info
  */
+
 int load_connection_info() {
     FILE *fp;
     char conn_info[256];
@@ -126,6 +129,10 @@ int load_connection_info() {
                  "   Can't read settings from %s\n", 
                  config);
         verrori = VA_NO_AUTH_CONNECTION;
+        if( showerrors ) { 
+            vsqlerror( stderr, "open connection file" );
+        }
+
         return( verrori );
     }
     
@@ -139,6 +146,9 @@ int load_connection_info() {
         snprintf(sqlerr, MAX_BUFF,
                  "   No valid settings in %s\n", config);
         verrori = VA_NO_AUTH_CONNECTION;
+        if( showerrors ) {
+            vsqlerror( stderr, "Reading SQL settings file" );
+        }
         return( verrori );
     }
 
@@ -196,9 +206,11 @@ int load_connection_info() {
     return 0;
 }
 
-/* 
+/************************************************************************
+ *
  * Open a connection to mysql for updates
  */
+
 int vauth_open_update()
 {
     unsigned int timeout = 2;
@@ -210,83 +222,113 @@ int vauth_open_update()
     fprintf( stderr, "open_update()\n");
 #endif
 
-    verrori = load_connection_info();
-    if (verrori) return -1;
+    if( load_connection_info())  return( verrori );
 	
     mysql_init(&mysql_update);
 
     mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
-    /* Try to connect to the mysql update server with the specified database. */
+    /* Try to connect to the mysql update server */
     if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
-            MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD,
-            MYSQL_UPDATE_DATABASE, MYSQL_UPDATE_PORT, NULL, 0))) {
+                             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD,
+                             NULL, MYSQL_UPDATE_PORT, NULL, 0))) {
 
-        /* Could not connect to the update mysql server with the database
-         * so try to connect with no database specified
-         */
+        snprintf(sqlerr, MAX_BUFF,
+                 "   Can not connect to update database - %s\n", 
+                 mysql_error( &mysql_update ));
 #ifdef SHOW_TRACE
-        fprintf( stderr, "   Initial connect failed.  Try w/o database\n");
+        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                 "   mysql_real_connect - Server %s  User %s  "
+                 "Password: %s Base: NULL Port: %s ?:NULL\n", 
+                 MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
+                 MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_PORT);
+#else
+        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                 "   mysql_real_connect( - Server %s  User %s  "
+                 "Password: *** Base: NULL Port: %i ?:NULL )\n", 
+                 MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
+                 MYSQL_UPDATE_PORT);
+        last_query = SqlBufUpdate;
+#endif
+        verrori = VA_NO_AUTH_CONNECTION;
+    
+#ifdef SHOW_TRACE
+        last_query = SqlBufUpdate;
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "Connecting to the database server" );
+        }
+        return( verrori );
+    }
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "   Now try to select database\n");
 #endif
 
-        if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
-                MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
-                NULL, 0))) {
-
-            /* if we can not connect, report a error and return */
-
-            snprintf(sqlerr, MAX_BUFF,
-                     "   Unable to connect to database - %s\n", 
-                     mysql_error( &mysql_update ));
-    
-            verrori = VA_NO_AUTH_CONNECTION;
-            return( verrori );
-        }
+    if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
 
 #ifdef SHOW_TRACE
         fprintf( stderr, "   Now try to create database\n");
 #endif
 
-        fprintf( stderr, "   before create\n");
-        /* we were able to connect, so create the database */ 
         snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-            "create database %s", MYSQL_UPDATE_DATABASE );
+                  "create database %s", MYSQL_UPDATE_DATABASE );
 #ifdef SHOW_QUERY
-     fprintf( stderr, "open_update query\n%s\n", SqlBufUpdate );
+        fprintf( stderr, "open_update query\n%s\n", SqlBufUpdate );
 #endif
-        if (mysql_query(&mysql_update,SqlBufUpdate)) {
 
-            /* we could not create the database
-             * so report the error and return 
-             */
-            snprintf(sqlerr, MAX_BUFF,
+        if (mysql_query(&mysql_update,SqlBufUpdate)) {
+            snprintf(sqlerr, MAX_BUFF, 
                      "   Unable to create database - %s\n", 
                      mysql_error( &mysql_update ));
-            verrori = VA_NO_AUTH_CONNECTION;
-            return( verrori );
-        } 
+            last_query = SqlBufUpdate;
+            verrori = VA_CANNOT_CREATE_DATABASE;
 
 #ifdef SHOW_TRACE
-        fprintf( stderr, "   Now try to select database\n");
+            fprintf(stderr, "   %s\n   %s\n", sqlerr, last_query );
+#endif
+            if( showerrors ) {
+                vsqlerror( stderr, "Creating database" );
+            }
+            return( verrori );
+        }
+
+#ifdef SHOW_TRACE
+        fprintf( stderr, "   Now try to select database we just created\n");
 #endif
 
         fprintf( stderr, "   before select\n");
         /* set the database */ 
         if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
-            snprintf(sqlerr, MAX_BUFF,
-                     "   Unable to select database - %s\n", 
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   Unable to select new database - %s\n", 
                      mysql_error( &mysql_update ));
-            verrori = VA_NO_AUTH_CONNECTION;
+            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                      "   mysql_select( database: %s )", 
+                      MYSQL_UPDATE_DATABASE );
+            last_query = SqlBufUpdate;
+            verrori = VA_CANNOT_OPEN_DATABASE;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors ) {
+                vsqlerror( stderr, "Selectin database" );
+            }
             return( verrori );
         }    
     }
     return(0);
 }
 
-#ifdef MYSQL_REPLICATION
-/*
+/************************************************************************
+ *
  * Open a connection to the database for read-only queries
  */
+
+#ifdef MYSQL_REPLICATION
+
 int vauth_open_read()
 {
     /* if we are already connected, just return */
@@ -298,8 +340,8 @@ int vauth_open_read()
 //#endif
 
     /* connect to mysql and set the database */
-    verrori = load_connection_info();
-    if (verrori) return -1;
+    if( load_connection_info())  return( verrori );
+
     mysql_init(&mysql_read);
     if (!(mysql_real_connect(&mysql_read, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
@@ -308,10 +350,33 @@ int vauth_open_read()
         if (!(mysql_real_connect(&mysql_read, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE,
             MYSQL_READ_PORT, NULL, 0))) {
+
             snprintf(sqlerr, MAX_BUFF,
-                     "   Unable to connect to database - %s\n", 
+                     "   Can not connect to read database - %s\n", 
                      mysql_error( &mysql_update ));
+#ifdef SHOW_TRACE
+            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                     "   mysql_real_connect - Server %s  User %s  "
+                     "Password: %s Base: NULL Port: %s ?:NULL\n", 
+                     MYSQL_READ_SERVER, MYSQL_READ_USER, 
+                     MYSQL_READ_PASSWD, MYSQL_READ_PORT);
+#else
+            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                     "   mysql_real_connect( - Server %s  User %s  "
+                     "Password: *** Base: NULL Port: %i ?:NULL )\n", 
+                     MYSQL_READ_SERVER, MYSQL_READ_USER, 
+                     MYSQL_READ_PORT);
+            last_query = SqlBufUpdate;
+#endif
             verrori = VA_NO_AUTH_CONNECTION;
+    
+#ifdef SHOW_TRACE
+            last_query = SqlBufUpdate;
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors ) {
+                vsqlerror( stderr, "Opening SQL read connection" );
+            }
             return( verrori );
         }
     }
@@ -336,9 +401,11 @@ int vauth_open() {
 
 }
 
-/*
+/************************************************************************
+ *
  * Open a connection to the database for read-only queries
  */
+
 int vauth_open_read_getall()
 {
 
@@ -351,8 +418,8 @@ int vauth_open_read_getall()
 //#endif
 
     /* connect to mysql and set the database */
-    verrori = load_connection_info();
-    if (verrori) return -1;
+    if( load_connection_info())  return( verrori );
+
     mysql_init(&mysql_read_getall);
     if (!(mysql_real_connect(&mysql_read_getall, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
@@ -361,20 +428,49 @@ int vauth_open_read_getall()
         if (!(mysql_real_connect(&mysql_read_getall, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE, 
             MYSQL_UPDATE_PORT, NULL, 0))) {
+
+            snprintf(sqlerr, MAX_BUFF,
+                     "   Can not connect to getall database - %s\n", 
+                     mysql_error( &mysql_update ));
+#ifdef SHOW_TRACE
+            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                     "   mysql_real_connect - Server %s  User %s  "
+                     "Password: %s Base: NULL Port: %s ?:NULL\n", 
+                     MYSQL_READ_SERVER, MYSQL_READ_USER, 
+                     MYSQL_READ_PASSWD, MYSQL_READ_PORT);
+#else
+            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                     "   mysql_real_connect( - Server %s  User %s  "
+                     "Password: *** Base: NULL Port: %i ?:NULL )\n", 
+                     MYSQL_READ_SERVER, MYSQL_READ_USER, 
+                     MYSQL_READ_PORT);
+            last_query = SqlBufUpdate;
+#endif
             verrori = VA_NO_AUTH_CONNECTION;
-            return(-1);
+    
+#ifdef SHOW_TRACE
+            last_query = SqlBufUpdate;
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors ) {
+                vsqlerror( stderr, "Opening SQL read-getall connection" );
+            }
+            return( verrori );
         }
-        return(-1);
     }
 
     /* return success */
     return(0);
 }
 
-int vauth_create_table (char *table, char *layout, int showerror)
+/************************************************************************
+ *
+ *  vauth_create_table
+ */
+
+int vauth_create_table (char *table, char *layout)
 {
-  int err;
-  char SqlBufCreate[SQL_BUF_SIZE];
+ static char SqlBufCreate[SQL_BUF_SIZE];
 
 #ifdef SHOW_TRACE
     fprintf( stderr, 
@@ -382,21 +478,37 @@ int vauth_create_table (char *table, char *layout, int showerror)
              table, layout, showerror );
 #endif
 
-  if ((err = vauth_open_update()) != 0) return (err);
+  if (vauth_open_update()) return (verrori);
+
   snprintf (SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE %s ( %s )", table, layout);
 #ifdef SHOW_QUERY
   fprintf( stderr, "vauth_create_table query\n%s\n", SqlBufCreate );
 #endif
+
   if (mysql_query (&mysql_update, SqlBufCreate)) {
-    if (showerror)
-      fprintf (stderr, "vmysql: error creating table '%s': %s\n", table, 
-        mysql_error(&mysql_update));
-    return -1;
-  } else {
-    return 0;
+    snprintf(sqlerr, MAX_BUFF, 
+             "   Unable to create table %s - %s\n", 
+             table, mysql_error( &mysql_update ));
+    last_query = SqlBufCreate;
+    verrori = VA_CANNOT_CREATE_TABLE;
+
+#ifdef SHOW_TRACE
+    fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+    if( showerrors ) {
+        vsqlerror( stderr, "Creating table" );
+    }
+    return( verrori );
   }
+
+  return 0;
 }
  
+/************************************************************************
+ *
+ *  vauth_adddomain
+ */
+
 int vauth_adddomain( char *domain )
 {
 #ifdef SHOW_TRACE
@@ -405,13 +517,19 @@ int vauth_adddomain( char *domain )
 
 #ifndef MANY_DOMAINS
   vset_default_domain( domain );
-  return (vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT, 1));
+  vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT, 1);
 #else
   /* if creation fails, don't show an error */
-  vauth_create_table (MYSQL_DEFAULT_TABLE, TABLE_LAYOUT, 0);
-  return (0);
+  vauth_create_table (MYSQL_DEFAULT_TABLE, TABLE_LAYOUT);
+  if( verrori == VA_QUERY_FAILED ) verrori = 0;
 #endif
+  return( verrori );
 }
+
+/************************************************************************
+ *
+ *  vauth_adduser
+ */
 
 int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
     char *dir, int apop )
@@ -423,7 +541,6 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
  char dirbuf[200];
  char quota[30];
  char Crypted[100];
- int err;
     
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_adduser( user: %s domain: %s pass: %s "
@@ -431,7 +548,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
                      user, domain, pass, gecos, dir, apop );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
     vset_default_domain( domain );
 
     strncpy( quota, "NOQUOTA", 30 );
@@ -482,20 +599,36 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
      fprintf( stderr, "vauth_adduser query\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        fprintf(stderr, "vmysql: sql error[2]: %s\n", mysql_error(&mysql_update));
-        return(-1);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to add user %s@%s - %s\n", 
+                 domstr, user, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "Adding user" );
+        }
+        return( verrori );
     } 
 
     return(0);
 
 }
 
+
+/************************************************************************
+ *
+ *  vauth_getpw
+ */
+
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
  char *domstr;
  static struct vqpasswd vpw;
  static char in_domain[156];
- int err;
  uid_t myuid;
  uid_t uid;
  gid_t gid;
@@ -511,10 +644,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if ( myuid != 0 && myuid != uid ) return(NULL);
 
     verrori = 0;
-    if ( (err=vauth_open_read()) != 0 ) {
-        verrori = err;
-        return(NULL);
-    }
+    if( vauth_open_read()) return( NULL );
 
     lowerit(user);
     lowerit(domain);
@@ -540,12 +670,35 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
      fprintf( stderr, "vauth_getpw query\n%s\n", SqlBufRead );
 #endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to retrieve user information - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
         fprintf(stderr, "vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
+        if( showerrors ) {
+            vsqlerror( stderr, "Getpw query" );
+        }
         return(NULL);
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vmysql: store result failed 1\n");
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vautn_getpw - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "Getpw read" );
+        }
         return(NULL);
     }
     
@@ -599,21 +752,23 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     return(&vpw);
 }
 
-/* del a domain from the auth backend
+/************************************************************************
+ *
+ * del a domain from the auth backend
  * - drop the domain's table, or del all users from users table
  * - delete domain's entries from lastauth table
  * - delete domain's limit's entries
  */
+
 int vauth_deldomain( char *domain )
 {
  char *tmpstr;
- int err;
     
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_deldomain( %s )\n", domain );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -630,7 +785,19 @@ int vauth_deldomain( char *domain )
      fprintf( stderr, "vauth_deldomain - delete query\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(-1);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unablet to delete domain %s - %s\n", 
+                 domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "vdeldomain - delete domain" );
+        }
+        return( verrori );
     } 
 
 #ifdef VALIAS 
@@ -644,7 +811,19 @@ int vauth_deldomain( char *domain )
      fprintf( stderr, "vauth_deldomain - delete lastauth entry\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(-1);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to delete domain lastauth %s - %s\n", 
+                 domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "vdeldomain - delete lastauth" );
+        }
+        return( verrori );
     } 
 #endif
 
@@ -653,17 +832,21 @@ int vauth_deldomain( char *domain )
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vauth_deluser
+ */
+
 int vauth_deluser( char *user, char *domain )
 {
  char *tmpstr;
- int err = 0;
     
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_deluser( user: %s domain: %s )\n",
                      user, domain );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -685,27 +868,51 @@ int vauth_deluser( char *user, char *domain )
      fprintf( stderr, "vauth_deluser - delete query\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        err = -1;
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to delete user %s@%s - %s\n", 
+                 user, domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
     } 
 
 #ifdef ENABLE_AUTH_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from lastauth where user = '%s' and domain = '%s'", 
-        user, domain );
+              "delete from lastauth where user = '%s' and domain = '%s'", 
+              user, domain );
 #ifdef SHOW_QUERY
-     fprintf( stderr, "vauth_deluser - delete lastauth query\n%s\n", SqlBufUpdate );
+    fprintf( stderr, "vauth_deluser - delete lastauth query\n%s\n", SqlBufUpdate );
 #endif
+
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        err = -1;
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to delete user %s@%s lastauth - %s\n", 
+                 user, domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
     } 
 #endif
-    return(err);
+    if( verrori && showerrors ) {
+        vsqlerror( stderr, "vdeluser" );
+    }
+    return(verrori);
 }
+
+/************************************************************************
+ *
+ *  vauth_setquota
+ */
 
 int vauth_setquota( char *username, char *domain, char *quota)
 {
  char *tmpstr;
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_setquota( user: %s domain: %s quota %s )\n",
@@ -719,7 +926,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
     
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -738,18 +945,34 @@ int vauth_setquota( char *username, char *domain, char *quota)
      fprintf( stderr, "vauth_setquota\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
-        return(-1);
+fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   Unable to set quota %s@%s - %s\n", 
+                 username, domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "setting quota" );
+        }
+        return( verrori );
     } 
     return(0);
 }
+
+/************************************************************************
+ *
+ *  vauth_getall
+ */
 
 struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 {
  char *domstr = NULL;
  static struct vqpasswd vpw;
  static int more = 0;
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_getall( domain: %s first: %i sortit %i)\n",
@@ -765,7 +988,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 #endif
 
     if ( first == 1 ) {
-        if ( (err=vauth_open_read_getall()) != 0 ) return(NULL);
+        if( vauth_open_read_getall()) return( NULL );
 
         qnprintf(SqlBufRead,  SQL_BUF_SIZE, GETALL, domstr
 #ifdef MANY_DOMAINS
@@ -781,17 +1004,41 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         res_read = NULL;
 
 #ifdef SHOW_QUERY
-     fprintf( stderr, "vqpasswd query\n%s\n", SqlBufRead );
+        fprintf( stderr, "vqpasswd query\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read_getall,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[5]: %s\n", mysql_error(&mysql_read_getall));
-            return(NULL);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   Unable to vauth_getall domain %s - %s\n", 
+                     domain, mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors ) {
+                vsqlerror( stderr, "vauth get all query" );
+            }
+            return( NULL );
         }
 
         if (!(res_read_getall=mysql_store_result(&mysql_read_getall))) {
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vauth_getall - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
             fprintf(stderr, "vmysql: store result failed 2\n");
+            if( showerrors ) {
+                vsqlerror( stderr, "vauth get all read" );
+            }
             return(NULL);
         }
+
     } else if ( more == 0 ) {
         return(NULL);
     }
@@ -852,6 +1099,11 @@ void vauth_end_getall()
 
 }
 
+/************************************************************************
+ *
+ *  vauth_munch_domain
+ */
+
 char *vauth_munch_domain( char *domain )
 {
  int i;
@@ -895,7 +1147,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
         return(VA_BAD_UID);
     }
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -925,8 +1177,19 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
      fprintf( stderr, "vauth_setpw query\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        fprintf(stderr, "vmysql: sql error[6]: %s\n", mysql_error(&mysql_update));
-        return(-1);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vauthsetpw failed - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "vauth setpw" );
+        }
+        return( verrori );
     } 
 
 #ifdef SQWEBMAIL_PASS
@@ -941,7 +1204,6 @@ int vopen_smtp_relay()
 {
  char *ipaddr;
  time_t mytime;
- int err;
  int rows;
 
 #ifdef SHOW_TRACE
@@ -954,7 +1216,7 @@ int vopen_smtp_relay()
         return 0;
     }
 
-    if ( (err=vauth_open_update()) != 0 ) return 0;
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
 "replace into relay ( ip_addr, timestamp ) values ( '%s', %d )",
@@ -968,7 +1230,19 @@ int vopen_smtp_relay()
      fprintf( stderr, "\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[7]: %s\n", mysql_error(&mysql_update));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vopen_smtp_relay - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "open smtp relay" );
+            }
+            return( verrori );
         }
     }
     rows = mysql_affected_rows(&mysql_update);
@@ -978,13 +1252,18 @@ int vopen_smtp_relay()
     return rows == 1;
 }
 
+/************************************************************************
+ *
+ *  vupdate_rules
+ */
+
 void vupdate_rules(int fdm)
 {
 #ifdef SHOW_TRACE
     fprintf( stderr, "vopen_smtp_relay( fdm: %i )\n", fdm );
 #endif
 
-    if (vauth_open_read() != 0) return;
+    if( vauth_open_read()) return;
 
     snprintf(SqlBufRead, SQL_BUF_SIZE, "select ip_addr from relay");
 #ifdef SHOW_QUERY
@@ -993,12 +1272,34 @@ void vupdate_rules(int fdm)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[8]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   Update rules failed  - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "update rules query" );
+            }
             return;
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vmysql: store result failed 3\n");
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   update_rules - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "update rules read" );
+        }
         return;
     }
     while((row = mysql_fetch_row(res_read))) {
@@ -1012,10 +1313,14 @@ void vupdate_rules(int fdm)
 
 }
 
+/************************************************************************
+ *
+ *  vclear_open_smtp
+ */
+
 void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 {
  time_t delete_time;
- int err;
     
 #ifdef SHOW_TRACE
     fprintf( stderr, 
@@ -1023,7 +1328,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
               (int) clear_minutes, (int) mytime );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return; 
+    if (vauth_open_update()) return;
     delete_time = mytime - clear_minutes;
 
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, "delete from relay where timestamp <= %d", 
@@ -1037,16 +1342,25 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
     }
 }
 
+/************************************************************************
+ *
+ *  vcreate_relay_table
+ */
+
 void vcreate_relay_table()
 {
 #ifdef SHOW_TRACE
     fprintf( stderr, "vcreate_relay_table()\n");
 #endif
 
-  vauth_create_table ("relay", RELAY_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("relay", RELAY_TABLE_LAYOUT);
 }
 #endif
+
+/************************************************************************
+ *
+ *  vmkpasswd
+ */
 
 int vmkpasswd( char *domain )
 {
@@ -1056,6 +1370,11 @@ int vmkpasswd( char *domain )
 
     return(0);
 }
+
+/************************************************************************
+ *
+ *  vclose
+ */
 
 void vclose()
 {
@@ -1084,9 +1403,13 @@ void vcreate_ip_map_table()
     fprintf( stderr, "vcreate_ip_map_table()\n" );
 #endif
 
-  vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT);
 }
+
+/************************************************************************
+ *
+ *  vget_ip_map
+ */
 
 int vget_ip_map( char *ip, char *domain, int domain_size)
 {
@@ -1098,9 +1421,9 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
  int ret = -1;
 
-    if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
-    if ( domain == NULL ) return(-2);
-    if ( vauth_open_read() != 0 ) return(-3);
+    if ( ip == NULL || strlen(ip) <= 0 ) return(VA_INVALID_IP_ADDRESS);
+    if ( domain == NULL ) return(VA_INVALID_DOMAIN_NAME);
+    if ( vauth_open_read() ) return(verrori);
 
     qnprintf(SqlBufRead, SQL_BUF_SIZE, 
              "select domain from ip_alias_map where ip_addr = '%s'",
@@ -1109,12 +1432,35 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
      fprintf( stderr, "vget_ip_map query\n%s\n", SqlBufRead );
 #endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
-        return(-1);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vget_ip_map failed for IP %s - %s\n", 
+                 ip, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "Get IP map query" );
+        }
+        return( verrori );
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vget_ip_map: store result failed 4\n");
-        return(-4);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vget_ip_map - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "Get IP map read" );
+        }
+        return(verrori);
     }
     while((row = mysql_fetch_row(res_read))) {
         ret = 0;
@@ -1129,11 +1475,16 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
     return(ret);
 }
 
+/************************************************************************
+ *
+ *  vadd_ip_map
+ */
+
 int vadd_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
-    if ( vauth_open_update() != 0 ) return(-1);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf(SqlBufUpdate,SQL_BUF_SIZE,  
       "replace into ip_alias_map ( ip_addr, domain ) values ( '%s', '%s' )",
@@ -1147,11 +1498,28 @@ int vadd_ip_map( char *ip, char *domain)
         fprintf( stderr, "vadd_ip_map retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vadd_ip_map ( ip: %s domain: %s ) failed - %s\n", 
+                     ip, domain, mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Add IP map" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
+
+/************************************************************************
+ *
+ *  vdel_ip_map
+ */
 
 int vdel_ip_map( char *ip, char *domain) 
 {
@@ -1162,7 +1530,7 @@ int vdel_ip_map( char *ip, char *domain)
 
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
-    if ( vauth_open_update() != 0 ) return(-1);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate,SQL_BUF_SIZE,  
         "delete from ip_alias_map where ip_addr = '%s' and domain = '%s'",
@@ -1171,10 +1539,27 @@ int vdel_ip_map( char *ip, char *domain)
      fprintf( stderr, "vdel_ip_map\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(0);
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vdel_ip_map ( ip: %s domain: %s ) failed - %s\n", 
+                 ip, domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors ) {
+            vsqlerror( stderr, "Del IP map" );
+        }
+        return( verrori );
     } 
     return(0);
 }
+
+/************************************************************************
+ *
+ *  vshow_ip_map
+ */
 
 int vshow_ip_map( int first, char *ip, char *domain )
 {
@@ -1186,9 +1571,9 @@ int vshow_ip_map( int first, char *ip, char *domain )
              first );
 #endif
 
-    if ( ip == NULL ) return(-1);
-    if ( domain == NULL ) return(-1);
-    if ( vauth_open_read() != 0 ) return(-1);
+    if ( ip == NULL || strlen(ip) <= 0 ) return(VA_INVALID_IP_ADDRESS);
+    if ( domain == NULL ) return(VA_INVALID_DOMAIN_NAME);
+    if ( vauth_open_read() ) return(verrori);
 
     if ( first == 1 ) {
 
@@ -1204,12 +1589,38 @@ int vshow_ip_map( int first, char *ip, char *domain )
         if (mysql_query(&mysql_read,SqlBufRead)) {
             vcreate_ip_map_table();
             if (mysql_query(&mysql_read,SqlBufRead)) {
+                snprintf(sqlerr, MAX_BUFF, 
+                         "   vshow_ip_map ( domain: %s ) failed - %s\n", 
+                         domain, mysql_error( &mysql_update ));
+                snprintf(sqlerr, MAX_BUFF, 
+                         "   - %s\n", 
+                         domstr, user, mysql_error( &mysql_update ));
+                last_query = SqlBufUpdate;
+                verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+                if( showerrors )  {
+                    vsqlerror( stderr, "Show IP map query" );
+                }
                 return(0);
             }
         }
 
         if (!(res_read = mysql_store_result(&mysql_read))) {
-            fprintf(stderr, "vmysql: store result failed 5\n");
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vshow_ip_map - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Show IP map read" );
+            }
             return(0);
         }
     } else if ( more == 0 ) {
@@ -1234,6 +1645,11 @@ int vshow_ip_map( int first, char *ip, char *domain )
 }
 #endif
 
+/************************************************************************
+ *
+ *  vread_dir_control
+ */
+
 int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  int found = 0;
@@ -1243,7 +1659,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
                      domain, uid, gid );
 #endif
 
-    if ( vauth_open_read() != 0 ) return(-1);
+    if ( vauth_open_read() ) return(verrori);
     qnprintf(SqlBufRead, SQL_BUF_SIZE, 
         "select %s from dir_control where domain = '%s'", 
         DIR_CONTROL_SELECT, domain );
@@ -1259,11 +1675,35 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
            fprintf( stderr, "vread_dir_control retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vread_dir_control failed %s - %s\n", 
+                     domain, mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Read dir control query" );
+            }
+            return( verrori );
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vread_dircontrol - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
         fprintf(stderr, "vread_dir_control: store result failed 6\n");
+        if( showerrors )  {
+            vsqlerror( stderr, "Read dir control read" );
+        }
         return(0);
     }
 
@@ -1335,6 +1775,11 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vwrite_dir_control
+ */
+
 int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
 #ifdef SHOW_TRACE
@@ -1342,7 +1787,7 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
                      domain, uid, gid );
 #endif
 
-    if ( vauth_open_update() != 0 ) return(-1);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
 domain, cur_users, \
@@ -1373,17 +1818,33 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
         fprintf( stderr, "vwrite_dir_control retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[b]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   write_dir_control failed %s - %s\n", 
+                     domain, mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Write dir control" );
+            }
+            return( verrori );
         }
     }
 
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vcreate_dir_control
+ */
+
 void vcreate_dir_control(char *domain)
 {
-  if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1)) return;
+  if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT)) return;
 
     /* this next bit should be replaced with a call to vwrite_dir_control */
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
@@ -1406,20 +1867,35 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     fprintf( stderr, "vcreate_dir_control query\n%s\n", SqlBufUpdate );
 #endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        fprintf(stderr, "vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vcreate_dir_control failed %s - %s\n", 
+                 domain, mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "Create Dir control" );
+        }
         return;
     }
 }
 
+/************************************************************************
+ *
+ *  vdel_dir_control
+ */
+
 int vdel_dir_control(char *domain)
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "vdel_dir_control( domain: %s )\n", domain );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from dir_control where domain = '%s'", 
@@ -1433,20 +1909,35 @@ int vdel_dir_control(char *domain)
         fprintf( stderr, "vdel_dir_control retry\n%s\n", SqlBufUpdate );
 #endif
             if (mysql_query(&mysql_update,SqlBufUpdate)) {
-                fprintf(stderr, "vmysql: sql error[e]: %s\n", mysql_error(&mysql_update));
-                return(-1);
+                snprintf(sqlerr, MAX_BUFF, 
+                         "   vdel_dir_control failed %s - %s\n", 
+                         domain, mysql_error( &mysql_update ));
+                last_query = SqlBufUpdate;
+                verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+                if( showerrors )  {
+                    vsqlerror( stderr, "Delete dir control" );
+                }
+                return( verrori );
         }
     }
 
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vset_lastauth
+ */
+
 #ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
- int err;
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
 "replace into lastauth set user='%s', domain='%s', \
@@ -1460,15 +1951,31 @@ remote_ip='%s', timestamp=%lu", user, domain, remoteip, time(NULL));
         fprintf( stderr, "vset_lastauth retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[f]: %s\n", mysql_error(&mysql_update));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vset_lastauth %s@%s - %s\n", 
+                     user, domain, mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Set last auth" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vget_lastauth
+ */
+
 time_t vget_lastauth(struct vqpasswd *pw, char *domain)
 {
- int err;
  time_t mytime;
 
 #ifdef SHOW_TRACE
@@ -1476,7 +1983,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
                      pw->pw_name, domain );
 #endif
 
-    if ( (err=vauth_open_read()) != 0 ) return(err);
+    if ( vauth_open_read() ) return(verrori);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
     "select timestamp from lastauth where user='%s' and domain='%s'", 
@@ -1490,11 +1997,37 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
         fprintf( stderr, "vget_lastauth retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[g]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vget_lastauth failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Get last auth query" );
+            }
             return(0);
         }
     }
-    res_read = mysql_store_result(&mysql_read);
+    if( !(res_read = mysql_store_result(&mysql_read))) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vget_lastauth - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "Get last auth read" );
+        }
+        return(0);
+
+    }
     mytime = 0;
     while((row = mysql_fetch_row(res_read))) {
         mytime = atol(row[0]);
@@ -1510,6 +2043,11 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     return(mytime);
 }
 
+/************************************************************************
+ *
+ *  vget_lastauthip
+ */
+
 char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[100];
@@ -1519,7 +2057,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
                      pw->pw_name, domain );
 #endif
 
-    if ( vauth_open_read() != 0 ) return(NULL);
+    if ( vauth_open_read() ) return(NULL);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
     "select remote_ip from lastauth where user='%s' and domain='%s'", 
@@ -1533,14 +2071,42 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
         fprintf( stderr, "vget_lastauthip retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[h]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vget_alstauthip failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Get last auth ip query" );
+            }
             return(NULL);
         }
     }
-    res_read = mysql_store_result(&mysql_read);
+
+    if( !(res_read = mysql_store_result(&mysql_read)))  {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vget_lastauthip - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "Get last auth ip read" );
+        }
+        return(NULL);
+    }
+
     while((row = mysql_fetch_row(res_read))) {
         strncpy(tmpbuf,row[0],100);
     }
+
     mysql_free_result(res_read);
 
 #ifdef DUMP_DATA
@@ -1552,17 +2118,25 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     return(tmpbuf);
 }
 
+/************************************************************************
+ *
+ *  vcreate_lastauth_table
+ */
+
 void vcreate_lastauth_table()
 {
-  vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT);
 }
 #endif /* ENABLE_AUTH_LOGGING */
+
+/************************************************************************
+ *
+ *  valias_select
+ */
 
 #ifdef VALIAS
 char *valias_select( char *alias, char *domain )
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_select( alias: %s domain: %s )\n",
@@ -1570,9 +2144,7 @@ char *valias_select( char *alias, char *domain )
 #endif
 
     /* if we can not connect, set the verrori value */
-    if ( (err=vauth_open_read()) != 0 ) {
-      return(NULL);
-    }
+    if ( vauth_open_read() ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, "select valias_line from valias \
 where alias = '%s' and domain = '%s'", alias, domain );
@@ -1586,13 +2158,44 @@ where alias = '%s' and domain = '%s'", alias, domain );
         fprintf( stderr, "valias_select retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_select failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "valias_select query" );
+            }
             return(NULL);
         }
     }
-    res_read = mysql_store_result(&mysql_read);
+    if( !(res_read = mysql_store_result(&mysql_read)))  {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   valias_select - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "valias select read" );
+        }
+        return(NULL);
+    }
+
     return(valias_select_next());
 }
+
+/************************************************************************
+ *
+ *  valias_select_next
+ */
 
 char *valias_select_next()
 {
@@ -1612,14 +2215,14 @@ char *valias_select_next()
 
 int valias_insert( char *alias, char *domain, char *alias_line)
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_insert( alias: %s domain: %s line: %s )\n",
              alias, domain, alias_line );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
+
     while(*alias_line==' ' && *alias_line!=0) ++alias_line;
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "insert into valias \
@@ -1635,23 +2238,38 @@ int valias_insert( char *alias, char *domain, char *alias_line)
         fprintf( stderr, "valias_insert retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_insert failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "valias select next" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
+/************************************************************************
+ *
+ *  valias_remove
+ */
+
 int valias_remove( char *alias, char *domain, char *alias_line)
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_remove( alias: %s domain: %s line: %s )\n",
                      alias, domain, alias_line );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
@@ -1666,23 +2284,38 @@ and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
         fprintf( stderr, "valias_remove retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_remove failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "valias remove" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
+/************************************************************************
+ *
+ *  valias_delete
+ */
+
 int valias_delete( char *alias, char *domain)
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_delete( alias: %s domain: %s )\n",
                      alias, domain );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
@@ -1697,22 +2330,37 @@ and domain = '%s'", alias, domain );
         fprintf( stderr, "valias_delete retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_delete failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "valias delete" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
+/************************************************************************
+ *
+ *  valias_delete_domain
+ */
+
 int valias_delete_domain( char *domain)
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_delete_domain( domain: %s )\n", domain );
 #endif
 
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where domain = '%s'", 
@@ -1727,29 +2375,43 @@ int valias_delete_domain( char *domain)
         fprintf( stderr, "valias_delete_domain retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[m]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_delete_domain failed %s - %s\n", 
+                     domain, mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "valias delete domain" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
+/************************************************************************
+ *
+ *  vcreate_valias_table
+ */
+
 void vcreate_valias_table()
 {
-  vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("valias", VALIAS_TABLE_LAYOUT);
 }
 
 char *valias_select_all( char *alias, char *domain )
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_select_all( alias: %s domain: %s )\n", 
              alias, domain );
 #endif
 
-    if ( (err=vauth_open_read()) != 0 ) return(NULL);
+    if ( vauth_open_read() ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
         "select alias, valias_line from valias where domain = '%s' order by alias", domain );
@@ -1763,13 +2425,44 @@ char *valias_select_all( char *alias, char *domain )
         fprintf( stderr, "vcreate_valias_table retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_select_all failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "create alias table query" );
+            }
             return(NULL);
         }
     }
-    res_read = mysql_store_result(&mysql_read);
+    if(!( res_read = mysql_store_result(&mysql_read))) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vcreate_alias_table - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "create alias table read" );
+        }
+        return(NULL);
+    }
+
     return(valias_select_all_next(alias));
 }
+
+/************************************************************************
+ *
+ *  valias_select_all_next
+ */
 
 char *valias_select_all_next(char *alias)
 {
@@ -1784,15 +2477,19 @@ char *valias_select_all_next(char *alias)
     return(NULL);
 }
 
+/************************************************************************
+ *
+ *  valias_select_names
+ */
+
 char *valias_select_names( char *alias, char *domain )
 {
- int err;
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "valias_select_all_next( alias: %s )\n", alias );
 #endif
 
-    if ( (err=vauth_open_read()) != 0 ) return(NULL);
+    if ( vauth_open_read() ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
         "select distinct alias from valias where domain = '%s' order by alias", domain );
@@ -1806,17 +2503,47 @@ char *valias_select_names( char *alias, char *domain )
         fprintf( stderr, "valias_select_names retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   valias_select_names failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "select names query" );
+            }
             return(NULL);
         }
     }
-    res_read = mysql_store_result(&mysql_read);
+    if(!( res_read = mysql_store_result(&mysql_read))) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   valias_select_names - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "select names read" );
+        }
+        return(NULL);
+    }
 #ifdef DUMP_DATA
         fprintf(stderr, "   %s - %s\n", row[0], row[1] );
 #endif
 
     return(valias_select_all_next(alias));
 }
+
+/************************************************************************
+ *
+ *  valias_select_names_next
+ */
 
 char *valias_select_names_next(char *alias)
 {
@@ -1832,6 +2559,11 @@ char *valias_select_names_next(char *alias)
 }
 
 
+/************************************************************************
+ *
+ *  valias_select_names_end
+ */
+
 void valias_select_names_end() {
 
 //  not needed by mysql
@@ -1840,11 +2572,15 @@ void valias_select_names_end() {
 
 #endif
 
+/************************************************************************
+ *
+ *  logmysql
+ */
+
 #ifdef ENABLE_MYSQL_LOGGING
 int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
 {
- int err;
  time_t mytime;
  
 #ifdef SHOW_TRACE
@@ -1856,7 +2592,7 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
 
 
     mytime = time(NULL);
-    if ( (err=vauth_open_update()) != 0 ) return(err);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
         "INSERT INTO vlog set user='%s', passwd='%s', \
@@ -1873,26 +2609,51 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
         fprintf( stderr, "logmysql retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-                fprintf(stderr, "error inserting into vlog table\n");
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   logmysql failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "Log mysql" );
+            }
+            return( verrori );
         }
     }
     return(0);
 }
 
 
+/************************************************************************
+ *
+ *  vcreate_vlog_table
+ */
+
 void vcreate_vlog_table()
 {
-  vauth_create_table ("vlog", VLOG_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("vlog", VLOG_TABLE_LAYOUT);
 }
 #endif
+
+/************************************************************************
+ *
+ *  vcreat_limits_table
+ */
 
 #ifdef ENABLE_MYSQL_LIMITS
 void vcreate_limits_table()
 {
-  vauth_create_table ("limits", LIMITS_TABLE_LAYOUT, 1);
-  return;
+  vauth_create_table ("limits", LIMITS_TABLE_LAYOUT);
 }
+
+/************************************************************************
+ *
+ *  vget_limits
+ */
 
 int vget_limits(const char *domain, struct vlimits *limits)
 {
@@ -1902,8 +2663,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
 
     vdefault_limits (limits);
 
-    if (vauth_open_read() != 0)
-         return(-1);
+    if ( vauth_open_read() ) return(verrori);
 
     qnprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT maxpopaccounts, maxaliases, "
         "maxforwards, maxautoresponders, maxmailinglists, diskquota, "
@@ -1925,13 +2685,36 @@ int vget_limits(const char *domain, struct vlimits *limits)
         fprintf( stderr, "vget_limits retry\n%s\n", SqlBufRead );
 #endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            fprintf(stderr, "vmysql: sql error[p]: %s\n", mysql_error(&mysql_read));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vget_limits %s failed - %s\n", 
+                     domain, mysql_error( &mysql_update ));
+            last_query = SqlBufRead;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "vget limits query" );
+            }
+            return( verrori );
         }
     }
+
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vmysql: store result failed 7\n");
-        return -1;
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vget_limits - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufRead;
+        verrori = VA_STORE_RESULT_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "fget limits read" );
+        }
+        return(verrori);
     }
 
     if (mysql_num_rows(res_read) == 0) {
@@ -2007,10 +2790,14 @@ int vget_limits(const char *domain, struct vlimits *limits)
     return 0;
 }
 
+/************************************************************************
+ *
+ *  vset_limits
+ */
+
 int vset_limits(const char *domain, const struct vlimits *limits)
 {
-    if (vauth_open_update() != 0)
-        return(-1);
+    if (vauth_open_update()) return (verrori);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "REPLACE INTO limits ("
         "domain, maxpopaccounts, maxaliases, "
@@ -2058,13 +2845,29 @@ int vset_limits(const char *domain, const struct vlimits *limits)
         fprintf( stderr, "vset_limits retry\n%s\n", SqlBufUpdate );
 #endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            fprintf(stderr, "vmysql: sql error[q]: %s\n", mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF, 
+                     "   vset_limits failed - %s\n", 
+                     mysql_error( &mysql_update ));
+            last_query = SqlBufUpdate;
+            verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+            if( showerrors )  {
+                vsqlerror( stderr, "vset limits" );
+            }
+            return( verrori );
         }
     }
 
     return 0;
 }
+
+/************************************************************************
+ *
+ *  vdel_limits
+ */
 
 int vdel_limits(const char *domain)
 {
@@ -2077,12 +2880,31 @@ int vdel_limits(const char *domain)
 #ifdef SHOW_QUERY
     fprintf( stderr, "vdel_limits query\n%s\n", SqlBufUpdate );
 #endif
-    if (mysql_query(&mysql_update,SqlBufUpdate))
-        return(-1);
+    if (mysql_query(&mysql_update,SqlBufUpdate)) {
+        snprintf(sqlerr, MAX_BUFF, 
+                 "   vdel_limits failed - %s\n", 
+                 mysql_error( &mysql_update ));
+        last_query = SqlBufUpdate;
+        verrori = VA_QUERY_FAILED;
+
+#ifdef SHOW_TRACE
+        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
+#endif
+        if( showerrors )  {
+            vsqlerror( stderr, "vdel limits" );
+        }
+        return( verrori );
+    }
+
     return 0;
 }
 
 #endif
+
+/************************************************************************
+ *
+ *  vauth_crypt
+ */
 
 int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {
