@@ -1,5 +1,5 @@
 /*
- * $Id: md5.h,v 1.3 2004-03-14 18:00:40 kbo Exp $
+ * $Id: md5.h,v 1.4 2004-12-27 08:13:12 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #ifndef VPOPMAIL_MD5_H
 #define VPOPMAIL_MD5_H
 
-#ifdef __alpha
+#if(defined(__alpha) || defined(__x86_64__))
 typedef unsigned int uint32;
 #else
 typedef unsigned long uint32;

@@ -1,5 +1,5 @@
 /*
- * $Id: voracle.h,v 1.3 2004-03-14 18:00:40 kbo Exp $
+ * $Id: voracle.h,v 1.4 2004-12-27 08:13:13 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -236,7 +236,7 @@ valias_line varchar(255) not null "
 
 #endif
 
-#ifdef ENABLE_ORACLE_LOGGING
+#ifdef ENABLE_SQL_LOGGING
 #define VLOG_TABLE_LAYOUT "id BIGINT PRIMARY KEY AUTO_INCREMENT, \
       user char(32), passwd CHAR(32), \
       domain CHAR(64), logon VARCHAR(200), \

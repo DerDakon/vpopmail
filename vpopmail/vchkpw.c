@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.15 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.16 2004-12-27 08:13:12 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -173,6 +173,7 @@ int main( int argc, char **argv)
     int i;
     for (i = 0; i < (sizeof(webmailips)/sizeof(webmailips[0])); i++) {
       if (strcmp (IpAddr, webmailips[i]) == 0) {
+        strcpy(VchkpwLogName, "vchkpw-webmail");
         ConnType = WEBMAIL_CONN;
         break;
       }
@@ -682,30 +683,33 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
     syslog(LOG_NOTICE, sysc(LogLine));
   }
 
-#ifdef ENABLE_MYSQL_LOGGING
+#ifdef ENABLE_SQL_LOGGING
   /* always log to mysql if mysql logging is enabled and it 
    * is not internal error 
    */
 
   if ( (verror == VLOG_ERROR_PASSWD) && ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || ENABLE_LOGGING==4 ) ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-          syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+      }
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_LOGON ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_ACCESS ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_AUTH && ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   }
 #endif

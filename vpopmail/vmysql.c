@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.23 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vmysql.c,v 1.24 2004-12-27 08:13:12 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2630,8 +2630,8 @@ void valias_select_names_end() {
  *  logmysql
  */
 
-#ifdef ENABLE_MYSQL_LOGGING
-int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
+#ifdef ENABLE_SQL_LOGGING
+int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
 {
  time_t mytime;

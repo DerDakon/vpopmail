@@ -1,5 +1,5 @@
 /*
- * $Id: vaddaliasdomain.c,v 1.5 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vaddaliasdomain.c,v 1.6 2004-12-27 08:13:12 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include <signal.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauth.h"
 
 
 char Domain_a[MAX_BUFF];

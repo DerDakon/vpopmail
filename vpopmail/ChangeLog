@@ -1,7 +1,335 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.5.2 - unreleased
+5.5.1 - unreleased  (Some more stuff before release)
+
+=========================================================================
+	This a big batch of changes being ported from 5_4_stable
+	Sorry this is so long...  It documents every file found in
+	the diff between 5.4.5 and the current stable-5_4 and documents
+	every change I moved or verified was already in place.
+
+	stable-5_4 is as of 23 Dec 2004.  (5.4.9 release)
+
+        Rick Widmer
+
+file: Makefile.am
+
+	Jeremy Kister 16 Dec 2004   5.4.9 
+
+	- Makefile.am: fix install problem on Solaris. Some .h files
+	weren't being installed correctly.
+
+           Add a for loop for the .h files
+
+	Tom Collins 23 Sep 2004   5.4.7
+
+	- Added comment to vqmaillocal.c mentioning that it isn't
+	maintained and probably doesn't work.  Makefile no longer
+	installs vqmaillocal.
+
+          remove vqmaillocal from makefile.am
+
+
+file: Makefile.am
+
+	Jeremy Kister 16 Dec 2004   5.4.9 
+
+	- Makefile.am: fix install problem on Solaris. Some .h files
+	weren't being installed correctly.
+
+
+	Tom Collins 23 Sep 2004   5.4.7
+
+	- Added comment to vqmaillocal.c mentioning that it isn't
+	maintained and probably doesn't work.  Makefile no longer
+	installs vqmaillocal.
+
+          remove vqmaillocal from makefile.am  already done.
+
+file: README - already done
+
+file: README.mysql
+
+	Tom Collins - 17 Dec 2004
+
+        - update README.mysql for new --enable-sql-logging instead of
+          --enable-mysql-logging
+
+
+file: README.pgsql
+
+	Tom Collins - 17 Dec 2004
+
+        - update README.pgsql for new --enable-sql-logging instead of
+          --enable-pgsql-logging
+
+
+file: README.quotas  -  already done
+
+file: config.h.in
+
+	Charles Boening - Tom Collins  13 Jan 2004
+
+	- Replace --enable-{my|pg}sql-logging with --enable-sql-logging
+	  in configure options.
+
+file: configure
+
+	Charles Boening - Tom Collins  13 Jan 2004
+
+	- Replace --enable-{my|pg}sql-logging with --enable-sql-logging
+	  in configure options.
+
+	Tom Collins  - Rick Widmer 12 Nov 2004
+
+	- Start of 5.4.9  (Actually set to 5.5.1)
+
+
+file: configure.in
+
+	Charles Boening - Tom Collins  13 Jan 2004
+
+	- Replace --enable-{my|pg}sql-logging with --enable-sql-logging
+	  in configure options.
+
+	Tom Collins  - Rick Widmer 12 Nov 2004
+
+	- Start of 5.4.9  (Actually set to 5.5.1)
+
+file: md5.h
+
+        Tom Collins - 22 Nov 2004
+
+	- Fix problem in md5.h causing segfault in SMTP AUTH on amd64 [96483, 958799]
+
+file: vactivedir.c
+
+	Tom Collins - 18 Sep 2004 - already done
+
+	- Fix format string vuln, in vactivedir.c (thanks D4rk Eagle).
+
+file: vadddomain.c
+
+	Rick Widmer - Tom Collins - 18 Oct 2004 - already done
+
+	- Add Rick Widmer's patch to vadddomain from 5.5.x that checks for
+ 	existing domain before prompting for password.
+
+file: vauth.h
+
+	Charles Boening - Tom Collins - 16 Dec 2004
+
+	- Changes from Charles Boening related to SQL logging on MySQL and PostgreSQL
+
+file: vchkpw.c
+
+	Charles Boening - Tom Collins - 16 Dec 2004
+
+	- Changes from Charles Boening related to SQL logging on MySQL and PostgreSQL
+        - NOTE: I went further and changed syslog error messages from MySQL to SQL.
+
+        Tom Collins - 27 Nov 2004
+
+	- vchkpw: log webmail connections as 'vchkpw-webmail'.
+
+        Tom Collins - 3 Nov 2004 - already done
+
+	- vchkpw: classify POP/IMAP connection from select IPs (defaults to 127.0.0.1) as
+	webmail and check NO_WEBMAIL user flag insteadof NO_POP and NO_IMAP.
+
+file: vconvert.c
+
+	Tom Collins - 24 Aug 2004 - already done
+
+	- temporary solution to vconvert not updating dir_control when converting
+	from cdb to MySQL
+
+file: vdeldomain.c
+
+	Tom Collins - Rick Widmer - 20 Oct 2004	- already done
+
+	- add Rick Widmer's patch to vdeldomain to fix uninitialized variable warning
+
+file: vdominfo.c
+
+
+	Tom Collins - 11 Nov 2004 - some already done, some very different
+
+	- vdominfo: better display of real name for alias domains. [981335]
+
+        Tom Collins - 11 Nov 2004 - already done
+
+	- vdomindo: fix broken -a option.
+
+NOTE:  in vdominfo Tom used the name RealName where I used the name RealDomain
+and the parameter order is different.  Also, Tom put the real domain earlier
+in the parm order of functions like display_domain.  These should be changed, but 
+I'm not going to do it right now...
+
+It appears there is an update to handling users/assign that needs forward ported...
+Maybe it is handled by get_domain_entries call?
+
+
+file: vmoddomlimits.c
+
+	Tom Collins - 18 Oct 2004 - already done
+	
+	- Fix bug in vmoddomlimits that wiped out the Domain Quota when editing
+	default limits.
+
+file: vmoduser.c
+
+	Tom Collins - 15 Dec 2004 - already done
+
+	- minor change to help/usage text
+
+	Tom Collins - 3 Nov 2004 - already done
+
+	- vmoduser: update maildirsize instead of just deleting it when modifying quota.
+
+file: vmysql.c
+
+	Tom Collins - Charles Boening - 16 Dec 2004
+
+	- changes from Charles Boening related to SQL logging on MySQL and PostgreSQL
+
+	Tom Collins - 7 Oct 2004 - already done
+
+	- fix valias code in vmysql (problem with Maildir entries getting processed
+	in vdelivermail) and vpgsql (just plain didn't work before)
+
+	Tom Collins - Rick Widmer - 26 June 2004 - already done
+
+	- backport database backend updated from 5.5.0 release
+
+	Tom Collins - 11 Jul 2004 - already done
+
+	- Fix method used to open database in vauth_open_update of vmysql.c
+	[967994, 946983]
+
+file: vmysql.h
+
+	Tom Collins - 16 Dec 2004
+
+	- Changes form Charles Boening relate to SQL logging on MySQL and PostgreSQL
+
+file: voracle.h
+
+	Tom Collins - 16 Dec 2004
+
+	- Changes form Charles Boening relate to SQL logging on MySQL and PostgreSQL
+
+file: voracle.pc
+
+	Tom Collins - 16 Dec 2004
+
+	- Changes form Charles Boening relate to SQL logging on MySQL and PostgreSQL
+
+	Tom Collins - Rick Widmer - 26 June 2004 - already done
+
+	- backport database backend updated from 5.5.0 release
+
+file: vpalias.c
+
+	Tom Collins - Kris von Mach - 19 Aug 2004 - already done
+
+	Fix size comparisons to MAX_PW_X (should be '>', not '>='). (originally
+	reported by Kris von Mach)
+
+file: vpgsql.c
+
+	Tom Collins - Charles Boening - 16 Dec 2004
+
+	- changes from Charles Boening related to SQL logging on MySQL and PostgreSQL
+
+	Tom Collins - 7 Oct 2004 - already done
+
+	- fix valias code in vmysql (problem with Maildir entries getting processed
+	in vdelivermail) and vpgsql (just plain didn't work before)
+
+	Tom Collins - Rick Widmer - 26 June 2004 - already done
+
+	- backport database backend updated from 5.5.0 release
+
+	Tom Collins - 11 Jun 2004 - already done
+
+	- Hide error message during PHP3 auth with Postgres. [915485]
+
+
+file: vpgsql.h
+
+	Tom Collins - Charles Boening - 16 Dec 2004
+
+	- changes from Charles Boening related to SQL logging on MySQL and PostgreSQL
+
+	Tom Collins - 20 Oct 2004 - already done
+
+	- Change columns in Postgres valias table to varchar from char.
+
+
+file: vpopmail.c
+
+	Tom Collins - 15 Dec 2004
+
+	- Additional improvments to signal_process() in vpopmail.c
+
+	Tom Collins - 15 Dec 2004
+
+	- fix problem related to sending SIGHUP to qmail-send
+
+	Tom Collins - 11 Nov 2204 - already done
+
+	- Improved maildir_to_email() function. [953439]
+
+
+file: vpopmail.c
+
+	Tom Collins - 23 Nov 2004 - already done
+	
+	- Add new error and flag defines from 5.5 series.
+
+	Tom Collons - 3 Nov 2004 - already done
+
+	- vmoduser: update maildirsize instead of just deleting it when modifying quota.
+
+	Tom Collins - 7 Oct 2004 - already done
+
+	- fix valias code in vmysql (problem with Maildir entries getting processed in
+	vdelivermail) and vpgsql (just plain didn't work before)
+
+	Tom Collins - Rick Widmer - 26 Jun 2004 - already done
+
+	- backport database backend updates from 5.5.0 release
+
+
+file: vqmaillocal.c
+
+	Tom Collins - 22 Sep 2004 - already done
+
+	- added note about vqmailalocal not being maintained.  Doesn't install vqmaillocal
+	from makefile.
+
+file: vsybase.c
+
+	Tom Collins - 19 Aug 2004 - already done
+
+	- fix possible bugger overflows in vsybase.c
+
+	Tom Collins - Rick Widmer - 26 Jun 2004 - already done
+
+	- backport database backend updates from 5.5.0 release
+
+file: vuserinfo.c
+
+	Tom Collins - 19 Oct 2004
+
+	- Integrate vuserinfo patch from Gentoo (originally on 5.2.1).  Fixes -a
+	option and now displays comment field when showing all fields.
+
+
+==========================================================================
+/moduser: usage
 
 	Tom Collins - 23 November 2004
 	- Forward port changes made between 5.4.4 and 5.4.8.

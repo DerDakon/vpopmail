@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.20 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.21 2004-12-27 08:13:13 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -137,6 +137,7 @@ int vdeluser( char *, char *);
 int vpasswd( char *, char *, char *, int);
 int vsetuserquota( char *, char *, char * );
 int vexit(int err);
+int vexiterror( FILE *f, char *comment);
 
 char randltr(void);
 int mkpasswd3( char *, char *, int);

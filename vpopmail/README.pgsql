@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.12 2004-11-23 15:47:02 tomcollins Exp $
+   $Id: README.pgsql,v 1.13 2004-12-27 08:12:56 rwidmer Exp $
 */
 --------------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ Now, build the program with a configure something like this :
 	  --enable-auth-module=pgsql \
 	  --disable-many-domains \
 	  --enable-auth-logging \
-	  --enable-pgsql-logging \
+	  --enable-sql-logging \
 	  --enable-valias
  
 	make

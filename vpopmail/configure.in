@@ -1237,51 +1237,24 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether mysql-logging is enabled)
-AC_ARG_ENABLE(mysql-logging,
-        [  --enable-mysql-logging     Enable authentication logging to MySQL.  Uses setting from --enable-auth-logging.],
-        ENABLE_MYSQL_LOGGING=$enableval,
+AC_MSG_CHECKING(whether sql-logging is enabled)
+AC_ARG_ENABLE(sql-logging,
+        [  --enable-sql-logging     Enable authentication logging to MySQL/Postgres.],
+        ENABLE_SQL_LOGGING=$enableval,
                 [
-                        ENABLE_MYSQL_LOGGING=n
+                        ENABLE_SQL_LOGGING=n
                 ]
 )
 
-case $ENABLE_MYSQL_LOGGING in
+case $ENABLE_SQL_LOGGING in
   1*|y*|Y*)
       AC_MSG_RESULT(yes)
-      if test $USE_MYSQL != 1
+      if test $USE_SQL != 1
       then
-          AC_MSG_ERROR(mysql-logging is only supported in the MySQL authentication module)
+          AC_MSG_ERROR(sql-logging is only supported in the MySQL/Postgres authentication module)
       else
-        ENABLE_MYSQL_LOGGING=1
-        AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LOGGING,$ENABLE_MYSQL_LOGGING,"")
-      fi
-      ;;
-  *)
-      AC_MSG_RESULT(no)
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether pgsql-logging is enabled)
-AC_ARG_ENABLE(pgsql-logging,
-        [  --enable-pgsql-logging     Enable authentication logging to PostgreSQL.  Uses setting from --enable-auth-logging.],
-        ENABLE_PGSQL_LOGGING=$enableval,
-                [
-                        ENABLE_PGSQL_LOGGING=n
-                ]
-)
-
-case $ENABLE_PGSQL_LOGGING in
-  1*|y*|Y*)
-      AC_MSG_RESULT(yes)
-      if test $USE_PGSQL != 1
-      then
-          AC_MSG_ERROR(pgsql-logging is only supported in the PostgreSQL authentication module)
-      else
-          ENABLE_PGSQL_LOGGING=1
-          AC_DEFINE_UNQUOTED(ENABLE_PGSQL_LOGGING,$ENABLE_PGSQL_LOGGING,"")
+          ENABLE_SQL_LOGGING=1
+          AC_DEFINE_UNQUOTED(ENABLE_SQL_LOGGING,$ENABLE_SQL_LOGGING,"")
       fi
       ;;
   *)
@@ -1401,6 +1374,20 @@ esac
 #----------------------------------------------------------------------
 
 AC_MSG_CHECKING(whether any discontinued --enable commands have been used)
+
+AC_ARG_ENABLE(mysql-logging, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql-logging has been superceded.  --enable-sql-logging instead)
+    ]
+)
+
+AC_ARG_ENABLE(pgsql-logging, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-pgsql-logging has been superceded.  --enable-sql-logging instead)
+    ]
+)
 
 AC_ARG_ENABLE(mysql, [],
     [
@@ -1626,12 +1613,12 @@ case $AUTH_MODULE in
         ;;
     esac
 
-    case $ENABLE_MYSQL_LOGGING in
+    case $ENABLE_SQL_LOGGING in
       1*|y*|Y*)
-        echo "     mysql logging = ON  --enable-mysql-logging"
+        echo "     sql logging = ON  --enable-sql-logging"
         ;;
       *)
-        echo "     mysql logging = OFF --disable-mysql-logging (default)"
+        echo "     sql logging = OFF --disable-sql-logging (default)"
         ;;
     esac
 
@@ -1657,12 +1644,12 @@ case $AUTH_MODULE in
   pg*|Pg*|PG*)
     echo "       auth module = postgres --enable-auth-module=postgres"
 
-    case $ENABLE_PGSQL_LOGGING in
+    case $ENABLE_SQL_LOGGING in
       1*|y*|Y*)
-        echo "     pgsql logging = ON  --enable-pgsql-logging"
+        echo "     sql logging = ON  --enable-sql-logging"
         ;;
       *)
-        echo "     pgsql logging = OFF --disable-pgsql-logging (default)"
+        echo "     sql logging = OFF --disable-sql-logging (default)"
       ;;
     esac
     ;;

@@ -1,5 +1,5 @@
 /*
- * $Id: vauth.h,v 1.5 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vauth.h,v 1.6 2004-12-27 08:13:12 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -118,6 +118,6 @@ int valias_delete( char *alias, char *domain);
 int valias_delete_domain( char *domain);
 
 /* Log to MySQL Added by David Wartell to support MySQL logging */
-int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
+int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
 #endif
 

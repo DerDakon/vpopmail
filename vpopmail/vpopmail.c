@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.45 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.46 2004-12-27 08:13:13 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1324,8 +1324,8 @@ int signal_process(char *name, int sig_num)
  pid_t tmppid;
  pid_t mypid;
  int  pid_col=0;
- char pid[MAX_BUFF];
- char tmpbuf1[MAX_BUFF];
+ char pid[10];
+ char tmpbuf1[1024];
 
   mypid = getpid();
 
@@ -1347,7 +1347,9 @@ int signal_process(char *name, int sig_num)
 
   while (fgets(tmpbuf1, sizeof(tmpbuf1), ps)!= NULL ) {
     if ( strstr( tmpbuf1, name ) != NULL && 
-         strstr(tmpbuf1,"supervise")==NULL) {
+         strstr(tmpbuf1,"supervise")==NULL &&
+         strstr(tmpbuf1,"multilog")==NULL &&
+         strstr(tmpbuf1,"svscan")==NULL) {
       tmpstr = strtok(tmpbuf1, PS_TOKENS);
       col = 0;
       do {
@@ -1359,7 +1361,7 @@ int signal_process(char *name, int sig_num)
         tmpstr = strtok(NULL, PS_TOKENS);
       } while ( tmpstr!=NULL );
       tmppid = atoi(pid);
-      if ( tmppid != mypid ) { 
+      if ( tmppid && ( tmppid != mypid )) { 
         kill(tmppid,sig_num);
       }
     }
