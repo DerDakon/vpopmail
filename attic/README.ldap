@@ -1,0 +1,135 @@
+***********************************************
+**                                           **
+**  Quick Vpopmail and OpenLDAP Setup Guide  **
+**                                           **
+***********************************************
+
+- tim@aidasystems.com
+-      6/17/2001
+
+vpopmail-4.10.20 and openldap-2.0.11 (stable-20010524)
+
+
+1. Download and install openldap
+---------------------------------
+
+Requirements: BerkeleyDB (Recommended) or GNU Database Manager (GDMB)
+		I used the recommended version of DB, v3.1 (db3-3.1.17)
+
+a. download and untar the openldap-2.0.11 tarball
+b. cd openldap-2.0.11
+c. ./configure --with-wrappers
+		(This is all you need, as db is enabled by default)
+		(wrappers refers to tcp-wrappers)
+d. make depend
+e. make
+f. make test
+g. make install
+
+2. Edit the configuration file for openldap (slapd)
+---------------------------------------------------
+
+By default it will be installed as /usr/local/etc/openldap/slapd.conf
+(This file should not be world readable!!)
+The section you least need to edit is the "ldbm database definitions"
+I will use example.com as an example. This is a sample ldbm config section:
+
+	database ldbm
+	suffix "dc=example,dc=com"
+	rootdn "cn=Manager,dc=example,dc=com"
+	rootpw topsecret
+	directory /usr/local/var/openldap-ldbm
+
+Then save the file and exit, and start slapd (as root):
+/usr/local/libexec/slapd
+
+Now test it with the ldapsearch command:
+/usr/local/bin/ldapsearch -x -b '' -s base '(objectclass=*)' namingContexts
+(note the use of single quotes to avoid special characters being interpreted
+ by the shell)
+You should get something like:
+
+dn:
+namingContexts: dc=example,dc=com
+
+(and maybe some #commented stuff)
+
+Finally, add "/usr/local/libexec/slapd" to system startup scripts to auto
+start slapd at boot time. Example:
+
+echo "# The following command starts slapd (OpenLDAP)" >> /etc/rc.d/rc.local
+echo "/usr/local/libexec/slapd" >> /etc/rc.d/rc.local
+
+3. Config and install Qmail as you normally would
+-------------------------------------------------
+Optionally also install ucspi and daemontools :)
+
+4. Configure and install vpopmail-4.10.20
+------------------------------------------
+
+./configure	--enable-ldap=y
+		--enable-roaming-users=y
+		--enable-hardquota=5000000
+		--enable-relay-clear-minutes=360
+
+edit the top of the file "vldap.h" to look like:
+
+#define VLDAP_SERVER "localhost"
+#define VLDAP_PORT 389
+#define VLDAP_USER "cn=Manager, dc=example, dc=com"
+#define VLDAP_PASSWORD "topsecret"
+
+#ifdef OLD_VLDAP
+   #define VLDAP_BASEDN "ou=Blah, o=Blah"
+#else
+   #define VLDAP_BASEDN "ou=%s, o=ExampleCompany"
+#endif
+
+Then run "make" and "make install-strip"
+
+Add crontab job to clear open relay periodically:
+Example:
+40 */2 * * * /home/vpopmail/bin/clearopensmtp 2>&1 > /dev/null
+
+
+Troubleshooting:
+----------------
+
+1. After installing vpopmail successfully, running vadddomain gives an error
+   libldap* or liblber.* not found. What's wrong?
+
+OpenLDAP source install installs in /usr/local. So libs install in /usr/local/lib, bins in /usr/local/bin, and includes in /usr/local/include.
+Quick fix:
+ln -s /usr/local/lib/libldap* /usr/lib
+ln -s /usr/local/lib/liblber.* /usr/lib
+then try rerunning vadddomain again
+
+2. After installing vpopmail successfully, running vadddomain gives a core
+   dump error. What's wrong?
+
+You probably configured --with-hardquota=xxxxx. This is a known bug. Hopefully
+it will be fixed soon =)
+
+3. After installing vpopmail successfully, running vadddomain gives an error:
+
+Error: Unable to chdir to vpopmail/users directory
+
+I don't know :(
+From looking at the permissions in /home/vpopmail, everything looks fine.
+If you found a solution to this problem, please let me know (and share
+with other vpopmailers on the mailing list :)
+
+# ls -l /home/vpopmail/
+total 28
+drwxr-xr-x    2 vpopmail vchkpw       4096 Jun 17 21:45 bin
+drwxr-xr-x    4 vpopmail vchkpw       4096 Jun 17 21:45 doc
+drwx------    3 vpopmail vchkpw       4096 Jun 17 21:46 domains
+drwxr-xr-x    2 vpopmail vchkpw       4096 Jun 17 21:44 etc
+drwxr-xr-x    2 vpopmail vchkpw       4096 Jun 17 21:45 include
+drwxr-xr-x    2 vpopmail vchkpw       4096 Jun 17 21:45 lib
+drwx------    2 vpopmail vchkpw       4096 Jun 17 21:45 users
+
+Thanks Ken (kbo@inter7.com) for all the hard work to make setup so trivial.
+It's no longer required to edit the Makefile and add stuff like lldap or llber
+to cryptlibs, it does it automatically =)
+
