@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.6 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.7 2004-04-27 07:26:23 rwidmer Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ void usage();
 void get_options(int argc, char **argv);
 void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdomain);
 void display_all_domains();
+void display_one_domain( char * Domain );
 
 #define TOKENS ":\n"
 

@@ -242,6 +242,18 @@ postmaster user.
 
 --------------------------------------------------------------------
 
+
+add_alias_domain domain alias
+
+Rights required: SA_ADMIN
+
+Action:  Add an alias to an existing domain.  Qmail will recognize
+the alias domain name, but all incoming mail to that domain will
+be sent to the real domain.
+
+
+--------------------------------------------------------------------
+
 del_domain domain
 
 Rights required: SA_ADMIN
@@ -261,111 +273,9 @@ Rights required: SA_ADMIN
 
 Action: return internal information about a domain.  The information
 returned includes: domain directory, userid, groupid, number of users,
-
-
-  memset(newpath,0,256);
-  memset(theemail,0,256);
-  memset(theuser,0,256);
-  memset(thedomain,0,256);
-  memset(thedir,0,256);
-
-  /* check for fake out path */
-  if ( strstr(path,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-    return(NULL);
-  }
-
-  /* check for fake out path */
-  if ( strstr(path,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-    return(NULL);
-  }
-
-  /* expand the path */
-  if ( path[0] == '/' ) {
-    snprintf(newpath,sizeof(newpath), path);
-  } else { 
-    slash = strchr( path, '/');
-    if ( slash == NULL ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-      return(NULL);
-    }
-    atsign = strchr(path,'@');
-
-    /* possible email address */
-    if ( atsign != NULL ) {
-      if ( atsign > slash ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-        return(NULL);
-      }
-      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
-        theemail[i] = path[i];
-      }
-      theemail[i] = 0;
-
-      if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-        return(NULL);
-      } 
-
-      if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-        return(NULL);
-      }
-
-
-      /* limit domain admins to their domains */
-      if ( AuthVpw.pw_gid & QA_ADMIN ) {
-        if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-          return(NULL);
-        }
-
-      /* limit users to their accounts */
-      } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
-        if ( strcmp(TheUser, theuser) != 0 || 
-             strcmp(TheDomain, thedomain) != 0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-          return(NULL);
-        }
-      }
-      snprintf(newpath, sizeof(newpath), myvpw->pw_dir);
-      strncat(newpath,&path[i],sizeof(newpath));
-    } else {
-      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
-        thedomain[i] = path[i];
-      }
-      thedomain[i] = 0;
-      if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
-        return(NULL);
-      } 
-      snprintf(newpath,sizeof(newpath), thedir);
-      strncat(newpath,&path[i],sizeof(newpath));
-    }
-  }
-
-  if ( AuthVpw.pw_gid & SA_ADMIN ) { 
-    if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
-      return(NULL);
-    }
-  } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
-    if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
-      return(NULL);
-    }
-  } else {
-    if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
-      return(NULL);
-    }
-  }
-  return(newpath);
-}
+If you ask for an alias domain, you will receive information for the
+parent domain.  Part of that information will include a list of all
+alias names of the parent domain.
 
 
 --------------------------------------------------------------------

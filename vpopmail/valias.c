@@ -1,5 +1,5 @@
 /*
- * $Id: valias.c,v 1.6 2004-04-27 06:53:41 rwidmer Exp $
+ * $Id: valias.c,v 1.7 2004-04-27 07:26:23 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,9 @@ char AliasLine[MAX_BUFF];
 
 int AliasAction;
 int AliasExists;
+char *valias_select_names( char *domain );
+char *valias_select_names_next();
+void  valias_select_names_end();
 
 void usage();
 void get_options(int argc,char **argv);

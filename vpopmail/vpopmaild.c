@@ -72,6 +72,7 @@ int del_user();
 int mod_user();
 int user_info();
 int add_domain();
+int add_alias_domain();
 int del_domain();
 int dom_info();
 int mk_dir();
@@ -126,6 +127,7 @@ func_t Functions[] = {
 {"del_user", del_user, "user@domain<crlf>" },
 {"mod_user", mod_user, "user@domain (option lines)<crlf>.<crlf>" },
 {"user_info", user_info, "user_domain<crlf>" },
+{"add_alias_domain", add_alias_domain, "domain alias<crlf>" },
 {"add_domain", add_domain, "domain postmaster@password<crlf>" },
 {"del_domain", del_domain, "domain<crlf>" },
 {"dom_info", dom_info, "domain<crlf>" },
@@ -827,6 +829,38 @@ int add_domain()
 
   if ((ret=vadduser("postmaster",domain , password, "postmaster", USE_POP ))<0){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  return(0);
+}
+
+int add_alias_domain()
+{
+ char *domain;
+ char *alias;
+ int   ret;
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((domain=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "XXX alias name required" RET_CRLF);
+    return(-1);
+  }
+
+  if ((ret=vaddaliasdomain(alias,domain))!=VA_SUCCESS){
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+             verror(ret));
     return(-1);
   }
 
