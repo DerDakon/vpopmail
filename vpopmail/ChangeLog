@@ -37,6 +37,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  time the configure script is run. This file is never used,
 	  and a more accurate result can be achieved by using
 	  ./config.status --recheck [860271]
+	- Update the vldap/qmailUser.schema so that it contains the 
+	  required definition for 'clearPassword'
 
 5.4.0-pre1 - released 10-Dec-03
 	
