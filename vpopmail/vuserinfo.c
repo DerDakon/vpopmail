@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.4.2.2 2004-10-19 17:43:10 tomcollins Exp $
+ * $Id: vuserinfo.c,v 1.4.2.3 2004-12-27 22:36:08 rwidmer Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -293,6 +293,8 @@ void display_user(struct vqpasswd *mypw, char *domain)
             display_limit (mypw, NO_IMAP,        "imap access closed");
             display_limit (mypw, NO_SMTP,        "smtp access is closed");
             display_limit (mypw, NO_RELAY,       "user not allowed to relay mail");
+            display_limit (mypw, NO_SPAMASSASSIN,"spamassassin processing disabled");
+            display_limit (mypw, NO_DELETE_SPAM, "delete spam");
             display_limit (mypw, NO_DIALUP,      "no dialup flag has been set");
             display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
             display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");
