@@ -8,6 +8,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  is enabled.
 	- Verify user exists before trying to set quota in vsetuserquota().
 	  [984698]
+	- Update cdb/Makefile so you can 'make install' without doing 
+	  'make' first.
 
 5.4.6 - released 30-Jun-04
 
