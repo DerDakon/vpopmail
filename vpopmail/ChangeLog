@@ -48,6 +48,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
+	- Contributed README.vlimits [855693]
+	- Updated README.quotas
 
 	Casey Zacek
 	- Create maildirsize file in vsetuserquota(). [869457]
