@@ -1,14 +1,34 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 
-/* Define if on AIX 3.
-   System headers sometimes define this.
-   We just want to avoid a redefinition error message.  */
-#ifndef _ALL_SOURCE
-#undef _ALL_SOURCE
-#endif
+/* Define if the closedir function returns void instead of int.  */
+#undef CLOSEDIR_VOID
 
 /* Define to empty if the keyword does not work.  */
 #undef const
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef gid_t
+
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
+#undef HAVE_SYS_WAIT_H
+
+/* Define if utime(file, NULL) sets file's timestamp to the present.  */
+#undef HAVE_UTIME_NULL
+
+/* Define as __inline if that's what the C compiler calls it.  */
+#undef inline
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef mode_t
+
+/* Define to `long' if <sys/types.h> doesn't define.  */
+#undef off_t
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef pid_t
+
+/* Define as the return type of signal handlers (int or void).  */
+#undef RETSIGTYPE
 
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 #undef size_t
@@ -19,71 +39,134 @@
 /* Define if your <sys/time.h> declares struct tm.  */
 #undef TM_IN_SYS_TIME
 
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef uid_t
+
+/* Define if you have the bzero function.  */
+#undef HAVE_BZERO
+
+/* Define if you have the dup2 function.  */
+#undef HAVE_DUP2
+
 /* Define if you have the fdatasync function.  */
 #undef HAVE_FDATASYNC
 
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
 
+/* Define if you have the gethostname function.  */
+#undef HAVE_GETHOSTNAME
+
+/* Define if you have the getpass function.  */
+#undef HAVE_GETPASS
+
+/* Define if you have the getspnam function.  */
+#undef HAVE_GETSPNAM
+
+/* Define if you have the memset function.  */
+#undef HAVE_MEMSET
+
 /* Define if you have the mkdir function.  */
 #undef HAVE_MKDIR
 
-/* Define if you have the sigaction function.  */
-#undef HAVE_SIGACTION
+/* Define if you have the putenv function.  */
+#undef HAVE_PUTENV
+
+/* Define if you have the rmdir function.  */
+#undef HAVE_RMDIR
+
+/* Define if you have the socket function.  */
+#undef HAVE_SOCKET
+
+/* Define if you have the strchr function.  */
+#undef HAVE_STRCHR
 
 /* Define if you have the strdup function.  */
 #undef HAVE_STRDUP
 
+/* Define if you have the strerror function.  */
+#undef HAVE_STRERROR
+
+/* Define if you have the strncasecmp function.  */
+#undef HAVE_STRNCASECMP
+
+/* Define if you have the strrchr function.  */
+#undef HAVE_STRRCHR
+
+/* Define if you have the strspn function.  */
+#undef HAVE_STRSPN
+
 /* Define if you have the strstr function.  */
 #undef HAVE_STRSTR
+
+/* Define if you have the utime function.  */
+#undef HAVE_UTIME
+
+/* Define if you have the <arpa/inet.h> header file.  */
+#undef HAVE_ARPA_INET_H
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
-/* Define if you have the <dlfcn.h> header file.  */
-#undef HAVE_DLFCN_H
+/* Define if you have the <fcntl.h> header file.  */
+#undef HAVE_FCNTL_H
+
+/* Define if you have the <memory.h> header file.  */
+#undef HAVE_MEMORY_H
 
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H
 
+/* Define if you have the <netinet/in.h> header file.  */
+#undef HAVE_NETINET_IN_H
+
 /* Define if you have the <shadow.h> header file.  */
 #undef HAVE_SHADOW_H
+
+/* Define if you have the <stdlib.h> header file.  */
+#undef HAVE_STDLIB_H
+
+/* Define if you have the <string.h> header file.  */
+#undef HAVE_STRING_H
 
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
 
+/* Define if you have the <sys/file.h> header file.  */
+#undef HAVE_SYS_FILE_H
+
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
-/* Define if you have the <sys/varargs.h> header file.  */
-#undef HAVE_SYS_VARARGS_H
+/* Define if you have the <sys/param.h> header file.  */
+#undef HAVE_SYS_PARAM_H
+
+/* Define if you have the <sys/socket.h> header file.  */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
+
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
 
+/* Define if you have the <utime.h> header file.  */
+#undef HAVE_UTIME_H
+
 /* Define if you have the crypt library (-lcrypt).  */
 #undef HAVE_LIBCRYPT
-
-/* Define if you have the m library (-lm).  */
-#undef HAVE_LIBM
-
-/* Define if you have the nsl library (-lnsl).  */
-#undef HAVE_LIBNSL
-
-/* Define if you have the shadow library (-lshadow).  */
-#undef HAVE_LIBSHADOW
-
-/* Define if you have the socket library (-lsocket).  */
-#undef HAVE_LIBSOCKET
-
-/* Define if you have the z library (-lz).  */
-#undef HAVE_LIBZ
 
 /* Name of package */
 #undef PACKAGE
 
 /* Version number of package */
 #undef VERSION
+
+/*  */
+#undef PS_COMMAND
 
 /*  */
 #undef QMAILDIR
@@ -113,9 +196,6 @@
 #undef VPOPMAILGID
 
 /*  */
-#undef VLIMITS_DEFAULT_FILE
-
-/*  */
 #undef POP_AUTH_OPEN_RELAY
 
 /*  */
@@ -123,6 +203,12 @@
 
 /*  */
 #undef TCP_FILE
+
+/*  */
+#undef REBUILD_TCPSERVER
+
+/*  */
+#undef RELAY_CLEAR_MINUTES
 
 /*  */
 #undef OPEN_SMTP_CUR_FILE
@@ -134,67 +220,10 @@
 #undef OPEN_SMTP_LOK_FILE
 
 /*  */
-#undef RELAY_CLEAR_MINUTES
-
-/*  */
 #undef ENABLE_LEARN_PASSWORDS
 
 /*  */
 #undef MD5_PASSWORDS
-
-/*  */
-#undef ENABLE_AUTH_LOGGING
-
-/*  */
-#undef ENABLE_MYSQL_LOGGING
-
-/*  */
-#undef ENABLE_MYSQL_LIMITS
-
-/*  */
-#undef ENABLE_PGSQL_LOGGING
-
-/*  */
-#undef CLEAR_PASS
-
-/*  */
-#undef USERS_BIG_DIR
-
-/*  */
-#undef ENABLE_LOGGING
-
-/*  */
-#undef ENABLE_LOGGING
-
-/*  */
-#undef ENABLE_LOGGING
-
-/*  */
-#undef ENABLE_LOGGING
-
-/*  */
-#undef ENABLE_LOGGING
-
-/*  */
-#undef SQWEBMAIL_PASS
-
-/*  */
-#undef LOG_NAME
-
-/*  */
-#undef DOMAINS_DIR
-
-/*  */
-#undef USE_SQL
-
-/*  */
-#undef USE_MYSQL
-
-/*  */
-#undef MYSQL_REPLICATION
-
-/*  */
-#undef VALIAS
 
 /*  */
 #undef FILE_LOCKING
@@ -206,16 +235,46 @@
 #undef MAKE_SEEKABLE
 
 /*  */
-#undef MANY_DOMAINS
+#undef CLEAR_PASS
+
+/*  */
+#undef USERS_BIG_DIR
+
+/*  */
+#undef SQWEBMAIL_PASS
+
+/*  */
+#undef QMAIL_EXT
+
+/*  */
+#undef IP_ALIAS_DOMAINS
+
+/*  */
+#undef HARD_QUOTA
+
+/*  */
+#undef DOMAIN_QUOTAS
+
+/*  */
+#undef VLIMITS_DEFAULT_FILE
+
+/*  */
+#undef DOMAINS_DIR
+
+/*  */
+#undef USE_SQL
+
+/*  */
+#undef USE_MYSQL
+
+/*  */
+#undef USE_POSTGRES
 
 /*  */
 #undef USE_LDAP
 
 /*  */
 #undef USE_ORACLE
-
-/*  */
-#undef USE_POSTGRES
 
 /*  */
 #undef USE_SYBASE
@@ -227,26 +286,47 @@
 #undef USE_CDB
 
 /*  */
-#undef QMAIL_EXT
-
-/*  */
-#undef REBUILD_TCPSERVER
-
-/*  */
-#undef IP_ALIAS_DOMAINS
-
-/*  */
 #undef ENABLE_PASSWD
 
 /*  */
 #undef HAS_SHADOW
 
 /*  */
-#undef PS_COMMAND
+#undef ENABLE_LOGGING
 
 /*  */
-#undef HARD_QUOTA
+#undef ENABLE_LOGGING
 
 /*  */
-#undef DOMAIN_QUOTAS
+#undef ENABLE_LOGGING
+
+/*  */
+#undef ENABLE_LOGGING
+
+/*  */
+#undef ENABLE_LOGGING
+
+/*  */
+#undef LOG_NAME
+
+/*  */
+#undef ENABLE_AUTH_LOGGING
+
+/*  */
+#undef ENABLE_MYSQL_LOGGING
+
+/*  */
+#undef ENABLE_PGSQL_LOGGING
+
+/*  */
+#undef ENABLE_MYSQL_LIMITS
+
+/*  */
+#undef MYSQL_REPLICATION
+
+/*  */
+#undef VALIAS
+
+/*  */
+#undef MANY_DOMAINS
 

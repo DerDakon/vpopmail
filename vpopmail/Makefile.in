@@ -61,18 +61,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AS = @AS@
+AWK = @AWK@
 CC = @CC@
-DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EXEEXT = @EXEEXT@
-LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
+CXX = @CXX@
 MAKEINFO = @MAKEINFO@
-OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-STRIP = @STRIP@
 USE_MYSQL = @USE_MYSQL@
 VERSION = @VERSION@
 auth_inc = @auth_inc@
@@ -187,94 +181,84 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libvpopmail_a_DEPENDENCIES =  cdb/*.o
-libvpopmail_a_OBJECTS =  vpopmail.$(OBJEXT) md5.$(OBJEXT) \
-bigdir.$(OBJEXT) vauth.$(OBJEXT) file_lock.$(OBJEXT) vpalias.$(OBJEXT) \
-seek.$(OBJEXT) vlimits.$(OBJEXT) maildirquota.$(OBJEXT)
+libvpopmail_a_OBJECTS =  vpopmail.o md5.o bigdir.o vauth.o file_lock.o \
+vpalias.o seek.o vlimits.o maildirquota.o
 AR = ar
-vpopmailbin_PROGRAMS =  vchkpw$(EXEEXT) vdelivermail$(EXEEXT) \
-clearopensmtp$(EXEEXT) vadddomain$(EXEEXT) vdeldomain$(EXEEXT) \
-vpasswd$(EXEEXT) vadduser$(EXEEXT) vdeluser$(EXEEXT) \
-vaddaliasdomain$(EXEEXT) vsetuserquota$(EXEEXT) vpopbull$(EXEEXT) \
-vdeloldusers$(EXEEXT) vmoduser$(EXEEXT) valias$(EXEEXT) \
-vuserinfo$(EXEEXT) vmkpasswd$(EXEEXT) vipmap$(EXEEXT) vdominfo$(EXEEXT) \
-vconvert$(EXEEXT) vqmaillocal$(EXEEXT) vkill$(EXEEXT) \
-vmoddomlimits$(EXEEXT) vchangepw$(EXEEXT)
 PROGRAMS =  $(vpopmailbin_PROGRAMS)
 
-vchkpw_OBJECTS =  vchkpw.$(OBJEXT) md5.$(OBJEXT) hmac_md5.$(OBJEXT)
+vchkpw_OBJECTS =  vchkpw.o md5.o hmac_md5.o
 vchkpw_DEPENDENCIES =  libvpopmail.a
 vchkpw_LDFLAGS = 
-vdelivermail_OBJECTS =  vdelivermail.$(OBJEXT) maildirquota.$(OBJEXT)
+vdelivermail_OBJECTS =  vdelivermail.o maildirquota.o
 vdelivermail_DEPENDENCIES =  libvpopmail.a
 vdelivermail_LDFLAGS = 
-clearopensmtp_OBJECTS =  clearopensmtp.$(OBJEXT)
+clearopensmtp_OBJECTS =  clearopensmtp.o
 clearopensmtp_DEPENDENCIES =  libvpopmail.a
 clearopensmtp_LDFLAGS = 
-vadddomain_OBJECTS =  vadddomain.$(OBJEXT)
+vadddomain_OBJECTS =  vadddomain.o
 vadddomain_DEPENDENCIES =  libvpopmail.a
 vadddomain_LDFLAGS = 
-vdeldomain_OBJECTS =  vdeldomain.$(OBJEXT)
+vdeldomain_OBJECTS =  vdeldomain.o
 vdeldomain_DEPENDENCIES =  libvpopmail.a
 vdeldomain_LDFLAGS = 
-vpasswd_OBJECTS =  vpasswd.$(OBJEXT)
+vpasswd_OBJECTS =  vpasswd.o
 vpasswd_DEPENDENCIES =  libvpopmail.a
 vpasswd_LDFLAGS = 
-vadduser_OBJECTS =  vadduser.$(OBJEXT)
+vadduser_OBJECTS =  vadduser.o
 vadduser_DEPENDENCIES =  libvpopmail.a
 vadduser_LDFLAGS = 
-vdeluser_OBJECTS =  vdeluser.$(OBJEXT)
+vdeluser_OBJECTS =  vdeluser.o
 vdeluser_DEPENDENCIES =  libvpopmail.a
 vdeluser_LDFLAGS = 
-vaddaliasdomain_OBJECTS =  vaddaliasdomain.$(OBJEXT)
+vaddaliasdomain_OBJECTS =  vaddaliasdomain.o
 vaddaliasdomain_DEPENDENCIES =  libvpopmail.a
 vaddaliasdomain_LDFLAGS = 
-vsetuserquota_OBJECTS =  vsetuserquota.$(OBJEXT)
+vsetuserquota_OBJECTS =  vsetuserquota.o
 vsetuserquota_DEPENDENCIES =  libvpopmail.a
 vsetuserquota_LDFLAGS = 
-vpopbull_OBJECTS =  vpopbull.$(OBJEXT)
+vpopbull_OBJECTS =  vpopbull.o
 vpopbull_DEPENDENCIES =  libvpopmail.a
 vpopbull_LDFLAGS = 
-vdeloldusers_OBJECTS =  vdeloldusers.$(OBJEXT)
+vdeloldusers_OBJECTS =  vdeloldusers.o
 vdeloldusers_DEPENDENCIES =  libvpopmail.a
 vdeloldusers_LDFLAGS = 
-vmoduser_OBJECTS =  vmoduser.$(OBJEXT)
+vmoduser_OBJECTS =  vmoduser.o
 vmoduser_DEPENDENCIES =  libvpopmail.a
 vmoduser_LDFLAGS = 
-valias_OBJECTS =  valias.$(OBJEXT)
+valias_OBJECTS =  valias.o
 valias_DEPENDENCIES =  libvpopmail.a
 valias_LDFLAGS = 
-vuserinfo_OBJECTS =  vuserinfo.$(OBJEXT) maildirquota.$(OBJEXT)
+vuserinfo_OBJECTS =  vuserinfo.o maildirquota.o
 vuserinfo_DEPENDENCIES =  libvpopmail.a
 vuserinfo_LDFLAGS = 
-vmkpasswd_OBJECTS =  vmkpasswd.$(OBJEXT)
+vmkpasswd_OBJECTS =  vmkpasswd.o
 vmkpasswd_DEPENDENCIES =  libvpopmail.a
 vmkpasswd_LDFLAGS = 
-vipmap_OBJECTS =  vipmap.$(OBJEXT)
+vipmap_OBJECTS =  vipmap.o
 vipmap_DEPENDENCIES =  libvpopmail.a
 vipmap_LDFLAGS = 
-vdominfo_OBJECTS =  vdominfo.$(OBJEXT)
+vdominfo_OBJECTS =  vdominfo.o
 vdominfo_DEPENDENCIES =  libvpopmail.a
 vdominfo_LDFLAGS = 
-vconvert_OBJECTS =  vconvert.$(OBJEXT)
+vconvert_OBJECTS =  vconvert.o
 vconvert_DEPENDENCIES =  libvpopmail.a
 vconvert_LDFLAGS = 
-vqmaillocal_OBJECTS =  vqmaillocal.$(OBJEXT)
+vqmaillocal_OBJECTS =  vqmaillocal.o
 vqmaillocal_DEPENDENCIES =  libvpopmail.a
 vqmaillocal_LDFLAGS = 
-vkill_OBJECTS =  vkill.$(OBJEXT)
+vkill_OBJECTS =  vkill.o
 vkill_DEPENDENCIES =  libvpopmail.a
 vkill_LDFLAGS = 
-vmoddomlimits_OBJECTS =  vmoddomlimits.$(OBJEXT)
+vmoddomlimits_OBJECTS =  vmoddomlimits.o
 vmoddomlimits_DEPENDENCIES =  libvpopmail.a
 vmoddomlimits_LDFLAGS = 
-vchangepw_OBJECTS =  vchangepw.$(OBJEXT)
+vchangepw_OBJECTS =  vchangepw.o
 vchangepw_DEPENDENCIES =  libvpopmail.a
 vchangepw_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
 Makefile.am Makefile.in aclocal.m4 config.guess config.h.in config.sub \
 configure configure.in install-sh ltmain.sh missing mkinstalldirs
@@ -289,7 +273,7 @@ OBJECTS = $(libvpopmail_a_OBJECTS) $(vchkpw_OBJECTS) $(vdelivermail_OBJECTS) $(c
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .obj .s
+.SUFFIXES: .S .c .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
@@ -345,11 +329,6 @@ maintainer-clean-noinstLIBRARIES:
 .c.o:
 	$(COMPILE) -c $<
 
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -358,7 +337,6 @@ maintainer-clean-noinstLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -366,25 +344,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 maintainer-clean-compile:
-
-.c.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-.s.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-.S.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-mostlyclean-libtool:
-	-rm -f *.lo
-
-clean-libtool:
-	-rm -rf .libs _libs
-
-distclean-libtool:
-
-maintainer-clean-libtool:
 
 libvpopmail.a: $(libvpopmail_a_OBJECTS) $(libvpopmail_a_DEPENDENCIES)
 	-rm -f libvpopmail.a
@@ -405,8 +364,8 @@ install-vpopmailbinPROGRAMS: $(vpopmailbin_PROGRAMS)
 	$(mkinstalldirs) $(DESTDIR)$(vpopmailbindir)
 	@list='$(vpopmailbin_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	  else :; fi; \
 	done
 
@@ -416,96 +375,96 @@ uninstall-vpopmailbinPROGRAMS:
 	  rm -f $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-vchkpw$(EXEEXT): $(vchkpw_OBJECTS) $(vchkpw_DEPENDENCIES)
-	@rm -f vchkpw$(EXEEXT)
+vchkpw: $(vchkpw_OBJECTS) $(vchkpw_DEPENDENCIES)
+	@rm -f vchkpw
 	$(LINK) $(vchkpw_LDFLAGS) $(vchkpw_OBJECTS) $(vchkpw_LDADD) $(LIBS)
 
-vdelivermail$(EXEEXT): $(vdelivermail_OBJECTS) $(vdelivermail_DEPENDENCIES)
-	@rm -f vdelivermail$(EXEEXT)
+vdelivermail: $(vdelivermail_OBJECTS) $(vdelivermail_DEPENDENCIES)
+	@rm -f vdelivermail
 	$(LINK) $(vdelivermail_LDFLAGS) $(vdelivermail_OBJECTS) $(vdelivermail_LDADD) $(LIBS)
 
-clearopensmtp$(EXEEXT): $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES)
-	@rm -f clearopensmtp$(EXEEXT)
+clearopensmtp: $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES)
+	@rm -f clearopensmtp
 	$(LINK) $(clearopensmtp_LDFLAGS) $(clearopensmtp_OBJECTS) $(clearopensmtp_LDADD) $(LIBS)
 
-vadddomain$(EXEEXT): $(vadddomain_OBJECTS) $(vadddomain_DEPENDENCIES)
-	@rm -f vadddomain$(EXEEXT)
+vadddomain: $(vadddomain_OBJECTS) $(vadddomain_DEPENDENCIES)
+	@rm -f vadddomain
 	$(LINK) $(vadddomain_LDFLAGS) $(vadddomain_OBJECTS) $(vadddomain_LDADD) $(LIBS)
 
-vdeldomain$(EXEEXT): $(vdeldomain_OBJECTS) $(vdeldomain_DEPENDENCIES)
-	@rm -f vdeldomain$(EXEEXT)
+vdeldomain: $(vdeldomain_OBJECTS) $(vdeldomain_DEPENDENCIES)
+	@rm -f vdeldomain
 	$(LINK) $(vdeldomain_LDFLAGS) $(vdeldomain_OBJECTS) $(vdeldomain_LDADD) $(LIBS)
 
-vpasswd$(EXEEXT): $(vpasswd_OBJECTS) $(vpasswd_DEPENDENCIES)
-	@rm -f vpasswd$(EXEEXT)
+vpasswd: $(vpasswd_OBJECTS) $(vpasswd_DEPENDENCIES)
+	@rm -f vpasswd
 	$(LINK) $(vpasswd_LDFLAGS) $(vpasswd_OBJECTS) $(vpasswd_LDADD) $(LIBS)
 
-vadduser$(EXEEXT): $(vadduser_OBJECTS) $(vadduser_DEPENDENCIES)
-	@rm -f vadduser$(EXEEXT)
+vadduser: $(vadduser_OBJECTS) $(vadduser_DEPENDENCIES)
+	@rm -f vadduser
 	$(LINK) $(vadduser_LDFLAGS) $(vadduser_OBJECTS) $(vadduser_LDADD) $(LIBS)
 
-vdeluser$(EXEEXT): $(vdeluser_OBJECTS) $(vdeluser_DEPENDENCIES)
-	@rm -f vdeluser$(EXEEXT)
+vdeluser: $(vdeluser_OBJECTS) $(vdeluser_DEPENDENCIES)
+	@rm -f vdeluser
 	$(LINK) $(vdeluser_LDFLAGS) $(vdeluser_OBJECTS) $(vdeluser_LDADD) $(LIBS)
 
-vaddaliasdomain$(EXEEXT): $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_DEPENDENCIES)
-	@rm -f vaddaliasdomain$(EXEEXT)
+vaddaliasdomain: $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_DEPENDENCIES)
+	@rm -f vaddaliasdomain
 	$(LINK) $(vaddaliasdomain_LDFLAGS) $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_LDADD) $(LIBS)
 
-vsetuserquota$(EXEEXT): $(vsetuserquota_OBJECTS) $(vsetuserquota_DEPENDENCIES)
-	@rm -f vsetuserquota$(EXEEXT)
+vsetuserquota: $(vsetuserquota_OBJECTS) $(vsetuserquota_DEPENDENCIES)
+	@rm -f vsetuserquota
 	$(LINK) $(vsetuserquota_LDFLAGS) $(vsetuserquota_OBJECTS) $(vsetuserquota_LDADD) $(LIBS)
 
-vpopbull$(EXEEXT): $(vpopbull_OBJECTS) $(vpopbull_DEPENDENCIES)
-	@rm -f vpopbull$(EXEEXT)
+vpopbull: $(vpopbull_OBJECTS) $(vpopbull_DEPENDENCIES)
+	@rm -f vpopbull
 	$(LINK) $(vpopbull_LDFLAGS) $(vpopbull_OBJECTS) $(vpopbull_LDADD) $(LIBS)
 
-vdeloldusers$(EXEEXT): $(vdeloldusers_OBJECTS) $(vdeloldusers_DEPENDENCIES)
-	@rm -f vdeloldusers$(EXEEXT)
+vdeloldusers: $(vdeloldusers_OBJECTS) $(vdeloldusers_DEPENDENCIES)
+	@rm -f vdeloldusers
 	$(LINK) $(vdeloldusers_LDFLAGS) $(vdeloldusers_OBJECTS) $(vdeloldusers_LDADD) $(LIBS)
 
-vmoduser$(EXEEXT): $(vmoduser_OBJECTS) $(vmoduser_DEPENDENCIES)
-	@rm -f vmoduser$(EXEEXT)
+vmoduser: $(vmoduser_OBJECTS) $(vmoduser_DEPENDENCIES)
+	@rm -f vmoduser
 	$(LINK) $(vmoduser_LDFLAGS) $(vmoduser_OBJECTS) $(vmoduser_LDADD) $(LIBS)
 
-valias$(EXEEXT): $(valias_OBJECTS) $(valias_DEPENDENCIES)
-	@rm -f valias$(EXEEXT)
+valias: $(valias_OBJECTS) $(valias_DEPENDENCIES)
+	@rm -f valias
 	$(LINK) $(valias_LDFLAGS) $(valias_OBJECTS) $(valias_LDADD) $(LIBS)
 
-vuserinfo$(EXEEXT): $(vuserinfo_OBJECTS) $(vuserinfo_DEPENDENCIES)
-	@rm -f vuserinfo$(EXEEXT)
+vuserinfo: $(vuserinfo_OBJECTS) $(vuserinfo_DEPENDENCIES)
+	@rm -f vuserinfo
 	$(LINK) $(vuserinfo_LDFLAGS) $(vuserinfo_OBJECTS) $(vuserinfo_LDADD) $(LIBS)
 
-vmkpasswd$(EXEEXT): $(vmkpasswd_OBJECTS) $(vmkpasswd_DEPENDENCIES)
-	@rm -f vmkpasswd$(EXEEXT)
+vmkpasswd: $(vmkpasswd_OBJECTS) $(vmkpasswd_DEPENDENCIES)
+	@rm -f vmkpasswd
 	$(LINK) $(vmkpasswd_LDFLAGS) $(vmkpasswd_OBJECTS) $(vmkpasswd_LDADD) $(LIBS)
 
-vipmap$(EXEEXT): $(vipmap_OBJECTS) $(vipmap_DEPENDENCIES)
-	@rm -f vipmap$(EXEEXT)
+vipmap: $(vipmap_OBJECTS) $(vipmap_DEPENDENCIES)
+	@rm -f vipmap
 	$(LINK) $(vipmap_LDFLAGS) $(vipmap_OBJECTS) $(vipmap_LDADD) $(LIBS)
 
-vdominfo$(EXEEXT): $(vdominfo_OBJECTS) $(vdominfo_DEPENDENCIES)
-	@rm -f vdominfo$(EXEEXT)
+vdominfo: $(vdominfo_OBJECTS) $(vdominfo_DEPENDENCIES)
+	@rm -f vdominfo
 	$(LINK) $(vdominfo_LDFLAGS) $(vdominfo_OBJECTS) $(vdominfo_LDADD) $(LIBS)
 
-vconvert$(EXEEXT): $(vconvert_OBJECTS) $(vconvert_DEPENDENCIES)
-	@rm -f vconvert$(EXEEXT)
+vconvert: $(vconvert_OBJECTS) $(vconvert_DEPENDENCIES)
+	@rm -f vconvert
 	$(LINK) $(vconvert_LDFLAGS) $(vconvert_OBJECTS) $(vconvert_LDADD) $(LIBS)
 
-vqmaillocal$(EXEEXT): $(vqmaillocal_OBJECTS) $(vqmaillocal_DEPENDENCIES)
-	@rm -f vqmaillocal$(EXEEXT)
+vqmaillocal: $(vqmaillocal_OBJECTS) $(vqmaillocal_DEPENDENCIES)
+	@rm -f vqmaillocal
 	$(LINK) $(vqmaillocal_LDFLAGS) $(vqmaillocal_OBJECTS) $(vqmaillocal_LDADD) $(LIBS)
 
-vkill$(EXEEXT): $(vkill_OBJECTS) $(vkill_DEPENDENCIES)
-	@rm -f vkill$(EXEEXT)
+vkill: $(vkill_OBJECTS) $(vkill_DEPENDENCIES)
+	@rm -f vkill
 	$(LINK) $(vkill_LDFLAGS) $(vkill_OBJECTS) $(vkill_LDADD) $(LIBS)
 
-vmoddomlimits$(EXEEXT): $(vmoddomlimits_OBJECTS) $(vmoddomlimits_DEPENDENCIES)
-	@rm -f vmoddomlimits$(EXEEXT)
+vmoddomlimits: $(vmoddomlimits_OBJECTS) $(vmoddomlimits_DEPENDENCIES)
+	@rm -f vmoddomlimits
 	$(LINK) $(vmoddomlimits_LDFLAGS) $(vmoddomlimits_OBJECTS) $(vmoddomlimits_LDADD) $(LIBS)
 
-vchangepw$(EXEEXT): $(vchangepw_OBJECTS) $(vchangepw_DEPENDENCIES)
-	@rm -f vchangepw$(EXEEXT)
+vchangepw: $(vchangepw_OBJECTS) $(vchangepw_DEPENDENCIES)
+	@rm -f vchangepw
 	$(LINK) $(vchangepw_LDFLAGS) $(vchangepw_OBJECTS) $(vchangepw_LDADD) $(LIBS)
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -696,29 +655,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-hdr mostlyclean-noinstLIBRARIES \
-		mostlyclean-compile mostlyclean-libtool \
-		mostlyclean-vpopmailbinPROGRAMS mostlyclean-tags \
-		mostlyclean-generic
+		mostlyclean-compile mostlyclean-vpopmailbinPROGRAMS \
+		mostlyclean-tags mostlyclean-generic
 
 mostlyclean: mostlyclean-recursive
 
-clean-am:  clean-hdr clean-noinstLIBRARIES clean-compile clean-libtool \
+clean-am:  clean-hdr clean-noinstLIBRARIES clean-compile \
 		clean-vpopmailbinPROGRAMS clean-tags clean-generic \
 		mostlyclean-am
 
 clean: clean-recursive
 
 distclean-am:  distclean-hdr distclean-noinstLIBRARIES distclean-compile \
-		distclean-libtool distclean-vpopmailbinPROGRAMS \
-		distclean-tags distclean-generic clean-am
-	-rm -f libtool
+		distclean-vpopmailbinPROGRAMS distclean-tags \
+		distclean-generic clean-am
 
 distclean: distclean-recursive
 	-rm -f config.status
 
 maintainer-clean-am:  maintainer-clean-hdr \
 		maintainer-clean-noinstLIBRARIES \
-		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-compile \
 		maintainer-clean-vpopmailbinPROGRAMS \
 		maintainer-clean-tags maintainer-clean-generic \
 		distclean-am
@@ -732,8 +689,7 @@ maintainer-clean: maintainer-clean-recursive
 mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
 clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool mostlyclean-vpopmailbinPROGRAMS \
+maintainer-clean-compile mostlyclean-vpopmailbinPROGRAMS \
 distclean-vpopmailbinPROGRAMS clean-vpopmailbinPROGRAMS \
 maintainer-clean-vpopmailbinPROGRAMS uninstall-vpopmailbinPROGRAMS \
 install-vpopmailbinPROGRAMS install-data-recursive \
