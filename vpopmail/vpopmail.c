@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.7 2003-09-30 00:30:49 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.8 2003-10-07 00:46:45 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -203,7 +203,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     /* back out of changes made so far */
     chdir(dir); chdir(DOMAINS_DIR);
     if (vdelfiles(DomainSubDir) != 0) {
-      printf("Failed to delete directory tree :%s\n", DomainSubDir);
+      fprintf(stderr, "Failed to delete directory tree :%s\n", DomainSubDir);
     }
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
@@ -219,11 +219,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     /* back out of changes made so far */
     chdir(dir); chdir(DOMAINS_DIR);
     if (vdelfiles(DomainSubDir) != 0) {
-      printf("Failed to delete directory tree :%s\n", DomainSubDir);
+      fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
-    printf ("Error. Failed to add domain to assign file\n");
+    fprintf (stderr, "Error. Failed to add domain to assign file\n");
     return (VA_COULD_NOT_UPDATE_FILE);
   }
 
@@ -242,11 +242,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
      * so now we need to reverse the steps we have already performed above 
      */
 
-    printf("Error. Failed while attempting to add domain to auth backend\n");
+    fprintf(stderr, "Error. Failed while attempting to add domain to auth backend\n");
 
     chdir(dir); chdir(DOMAINS_DIR);    
     if (vdelfiles(DomainSubDir) != 0) {
-      printf("Failed to delete directory tree :%s\n", DomainSubDir);
+      fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
 
     dec_dir_control(dir_control_for_uid, uid, gid);
@@ -254,15 +254,15 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     vget_assign(domain, Dir, sizeof(Dir), &uid, &gid );
 
     if ( del_domain_assign(domain, domain, Dir, uid, gid) != 0) {
-      printf("Failed while attempting to remove domain from assign file\n");
+      fprintf(stderr, "Failed while attempting to remove domain from assign file\n");
     }
 
     if (del_control(domain) !=0) {
-      printf("Failed while attempting to delete domain from the qmail control files\n");
+      fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
     if (vdel_dir_control(domain) != 0) {
-      printf ("Failed while attempting to delete domain from dir_control\n");
+      fprintf (stderr, "Failed while attempting to delete domain from dir_control\n");
     }
 
     /* send a HUP signal to qmail-send process to reread control files */
@@ -329,7 +329,7 @@ int vdeldomain( char *domain )
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
-      printf("Error: Could not access (%s)\n",Dir);
+      fprintf(stderr, "Error: Could not access (%s)\n",Dir);
       return(VA_DOMAIN_DOES_NOT_EXIST);
     }
 
@@ -356,7 +356,7 @@ int vdeldomain( char *domain )
      * - delete domain's limit's entries
      */
     if (vauth_deldomain(domain) != VA_SUCCESS ) {
-      printf ("Failed while attempting to delete domain from auth backend\n");
+      fprintf (stderr, "Failed while attempting to delete domain from auth backend\n");
       return (VA_NO_AUTH_CONNECTION);
     }
 
@@ -375,7 +375,7 @@ int vdeldomain( char *domain )
 
     /* delete the dir control info for this domain */
     if (vdel_dir_control(domain) != 0) {
-      printf ("Failed to delete dir_control for %s\n", domain);
+      fprintf (stderr, "Failed to delete dir_control for %s\n", domain);
       /* Michael Bowe 23rd August 2003  
        * should we return now? or continue and clean up as much  
        * of the domain as possible
@@ -388,7 +388,7 @@ int vdeldomain( char *domain )
     /* if it's a symbolic link just remove the link */
     if ( S_ISLNK(statbuf.st_mode) ) {
       if ( unlink(Dir) !=0) {
-        printf ("Failed to remove symlink for %s\n", domain);
+        fprintf (stderr, "Failed to remove symlink for %s\n", domain);
         /* Michael Bowe 23rd August 2003
          * should we return now? or continue and clean up as much
          * of the domain as possible (eg assign file, dir_control)
@@ -400,7 +400,7 @@ int vdeldomain( char *domain )
       /* Not a symlink.. so we have to del some files structure now */
       /* zap the domain's directory tree */
       if ( vdelfiles(Dir) != 0 ) {
-        printf("Failed to delete directory tree: %s\n", domain);
+        fprintf(stderr, "Failed to delete directory tree: %s\n", domain);
         /* Michael Bowe 23rd August 2003
          * should we return now? or continue and clean up as much
          * of the domain as possible (eg assign file, dir_control)
@@ -419,7 +419,7 @@ int vdeldomain( char *domain )
 
   /* delete the email domain from the qmail control files */
   if (del_control(domain_to_del) != 0) {
-    printf ("Failed to delete domain from qmail's control files\n");
+    fprintf (stderr, "Failed to delete domain from qmail's control files\n");
     /* Michael Bowe 23rd August 2003
      * should we return now? or continue and clean up as much
      * of the domain as possible
@@ -430,7 +430,7 @@ int vdeldomain( char *domain )
 
   /* delete the assign file line */
   if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
-    printf ("Failed to delete domain from assign file\n");
+    fprintf (stderr, "Failed to delete domain from assign file\n");
     /* Michael Bowe 23rd August 2003
      * should we return now? or continue and clean up as much
      * of the domain as possible
@@ -505,7 +505,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
         
   /* add the user to the auth backend */
   if (vauth_adduser(username, domain, password, gecos, user_hash, apop )!=0) {
-    printf("Failed while attempting to add user to auth backend\n");
+    fprintf(stderr, "Failed while attempting to add user to auth backend\n");
     /* back out of changes made so far */
     chdir(Dir); if (strlen(user_hash)>0) { chdir(user_hash);} vdelfiles(username);
     chdir(calling_dir);
@@ -529,7 +529,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   if (vset_lastauth(username,domain,NULL_REMOTE_IP) !=0) {
     /* should we back out of all the work we have done so far? */
     chdir(calling_dir);
-    printf ("Failed to create create lastauth entry\n");
+    fprintf (stderr, "Failed to create create lastauth entry\n");
     return (VA_NO_AUTH_CONNECTION);
   }
 #endif
@@ -691,7 +691,7 @@ int vdelfiles(char *dir)
   /* open the directory and check for an error */
   if ( (mydir = opendir(".")) == NULL ) {
     /* error, return error */
-    printf("Failed to opendir()");
+    fprintf(stderr, "Failed to opendir()");
     return(-1);
   }
 
@@ -724,7 +724,7 @@ int vdelfiles(char *dir)
         if (unlink(mydirent->d_name) == -1) {
 
           /* print error message and return and error */
-          printf ("Failed to delete directory %s", mydirent->d_name);
+          fprintf (stderr, "Failed to delete directory %s", mydirent->d_name);
           return(-1);
         }
       }
@@ -738,7 +738,7 @@ int vdelfiles(char *dir)
   if (chdir("..") == -1) {
 
     /* print error message and return an error */
-    printf("Failed to cd to parent");
+    fprintf(stderr, "Failed to cd to parent");
     return(-1);
   }
 
@@ -772,7 +772,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   if ( stat(tmpstr1,&mystat) != 0 ) {
     /* put a . on one line by itself */
     if ( (fs1 = fopen(tmpstr1, "w+"))==NULL ) {
-      printf("could not open assign file\n");
+      fprintf(stderr, "could not open assign file\n");
       return(-1);
     }
     fputs(".\n", fs1);
@@ -784,7 +784,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
 
   /* update the file and add the above line and remove duplicates */
   if (update_file(tmpstr1, tmpstr2) !=0 ) {
-   printf ("Failed while attempting to update_file() the assign file\n");
+   fprintf (stderr, "Failed while attempting to update_file() the assign file\n");
    return (-1);
   }
 
@@ -800,7 +800,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   if ( count_rcpthosts() >= 50 ) {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/morercpthosts", QMAILDIR);
     if (update_file(tmpstr1, alias_domain) !=0) {
-      printf ("Failed while attempting to update_file() the morercpthosts file\n");
+      fprintf (stderr, "Failed while attempting to update_file() the morercpthosts file\n");
       return (-1);
     }
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/morercpthosts", QMAILDIR);
@@ -812,7 +812,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   } else {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/rcpthosts", QMAILDIR);
     if (update_file(tmpstr1, alias_domain) != 0) {
-      printf ("Failed while attempting to update_file() the rcpthosts file\n");
+      fprintf (stderr, "Failed while attempting to update_file() the rcpthosts file\n");
       return (-1);
     }
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/rcpthosts", QMAILDIR);
@@ -823,7 +823,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/virtualdomains", QMAILDIR );
   snprintf(tmpstr2, sizeof(tmpstr2), "%s:%s", alias_domain, alias_domain );
   if (update_file(tmpstr1, tmpstr2) !=0 ) {
-    printf ("Failed while attempting to update_file() the virtualdomains file\n");
+    fprintf (stderr, "Failed while attempting to update_file() the virtualdomains file\n");
     return (-1);
   };
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
@@ -831,7 +831,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   /* make sure it's not in locals and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/locals", QMAILDIR);
   if (remove_line( alias_domain, tmpstr1) < 0) {
-    printf ("Failure while attempting to remove_line() the locals file\n");
+    fprintf (stderr, "Failure while attempting to remove_line() the locals file\n");
     return(-1);
   }
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
@@ -859,7 +859,7 @@ int del_control(char *domain )
 
     case -1 :
       /* error ocurred in remove line */
-      printf ("Failed while attempting to remove_line() the rcpthosts file\n");
+      fprintf (stderr, "Failed while attempting to remove_line() the rcpthosts file\n");
       return (-1);
       break;
 
@@ -871,7 +871,7 @@ int del_control(char *domain )
 
         case -1 :
           /* error ocurred in remove line */
-          printf ("Failed while attempting to remove_ile() the morercpthosts file\n");
+          fprintf (stderr, "Failed while attempting to remove_ile() the morercpthosts file\n");
           return (-1);
 
         case 0 :
@@ -908,7 +908,7 @@ int del_control(char *domain )
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", domain, domain);
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
   if (remove_line( tmpbuf1, tmpbuf2) < 0 ) {
-    printf("Failed while attempting to remove_line() the virtualdomains file\n"); 
+    fprintf(stderr, "Failed while attempting to remove_line() the virtualdomains file\n"); 
     return(-1);
   }
   /* make sure correct permissions are set on virtualdomains */
@@ -941,7 +941,7 @@ int del_domain_assign( char *alias_domain, char *real_domain,
 
   /* remove the formatted string from the file */
   if (remove_line( search_string, assign_file) < 0) {
-    printf("Failed while attempting to remove_line the assign file\n");
+    fprintf(stderr, "Failed while attempting to remove_line the assign file\n");
     return (-1);
   }
 
@@ -987,7 +987,7 @@ int remove_line( char *template, char *filename )
   /* open the file with write permissions and check for error */
   if ( (fs_lock = fopen(tmpbuf1, "w+")) == NULL ) {
     /* return error */
-    printf("could not open lock file %s\n", tmpbuf1);
+    fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(-1);
   }
 
@@ -1001,7 +1001,7 @@ int remove_line( char *template, char *filename )
     fclose(fs_lock);
 
     /* print error message */
-    printf("could not get write lock on %s\n", tmpbuf1);
+    fprintf(stderr, "could not get write lock on %s\n", tmpbuf1);
 
     /* return error */
     return(-1);
@@ -1025,7 +1025,7 @@ int remove_line( char *template, char *filename )
     fclose(fs_lock);
 #endif
 
-    printf("%s file would not open w+\n", filename);
+    fprintf(stderr, "%s file would not open w+\n", filename);
     return(-1);
   }
 
@@ -1040,7 +1040,7 @@ int remove_line( char *template, char *filename )
  *
  *  if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
  *   if ( (fs_bak = fopen(tmpbuf1, "w+")) == NULL ) {
- *     printf("%s would not open r+ or w+\n", tmpbuf1);
+ *     fprintf(stderr, "%s would not open r+ or w+\n", tmpbuf1);
  *     fclose(fs_orig);
  * #ifdef FILE_LOCKING
  *     unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
@@ -1052,7 +1052,7 @@ int remove_line( char *template, char *filename )
  */
 
   if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
-     printf("%s would not open r+ \n", tmpbuf1);
+     fprintf(stderr, "%s would not open r+ \n", tmpbuf1);
      fclose(fs_orig);
 #ifdef FILE_LOCKING
      unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
@@ -1117,12 +1117,12 @@ int r_chown(char *path, uid_t owner, gid_t group )
 
   chown(path,owner,group);
   if (chdir(path) == -1) {
-    printf("r_chown() : Failed to cd to directory %s", path);
+    fprintf(stderr, "r_chown() : Failed to cd to directory %s", path);
     return(-1);
   }
   mydir = opendir(".");
   if ( mydir == NULL ) { 
-    printf("r_chown() : Failed to opendir()");
+    fprintf(stderr, "r_chown() : Failed to opendir()");
     return(-1);
   }
 
@@ -1137,8 +1137,11 @@ int r_chown(char *path, uid_t owner, gid_t group )
       }
     }
   }
-  if (chdir("..") == -1) {printf("rchown() : Failed to cd to parent");return(-1);}
   closedir(mydir);
+  if (chdir("..") == -1) {
+    fprintf(stderr, "rchown() : Failed to cd to parent");
+    return(-1);
+  }
   return(0);
 }
 
@@ -1266,13 +1269,13 @@ int parse_email(char *email, char *user, char *domain, int buff_size )
 
   /* check the username for any invalid chars */
   if ( is_username_valid( user ) != 0 ) {
-    printf("user invalid %s\n", user);
+    fprintf(stderr, "user invalid %s\n", user);
     return(-1);
   }
 
   /* check the domain for any invalid chars */
   if ( is_domain_valid( domain ) != 0 ) {
-    printf("domain invalid %s\n", domain);
+    fprintf(stderr, "domain invalid %s\n", domain);
     return(-1);
   }
 
@@ -1380,7 +1383,7 @@ int vdeluser( char *user, char *domain )
 
   /* del the user from the auth system */
   if (vauth_deluser( user, domain ) !=0 ) {
-    printf ("Failed to delete user from auth backend\n");
+    fprintf (stderr, "Failed to delete user from auth backend\n");
     chdir(calling_dir);
     return (-1);
   }
@@ -1391,7 +1394,7 @@ int vdeluser( char *user, char *domain )
    * and check for error
    */
   if ( vdelfiles(mypw->pw_dir) != 0 ) {
-    printf("could not remove %s\n", mypw->pw_dir);
+    fprintf(stderr, "could not remove %s\n", mypw->pw_dir);
     chdir(calling_dir);
     return(VA_BAD_DIR);
   }
@@ -1445,7 +1448,7 @@ int update_file(char *filename, char *update_line)
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
   if ( (fs3 = fopen(tmpbuf1, "w+")) == NULL ) {
-    printf("could not open lock file %s\n", tmpbuf1);
+    fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
 
@@ -1664,7 +1667,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 
   /* retrieve the dir that stores this domain */
   if (vget_assign(domain, domain_dir, sizeof(domain_dir), NULL, NULL) == NULL) {
-    printf("Error. vget_assign() failed for domain : %s",domain); 
+    fprintf(stderr, "Error. vget_assign() failed for domain : %s",domain); 
     return(NULL);
   }
 
@@ -1682,7 +1685,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
   /* check the length of the dir path to make sure it is not too 
      long to save back to the auth backend */
   if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) >= MAX_PW_DIR) {
-    printf ("Error. Path exceeds maximum permitted length\n");
+    fprintf (stderr, "Error. Path exceeds maximum permitted length\n");
     chdir(calling_dir);
     return (NULL);
   }
@@ -1699,7 +1702,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir);
-    printf( "make_user_dir: error 2\n");
+    fprintf(stderr, "make_user_dir: error 2\n");
     return(NULL);
   }
 
@@ -1707,7 +1710,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir);
-    printf("make_user_dir: error 3\n");
+    fprintf(stderr, "make_user_dir: error 3\n");
     return(NULL);
   }
 
@@ -1715,7 +1718,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir); 
-    printf("make_user_dir: error 4\n");
+    fprintf(stderr, "make_user_dir: error 4\n");
     return(NULL);
   }
 
@@ -1723,7 +1726,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir);
-    printf("make_user_dir: error 5\n");
+    fprintf(stderr, "make_user_dir: error 5\n");
     return(NULL);
   }
 
@@ -1731,7 +1734,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir); 
-    printf("make_user_dir: error 6\n");
+    fprintf(stderr, "make_user_dir: error 6\n");
     return(NULL);
   }
 
@@ -1739,7 +1742,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
     chdir(calling_dir); 
-    printf("make_user_dir: error 7\n");
+    fprintf(stderr, "make_user_dir: error 7\n");
     return(NULL);
   }
 
@@ -2424,7 +2427,7 @@ int open_smtp_relay()
   if (vopen_smtp_relay()) {
     /* generate a new tcp.smtp.cdb file */
     if (update_rules() != 0) {
-      printf ("Error. update_rules failed\n");
+      fprintf (stderr, "Error. update_rules failed\n");
       return (-1);
     }
   }
@@ -2546,7 +2549,7 @@ int open_smtp_relay()
    */
   if ( rebuild_cdb ) {
     if (update_rules() != 0) {
-      printf("Error. update_rules() failed\n");
+      fprintf(stderr, "Error. update_rules() failed\n");
       return (-1);
     }
   }
@@ -2946,7 +2949,7 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
   }
 
   if (strcmp(alias_domain, real_domain)==0) {
-    printf("Error. alias and real domain are the same\n");
+    fprintf(stderr, "Error. alias and real domain are the same\n");
     return(VA_DOMAIN_ALREADY_EXISTS);
   }
 
