@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.5 - unreleased
+5.4.5 - released 25-Jun-04
 
 	fernando (at) telemacro (dot) com (dot) br
 	- Patch for vpgsql.c fixes bug with Postgres and roaming users
