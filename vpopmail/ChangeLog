@@ -36,6 +36,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix bug in vpalias where .qmailadmin-limits was incorrectly
 	  thought to be alias for user 'dmin-limits'.
 	- Sort by alias in valias_select_all (needed for QmailAdmin).
+	- Add new valias_remove() command to remove a single line from
+	  valias table.
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]

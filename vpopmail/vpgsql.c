@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.16 2004-01-13 23:41:53 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.17 2004-01-13 23:56:41 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1346,6 +1346,30 @@ int valias_delete( char *alias, char *domain)
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
 	      "delete from valias where alias='%s' and domain='%s'", 
 	      alias, domain );
+    pgres=PQexec( pgc, SqlBufUpdate );
+    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
+      fprintf(stderr,"vpgsql: sql error: %s\n", PQresultErrorMessage(pgres));
+      return(-1);
+    }
+  }
+  if(pgres) PQclear(pgres);
+  return(0);
+}
+
+int valias_remove( char *alias, char *domain, char *alias_line)
+{
+  PGresult *pgres;
+  int err;
+
+  if ( (err=vauth_open()) != 0 ) return(err);
+
+  snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+	    "delete from valias where alias='%s' and valias_line='%s' and domain='%s'", 
+	    alias, alias_line, domain );
+  pgres=PQexec( pgc, SqlBufUpdate );
+  if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
+    if(pgres) PQclear(pgres);
+    vcreate_valias_table();
     pgres=PQexec( pgc, SqlBufUpdate );
     if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
       fprintf(stderr,"vpgsql: sql error: %s\n", PQresultErrorMessage(pgres));
