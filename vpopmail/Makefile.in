@@ -107,7 +107,8 @@ vpopmailbindir = @vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
+ dotqmail2valias
 
 
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
@@ -121,6 +122,9 @@ vchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vchangepw_SOURCES = vchangepw.c
 vchangepw_LDADD = libvpopmail.a @auth_libs@
+
+dotqmail2valias_SOURCES = dotqmail2valias.c
+dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
@@ -203,13 +207,17 @@ vpopmailbin_PROGRAMS = vchkpw$(EXEEXT) vdelivermail$(EXEEXT) \
 	valias$(EXEEXT) vuserinfo$(EXEEXT) vmkpasswd$(EXEEXT) \
 	vipmap$(EXEEXT) vdominfo$(EXEEXT) vconvert$(EXEEXT) \
 	vqmaillocal$(EXEEXT) vkill$(EXEEXT) vmoddomlimits$(EXEEXT) \
-	vchangepw$(EXEEXT)
+	vchangepw$(EXEEXT) dotqmail2valias$(EXEEXT)
 PROGRAMS = $(vpopmailbin_PROGRAMS)
 
 am_clearopensmtp_OBJECTS = clearopensmtp.$(OBJEXT)
 clearopensmtp_OBJECTS = $(am_clearopensmtp_OBJECTS)
 clearopensmtp_DEPENDENCIES = libvpopmail.a
 clearopensmtp_LDFLAGS =
+am_dotqmail2valias_OBJECTS = dotqmail2valias.$(OBJEXT)
+dotqmail2valias_OBJECTS = $(am_dotqmail2valias_OBJECTS)
+dotqmail2valias_DEPENDENCIES = libvpopmail.a
+dotqmail2valias_LDFLAGS =
 am_vaddaliasdomain_OBJECTS = vaddaliasdomain.$(OBJEXT)
 vaddaliasdomain_OBJECTS = $(am_vaddaliasdomain_OBJECTS)
 vaddaliasdomain_DEPENDENCIES = libvpopmail.a
@@ -310,15 +318,15 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
-	$(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) \
-	$(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) \
-	$(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) \
-	$(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) \
-	$(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) \
-	$(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) \
-	$(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) \
-	$(vqmaillocal_SOURCES) $(vsetuserquota_SOURCES) \
-	$(vuserinfo_SOURCES)
+	$(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) \
+	$(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) \
+	$(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) \
+	$(vdeldomain_SOURCES) $(vdelivermail_SOURCES) \
+	$(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) \
+	$(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) \
+	$(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) \
+	$(vpopbull_SOURCES) $(vqmaillocal_SOURCES) \
+	$(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-info-recursive all-recursive install-data-recursive \
@@ -329,7 +337,7 @@ DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	configure configure.in install-sh ltmain.sh missing \
 	mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vqmaillocal_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
+SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vqmaillocal_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -405,6 +413,9 @@ clean-vpopmailbinPROGRAMS:
 clearopensmtp$(EXEEXT): $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES) 
 	@rm -f clearopensmtp$(EXEEXT)
 	$(LINK) $(clearopensmtp_LDFLAGS) $(clearopensmtp_OBJECTS) $(clearopensmtp_LDADD) $(LIBS)
+dotqmail2valias$(EXEEXT): $(dotqmail2valias_OBJECTS) $(dotqmail2valias_DEPENDENCIES) 
+	@rm -f dotqmail2valias$(EXEEXT)
+	$(LINK) $(dotqmail2valias_LDFLAGS) $(dotqmail2valias_OBJECTS) $(dotqmail2valias_LDADD) $(LIBS)
 vaddaliasdomain$(EXEEXT): $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_DEPENDENCIES) 
 	@rm -f vaddaliasdomain$(EXEEXT)
 	$(LINK) $(vaddaliasdomain_LDFLAGS) $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_LDADD) $(LIBS)
