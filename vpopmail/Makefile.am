@@ -19,7 +19,7 @@ VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
 libvpopmail_a_LIBADD =  cdb/*.o
 
-vpopmailbindir=@vpopmaildir@/bin
+vpopmailbindir=$(DESTDIR)@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
@@ -108,8 +108,10 @@ install-data-local:
 	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
-	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > @vpopmaildir@/etc/lib_deps
+	echo "-I$(DESTDIR)@vpopmaildir@/include" > \
+	 $(DESTDIR)@vpopmaildir@/etc/inc_deps
+	echo "-L$(DESTDIR)@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
+	 $(DESTDIR)@vpopmaildir@/etc/lib_deps
 
 	if test ! -r $(VLIMITS); then \
 	  $(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \

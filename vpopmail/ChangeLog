@@ -52,6 +52,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  and /usr/local/mysql/lib/mysql for libdir. [877168]
 	- Remove cdb/compile, cdb/load, cdb/conf-cc and cdb/conf-ld as
 	  they are automatically generated during configure/make.
+	- Add missing $(DESTDIR) to some @vpopmaildir@ paths in Makefile.
+	  [879103]
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
