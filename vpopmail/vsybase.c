@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.7 2003-11-02 11:53:28 jheesemann Exp $
+ * $Id: vsybase.c,v 1.8 2003-12-03 16:41:14 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -232,7 +232,6 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
  char in_domain[156];
  char *domstr;
  static struct vqpasswd pwent;
- struct vlimits limits;
 
 	lowerit(user);
 	lowerit(domain);
@@ -280,10 +279,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	dbcancel(dbproc);
 	if ( mem_size == 0 ) return(NULL);
 
-	if ((! pwent.pw_gid & V_OVERRIDE)
-		&& (vget_limits (in_domain, &limits) == 0)) {
-		pwent.pw_flags = pwent.pw_gid | vlimits_get_flag_mask (&limits);
-	} else pwent.pw_flags = pwent.pw_gid;
+	vlimits_setflags (&pwent, in_domain);
 
 	return(&pwent);
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.11 2003-11-15 06:55:44 mbowe Exp $
+ * $Id: vpgsql.c,v 1.12 2003-12-03 16:41:14 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -249,7 +249,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   static struct vqpasswd vpw;
   int err;
   PGresult *pgres;
-  struct vlimits limits;
 
   verrori = 0;
   if ( (err=vauth_open()) != 0 ) {
@@ -317,10 +316,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
 #endif
 
-  if ((! vpw.pw_gid & V_OVERRIDE)
-    && (vget_limits (in_domain, &limits) == 0)) {
-      vpw.pw_flags = vpw.pw_gid | vlimits_get_flag_mask (&limits);
-  } else vpw.pw_flags = vpw.pw_gid;
+  vlimits_setflags (&vpw, in_domain);
 
   return(&vpw);
 }

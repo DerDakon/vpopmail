@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.10 2003-11-15 06:55:43 mbowe Exp $
+ * $Id: vcdb.c,v 1.11 2003-12-03 16:41:14 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.10 2003-11-15 06:55:43 mbowe Exp $
+** $Id: vcdb.c,v 1.11 2003-12-03 16:41:14 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -231,7 +231,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #ifdef FILE_LOCKING
  FILE *lock_fs;
 #endif
- struct vlimits limits;
 
     verrori = 0;
     lowerit(user);
@@ -311,10 +310,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*uid) { pwent.pw_uid = 0; } else { pwent.pw_uid = atoi(uid); }
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
-    if ((! pwent.pw_gid & V_OVERRIDE)
-      && (vget_limits (in_domain, &limits) == 0)) {
-        pwent.pw_flags = pwent.pw_gid | vlimits_get_flag_mask (&limits);
-    } else pwent.pw_flags = pwent.pw_gid;
+    vlimits_setflags (&pwent, in_domain);
 
 #ifdef DEBUG
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
