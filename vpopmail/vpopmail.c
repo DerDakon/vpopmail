@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.11 2003-10-09 23:06:38 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.12 2003-10-09 23:58:10 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1662,6 +1662,9 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
  struct vqpasswd *mypw;
  char calling_dir[MAX_BUFF];
  char domain_dir[MAX_BUFF];
+ const char *dirnames[] = {"Maildir", "Maildir/new", "Maildir/cur", 
+	"Maildir/tmp"};
+ int i;
 
   verrori = 0;
   /* record the dir where the command was run from */
@@ -1708,49 +1711,19 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     return(NULL);
   }
 
-  if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1){ 
-    /* back out of changes made above */
-    chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir);
-    fprintf(stderr, "make_user_dir: error 3\n");
-    return(NULL);
-  }
-
-  if (chdir("Maildir") == -1) { 
-    /* back out of changes made above */
-    chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir); 
-    fprintf(stderr, "make_user_dir: error 4\n");
-    return(NULL);
-  }
-
-  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) {  
-    /* back out of changes made above */
-    chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir);
-    fprintf(stderr, "make_user_dir: error 5\n");
-    return(NULL);
-  }
-
-  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { 
-    /* back out of changes made above */
-    chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir); 
-    fprintf(stderr, "make_user_dir: error 6\n");
-    return(NULL);
-  }
-
-  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) {  
-    /* back out of changes made above */
-    chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir); 
-    fprintf(stderr, "make_user_dir: error 7\n");
-    return(NULL);
+  for (i = 0; i < sizeof(dirnames)/sizeof(dirnames[0]); i++) {
+    if (mkdir(dirnames[i],VPOPMAIL_DIR_MODE) == -1){ 
+      fprintf(stderr, "make_user_dir: failed on %s\n", dirnames[i]);
+      /* back out of changes made above */
+      chdir("..");
+      vdelfiles(username);
+      chdir(calling_dir);
+      return(NULL);
+    }
   }
 
   /* set permissions on the user's dir */
-  chdir("../..");
-  r_chown(username, uid, gid);
+  r_chown(".", uid, gid);
 
   /* see if the user already exists in the auth backend */
   mypw = vauth_getpw( username, domain);
@@ -1767,8 +1740,9 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     vauth_setpw( mypw, domain );
 
 #ifdef SQWEBMAIL_PASS
-    if ( mypw!=NULL ) vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
+    vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
 #endif
+    free (mypw->pw_dir);
   }
 
   chdir(calling_dir);
