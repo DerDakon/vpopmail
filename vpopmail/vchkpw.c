@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.3 2003-10-07 00:56:53 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.4 2003-10-07 01:00:29 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ static char hextab[]="0123456789abcdef";
 char *IpAddr;
 
 /* Embed the port in the log when smtp-auth is used */
-char VchkpwLogName[12];
+char VchkpwLogName[18];
 
 /* For logging, relay info */
 int LocalPort;
@@ -127,6 +127,10 @@ int main( int argc, char **argv)
       break;
     case 465:
       strcpy(VchkpwLogName, "vchkpw-smtps");
+      ConnType = SMTP_CONN;
+      break;
+    case 587:
+      strcpy(VchkpwLogName, "vchkpw-submission");
       ConnType = SMTP_CONN;
       break;
     case 993:
