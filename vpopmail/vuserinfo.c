@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.8 2004-05-06 04:06:37 rwidmer Exp $
+ * $Id: vuserinfo.c,v 1.9 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -64,6 +64,10 @@ int main(int argc, char *argv[])
  int i;
 
  char User[MAX_BUFF];
+
+    if( vauth_open()) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 

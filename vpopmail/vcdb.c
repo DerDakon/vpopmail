@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.16 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vcdb.c,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.16 2004-04-27 06:53:42 rwidmer Exp $
+** $Id: vcdb.c,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -729,6 +729,29 @@ int vmkpasswd( char *domain )
 #endif
 
     return(0);
+}
+
+/*   Verify the connection to the authentication database   */
+
+int vauth_open() {
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_open()\n");
+#endif 
+
+
+/*
+ *  If the connection to this authentication database can fail
+ *  you should test access here.  If it works, return 0, else 
+ *  return VA_NO_AUTH_CONNECTION.  You can also set the string 
+ *  sqlerr to some short descriptive text about the problem, 
+ *  and allocate a much longer string, pointed to by last_query
+ *  that can be displayed in an error message returned because
+ *  of this problem.
+ *
+ */
+
+    return( 0 );
 }
 
 void vclose()

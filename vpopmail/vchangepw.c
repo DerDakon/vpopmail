@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.2 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vchangepw.c,v 1.3 2004-05-22 12:28:21 rwidmer Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
@@ -56,6 +56,10 @@ int main(int argc, char *argv[])
 	char Domain[MAX_BUFF];
 	char Passwd[MAX_BUFF];
 	char OldPasswd[MAX_BUFF];
+
+    if( vauth_open()) {
+        vexiterror( stderr, "Initial open." );
+    }
 
 	memset(Email, 0, MAX_BUFF);
 	memset(Passwd, 0, MAX_BUFF);

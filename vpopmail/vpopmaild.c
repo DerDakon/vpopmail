@@ -209,6 +209,13 @@ int main(int argc, char **argv)
  int i;
  int found;
 
+  if( vauth_open()) {
+      snprintf(WriteBuf,sizeof(WriteBuf),
+        RET_ERR "Can't open authentication database." RET_CRLF);
+      wait_write();
+    exit( -1 );
+  }
+
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   wait_write();
 

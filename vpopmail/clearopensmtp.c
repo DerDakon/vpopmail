@@ -1,5 +1,5 @@
 /*
- * $Id: clearopensmtp.c,v 1.5 2004-04-27 06:53:41 rwidmer Exp $
+ * $Id: clearopensmtp.c,v 1.6 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,10 @@ int main()
 #endif /* ndef USE_SQL */
  time_t mytime;
  time_t clear_minutes;
+
+	if( vauth_open()) {
+		vexiterror( stderr, "Initial open." );
+	}
 
 	clear_minutes = RELAY_CLEAR_MINUTES * 60;
 	mytime = time(NULL);

@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.6 2004-05-08 08:03:55 rwidmer Exp $
+ * $Id: vdeldomain.c,v 1.7 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
  char *aliases[MAX_DOM_ALIAS];
  char parent[MAX_BUFF];
  int  i, aliascount=0, doit=1;
+
+    if( vauth_open()) {
+        vexiterror( stderr, "Initial open." );
+    }
 
 	get_options(argc,argv);
 

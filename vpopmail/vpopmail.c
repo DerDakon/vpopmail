@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.40 2004-05-06 04:06:36 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.41 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,6 @@ int OptimizeAddDomain = 0;
 
 #define PS_TOKENS " \t"
 #define CDB_TOKENS ":\n\r"
-
 
 #ifdef IP_ALIAS_DOMAINS
 int host_in_locals(char *domain);
@@ -2459,7 +2458,7 @@ char *verror(int va_err )
    case VA_BAD_UID:
     return("running as invalid uid");
    case VA_NO_AUTH_CONNECTION:
-    return("no auth connection");
+    return("no authentication database connection");
    case VA_MEMORY_ALLOC_ERR:
     return("memory allocation error");
    case VA_USER_NAME_TOO_LONG:
@@ -2491,6 +2490,26 @@ char *verror(int va_err )
    default:
     return("Unknown error");
   }
+}
+
+/************************************************************************/
+
+int vexiterror( FILE *f, char *comment )
+{
+
+
+    fprintf( f, "Error - %s. %s\n", verror( verrori ), comment );
+
+    if( NULL != sqlerr && strlen(sqlerr) > 0 ) {
+        fprintf( f,"%s",sqlerr);
+    }
+
+    if( NULL != last_query && strlen( last_query ) > 0 ) {
+        fprintf( f,"%s", last_query);
+    }
+
+    vclose();
+    exit(verrori);
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.4 2004-04-27 06:53:41 rwidmer Exp $
+ * $Id: dotqmail2valias.c,v 1.5 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
@@ -69,6 +69,10 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "You must enable valiases (./configure --enable-valias) to use this program.\n");
 	return -1;
 #endif
+
+	if( vauth_open()) {
+		vexiterror( stderr, "Initial open." );
+	}
 
 	get_options(argc,argv);
 

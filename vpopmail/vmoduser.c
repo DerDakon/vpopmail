@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.7 2004-05-06 04:06:36 rwidmer Exp $
+ * $Id: vmoduser.c,v 1.8 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,6 +52,10 @@ int main(int argc, char *argv[])
  struct vqpasswd *mypw;
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
+
+    if( vauth_open()) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 

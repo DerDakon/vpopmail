@@ -2,6 +2,36 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
+	Rick Widmer - 22 May 2004
+        vpopmail
+        - Update vconvert to use Tom's domain_get_entry function.
+        Dotqmail2valias is the only program left to update.
+        - Add SHOW_TRACE, SHOW_QUERY and DUMP_DATA to provide debug
+	info from authentication modules.
+	- Add sqlerr and last_query variables to authentication back 
+        ends to store error info for later display.
+        - Add vexiterror() function to display that info, then exit. 
+        - The following authentication modules have had vauth_open()
+        added or modified to allow verification that the database
+	can actually be opened: vactivedir.c, vcdb.c, vldap.c, 
+	vpgsql.c, vsybase.c.  This addresses a mailing list question 
+	about acting differently on no auth database vs no user / bad 
+	password vs valid login.
+        - The following programs now die early if they can not open
+        the authentication database:  clearopensmtp, dotqmail2valias,
+	vaddaliasdomain, vadddomain, vadduser, valias, vchangepw,
+        vconvert, vdeldomain, vdeloldusers, vdeluser, vdominfo, 
+        vipmap, vmoddomlimits, vmoduser, vpasswd, vpopbull, vpopmaild,
+        vsetuserquota, vuserinfo.
+        - The following programs were not changed: vchkpw, vdelivermail,
+        vmkpasswd, vqmaillocal, vkill.  It is possible some of them 
+        should be changed to verify the authentication database early in 
+        their operation.
+
+        vpopmaild
+        - Call vauth_open() to verify access to the authentication
+        database before doing anything else.
+
         Rick Widmer - 13 May 2004
         vpopmail
         - Add 'Expert' bit to gid flags.  Users with this bit set will

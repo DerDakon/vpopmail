@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.18 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vmysql.c,v 1.19 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,6 +80,9 @@ char IDir[SMALL_BUFF];
 char IShell[SMALL_BUFF];
 char IClearPass[SMALL_BUFF];
 
+char sqlerr[MAX_BUFF];
+char *last_query = NULL;
+
 void vcreate_dir_control(char *domain);
 void vcreate_vlog_table();
 
@@ -108,6 +111,10 @@ int load_connection_info() {
     char delimiters[] = "|\n";
     char *conf_read, *conf_update;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "load_connection_info() loaded: %i\n", loaded );
+#endif
+
     if (loaded) return 0;
     loaded = 1;
 
@@ -115,8 +122,11 @@ int load_connection_info() {
 
     fp = fopen(config, "r");
     if (fp == NULL) {
-        fprintf(stderr, "vmysql: can't read settings from %s\n", config);
-        return(VA_NO_AUTH_CONNECTION);
+        snprintf(sqlerr, MAX_BUFF,
+                 "   Can't read settings from %s\n", 
+                 config);
+        verrori = VA_NO_AUTH_CONNECTION;
+        return( verrori );
     }
     
     /* skip comments and blank lines */
@@ -126,8 +136,10 @@ int load_connection_info() {
 
     if (eof) {
         /* no valid data read, return error */
-        fprintf(stderr, "vmysql: no valid settings in %s\n", config);
-        return(VA_NO_AUTH_CONNECTION);
+        snprintf(sqlerr, MAX_BUFF,
+                 "   No valid settings in %s\n", config);
+        verrori = VA_NO_AUTH_CONNECTION;
+        return( verrori );
     }
 
     conf_read = strdup(conn_info);
@@ -170,14 +182,17 @@ int load_connection_info() {
         if (MYSQL_UPDATE_DATABASE == NULL) return VA_PARSE_ERROR;
     }
 
-/* useful debugging info
-    fprintf(stderr, "read settings: server:%s port:%d user:%s pw:%s db:%s\n",
+#ifdef DUMP_DATA
+/* useful debugging info  */
+    fprintf(stderr, "   connection settings:\n" );
+    fprintf(stderr, "      read:   server:%s port:%d user:%s pw:%s db:%s\n",
         MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
         MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
-    fprintf(stderr, "update settings: server:%s port:%d user:%s pw:%s db:%s\n",
+    fprintf(stderr, "      update: server:%s port:%d user:%s pw:%s db:%s\n",
         MYSQL_UPDATE_SERVER, MYSQL_UPDATE_PORT, MYSQL_UPDATE_USER,
 	MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE);    
-*/
+#endif
+
     return 0;
 }
 
@@ -191,10 +206,15 @@ int vauth_open_update()
     if ( update_open != 0 ) return(0);
     update_open = 1;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "open_update()\n");
+#endif
+
     verrori = load_connection_info();
     if (verrori) return -1;
 	
     mysql_init(&mysql_update);
+
     mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
     /* Try to connect to the mysql update server with the specified database. */
@@ -205,15 +225,29 @@ int vauth_open_update()
         /* Could not connect to the update mysql server with the database
          * so try to connect with no database specified
          */
+#ifdef SHOW_TRACE
+        fprintf( stderr, "   Initial connect failed.  Try w/o database\n");
+#endif
+
         if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
                 MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
                 NULL, 0))) {
 
             /* if we can not connect, report a error and return */
+
+            snprintf(sqlerr, MAX_BUFF,
+                     "   Unable to connect to database - %s\n", 
+                     mysql_error( &mysql_update ));
+    
             verrori = VA_NO_AUTH_CONNECTION;
-            return(VA_NO_AUTH_CONNECTION);
+            return( verrori );
         }
 
+#ifdef SHOW_TRACE
+        fprintf( stderr, "   Now try to create database\n");
+#endif
+
+        fprintf( stderr, "   before create\n");
         /* we were able to connect, so create the database */ 
         snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
             "create database %s", MYSQL_UPDATE_DATABASE );
@@ -222,15 +256,25 @@ int vauth_open_update()
             /* we could not create the database
              * so report the error and return 
              */
-            fprintf(stderr, "vmysql: couldn't create database '%s': %s\n", MYSQL_UPDATE_DATABASE,
-              mysql_error(&mysql_update));
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF,
+                     "   Unable to create database - %s\n", 
+                     mysql_error( &mysql_update ));
+            verrori = VA_NO_AUTH_CONNECTION;
+            return( verrori );
         } 
 
+#ifdef SHOW_TRACE
+        fprintf( stderr, "   Now try to select database\n");
+#endif
+
+        fprintf( stderr, "   before select\n");
         /* set the database */ 
         if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
-            fprintf(stderr, "could not enter %s database\n", MYSQL_UPDATE_DATABASE);
-            return(-1);
+            snprintf(sqlerr, MAX_BUFF,
+                     "   Unable to select database - %s\n", 
+                     mysql_error( &mysql_update ));
+            verrori = VA_NO_AUTH_CONNECTION;
+            return( verrori );
         }    
     }
     return(0);
@@ -246,6 +290,10 @@ int vauth_open_read()
     if ( read_open != 0 ) return(0);
     read_open = 1;
     
+//#ifdef SHOW_TRACE
+    fprintf( stderr, "open_read()\n" );
+//#endif
+
     /* connect to mysql and set the database */
     verrori = load_connection_info();
     if (verrori) return -1;
@@ -257,8 +305,11 @@ int vauth_open_read()
         if (!(mysql_real_connect(&mysql_read, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE,
             MYSQL_READ_PORT, NULL, 0))) {
+            snprintf(sqlerr, MAX_BUFF,
+                     "   Unable to connect to database - %s\n", 
+                     mysql_error( &mysql_update ));
             verrori = VA_NO_AUTH_CONNECTION;
-            return( VA_NO_AUTH_CONNECTION );
+            return( verrori );
         }
     }
 
@@ -268,6 +319,19 @@ int vauth_open_read()
 #else
 #define vauth_open_read vauth_open_update
 #endif
+
+//  Make vauth_open_read answer for vauth_open, so that function
+//  can be called to test the database.
+
+int vauth_open() {
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_open()\n");
+#endif 
+
+    return( vauth_open_read());
+
+}
 
 /*
  * Open a connection to the database for read-only queries
@@ -279,6 +343,10 @@ int vauth_open_read_getall()
     if ( read_getall_open != 0 ) return(0);
     read_getall_open = 1;
     
+//#ifdef SHOW_TRACE
+    fprintf( stderr, "open_read_getall()\n" );
+//#endif
+
     /* connect to mysql and set the database */
     verrori = load_connection_info();
     if (verrori) return -1;
@@ -305,6 +373,12 @@ int vauth_create_table (char *table, char *layout, int showerror)
   int err;
   char SqlBufCreate[SQL_BUF_SIZE];
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, 
+             "vauth_create_table( table: %s layout: %s showerror: %i)\n",
+             table, layout, showerror );
+#endif
+
   if ((err = vauth_open_update()) != 0) return (err);
   snprintf (SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE %s ( %s )", table, layout);
   if (mysql_query (&mysql_update, SqlBufCreate)) {
@@ -319,6 +393,10 @@ int vauth_create_table (char *table, char *layout, int showerror)
  
 int vauth_adddomain( char *domain )
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_adddomain( %s )\n", domain );
+#endif
+
 #ifndef MANY_DOMAINS
   vset_default_domain( domain );
   return (vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT, 1));
@@ -341,6 +419,12 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
  char Crypted[100];
  int err;
     
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_adduser( user: %s domain: %s pass: %s "
+                     "gecos %s dir %s apop %i )\n", 
+                     user, domain, pass, gecos, dir, apop );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
@@ -406,6 +490,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t myuid;
  uid_t uid;
  gid_t gid;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_getpw( user: %s domain: %s )\n",
+                     user, domain );
+#endif
 
     vget_assign(domain,NULL,0,&uid,&gid);
 
@@ -486,6 +575,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     vlimits_setflags (&vpw, in_domain);
 
+#ifdef DUMP_DATA
+    fprintf( stderr, 
+             "   vauth_getpw returned: \n"
+             "      name: %s pass: %s uid %i gid %i\n"
+             "      gecos: %s clear pw: %s shell: %s\ndir: %s\n\n",
+             vpw.pw_name, vpw.pw_passwd, vpw.pw_uid, vpw.pw_gid,
+             vpw.pw_gecos, vpw.pw_clear_passwd, vpw.pw_shell, vpw.pw_dir );
+#endif
+
     return(&vpw);
 }
 
@@ -499,6 +597,10 @@ int vauth_deldomain( char *domain )
  char *tmpstr;
  int err;
     
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_deldomain( %s )\n", domain );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
@@ -538,6 +640,11 @@ int vauth_deluser( char *user, char *domain )
  char *tmpstr;
  int err = 0;
     
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_deluser( user: %s domain: %s )\n",
+                     user, domain );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
@@ -576,6 +683,11 @@ int vauth_setquota( char *username, char *domain, char *quota)
  char *tmpstr;
  int err;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_setquota( user: %s domain: %s quota %s )\n",
+                     username, domain, quota );
+#endif
+
     if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR
     if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
@@ -611,6 +723,11 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
  static struct vqpasswd vpw;
  static int more = 0;
  int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_getall( domain: %s first: %i sortit %i)\n",
+                     domain, first, sortit );
+#endif
 
     vset_default_domain( domain );
 
@@ -679,6 +796,15 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         }
 #endif
         more = 1;
+
+#ifdef DUMP_DATA
+    fprintf( stderr, "   name: %s pass: %s uid %i gid %i gecos: %s\n"
+                     "   clear pw: %s, shell: %s\n   dir: %s\n\n",
+                     vpw.pw_name, vpw.pw_passwd, vpw.pw_uid, vpw.pw_gid,
+                     vpw.pw_gecos, vpw.pw_clear_passwd, vpw.pw_shell, 
+                     vpw.pw_dir );
+#endif
+
         return(&vpw);
     }
     more = 0;
@@ -720,6 +846,15 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
  uid_t uid;
  gid_t gid;
  int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vauth_setpw( inpw{ name: %s pass: %s "
+                     "uid %i gid %i gecos: %s clear pw: %s, "
+                     "shell: %s\ndir: %s }, domain: %s )\n\n",
+                     inpw->pw_name, inpw->pw_passwd, inpw->pw_uid, 
+                     inpw->pw_gid, inpw->pw_gecos, inpw->pw_clear_passwd,
+                     inpw->pw_shell, inpw->pw_dir, domain );
+#endif
 
     err = vcheck_vqpw(inpw, domain);
     if ( err != 0 ) return(err);
@@ -776,6 +911,10 @@ int vopen_smtp_relay()
  int err;
  int rows;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vopen_smtp_relay()\n");
+#endif
+
     mytime = time(NULL);
     ipaddr = get_remote_ip();
     if ( ipaddr == NULL ) {
@@ -802,6 +941,10 @@ int vopen_smtp_relay()
 
 void vupdate_rules(int fdm)
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vopen_smtp_relay( fdm: %i )\n", fdm );
+#endif
+
     if (vauth_open_read() != 0) return;
 
     snprintf(SqlBufRead, SQL_BUF_SIZE, "select ip_addr from relay");
@@ -829,6 +972,12 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
  time_t delete_time;
  int err;
     
+#ifdef SHOW_TRACE
+    fprintf( stderr, 
+             "vclear_open_smtp( clear_minutes: %i, mytime: %i )\n", 
+              (int) clear_minutes, (int) mytime );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return; 
     delete_time = mytime - clear_minutes;
 
@@ -842,6 +991,10 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 
 void vcreate_relay_table()
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vcreate_relay_table()\n");
+#endif
+
   vauth_create_table ("relay", RELAY_TABLE_LAYOUT, 1);
   return;
 }
@@ -849,11 +1002,19 @@ void vcreate_relay_table()
 
 int vmkpasswd( char *domain )
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vmkpasswd( domain: %s )\n", domain );
+#endif
+
     return(0);
 }
 
 void vclose()
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vclose()\n" );
+#endif
+
     if (read_open == 1 ) {
         mysql_close(&mysql_read);
         read_open = 0;
@@ -871,20 +1032,31 @@ void vclose()
 #ifdef IP_ALIAS_DOMAINS
 void vcreate_ip_map_table()
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vcreate_ip_map_table()\n" );
+#endif
+
   vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT, 1);
   return;
 }
 
 int vget_ip_map( char *ip, char *domain, int domain_size)
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, 
+             "vget_ip_map( ip: %s domain: {return value} )\n",
+             ip );
+#endif
+
  int ret = -1;
 
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL ) return(-2);
     if ( vauth_open_read() != 0 ) return(-3);
 
-    qnprintf(SqlBufRead, SQL_BUF_SIZE, "select domain from ip_alias_map where ip_addr = '%s'",
-        ip);
+    qnprintf(SqlBufRead, SQL_BUF_SIZE, 
+             "select domain from ip_alias_map where ip_addr = '%s'",
+             ip);
     if (mysql_query(&mysql_read,SqlBufRead)) {
         return(-1);
     }
@@ -898,6 +1070,11 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
         strncpy(domain, row[0], domain_size);
     }
     mysql_free_result(res_read);
+
+#ifdef DUMP_DATA
+    fprintf( stderr, "   Returned domain: %s\n\n", domain );
+#endif
+
     return(ret);
 }
 
@@ -921,6 +1098,11 @@ int vadd_ip_map( char *ip, char *domain)
 
 int vdel_ip_map( char *ip, char *domain) 
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vadd_ip_map( ip: %s domain: %s )\n",
+                     ip, domain );
+#endif
+
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
     if ( vauth_open_update() != 0 ) return(-1);
@@ -937,6 +1119,12 @@ int vdel_ip_map( char *ip, char *domain)
 int vshow_ip_map( int first, char *ip, char *domain )
 {
  static int more = 0;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, 
+             "vshow_ip_map( first: %i ip: {return} domain: {Return} )\n",
+             first );
+#endif
 
     if ( ip == NULL ) return(-1);
     if ( domain == NULL ) return(-1);
@@ -969,6 +1157,11 @@ int vshow_ip_map( int first, char *ip, char *domain )
         strncpy(ip, row[0], 18); 
         strncpy(domain, row[1], 156); 
         more = 1;
+#ifdef DUMP_DATA
+        fprintf( stderr, "   Returned ip: %s domain: %s\n\n", 
+                 ip, domain );
+#endif
+
         return(1);
     }
     more = 0;
@@ -981,6 +1174,11 @@ int vshow_ip_map( int first, char *ip, char *domain )
 int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  int found = 0;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vread_dir_control( domain: %s uid: %i gid %i )\n",
+                     domain, uid, gid );
+#endif
 
     if ( vauth_open_read() != 0 ) return(-1);
     qnprintf(SqlBufRead, SQL_BUF_SIZE, 
@@ -1047,6 +1245,11 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 
 int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vwrite_dir_control( domain: %s uid: %i gid %i )\n",
+                     domain, uid, gid );
+#endif
+
     if ( vauth_open_update() != 0 ) return(-1);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
@@ -1111,6 +1314,10 @@ int vdel_dir_control(char *domain)
 {
  int err;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vdel_dir_control( domain: %s )\n", domain );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
@@ -1151,6 +1358,11 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
  int err;
  time_t mytime;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vget_lastauth( user: %s domain: %s )\n",
+                     pw->pw_name, domain );
+#endif
+
     if ( (err=vauth_open_read()) != 0 ) return(err);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
@@ -1169,12 +1381,24 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
         mytime = atol(row[0]);
     }
     mysql_free_result(res_read);
+
+#ifdef DUMP_DATA
+//    need to do the cache changes first...
+//    fprintf( stderr, "   Time: %i  IP: %s\n", 
+//             (int)lastauthtime, lastauthip );
+#endif
+
     return(mytime);
 }
 
 char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[100];
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vget_lastauthip( user: %s domain: %s )\n",
+                     pw->pw_name, domain );
+#endif
 
     if ( vauth_open_read() != 0 ) return(NULL);
 
@@ -1193,6 +1417,13 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
         strncpy(tmpbuf,row[0],100);
     }
     mysql_free_result(res_read);
+
+#ifdef DUMP_DATA
+//    need to do the cache changes first...
+//    fprintf( stderr, "   Time: %i  IP: %s\n", 
+//             (int)lastauthtime, lastauthip );
+#endif
+
     return(tmpbuf);
 }
 
@@ -1207,6 +1438,11 @@ void vcreate_lastauth_table()
 char *valias_select( char *alias, char *domain )
 {
  int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select( alias: %s domain: %s )\n",
+                     alias, domain );
+#endif
 
     /* if we can not connect, set the verrori value */
     if ( (err=vauth_open_read()) != 0 ) {
@@ -1229,7 +1465,14 @@ where alias = '%s' and domain = '%s'", alias, domain );
 
 char *valias_select_next()
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select_next()\n");
+#endif
+
     if((row = mysql_fetch_row(res_read))) {
+#ifdef DUMP_DATA
+        fprintf(stderr, "   %s\n", row[0] );
+#endif
         return(row[0]);
     }
     mysql_free_result(res_read);
@@ -1239,6 +1482,11 @@ char *valias_select_next()
 int valias_insert( char *alias, char *domain, char *alias_line)
 {
  int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_insert( alias: %s domain: %s line: %s )\n",
+             alias, domain, alias_line );
+#endif
 
     if ( (err=vauth_open_update()) != 0 ) return(err);
     while(*alias_line==' ' && *alias_line!=0) ++alias_line;
@@ -1261,6 +1509,11 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 {
  int err;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_remove( alias: %s domain: %s line: %s )\n",
+                     alias, domain, alias_line );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -1281,6 +1534,11 @@ int valias_delete( char *alias, char *domain)
 {
  int err;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_delete( alias: %s domain: %s )\n",
+                     alias, domain );
+#endif
+
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -1300,6 +1558,10 @@ and domain = '%s'", alias, domain );
 int valias_delete_domain( char *domain)
 {
  int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_delete_domain( domain: %s )\n", domain );
+#endif
 
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
@@ -1327,6 +1589,11 @@ char *valias_select_all( char *alias, char *domain )
 {
  int err;
 
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select_all( alias: %s domain: %s )\n", 
+             alias, domain );
+#endif
+
     if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
@@ -1352,6 +1619,52 @@ char *valias_select_all_next(char *alias)
     mysql_free_result(res_read);
     return(NULL);
 }
+
+char *valias_select_names( char *alias, char *domain )
+{
+ int err;
+
+#ifdef SHOW_TRACE
+    fprintf( stderr, "valias_select_all_next( alias: %s )\n", alias );
+#endif
+
+    if ( (err=vauth_open_read()) != 0 ) return(NULL);
+
+    qnprintf( SqlBufRead, SQL_BUF_SIZE, 
+        "select distinct alias from valias where domain = '%s' order by alias", domain );
+
+    if (mysql_query(&mysql_read,SqlBufRead)) {
+        vcreate_valias_table();
+        if (mysql_query(&mysql_read,SqlBufRead)) {
+            fprintf(stderr, "vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
+            return(NULL);
+        }
+    }
+    res_read = mysql_store_result(&mysql_read);
+#ifdef DUMP_DATA
+        fprintf(stderr, "   %s - %s\n", row[0], row[1] );
+#endif
+
+    return(valias_select_all_next(alias));
+}
+
+char *valias_select_names_next(char *alias)
+{
+    if((row = mysql_fetch_row(res_read))) {
+        strcpy( alias, (row[0]));
+        return(row[1]);
+    }
+    mysql_free_result(res_read);
+    return(NULL);
+}
+
+
+void valias_select_names_end() {
+
+//  not needed by mysql
+
+}
+
 #endif
 
 #ifdef ENABLE_MYSQL_LOGGING
@@ -1361,6 +1674,13 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
  int err;
  time_t mytime;
  
+#ifdef SHOW_TRACE
+    fprintf( stderr, "logmysql( verror: %i user: %s domain: %s " 
+                     "password %s name: %s ip: %s log %s )\n",
+                     verror, TheUser, TheDomain, ThePass, TheName,
+                     IpAddr, LogLine );
+#endif
+
 
     mytime = time(NULL);
     if ( (err=vauth_open_update()) != 0 ) return(err);
@@ -1397,6 +1717,10 @@ void vcreate_limits_table()
 
 int vget_limits(const char *domain, struct vlimits *limits)
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vget_limits( domain: %s )\n", domain );
+#endif
+
     vdefault_limits (limits);
 
     if (vauth_open_read() != 0)
@@ -1465,6 +1789,36 @@ int vget_limits(const char *domain, struct vlimits *limits)
     }
     mysql_free_result(res_read);
 
+#ifdef DUMP_DATA 
+    fprintf( stderr, 
+        "   Max:\n"
+        "      pop: %i  alias: %i  forward: %i auto: %i list: %i\n"
+        "   Quota:\n"
+        "      disk: %i default: %i msgcount: %i\n"
+        "   Disable:\n"
+        "      pop: %i imap: %i dialup: %i  pw change: %i "
+        "webmail: %i relay: %i smtp: %i\n"
+        "   Perm:\n"
+        "      account: %i alias: %i forward: %i auto: %i "
+        "maillist: %i users: %i moderate: %i quota: %i def quota: %i\n\n",
+        limits->maxpopaccounts, limits->maxaliases, limits->maxforwards,
+        limits->maxautoresponders, limits->maxmailinglists, 
+
+        limits->diskquota, limits->defaultquota, 
+        limits->defaultmaxmsgcount,
+
+        limits->disable_pop, limits->disable_imap,
+        limits->disable_dialup, limits->disable_passwordchanging,
+        limits->disable_webmail, limits->disable_relay,
+        limits->disable_smtp,
+
+        limits->perm_account, limits->perm_alias,
+        limits->perm_forward, limits->perm_autoresponder,
+        limits->perm_maillist, limits->perm_maillist_users,
+        limits->perm_maillist_moderators, limits->perm_quota,
+        limits->perm_defaultquota);
+#endif
+
     return 0;
 }
 
@@ -1523,6 +1877,10 @@ int vset_limits(const char *domain, const struct vlimits *limits)
 
 int vdel_limits(const char *domain)
 {
+#ifdef SHOW_TRACE
+    fprintf( stderr, "vdel_limits( domain: %s )\n", domain );
+#endif
+
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM limits WHERE domain = '%s'", domain);
 
     if (mysql_query(&mysql_update,SqlBufUpdate))

@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.7 2004-04-27 07:26:23 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.8 2004-05-22 12:28:21 rwidmer Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,10 @@ extern vdir_type vdir;
 
 int main(int argc, char *argv[])
 {
+    if( vauth_open()) {
+        vexiterror( stderr, "Initial open." );
+    }
+
     get_options(argc,argv);
 
     /* did we want to view a single domain domain? */
