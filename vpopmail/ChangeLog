@@ -7,6 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Patch for vpgsql.c fixes bug with Postgres and roaming users
 	  (POP before SMTP). [895501]
 
+	Tom Collins
+	- Fix `vuserinfo -l` output, based on Bill Shupp's patch
+	  (moved code to a single function call). [961742]
+
 5.4.4 - released 26-May-04
 
 	Tom Collins

@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.4 2003-12-03 16:25:01 tomcollins Exp $
+ * $Id: vuserinfo.c,v 1.4.2.1 2004-06-11 04:55:50 tomcollins Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -241,12 +241,36 @@ void display_limit (struct vqpasswd *pw, unsigned int flag, char *message)
     }
 }
 
-void display_user(struct vqpasswd *mypw, char *domain)
+void display_lastlogin (struct vqpasswd *pw, char *domain)
 {
 #ifdef ENABLE_AUTH_LOGGING
  time_t mytime;
  char  *authip;
+
+	/* There should be a new function that retrieves both
+	 * auth time and IP in a single call (and single DB lookup)
+	 * to reduce overhead.
+	 */
+	mytime = vget_lastauth(pw, domain);
+        authip = vget_lastauthip(pw,domain);
+        if ( mytime == 0 || authip == 0 || 
+             strcmp(authip, NULL_REMOTE_IP) == 0 ) {
+          if ( mytime != 0 ) {
+	    printf("account created: %s", asctime(localtime(&mytime)));
+          }
+	  printf("last auth: Never logged in\n"); 
+        } else {
+	  printf("last auth: %s", asctime(localtime(&mytime)));
+          if ( authip != NULL ) {
+	     printf("last auth ip: %s\n", authip);
+          }
+        }
+
 #endif
+}
+
+void display_user(struct vqpasswd *mypw, char *domain)
+{
  char maildir[MAX_BUFF];
 
     if ( DisplayAll ) {
@@ -290,24 +314,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         } else {
             printf("usage:     %s\n", mypw->pw_shell);
         }
-
-#ifdef ENABLE_AUTH_LOGGING
-	mytime = vget_lastauth(mypw, domain);
-        authip = vget_lastauthip(mypw,domain);
-        if ( mytime == 0 || authip == 0 || 
-             strcmp(authip, NULL_REMOTE_IP) == 0 ) {
-          if ( mytime != 0 ) {
-	    printf("account created: %s", asctime(localtime(&mytime)));
-          }
-	  printf("last auth: Never logged in\n"); 
-        } else {
-	  printf("last auth: %s", asctime(localtime(&mytime)));
-          if ( authip != NULL ) {
-	     printf("last auth ip: %s\n", authip);
-          }
-        }
-     
-#endif 
+        display_lastlogin (mypw, domain);
     } else {
         if ( DisplayName ) printf("%s\n", mypw->pw_name);
         if ( DisplayPasswd ) printf("%s\n", mypw->pw_passwd);
@@ -329,11 +336,6 @@ void display_user(struct vqpasswd *mypw, char *domain)
             }
         }
 
-#ifdef ENABLE_AUTH_LOGGING
-        if ( DisplayLastAuth ) {
-	    mytime = vget_lastauth(mypw, domain);
-	    printf("%s\n", asctime(localtime(&mytime)));
-        }
-#endif 
+        if ( DisplayLastAuth ) display_lastlogin (mypw, domain);
     }
 }
