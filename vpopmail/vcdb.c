@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.2 2003-09-13 00:23:15 tomcollins Exp $
+** $Id: vcdb.c,v 1.3 2003-09-14 05:15:39 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -304,7 +304,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
     if ((! pwent.pw_gid && V_OVERRIDE)
-      && (vget_limits (in_domain, &limits) == 0) {
+      && (vget_limits (in_domain, &limits) == 0)) {
         pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
     } else pwent.pw_flags = pwent.pw_gid;
 

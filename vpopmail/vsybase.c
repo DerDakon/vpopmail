@@ -284,7 +284,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	if ( mem_size == 0 ) return(NULL);
 
 	if ((! pwent.pw_gid && V_OVERRIDE)
-		&& (vget_limits (in_domain, &limits) == 0) {
+		&& (vget_limits (in_domain, &limits) == 0)) {
 		pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
 	} else pwent.pw_flags = pwent.pw_gid;
 
