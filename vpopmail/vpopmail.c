@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.22 2003-12-17 03:13:40 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.23 2003-12-17 03:39:50 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -805,7 +805,12 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
   /* compile the assign file */
-  if ( OptimizeAddDomain == 0 ) update_newu();
+  /* as of the 5.4 builds, we always need an updated assign file since
+   * we call vget_assign to add the postmaster account.  The correct
+   * solution is to cache the information somewhere so vget_assign
+   * can pull from cache instead of having to read the assign file.
+   */
+  /* if ( OptimizeAddDomain == 0 ) */ update_newu();
 
   /* If we have more than 50 domains in rcpthosts
    * make a morercpthosts and compile it
@@ -3070,3 +3075,47 @@ char *get_remote_ip()
 
   return ipaddr;  
 }
+
+
+char *maildir_to_email(char *maildir)
+{
+ static char email[256];
+ int i, j=0;
+ char *pnt, *last;
+
+    memset(email, 0, sizeof(email));
+    for(last=NULL, pnt=maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
+        last = pnt;
+    }
+    if(!last) return "";
+
+    /* so now pnt at begin of last Maildir occurence
+     * going toward start of maildir we can get username
+     */
+    pnt = last;
+
+    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
+
+    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
+        email[j++] = *pnt;
+    }
+
+    email[j++] = '@';
+
+    for (last=NULL, pnt=maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
+        last = pnt;
+    }
+
+    if(!last) return "";
+
+    pnt = last + strlen(DOMAINS_DIR) + 2;
+    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
+    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
+      email[j] = *pnt;
+    }
+
+    email[j] = 0;
+
+    return( email );
+}
+

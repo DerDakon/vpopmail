@@ -1,5 +1,5 @@
 /*
- * $Id: vqmaillocal.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vqmaillocal.c,v 1.3 2003-12-17 03:39:50 tomcollins Exp $
  * Copyright (C) 2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,7 +67,6 @@ char msgbuf[MSG_BUF_SIZE];
 #define BUFF_SIZE 300
 int fdm;
 static char *binqqargs[4];
-char *maildir_to_email(char *maildir);
 
 /* Forward declarations */
 int process_valias(void);
@@ -831,47 +830,6 @@ int user_over_quota(char *maildir, char *quota)
     } 
     close(CurrentQuotaSizeFd);
     return(ret_value);
-}
-
-
-char *maildir_to_email(char *maildir)
-{
- static char email[256];
- int i, j=0;
- char *pnt, *last;
-
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    for( pnt = last + 9; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
 }
 
 
