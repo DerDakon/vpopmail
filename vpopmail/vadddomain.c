@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.6 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vadddomain.c,v 1.7 2004-06-03 23:33:14 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -232,6 +232,12 @@ void get_options(int argc,char **argv)
       /* if no domain has been chosen, then display usage and exit*/
       usage();
       vexit(0);
+    }
+
+    /*  If it already exists, don't waste time entering the password  */
+    if( vget_assign(Domain, NULL, 0, NULL, NULL ) != NULL ) {
+       printf("Error: %s\n", verror( VA_DOMAIN_ALREADY_EXISTS ));
+       vexit( VA_DOMAIN_ALREADY_EXISTS );
     }
 
     /* Grab the postmaster password */
