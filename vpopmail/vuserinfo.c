@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.2 2003-10-09 00:43:16 tomcollins Exp $
+ * $Id: vuserinfo.c,v 1.3 2003-10-31 19:29:54 jheesemann Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,8 @@ int DisplayQuota;
 int DisplayQuotaUsage;
 int DisplayLastAuth;
 int DisplayAll;
+uid_t pw_uid;
+gid_t pw_gid;
 
 void usage();
 void get_options(int argc, char **argv);
@@ -76,6 +78,13 @@ int main(int argc, char *argv[])
             printf("Error: %s\n", verror(i));
             vexit(i);
         }
+
+	/* setuid to the user first */
+	vget_assign(Domain,NULL,0,&pw_uid,&pw_gid);
+	if ( setgid(pw_gid) == -1 || setuid(pw_uid) == -1 ) {
+            printf("Error: unable to setuid\n");
+            vexit(1);
+	}
         /* get the passwd entry for this user */
 	if ( (mypw = vauth_getpw( User, Domain )) == NULL ) {
 		if ( Domain[0] == 0 || strlen(Domain)==0) {
@@ -91,6 +100,12 @@ int main(int argc, char *argv[])
     } else {
         /* we want to see the entire domain */
 	first = 1;
+	/* setuid to the user first */
+	vget_assign(Domain,NULL,0,&pw_uid,&pw_gid);
+	if ( setgid(pw_gid) == -1 || setuid(pw_uid) == -1 ) {
+            	printf("Error: unable to setuid\n");
+            	vexit(1);
+	}
 	while( (mypw=vauth_getall(Domain, first, 1))) {
 		first = 0;
 		/* display each user in the domain */
