@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20 2004-02-11 15:40:17 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.1 2004-06-11 04:39:52 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -655,7 +655,7 @@ int vopen_smtp_relay()
     pgres=PQexec(pgc, SqlBufUpdate);
     }
 
-  if(!pgres || PQresultStatus(pgres)!= PGRES_COMMAND_OK ) {
+  if(pgres && PQresultStatus(pgres) == PGRES_COMMAND_OK ) {
     /* need to return non-zero value if value inserted */
     if( pgres ) PQclear(pgres);
     return 1;
