@@ -487,7 +487,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     pgres = PQexec(pgc, SqlBufRead);
     if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       if( pgres ) PQclear(pgres);
-      printf("vauth_getall:query failed[5]: %s\n",PQresultErrorMessage(pgres));
+      fprintf(stderr, "vauth_getall:query failed[5]: %s\n",PQresultErrorMessage(pgres));
       return (NULL);
     }
     ntuples = PQntuples( pgres );
@@ -691,7 +691,7 @@ void vupdate_rules(int fdm)
     vcreate_relay_table();
     if(pgres) PQclear(pgres);
     if ( !(pgres=PQexec(pgc, SqlBufRead)) || PQresultStatus(pgres)!=PGRES_TUPLES_OK ) {
-      printf("vupdate_rules: query : %s\n", PQresultErrorMessage(pgres));
+      fprintf(stderr, "vupdate_rules: query : %s\n", PQresultErrorMessage(pgres));
       return;
     }
   }
