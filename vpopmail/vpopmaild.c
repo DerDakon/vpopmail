@@ -1204,13 +1204,9 @@ int read_file()
   }
   return(0);
 }
-
 int list_domains()
 {
- FILE *fs;
- char tmpbuf[1024];
- char *domain;
- char *alias_domain;
+ domain_entry *entry;
  char *tmpstr;
  int page = 0;
  int lines_per_page = 0;
@@ -1240,9 +1236,8 @@ int list_domains()
   }
 
 
-  snprintf(tmpbuf,sizeof(tmpbuf), "%s/users/assign", QMAILDIR);
-  
-  if ( (fs=fopen(tmpbuf,"r")) == NULL ) {
+  entry=get_domain_entries( "" );
+  if ( entry == NULL ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "XXX could not open assign file" RET_CRLF);
     return(-1);
@@ -1252,32 +1247,24 @@ int list_domains()
   wait_write();
 
   count = 0;
-  while(fgets(tmpbuf,sizeof(tmpbuf),fs) != NULL ) {
-    if ( (domain = strtok(tmpbuf,LIST_DOMAIN_TOKENS))==NULL ) continue;
-    if ( (alias_domain = strtok(NULL,LIST_DOMAIN_TOKENS))==NULL ) continue;
-
-    /* skip the first + character */
-    ++domain;
-
-    /* skip the last - character */
-    domain[strlen(domain)-1] = 0;
-
+  while( entry ) {
     if ( end>0 ) {
       if ( count>=start && count<end ) {
         snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, 
-          domain, alias_domain);
+          entry->realdomain, entry->domain);
         wait_write();
       } else if ( count>=end ) {
         break;
       }
     } else { 
       snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, 
-        domain, alias_domain);
+        entry->realdomain, entry->domain);
       wait_write();
     }
     ++count;
+    entry=get_domain_entries(NULL);
+    
   }
-  fclose(fs);
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
@@ -1355,6 +1342,12 @@ int list_users()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
+
+/*
+ *
+ *  This needs to be changed to use the new valias code
+ *
+ */
 
 int list_alias()
 {

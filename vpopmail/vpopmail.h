@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.11 2004-04-07 14:30:40 kbo Exp $
+ * $Id: vpopmail.h,v 1.12 2004-04-26 08:04:16 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -82,6 +82,7 @@
 #define VA_INVALID_EMAIL_CHAR           -34
 #define VA_PARSE_ERROR                  -35
 #define VA_CANNOT_READ_LIMITS           -36
+#define VA_CANNOT_READ_ASSIGN           -37
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01
@@ -180,3 +181,14 @@ char *dec2hex(unsigned char *);
 
 
 #endif
+
+//typedef struct domain_entry_s {
+typedef struct domain_entry {
+        char    *domain;
+        char    *realdomain;
+        int             uid;
+        int             gid;
+        char    *path;
+} domain_entry;
+
+domain_entry *get_domain_entries( const char *match_real );

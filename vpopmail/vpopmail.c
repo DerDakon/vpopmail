@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.34 2004-04-17 21:51:40 mbowe Exp $
+ * $Id: vpopmail.c,v 1.35 2004-04-26 08:04:16 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -426,6 +426,91 @@ int vdeldomain( char *domain )
 
   return(VA_SUCCESS);
 
+}
+
+/************************************************************************/
+
+/* get_domain_entries
+ *
+ * Parses the qmail users/assign file and returns a domain_entry pointer.
+ * If first parameter is not NULL, re-open users/assign file and start scanning.
+ *   If first parameter is "", return all entries.  Otherwise, only return
+ *   entries where "real" domain matches the first parameter.
+ * If first parameter is NULL, returns the next line in already open file.
+ * 
+ * Example 1.  Scan through all entries.
+ *   domain_entry *e;
+ *   e = get_domain_entries ("");
+ *   while (e) {
+ *     printf ("Alias: %s  Real domain: %s  uid: %d  gid: %d  path: %s\n",
+ *       e->domain, e->realdomain, e->uid, e->gid, e->path);
+ *     e = get_domain_entries (NULL);
+ *   }
+ *
+ * Example 2.  Find all entries (primary and aliases) for domain.com.
+ *   domain_entry *e;
+ *   e = get_domain_entries ("domain.com");
+ *   while (e) {
+ *     printf ("Alias: %s  Real domain: %s  uid: %d  gid: %d  path: %s\n",
+ *       e->domain, e->realdomain, e->uid, e->gid, e->path);
+ *     e = get_domain_entries (NULL);
+ *   }
+ *
+ *
+ */
+
+domain_entry *get_domain_entries (const char *match_real)
+{
+        static FILE *fs = NULL;
+        static char     match_buffer[MAX_PW_DOMAIN];
+        static domain_entry entry;
+        static char linebuf[MAX_BUFF];
+        char *p;
+        
+        if (match_real != NULL) {
+                if (fs != NULL) fclose (fs);
+                snprintf (linebuf, sizeof (linebuf), "%s/users/assign", QMAILDIR);
+                fs = fopen (linebuf, "r");
+                snprintf (match_buffer, sizeof (match_buffer), match_real);
+        }
+        
+        if (fs == NULL) {
+           verrori = VA_CANNOT_READ_ASSIGN;
+           return NULL;
+        }
+
+        while (fgets (linebuf, sizeof (linebuf), fs) != NULL) {
+                /* ignore non-domain entries */
+                if (*linebuf != '+') continue;
+                
+                entry.domain = strtok (linebuf + 1, ":");
+                if (entry.domain == NULL) continue;
+                
+                /* ignore entries without '.' in them */
+                if (strchr (entry.domain, '.') == NULL) continue;
+
+                entry.realdomain = strtok (NULL, ":");
+                if (entry.realdomain == NULL) continue;
+                
+                /* remove trailing '-' from entry.domain */
+                *(entry.realdomain-2) = '\0';
+                
+                if ((p = strtok (NULL, ":")) == NULL) continue;
+                entry.uid = atoi (p);
+
+                if ((p = strtok (NULL, ":")) == NULL) continue;
+                entry.gid = atoi (p);
+                
+                entry.path = strtok (NULL, ":");
+                if (entry.path == NULL) continue;
+                
+                if (!*match_buffer || (strcmp (match_buffer, entry.realdomain) == 0))
+                        return &entry;
+        }
+        
+        /* reached end of file, so we're done */
+        fclose (fs);
+        return NULL;
 }
 
 /************************************************************************/
@@ -1393,7 +1478,7 @@ int vdeluser( char *user, char *domain )
   getcwd(calling_dir, sizeof(calling_dir));
 
   /* lookup the location of this domain's directory */
-  if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid ) ==NULL ) {
+  if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid ) == NULL ) {
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
 
@@ -1745,7 +1830,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     return(NULL);
   }
 
-  for (i = 0; i < sizeof(dirnames)/sizeof(dirnames[0]); i++) {
+  for (i = 0; i < (int)(sizeof(dirnames)/sizeof(dirnames[0])); i++) {
     if (mkdir(dirnames[i],VPOPMAIL_DIR_MODE) == -1){ 
       fprintf(stderr, "make_user_dir: failed on %s\n", dirnames[i]);
       /* back out of changes made above */
@@ -2080,6 +2165,8 @@ char *verror(int va_err )
     return("error parsing data");
    case VA_CANNOT_READ_LIMITS:
     return("can't read domain limits");
+   case VA_CANNOT_READ_ASSIGN:
+    return("can't read users/assign file");
    default:
     return("Unknown error");
   }
@@ -2724,7 +2811,7 @@ int update_rules()
   close(tcprules_fdm);  
 
   /* wait untill tcprules finishes so we don't have zombies */
-  while(wait(&wstat)!= pid);
+  while(wait(&wstat)!= (int)pid);
 
   /* if tcprules encounters an error, then the tempfile will be
    * left behind on the disk. We dont want this because we could
@@ -3163,7 +3250,7 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	b = buffer;
 	for (f = format; *f != '\0'; f++) {
 		if (*f != '%') {
-			if (++printed < size) *b++ = *f;
+			if (++printed < (int)size) *b++ = *f;
 		} else {
 			f++;
 			s = n;
@@ -3207,9 +3294,9 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 			}
 			while (*s != '\0') {
 				if (strchr (ESCAPE_CHARS, *s) != NULL) {
-					if (++printed < size) *b++ = '\\';
+					if (++printed < (int)size) *b++ = '\\';
 				}
-				if (++printed < size) *b++ = *s;
+				if (++printed < (int)size) *b++ = *s;
 				s++;
 			}
 		}
@@ -3223,7 +3310,7 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	 * incomplete query could be very dangerous (say if a WHERE clause
 	 * got dropped from a DELETE).
 	 */
-	if (printed >= size) {
+	if (printed >= (int)size) {
 		memset (buffer, '\0', size);
 	}
 	

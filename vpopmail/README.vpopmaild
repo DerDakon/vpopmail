@@ -20,7 +20,8 @@ There is a PHP object to work with this daemon available at
    http://pmailadmin.sourceforge.net/
 
 
-
+This is very rough, but it is a start for documentation on the daemon.
+(Rick)
 
 
 
@@ -84,3 +85,654 @@ incoming mail through spamassassin.
 with --enable-spamasssassin=y setting this flag
 will delete all email above the users required_hits
 preference.
+
+--------------------------------------------------------------------
+
+login user@domain.ext password
+
+Rights required: Must be a valid email address.
+
+Action: Verify the username and password of the persion desiring to
+        login, and set thier access rights.
+
+
+--------------------------------------------------------------------
+
+add_user user@domain.ext password long_name
+
+Rights required: SA_ADMIN, or QA_ADMIN
+
+Action:  Add a new mailbox and user to the specified domain.  ONLY SA_ADMIN
+can add users to domains other than the home domain of the login user.
+
+
+--------------------------------------------------------------------
+
+del_user  user@domain.ext
+
+Rights required: SA_ADMIN, or QA_ADMIN
+
+Action:  Delete a mailbox and user from the specified domain.  ONLY SA_ADMIN
+can delete users to domains other than the home domain of the login user.
+
+
+--------------------------------------------------------------------
+
+mod_user user@domain.ext
+
+Rights required: Only SA_ADMIN can modify users outside
+the login user's home domain.  Only QA_ADMIN can modify other users.
+Any user can modify part of their own data.
+
+Action:  Modify a user account.  
+
+The mod_user command is followed by any number of the following options,
+one per line, followed by a line containing only a '.'.  Each flag except
+the clear_all_flags expects a 0 or 1 to set the value of the flag.
+
+Anyone can set these values:
+
+comment - The full name of the user.
+
+clear_text_password - Pass it a clear text password, and it will set both
+                      the clear_text_password and the encrypted_password
+                      field.  It handles encrypting the password internally.
+
+no_spamassassin - Do not run SpamAssasin for this user, if it is set to
+                  be run for users of this domain.
+
+delete_spam - If set, mail identified as spam for this user will be deleted.
+
+
+The QA_ADMIN or SA_ADMIN can change these values:
+
+
+Only a SA_ADMIN or QA_ADMIN with override rights can change these values:
+
+quota - Number of messages they can store.
+
+clear_all_flags - reset all the following flag values to 0.
+
+no_password_change - The user can not change their own password.
+
+no_pop - The user can not access mail via pop.
+
+no_webmail - The user can not access mail via a webmail program.
+
+no_imap - The user can not access mail via imap.
+
+bounce_mail - I'm not sure, but it sounds like a flag to bounce all
+              mail to this user.
+
+no_relay - I'm not sure, but it sounds like a flag to block use of SMTP
+           for this user for mail leaving the server.
+
+no_dialup - This is used by the optional radius server as a flag to stop
+            radius from allowing this user to login to a modem.
+
+user_flag_0 - Set and check this flag for anything you want.
+
+user_flag_1 - Set and check this flag for anything you want.
+
+user_flag_2 - Set and check this flag for anything you want.
+
+user_flag_3 - Set and check this flag for anything you want.
+
+no_smtp - I'm not sure.
+
+system_admin_privileges - allow this user full access to all domains.
+
+domain_admin_privileges - allow this user limited access to their home domain.
+
+override_domain_limits - Allow this user to change domain limits on their
+                         own domain.  Probably also requires domain_admin.
+
+
+Only a SA_ADMIN can change these values:
+
+encrypted_password - an already encrypted password.  This only sets the
+                     encrypted password field.
+
+
+
+user_info user@domain.ext
+
+Rights required: SA_ADMIN, or QA_ADMIN
+
+Action:  Return information about a user.
+
+The following items are returned as a string.
+ 
+name - User name, same as user part of address selected. 
+comment - Usually the long name of the user. 
+quota - How much disk space the user is allowed.
+user_dir - The home directory for the user.
+encrypted_password - The encrypted value of the password.
+clear_text_password - The password in clear text.
+
+The following values are returned as the character '1' or '0'. '1'
+says the field is active which, for example an active no_password_change
+means the user can not change passwords.
+
+no_password_change, no_pop, no_webmail, no_imap, bounce_mail, no_relay,
+no_dialup, user_flag_0, user_flag_1, user_flag_2, user_flag_3, no_smpt
+
+
+The following items confer extra privileges to the user. A '1' says that
+the user has that right.
+
+domain_admin_privileges, override_domain_limits, system_admin_privileges
+
+
+The following items control the operation of Spamassassin.
+no_spamassassin, delete_spam
+
+
+--------------------------------------------------------------------
+
+
+add_domain domain password
+
+Rights required: SA_ADMIN
+
+Action:  Add a new, real domain.  The postmaster user is automatically 
+created, and cannot be deleted.  The password given is assigned to the
+postmaster user.
+
+
+--------------------------------------------------------------------
+
+del_domain domain
+
+Rights required: SA_ADMIN
+
+Action:  Delete a domain from the system.  If the domain is an alias
+it will delete only the alias.  If the domain has aliases, the domain
+and all of its aliases will be deleted.  If you want to warn the user
+of your program when alias domains exist, YOU will have to do it yourself
+by using dom_info() to check the status of the domain in question.
+
+
+--------------------------------------------------------------------
+
+dom_info domain
+
+Rights required: SA_ADMIN
+
+Action: return internal information about a domain.  The information
+returned includes: domain directory, userid, groupid, number of users,
+
+
+  memset(newpath,0,256);
+  memset(theemail,0,256);
+  memset(theuser,0,256);
+  memset(thedomain,0,256);
+  memset(thedir,0,256);
+
+  /* check for fake out path */
+  if ( strstr(path,"..") != NULL ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+    return(NULL);
+  }
+
+  /* check for fake out path */
+  if ( strstr(path,"%") != NULL ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+    return(NULL);
+  }
+
+  /* expand the path */
+  if ( path[0] == '/' ) {
+    snprintf(newpath,sizeof(newpath), path);
+  } else { 
+    slash = strchr( path, '/');
+    if ( slash == NULL ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+      return(NULL);
+    }
+    atsign = strchr(path,'@');
+
+    /* possible email address */
+    if ( atsign != NULL ) {
+      if ( atsign > slash ) {
+        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        return(NULL);
+      }
+      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
+        theemail[i] = path[i];
+      }
+      theemail[i] = 0;
+
+      if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
+        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        return(NULL);
+      } 
+
+      if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
+        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        return(NULL);
+      }
+
+
+      /* limit domain admins to their domains */
+      if ( AuthVpw.pw_gid & QA_ADMIN ) {
+        if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
+          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+          return(NULL);
+        }
+
+      /* limit users to their accounts */
+      } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
+        if ( strcmp(TheUser, theuser) != 0 || 
+             strcmp(TheDomain, thedomain) != 0 ) {
+          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+          return(NULL);
+        }
+      }
+      snprintf(newpath, sizeof(newpath), myvpw->pw_dir);
+      strncat(newpath,&path[i],sizeof(newpath));
+    } else {
+      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
+        thedomain[i] = path[i];
+      }
+      thedomain[i] = 0;
+      if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
+        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        return(NULL);
+      } 
+      snprintf(newpath,sizeof(newpath), thedir);
+      strncat(newpath,&path[i],sizeof(newpath));
+    }
+  }
+
+  if ( AuthVpw.pw_gid & SA_ADMIN ) { 
+    if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        RET_ERR "XXX unauthorized directory" RET_CRLF);
+      return(NULL);
+    }
+  } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
+    if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        RET_ERR "XXX unauthorized directory" RET_CRLF);
+      return(NULL);
+    }
+  } else {
+    if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        RET_ERR "XXX unauthorized directory" RET_CRLF);
+      return(NULL);
+    }
+  }
+  return(newpath);
+}
+
+
+--------------------------------------------------------------------
+
+mk_dir directory
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  Create a directory.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+
+--------------------------------------------------------------------
+
+rm_dir directory
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  Remove a directory
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+
+--------------------------------------------------------------------
+
+list_dir directory
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  List the contents of a directory.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+Directory contents are returned one per line, with an indication of the 
+type of directory entry.  For example:
+
+Maildir dir
+lastauth file
+
+The possible type values are: file, dir, chardev, plkdev, fifo, 
+link, sock, unknown.
+
+
+--------------------------------------------------------------------
+
+rm_file filename
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  Remove a file.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+
+--------------------------------------------------------------------
+
+write_file filename
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  Write lines to a file.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+File contents are sent, one line sent to the daemon for each line
+to add to the file.  After the last line send a line containing only
+a period '.' to mark the end of file.
+
+
+--------------------------------------------------------------------
+
+int read_file()
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action:  Read lines from a file.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+File contents are received, one line from the daemon for each line
+in the file.  After the last line of the file a line containing only
+a period '.' is sent to mark the end of file.
+
+
+
+--------------------------------------------------------------------
+
+list_domains
+
+Rights required: SA_ADMIN
+
+Action:  List all domains on the system, and their parent domain.
+
+Alias domains are identified by the fact that the domain name does
+not match the real domain name.
+
+
+--------------------------------------------------------------------
+
+list_users domain
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only manage their
+                 own domain.
+
+Action:  List all Mailbox accounts for a domain.
+
+It returns the same info about a user as something else.  Find it and
+copy the info here.
+
+
+--------------------------------------------------------------------
+
+list_alias domain
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only manage their
+                 own domain.
+
+Action:  List all aliases for a domain.  Currently, this scans the directory
+         for aliases.  It needs to be changed to use the new valias calls
+         Tom just added.
+
+
+List all Mailbox accounts for a domain.
+
+
+--------------------------------------------------------------------
+
+list_lists domain
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only manage their
+                 own domain.
+
+Action:  Send a list of all mailing lists within a domain.  One entry 
+per line, with a line containing only a '.' at the end.
+
+
+--------------------------------------------------------------------
+
+get_ip_map ip_address
+
+Rights required: Anyone
+
+Action: Return the domain assoicated with this IP Address, if any.
+
+
+--------------------------------------------------------------------
+
+add_ip_map ip_address domain
+
+Rights required: SA_ADMIN
+
+Action:  Make an IP address point to a domain. 
+
+WARNING:  It does not look like there is any duplicate checking on
+this, so make sure what you enter is valid!  I think I once got the
+IP and name backwards, and it was stored that way.
+
+
+--------------------------------------------------------------------
+
+del_ip_map ip_address domain
+
+Rights required: SA_ADMIN
+
+Action:  Delete an association between an IP address and a domain name.
+
+
+--------------------------------------------------------------------
+
+show_ip_map
+
+Rights required: SA_ADMIN
+
+Action:  Display the mapping between IP addresses and domain names.
+
+
+--------------------------------------------------------------------
+
+get_limits domain
+
+Rights required: Any.  SA_ADMIN can read all domains, all other users
+                 can only read their own domain.
+
+Action:  Return Limits informaiton for a domain.  If no special limits 
+         are set, it returns the default limit settings for all domains.
+         Find out where these files are kept, and add it here.
+
+max_popaccounts
+max_aliases
+max_forwards
+max_autoresponders
+max_mailinglists
+maxmailinglists
+disk_quota
+max_msgcount
+default_quota
+default_maxmsgcount
+disable_pop
+disable_imap
+disable_dialup
+disable_password_changing
+disable_webmail
+disable_external_relay
+disable_smtp
+disable_spamassassin
+delete_spam
+perm_account
+perm_alias
+perm_forward
+perm_autoresponder
+perm_maillist
+perm_quota
+perm_defaultquota
+
+
+
+--------------------------------------------------------------------
+
+set_limits domain
+
+Rights required: SA_ADMIN, or QA_ADMIN with override_domain_limits rights.
+
+Action:  Set Limits informaiton for a domain.  
+
+max_popaccounts
+max_aliases
+max_forwards
+max_autoresponders
+max_mailinglists
+maxmailinglists
+disk_quota
+max_msgcount
+default_quota
+default_maxmsgcount
+disable_pop
+disable_imap
+disable_dialup
+disable_password_changing
+disable_webmail
+disable_external_relay
+disable_smtp
+disable_spamassassin
+delete_spam
+perm_account
+perm_alias
+perm_forward
+perm_autoresponder
+perm_maillist
+perm_quota
+perm_defaultquota
+
+
+--------------------------------------------------------------------
+
+del_limits domain
+
+Rights required: SA_ADMIN
+
+Action:  Delete the limits file for a domin.  This will make the
+         domain revert to the global limits set somewhere. (Find
+         out where, and add it here.)
+
+
+--------------------------------------------------------------------
+
+get_lastauth user@domain.ext
+
+Rights required: Any.  SA_ADMIN can list any user, QA_ADMIN can list
+                 any user in their domain, USER can list only their
+                 own.
+
+Action:  Return the last time the user logged in.
+
+Consider merging this with get_lastauthip
+
+
+--------------------------------------------------------------------
+
+int get_lastauthip()
+
+Rights required: Any.  SA_ADMIN can list any user, QA_ADMIN can list
+                 any user in their domain, USER can list only their
+                 own.
+
+Action:  Return the IP address frin the last user login.
+
+Consider merging this with get_lastauth
+
+
+--------------------------------------------------------------------
+
+int add_list()
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
+                 its home domain.
+
+Action:  Add an ezmlm mailing list.  Not implemented yet.
+
+
+--------------------------------------------------------------------
+
+int del_list()
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
+                 its home domain.
+
+Action:  Delete an ezmlm mailing list.  Not implemented yet.
+
+
+--------------------------------------------------------------------
+
+int mod_list()
+
+Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
+                 its home domain.
+
+Action:  Modify an ezmlm mailing list.  Not implemented yet.
+
+
+--------------------------------------------------------------------
+
+quit
+
+Rights required: Any
+
+Action:  Shutdown the daemon.  You should always call this before
+         exiting the program communicating with the daemon.
+
+
+--------------------------------------------------------------------
+
+int help()
+
+Rights required: Any
+
+Action:  Display help on the daemon.  It does not, but should limit
+         the actions listed to the abilities of the current user.  If
+         no user is logged in, it should only display login, help and 
+         quit.  Maybe it shouldn't show anything...

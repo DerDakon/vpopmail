@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.7 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vpopbull.c,v 1.8 2004-04-26 08:04:16 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -66,16 +66,13 @@ int main(int argc, char *argv[])
 {
  FILE *fsi = NULL;
  FILE *fsx = NULL;
- FILE *fsassign;
  char *domain;
- char *alias;
  char *domain_dir = NULL;
- char *tmpstr;
  static struct stat statbuf;
+ domain_entry *entry;
 
   memset(TmpBuf,0,sizeof(TmpBuf));
   memset(MsgBuf,0,sizeof(MsgBuf));
-
 
   Verbose = 0;
   DoNothing = 0;
@@ -142,31 +139,29 @@ int main(int argc, char *argv[])
 
   } else if ( (EmailFile[0] != 0 || DoNothing == 1)  && Domain[0] == 0 ) {
 
-    /* Process ALL domains */
-    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign",  QMAILDIR);
-    if ( (fsassign = fopen(TmpBuf, "r")) == NULL ) {
-        perror("can not open assign file");
-        vexit(0);
-    }
-
-    while ( fgets(TmpBuf, sizeof(TmpBuf), fsassign) != NULL ) {
-      if ( (alias=strtok(TmpBuf, TOKENS)) == NULL ) continue;
-      if ( (domain=strtok(NULL, TOKENS)) == NULL ) continue;
-      if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-      if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-      if ( (domain_dir=strtok(NULL, TOKENS)) == NULL ) continue;
-      alias++;  /* point past leading + */
-      alias[strlen(alias)-1] = '\0';  /* remove trailing - */
-      if (strcmp (alias, domain) != 0) {
-        if (Verbose) {
-          fprintf (stderr, "skipping %s (alias of %s)\n", alias, domain);
-        }
+    entry = get_domain_entries( "" );
+    if (entry==NULL) {
+      if( verrori ) {
+        printf("Can't get domain entries - %s\n", verror( verrori ));
+        vexit(-1);
       } else {
-        chdir(domain_dir);
-        process_domain(domain,  fsi, fsx );
+        printf("What now - %s\n", verror( verrori ));
+        vexit(0);
       }
     }
-    fclose(fsassign);
+
+    while( entry ) {
+      if (strcmp (entry->domain, entry->realdomain) != 0) {
+        if (Verbose) {
+          fprintf (stderr, "skipping %s (alias of %s)\n", 
+                   entry->domain, entry->realdomain);
+        }
+      } else {
+        chdir(entry->path);
+        process_domain(entry->realdomain,  fsi, fsx );
+      }
+    entry = get_domain_entries(NULL);
+    }
   }
   return(vexit(0));
 
@@ -183,6 +178,7 @@ int process_domain(domain, fsi, fsx )
  time_t tm;
  int pid;
  int first = 1;
+
 
 	gethostname(hostname,sizeof(hostname));
 	pid=getpid();

@@ -1,5 +1,5 @@
 /*
- * $Id: vdeloldusers.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vdeloldusers.c,v 1.5 2004-04-26 08:04:16 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -172,31 +172,23 @@ void deloldusers(char *Domain, time_t nowt)
 
 void process_all_domains(time_t nowt)
 {
- FILE *fs;
- char *tmpstr;
- char TmpBuf[MAX_BUFF];
+ domain_entry *entry;
 
-    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign", QMAILDIR);
-    if ((fs=fopen(TmpBuf, "r"))==NULL) {
-        printf("could not open assign file %s\n", TmpBuf);
-	vexit(-1);
+    entry = get_domain_entries( Domain );
+    if (entry==NULL) {
+      if( verrori ) {
+        printf("Can't get domain entries - %s\n", verror( verrori ));
+        vexit(-1);
+      } else {
+        printf("What now - %s\n", verror( verrori ));
+        vexit(0);
+      }
     }
 
-    while( fgets(TmpBuf, sizeof(TmpBuf), fs) != NULL ) {
-	    if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
-
-	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-	    snprintf(Domain, sizeof(Domain), "%s", tmpstr); 
-
-	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-	    deloldusers(Domain,nowt);
+    while( entry ) {
+        deloldusers(entry->domain,nowt);
+        entry = get_domain_entries(NULL);
     }
-    fclose(fs);
 }
 
 #else

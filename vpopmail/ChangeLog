@@ -1,6 +1,18 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.5.2 - unreleased
+
+        Rick Widmer
+        - add support for Tom's get_domain_entries() function
+          vdelolddomains, vpopbull, vdominfo and vpopmaild have 
+          been updated.  vdotqmail2valias and vconvert have not 
+          been updated to use this function because I can't test 
+          them right now.
+        - eliminate some 'comparison between signed and unsigned' 
+          warnings in vpopmail.c
+        - Patches 895348 and 936874 merged into cvs.
+
 5.5.1 - unreleased
 
 	Ken Jones
