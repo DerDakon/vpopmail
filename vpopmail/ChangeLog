@@ -10,6 +10,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  be moved from configure and into Makefile (under make install).
 	- Use MAX_PW_DIR when checking max size of domain's directory.
 
+	Ken Jones
+	- vdelivermail.c: wait on pid for qmail-inject to finish
+	  before continuing in deliver_mail function. [from 5.5.1]
+
         Michael Bowe
         - Minor documentation tweaks
         - Fix for : If roaming users were enabled, and auth module was not
