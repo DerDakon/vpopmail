@@ -1,5 +1,5 @@
 /*
- * $Id: valias.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * $Id: valias.c,v 1.5 2004-04-20 02:28:37 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ char AliasLine[MAX_BUFF];
 #define VALIAS_SELECT 0
 #define VALIAS_INSERT 1
 #define VALIAS_DELETE 2
+#define VALIAS_NAMES  3
 
 int AliasAction;
 int AliasExists;
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
 			if (tmpalias == NULL) vexit(-1);
 			while (tmpalias != NULL ) {
 				printf("%s@%s -> %s\n", Alias, Email, tmpalias);
+                                fflush(stdout);
 				tmpalias = valias_select_all_next(Alias);
 			}
 		} else {
@@ -73,6 +75,22 @@ int main(int argc, char *argv[])
 				printf("%s@%s -> %s\n", Alias, Domain,tmpalias);
 				tmpalias = valias_select_next();
 			}
+		}
+		break;
+
+	case VALIAS_NAMES:
+		/* did the user nominate an email address or a domain? */
+		if ( strstr(Email, "@") == NULL ) {
+			/* display all aliases for domain */
+			tmpalias = valias_select_names( Email );
+			if (tmpalias == NULL) vexit(-1);
+			while (tmpalias != NULL ) {
+				printf("%s\n", tmpalias);
+				tmpalias = valias_select_names_next();
+			}
+                        valias_select_names_end();
+		} else {
+                        fprintf(stderr, "Please enter domain name only.\n" );
 		}
 		break;
 
@@ -107,6 +125,7 @@ void usage()
 {
 	printf( "valias: usage: [options] email_address \n");
 	printf("options: -v ( display the vpopmail version number )\n");
+	printf("         -n ( show alias names, use just domain )\n");
 	printf("         -s ( show aliases, can use just domain )\n");
 	printf("         -d ( delete alias )\n");
 	printf("         -i alias_line (insert alias line)\n");
@@ -128,10 +147,13 @@ void get_options(int argc,char **argv)
 	memset(AliasLine, 0, sizeof(AliasLine));
 	AliasAction = VALIAS_SELECT;
 
-    	while( (c=getopt(argc,argv,"vsdi:")) != -1 ) {
+    	while( (c=getopt(argc,argv,"vnsdi:")) != -1 ) {
 		switch(c) {
 		case 'v':
 			printf("version: %s\n", VERSION);
+			break;
+		case 'n':
+			AliasAction = VALIAS_NAMES;
 			break;
 		case 's':
 			AliasAction = VALIAS_SELECT;

@@ -765,9 +765,9 @@ void send_user_info(struct vqpasswd *tmpvpw)
   }
   wait_write();
   if ( tmpvpw->pw_gid & QA_ADMIN ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 1");
+    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 1" RET_CRLF);
   } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 0");
+    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 0" RET_CRLF);
   }
   wait_write();
   if ( tmpvpw->pw_gid & V_OVERRIDE ) {
@@ -1571,7 +1571,7 @@ int get_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
 #endif
   
   return(0);
@@ -1594,12 +1594,12 @@ int add_ip_map()
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX ip required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
     return(-1);
   }
 
   if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid domain" RET_CRLF);
     return(-1);
   }
 
@@ -1610,7 +1610,7 @@ int add_ip_map()
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -1632,12 +1632,7 @@ int del_ip_map()
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX ip required" RET_CRLF);
-    return(-1);
-  }
-
-  if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
     return(-1);
   }
 
@@ -1649,7 +1644,7 @@ int del_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -1658,21 +1653,10 @@ int show_ip_map()
 {
 #ifdef IP_ALIAS_DOMAINS
  int first;
- char *domain;
  static char r_ip[256];
  static char r_domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
-    return(-1);
-  }
-
-  if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
-    return(-1);
-  }
-
-  if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
     return(-1);
   }
@@ -1690,7 +1674,7 @@ int show_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -1720,23 +1704,23 @@ int get_limits()
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxpopaccounts: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_popaccounts %d" RET_CRLF, 
     mylimits.maxpopaccounts); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxaliases: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_aliases %d" RET_CRLF, 
     mylimits.maxaliases); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxforwards: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_forwards %d" RET_CRLF, 
     mylimits.maxforwards); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxautoresponders: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_autoresponders %d" RET_CRLF, 
     mylimits.maxautoresponders); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxmailinglists: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_mailinglists %d" RET_CRLF, 
     mylimits.maxmailinglists); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "quota: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "disk_quota %d" RET_CRLF, 
     mylimits.diskquota); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "maxmsgcount: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "max_msgcount %d" RET_CRLF, 
     mylimits.maxmsgcount); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "default_quota: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "default_quota %d" RET_CRLF, 
     mylimits.defaultquota); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "default_maxmsgcount: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "default_maxmsgcount %d" RET_CRLF, 
     mylimits.defaultmaxmsgcount); wait_write();
 
   if (mylimits.disable_pop) 
@@ -1794,23 +1778,23 @@ int get_limits()
     snprintf(WriteBuf,sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_account: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_account %d" RET_CRLF, 
     mylimits.perm_account); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_alias: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_alias %d" RET_CRLF, 
     mylimits.perm_alias); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_forward: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_forward %d" RET_CRLF, 
     mylimits.perm_forward); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_autoresponder: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_autoresponder %d" RET_CRLF, 
     mylimits.perm_autoresponder); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_maillist: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_maillist %d" RET_CRLF, 
     mylimits.perm_maillist); wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_quota: %d" RET_CRLF,
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_quota %d" RET_CRLF,
    (mylimits.perm_quota) | 
    (mylimits.perm_maillist_users<<VLIMIT_DISABLE_BITS) |
    (mylimits.perm_maillist_moderators<<(VLIMIT_DISABLE_BITS*2)));
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "perm_defaultquota: %d" RET_CRLF, 
+  snprintf(WriteBuf,sizeof(WriteBuf), "perm_defaultquota %d" RET_CRLF, 
     mylimits.perm_defaultquota); wait_write();
   wait_write();
 
@@ -1849,23 +1833,23 @@ int set_limits()
     if ( (param = strtok(ReadBuf,PARAM_TOKENS)) == NULL ) continue;
     if ( (value = strtok(NULL,PARAM_TOKENS)) == NULL ) continue;
 
-    if ( strcmp(param,"maxpopaccounts") == 0 ) {
+    if ( strcmp(param,"max_popaccounts") == 0 ) {
       mylimits.maxpopaccounts = atoi(value);
-    } else if ( strcmp(param,"maxaliases") == 0 ) {
+    } else if ( strcmp(param,"max_aliases") == 0 ) {
       mylimits.maxaliases = atoi(value);
-    } else if ( strcmp(param,"maxforwards") == 0 ) {
+    } else if ( strcmp(param,"max_forwards") == 0 ) {
       mylimits.maxforwards = atoi(value);
-    } else if ( strcmp(param,"maxautoresponders") == 0 ) {
+    } else if ( strcmp(param,"max_autoresponders") == 0 ) {
       mylimits.maxautoresponders = atoi(value);
-    } else if ( strcmp(param,"maxmailinglists") == 0 ) {
+    } else if ( strcmp(param,"max_mailinglists") == 0 ) {
       mylimits.maxmailinglists = atoi(value);
-    } else if ( strcmp(param,"diskquota") == 0 ) {
+    } else if ( strcmp(param,"disk_quota") == 0 ) {
       mylimits.diskquota = atoi(value);
-    } else if ( strcmp(param,"maxmsgcount") == 0 ) {
+    } else if ( strcmp(param,"max_msgcount") == 0 ) {
       mylimits.maxmsgcount = atoi(value);
-    } else if ( strcmp(param,"defaultquota") == 0 ) {
+    } else if ( strcmp(param,"default_quota") == 0 ) {
       mylimits.defaultquota = atoi(value);
-    } else if ( strcmp(param,"defaultmaxmsgcount") == 0 ) {
+    } else if ( strcmp(param,"default_maxmsgcount") == 0 ) {
       mylimits.defaultmaxmsgcount = atoi(value);
     } else if ( strcmp(param,"disable_pop") == 0 ) {
       mylimits.disable_pop = atoi(value);
@@ -1873,11 +1857,11 @@ int set_limits()
       mylimits.disable_imap = atoi(value);
     } else if ( strcmp(param,"disable_dialup") == 0 ) {
       mylimits.disable_dialup = atoi(value);
-    } else if ( strcmp(param,"disable_passwordchanging") == 0 ) {
+    } else if ( strcmp(param,"disable_password_changing") == 0 ) {
       mylimits.disable_passwordchanging = atoi(value);
     } else if ( strcmp(param,"disable_webmail") == 0 ) {
       mylimits.disable_webmail = atoi(value);
-    } else if ( strcmp(param,"disable_relay") == 0 ) {
+    } else if ( strcmp(param,"disable_external_relay") == 0 ) {
       mylimits.disable_relay = atoi(value);
     } else if ( strcmp(param,"disable_smtp") == 0 ) {
       mylimits.disable_smtp = atoi(value);

@@ -14,3 +14,73 @@ Then for list of commands:
 help
 
 
+
+There is a PHP object to work with this daemon available at
+
+   http://pmailadmin.sourceforge.net/
+
+
+
+
+
+
+This appeared early in the discussion leading to the daemon, so
+until I find a better place for it, I'll add it here.  The important
+thing is the comments on what each bit is supposed to mean.  This
+may get re-worked into documentation on the daemon.
+
+
+List of bits in the gid or flags field for a user, from a message 
+from Ken on the vpopmail list.
+
+
+I'll try to give a detailed listing.
+#define NO_PASSWD_CHNG 0x01
+If set, the code should not allow the password to be changed
+
+#define NO_POP         0x02
+If set, reject pop authentications
+
+#define NO_WEBMAIL     0x04
+If set, reject webmail authentications
+
+#define NO_IMAP        0x08
+If set, reject imap authentications
+
+#define BOUNCE_MAIL    0x10
+If set, bounce any incoming mail back to the sender
+
+#define NO_RELAY       0x20
+If set, do not allow the account to relay email.
+This is useful for sites that want to have email accounts that
+are only allowed to send email internally.
+
+#define NO_DIALUP      0x40
+If set, code should not allow dialup access. This was originally
+added to support radius sites.
+
+#define V_USER0       0x080
+#define V_USER1       0x100
+#define V_USER2       0x200
+#define V_USER3       0x400
+After adding the NO_DIALUP flag we relalized there may be other
+flags people will want that are not directly used by any email code.
+
+#define NO_SMTP       0x800
+If set, do not allow smtp connections.
+
+#define QA_ADMIN     0x1000
+If set, the user is granted admin privilages in qmailadmin
+
+#define V_OVERRIDE   0x2000
+If set, the user is not subject to domain limits. Part of the
+vlimit code.
+
+#define NO_SPAMASSASSIN 0x4000
+If set, (and --enable-spamassassin=y) do not process the
+incoming mail through spamassassin. 
+
+#define DELETE_SPAM  0x8000
+with --enable-spamasssassin=y setting this flag
+will delete all email above the users required_hits
+preference.
