@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.9 2003-12-03 16:41:14 tomcollins Exp $
+ * $Id: vlimits.c,v 1.10 2003-12-12 16:10:58 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -364,6 +364,7 @@ int vdel_limits(const char *domain)
     strncat(dir, "/.qmailadmin-limits", sizeof(dir)-strlen(dir)-1);
     return unlink(dir);
 }
+#endif
 
 void vlimits_setflags (struct vqpasswd *pw, char *domain)
 {
@@ -374,4 +375,3 @@ void vlimits_setflags (struct vqpasswd *pw, char *domain)
         pw->pw_flags = pw->pw_gid | vlimits_get_flag_mask (&limits);
     } else pw->pw_flags = pw->pw_gid;
 }
-#endif
