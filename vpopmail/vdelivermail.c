@@ -877,7 +877,7 @@ int is_looping( char *address )
     while(fgets(loop_buf,sizeof(loop_buf),stdin)!=NULL){
 
         /* if we find the line, return error (looping) */
-        if (strstr(loop_buf, "Delivered-To")!= 0 && 
+        if (strncmp(loop_buf, "Delivered-To: ", 14) == 0 &&
             is_loop_match(loop_buf, address)==1 ) {
 
             /* return the loop found */
@@ -1313,6 +1313,7 @@ int is_loop_match( char *dt, char *address)
 
     /* walk forward in dt line for @ character */
     while ( *dt != '@' && *dt != 0 ) ++dt;
+    if (*dt == 0) return 0;  /* no @ character found */
 
     /* now walk back to first space */
     while ( *dt != ' ' && dt != startdt) --dt;
