@@ -14,6 +14,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  some minor typos in the documentation [793659]
 	- Contributed the README.roamingusers file that provides some
 	  explanation of how the vpopmail roaming users system works.
+	- Revised the configure.in script to try and improve logic,
+	  formatting, and helpstrings. Also added tests for many new
+	  functions/libraries as per suggestions from autoscan tool.
+	  [828680]
 
 	Tom Collins
 	- Update more files involved in the build process.
