@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.5 2004-04-28 09:03:52 rwidmer Exp $
+ * $Id: vdeldomain.c,v 1.6 2004-05-08 08:03:55 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ void get_options(int argc,char **argv);
 
 int main(int argc, char *argv[])
 {
- int err;
+ int err=0;
 
  domain_entry *entry;
  char *aliases[MAX_DOM_ALIAS];
