@@ -1,6 +1,18 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.3.31 - unreleased
+	
+	Michael Bowe
+	- Updated README.xxxauthbackend files to include indication
+	  of which auth systems are of production quality (cbd, mysql),
+	  which ones are believed to be generally functional (ldap,
+          pgsql) and which ones are not recommended (oracle, sybase,
+	  activedir) [832302]
+	- Review the assorted text files included in the source dir.
+	  Remove out-of-date content / files as appropriate. Updated
+	  some minor typos in the documentation [793659]
+
 5.3.30 - 20-Nov-03
 
 	Michael Bowe

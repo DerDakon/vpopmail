@@ -1,8 +1,8 @@
 REMINDER:
 
 When recompiling vpopmail, you need to recompile all binaries that link 
-into the vpopmail libraries.  These include QmailAdmin and qmail-smtpd (if 
-you have the chkuser patch applied).
+into the vpopmail libraries.  These include QmailAdmin, qmail-smtpd (if 
+you have the chkuser patch applied), Courier-IMAP etc.
 
 Upgrading to vpopmail-5.3
 -------------------------
@@ -24,16 +24,15 @@ the following exceptions:
    work fine.
 
 3. Clear text passwords are now enabled by default.
-   If you are running mysql read UPGRADE.tren if
-   you want to use clear text passwords. basicly
-   you need to update the table definition. This
-   can be done on a running system, for example:
+   If you are running mysql and you want to use 
+   clear text passwords. basically you will need
+   to update the table definition. This can be done
+   on a running system, for example:
 ALTER TABLE vpopmail ADD COLUMN pw_clear_passwd char(16);
 
 
 Upgrading to vpopmail-5.0 or above
 ----------------------------------
-Please also read UPGRADE.tren
 
 Reports from site administrators indicate that
 vpopmail can be upgraded cleanly with no problems.
@@ -58,6 +57,13 @@ The configure options that work for most sites is:
 If you are running a mysql, ldap or anything besides
 the default vpasswd(cdb) module follow the normal
 directions in the INSTALL file.
+
+Clear text passwords are now enabled by default.
+If you are running mysql and you want to use
+clear text passwords. basically you will need
+to update the table definition. This can be done
+on a running system, for example:
+ALTER TABLE vpopmail ADD COLUMN pw_clear_passwd char(16);
 
 If you are using pop authentication before relay,
 otherwise known as roaming-users add the

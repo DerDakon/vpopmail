@@ -1,16 +1,26 @@
+--------------------------------------------------------------------------
+
+Using vpopmail with MySQL is becoming increasingly popular. 
+The code is well tested and can be considered to be just
+as stable as the default CDB authentication system.
+
+--------------------------------------------------------------------------
+
 You might want to refer to Michael Bowe's excellent guide to vpopmail with 
 MySQL, available at:
 
    http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
+
+--------------------------------------------------------------------------
+
+vpopmail now supports mysql. Here is a brief outline on how to
+get it running.
 
 NOTE: make sure you are running the latest stable release of mysql.
 If you have 3.22 installed, you will need to upgrade. The dir_control
 table in vpopmail uses a "unique index (domain)" syntax which isn't
 supported in the 3.22 releases. Thanks to Chris Scheller for
 tracking this down.
-
-vpopmail now supports mysql. Here is a brief outline on how to
-get it running.
 
 There are some things you need to edit by hand to get it to work.
 
@@ -39,7 +49,7 @@ set to be your local mysql server.
 After changing the file, make sure it has the correct permissions:
 
 chown vpopmail.vchkpw vpopmail.mysql
-chmod 0644 vpopmail.mysql
+chmod 0600 vpopmail.mysql
 
 2) configure options for mysql support.
 

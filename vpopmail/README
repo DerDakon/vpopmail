@@ -12,5 +12,7 @@ For help with quotas see README.quotas
 
 For help with sybase see README.sybase
 
-For help on how to replace qmail-local with
-a vpopmail version see README.vqmaillocal
+For help with postgres see README.postgres
+
+Latest versions of vpopmail are available from
+http://www.sourceforge.net/projects/vpopmail

@@ -1,3 +1,12 @@
+--------------------------------------------------------------------------
+
+Using vpopmail with LDAP is not very common.
+The LDAP modules are understood to be functional, but because it not
+as popular as using CDB or MySQL auth systems, you should be wary of
+implementing the LDAP system on a production server.
+
+--------------------------------------------------------------------------
+
 See the ldap directory for the
 qmailUser.schema and slapd.conf files
 

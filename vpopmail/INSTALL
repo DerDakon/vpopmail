@@ -1,15 +1,14 @@
 For more information see the README files
  README	     
  README.mysql   
- README.quotas    
  README.ldap  
  README.sybase
  README.oracle  
- README.vqmaillocal
+ README.pgsql
+ README.quotas
 
 For information on upgrading please see the UPGRADE files
-UPGRADE  
-UPGRADE.tren
+ UPGRADE  
 
 
 Note: If you are using any of the BSD distro's you should probably use gmake
