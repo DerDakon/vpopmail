@@ -1,9 +1,5 @@
 /*
- * vdeloldusers
- * remove a user who has not authenticated in a long time.
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +25,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-#ifdef USE_MYSQL
-#include <mysql.h>
-#include "vmysql.h"
-#endif
 
 #ifndef ENABLE_AUTH_LOGGING
 int main()
@@ -40,35 +32,28 @@ int main()
 	printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
 	return(vexit(-1));
 }
-#else
-#ifndef USE_MYSQL 
-int main()
-{
-	printf("vdeloldusers currently does not work without the mysql module\n");
-	return(vexit(-1));
-}
-#else
+#endif
 
 
 
 #define MAX_BUFF     500
 #define DEFAULT_AGE  180
+#define TOKENS ":\n"
 
 char Domain[MAX_BUFF];
 char SqlBuf[MAX_BUFF];
 int  Age;
 int  EveryDomain;
-int  ReportOnly;
-
-#ifdef USE_MYSQL
-static MYSQL mysql;
-static MYSQL_RES *res = NULL;
-static MYSQL_ROW row;
-#endif
+int  Verbose;
+int  Delete;
+int  UsersToDelete = 0;
 
 void usage();
 void get_options(int argc,char **argv);
+void process_all_domains(time_t nowt);
+void deloldusers(char *Domain, time_t nowt);
 
+#ifdef ENABLE_AUTH_LOGGING
 int main(argc,argv)
  int argc;
  char *argv[];
@@ -83,48 +68,36 @@ int main(argc,argv)
 	/* subtract the age */
 	nowt = nowt - (86400*Age);
 
-	mysql_init(&mysql);
-	if (!(mysql_real_connect(&mysql,MYSQL_UPDATE_SERVER,
-	MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD,
-			MYSQL_DATABASE, 0,NULL,0))) {
-		printf("could not connect to mysql database\n");
-		vexit(-1);
-	}
+    if(EveryDomain == 0) {
+        deloldusers(Domain,nowt);
+    } else {
+        process_all_domains(nowt);
+    }
 
-	snprintf(SqlBuf, MAX_BUFF, 
-    "select user,domain from lastauth where timestamp < '%lu'",
-       nowt); 
+    if( ! UsersToDelete ) {
+        printf("no old users found\n");
+    }
 
-	if (mysql_query(&mysql,SqlBuf)) {
-		printf("error in mysql query %s\n", SqlBuf);
-		vexit(-1);
-	}
-	if (!(res = mysql_use_result(&mysql))) {
-		printf("vsql_getpw: store result failed\n");
-		vexit(-1);	
-	}
-	while((row = mysql_fetch_row(res))) {
-          if ( strcmp(row[0], "postmaster") == 0 ) {
-            printf("don't delete postmaster account\n");
-          } else {
-            if ( ReportOnly == 0 )  vdeluser( row[0], row[1]);
-            printf("%s %s\n", row[0], row[1]);
-          }
-	}
-	mysql_free_result(res);
+    if( ! Delete && UsersToDelete) {
+        printf(" ** no users were deleted  **\n");
+        printf(" ** use -D to delete users **\n");
+    }
+
 	vexit(0);
 }
+#endif
 
 
 void usage()
 {
 	printf("vdeloldusers: usage: [options]\n");
-	/*printf("options: -d domain\n");*/
 	printf("options: -a age_in_days (will delete accounts older than this date)\n");
 	printf("                        (default is 6 months or 180 days)\n");
-	printf("         -v (print version number)\n");
+	printf("         -v (print version number and exit)\n");
+	printf("         -d [domain] (process only [domain])\n");
 	printf("         -e (process every domain)\n");
-        printf("         -r (report only, don't delete)\n");
+    printf("         -D (actually delete users. no users are deleted without this option)\n");
+	printf("         -V (verbose -- print old users that will be deleted)\n");
 }
 
 void get_options(int argc,char **argv)
@@ -135,25 +108,31 @@ void get_options(int argc,char **argv)
 	memset(Domain, 0, MAX_BUFF);
 	Age = DEFAULT_AGE;
         EveryDomain = 0;
-        ReportOnly = 0;
+        Verbose = 0;
+        Delete = 0;
 
 	errflag = 0;
-	while( !errflag && (c=getopt(argc,argv,"vd:a:er")) != -1 ) {
+	while( !errflag && (c=getopt(argc,argv,"vVDd:a:e")) != -1 ) {
 		switch(c) {
 			case 'e':
                                 EveryDomain = 1;
 				break;
-			case 'r':
-                                ReportOnly = 1;
+			case 'D':
+                                Delete = 1;
+				break;
+			case 'V':
+                                Verbose = 1;
 				break;
 			case 'd':
 				strncpy(Domain, optarg, MAX_BUFF);
+                                EveryDomain = 0;
 				break;
 			case 'a':
 				Age = atoi(optarg);
 				break;
 			case 'v':
 				printf("version: %s\n", VERSION);
+		        vexit(-1);
 				break;
 			default:
 				errflag = 1;
@@ -161,10 +140,72 @@ void get_options(int argc,char **argv)
 		}
 	}
 
-	if (errflag == 1 || EveryDomain == 0 ) {
+	if (argc <= 1 ) {
 		usage();
 		vexit(-1);
 	}
+	if ( ! EveryDomain && strlen(Domain) == 0) {
+        printf("error: you must supply either the -e or -d [domain] options\n");
+		vexit(-1);
+	}
 }
-#endif
-#endif
+
+void deloldusers(char *Domain, time_t nowt)
+{
+ time_t mytime;
+ static struct vqpasswd *mypw;
+ int first = 1;
+
+    while( (mypw = vauth_getall(Domain, first, 0)) != NULL )  {
+        first = 0;
+
+        if ( strcmp(mypw->pw_name, "postmaster") == 0 ) {
+            if ( Verbose) {
+                printf("skipping postmaster@%s\n", Domain);
+            }
+        } else {
+            mytime = vget_lastauth(mypw, Domain);
+
+            if ( mytime != 0 ) {
+                if(mytime < nowt) {
+                    UsersToDelete = 1;
+                    if ( Verbose) {
+                        printf("%s@%s\n", mypw->pw_name, Domain);
+                    }
+                    if( Delete ) {
+                        vdeluser(mypw->pw_name, Domain);
+                    }
+                }
+            }
+        }
+    }       
+
+}
+
+void process_all_domains(time_t nowt)
+{
+ FILE *fs;
+ char *tmpstr;
+ char TmpBuf[MAX_BUFF];
+
+    snprintf(TmpBuf, MAX_BUFF, "%s/users/assign", QMAILDIR);
+    if ((fs=fopen(TmpBuf, "r"))==NULL) {
+        printf("could not open assign file %s\n", TmpBuf);
+    }
+
+    while( fgets(TmpBuf, MAX_BUFF, fs) != NULL ) {
+	    if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
+
+	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+	    strncpy( Domain, tmpstr, MAX_BUFF);
+
+	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+
+	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+
+	    if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
+
+	    deloldusers(Domain,nowt);
+    }
+    fclose(fs);
+}

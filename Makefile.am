@@ -4,7 +4,7 @@ SUBDIRS=cdb
 
 noinst_LIBRARIES=libvpopmail.a
 
-COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c
+COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES=vauth.c
 
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
@@ -23,7 +23,7 @@ vuserinfo_LDADD = libvpopmail.a @auth_libs@
 vdominfo_SOURCES = vdominfo.c
 vdominfo_LDADD = libvpopmail.a @auth_libs@
 
-vchkpw_SOURCES = vchkpw.c 
+vchkpw_SOURCES = vchkpw.c md5.c hmac_md5.c
 vchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
@@ -99,6 +99,7 @@ install-data-local:
 	cp config.h       $(DESTDIR)@vpopmaildir@/include
 	cp config.h       $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 	cp vauth.h        $(DESTDIR)@vpopmaildir@/include
+	cp vlimits.h      $(DESTDIR)@vpopmaildir@/include
 	cp doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html
 	cp doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html
 
@@ -109,14 +110,11 @@ install-data-local:
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/man_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/doc_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/bin
-	chmod 750 $(DESTDIR)@vpopmaildir@/bin/vdeloldusers
+	chmod 700 $(DESTDIR)@vpopmaildir@/lib
 	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chmod 711 $(DESTDIR)@vpopmaildir@/bin/*
 	chmod 444 $(DESTDIR)@vpopmaildir@/include/*
 	chmod 444 $(DESTDIR)@vpopmaildir@/doc/doc_html/*
-
-	chown root    $(DESTDIR)@vpopmaildir@/lib
-	chmod og-rwxs $(DESTDIR)@vpopmaildir@/lib
 
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"

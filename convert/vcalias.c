@@ -44,8 +44,9 @@ gid_t Gid;
 char Dir[DIR_SIZE];
 char File[DIR_SIZE];
 
-#define FILE_LINE_SIZE 255
+#define FILE_LINE_SIZE 1024
 char FileLine[FILE_LINE_SIZE];
+char EFileLine[FILE_LINE_SIZE];
 
 #define ALIAS_NAME_SIZE 33
 char AliasName[ALIAS_NAME_SIZE];
@@ -68,8 +69,8 @@ main(int argc, char **argv)
 	mysql_init(&mysql);
 
 	/* open the mysql database */
-	if (!(mysql_real_connect(&mysql,MYSQL_UPDATE_ SERVER,
-              MYSQL_UPDATE_ USER,MYSQL_UPDATE_PASSWD, MYSQL_DATABASE, 
+	if (!(mysql_real_connect(&mysql,MYSQL_UPDATE_SERVER,
+              MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD, MYSQL_DATABASE, 
               MYSQL_PORT,NULL,0))) {
 		fprintf(stderr, "Could not open database\n");
 		exit(-1);
@@ -127,9 +128,11 @@ main(int argc, char **argv)
 				printf("line = %s\n", FileLine);
 
 				/* insert in database */
+			    memset(EFileLine, 0, FILE_LINE_SIZE);
+                vmysql_escape(FileLine,EFileLine);
 				sprintf( SqlBuf1, "insert into valias \
 ( alias, domain, valias_line ) values ( \"%s\", \"%s\", \"%s\")",
-				AliasName, Domain, FileLine );
+				AliasName, Domain, EFileLine );
 
         			if (mysql_query(&mysql,SqlBuf1)) {
             				printf("insert error sql = %s\n",  

@@ -1,8 +1,33 @@
 Ken Jones <kbo@inter7.com>
-	Current Package Maintainer 
+      Current Package Maintainer 
 
-Bill Shupp
-        many many things. Please see the ChangeLog
+Bill Shupp <hostmaster@shupp.org>
+      many many things. Please see the ChangeLog
+
+Edoardo Serra  vpopml at connecting dot to dot it
+      automatically create maildir in vpopbull if it doesn't exist
+
+Brian Kolaci <bk@kola.com>
+      added limits functions to vpopmail api:
+          int vget_limits( char *domain, struct vlimits *limits )
+          int vset_limits( char *domain, struct vlimits *limits )
+          int vdel_limits( char *domain )
+      performance improvements to vopen_smtp_relay() for sql modules
+
+Andrew Kohlsmith akohlsmith-vpopmail at benshaw dot com
+      Updates to the PostgreSQL module
+
+Steve Fulton
+      added error return codes 100 and 99 to vdelivermail
+
+Paul Kremer pkremer at dullboy dot gms dot lu
+       set ldap protocol version before each ldap_simple_bind_s call.
+
+Justin Heesemann jh at ionium dot org
+       --enable-users-big-dir option.
+
+Rui Barreiros <rui@websolut.net>
+       fixed alias domains problems
 
 "Chris Bunnell" <cbunnell@sonicisp.net>
         reverse the check in vdelivermail for user over quota.
@@ -29,10 +54,15 @@ Bill Shupp
         the files.
         coda fs changes for link/rename
         temporary version of open_command for vdelivermail
+        seek patch (U of Maryland wrote the original code)
 
 "Matt Simerson" <mpsimerson@hostpro.com>
         tcpserver patches and mysql module changes to greatly
         increase the efficency of roaming users.
+
+"Maxim Krikuha" <maxim@sibtel.ru>
+        - update vdelivermail.c to support .no-user.msg file in either 
+          the domains directory or under the vpopmail home domains directory.
 
 Boris Manojlovic <steki@verat.net>
         - New ldap code and ldap directory with ldap files
@@ -172,5 +202,3 @@ Nicholas L. Nigay <nnigay@cboss.ru>
 
 Chris Johnson <sixie@nccnet.co.uk>
 	Original Author
-
-

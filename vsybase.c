@@ -1,8 +1,5 @@
 /*
- * vsybase.c
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -611,3 +608,10 @@ int vshow_ip_map( int first, char *ip, char *domain);
 	return(0);
 }
 #endif
+
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+{
+  if ( vpw == NULL ) return(-1);
+
+  return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
+}

@@ -34,7 +34,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-#include "safestring.h"
 
 
 #define MAX_BUFF 500
@@ -103,7 +102,7 @@ void get_options(int argc, char **argv)
     }
 
     if ( optind < argc ) { 
-	scopy(Domain, argv[optind], MAX_BUFF);
+	strncpy(Domain, argv[optind], MAX_BUFF);
 	++optind;
     }
 

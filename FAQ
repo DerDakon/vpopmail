@@ -43,7 +43,11 @@ the smtpserver?
 32. I don't want to bounce emails for non existent users. Instead I want
     to delete them, how?
 33. Quota usage doesn't decrease after deleting messages with qmail-pop3d!
-34. Is there commerical support available?
+34. How do I get Courier-IMAP use vpopmail's "roaming users"?
+35. How to run vadddomain as non root
+36. I want to have vpopmail access mysql as vpopmail and not root. What 
+    sql commands to I run? 
+37. Is there commerical support available?
 
 
 Intro
@@ -285,7 +289,7 @@ qmails:x:509:504::/var/qmail:/bin/bash
     than the HARD_QUOTA limit. The email is bounced back to
     the sender.
 
-    Use the configuration option --enable-hardquota to change the 
+    Use the configuration option --enable-defaultquota to change the 
     size of the hard quota per user.  Please read README.quotas
     for information on maildirquotas and syntax information.
 
@@ -669,11 +673,63 @@ Solution: 1) remove the cron job
 
     Vpopmail 5.1.1 and above now use maildirquotas.  qmail-pop3d doesn't 
     support maildirquotas.  Patch qmail with 
-    contrib/qmail-pop3d-maildirquota.patch to add maildirquota support to
-    qmail-pop3d.  See README.quotas for other options and more information on
-    maildirquotas in vpopmail.
+    contrib/qmail-maildir++.patch to add maildirquota support to
+    qmail-pop3d and qmail-local.  See README.quotas for other options and more 
+    information on maildirquotas in vpopmail.
 
-34. This all sounds great, but we are running a busines.  Is there 
+34. How do I get Courier-IMAP use vpopmail's "roaming users"?
+
+    1. Make sure vpopmail is compiled with --enable-roaming-users=y
+    2. Courier-IMAP doesn't  detect roaming users in the vpopmail library 
+       correctly, so force it by doing something like this just before 
+       compiling:
+         export CFLAGS="-DHAVE_OPEN_SMTP_RELAY"
+    3. compile courier-imap with --without-authdaemon --with-authvchkpw
+    4. Make sure you run your imap server as the same user as your pop 
+       server (so open-smtp and tcp.smtp have the same ownership).  man 
+       couriertcpd for details, but you will change /usr/lib/courier-
+       imap/libexec/imapd.rc something like this:
+    
+    Change this line:
+    /usr/lib/courier-imap/libexec/couriertcpd -address=$ADDRESS \
+    
+    To:
+    /usr/lib/courier-imap/libexec/couriertcpd -address=$ADDRESS \
+	    -user=vpopmail -group=vchkpw \
+
+    NOTE: some people report problems using the -user -group options
+          for the above lines
+
+35. How to run vadddomain as non root
+1) make sure /var/qmail/control directory and all the files inside
+   it are owned by your non root user (vpopmail).
+2) make sure /var/qmail/users directory and all the files inside
+   are owned by your non root user (vpopmail)
+3) change permissions on /var/qmail/bin/qmail-newu to allow non
+   root users to run it. chmod ugo+rx /var/qmail/bin/qmail-newu
+4) after adding the domain have root signal qmail-send with HUP
+   to tell it to re-read it's control files.
+5) change permissions on /var/qmail/bin/qmail-newmrh to allow
+   non root users to run it. chmod ugo+rx /var/qmail/bin/qmail-newmrh
+
+36. I want to have vpopmail access mysql as vpopmail and not root. What 
+    sql commands to I run? 
+
+First log into mysql as your mysql root user and pass. Then:
+> create database vpopmail;
+> use mysql;
+> grant select, insert, update, delete, create, drop on vpopmail.* to 
+  vpopmail@localhost identified by 'your password';
+
+That will create the vpopmail database then create a vpopmail login
+with access to the vpopmail database and will set the password to
+'your password'. Pick something random to put in for 'your password'.
+
+Edit the vmysql.h file and change "root" to "vpopmail" and change
+"secret" to whatever you picked as 'your password'.
+
+
+37. This all sounds great, but we are running a busines.  Is there 
    commerical installation/support/maintenece available?
         For $225 Inter7 will install qmail, tcpserver, boot scripts and
         vpopmail on your machine and test via the internet to anywhere.

@@ -1,8 +1,5 @@
 /*
- * file_lock.c
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  *
- * functions straight out of Richard Steven's 
- * "Advanced Programming in the UNIX Environment"
- *
- * Translated into bytes by Eric Peters (eric@peters.org)
- * August 19, 2000
  */
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdio.h>	/* for perror() */

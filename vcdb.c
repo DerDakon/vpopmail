@@ -1,8 +1,5 @@
 /*
- * cdbutil.c
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,6 +224,9 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  static struct vqpasswd pwent;
  static char line[2048];
  char *ptr = NULL, *uid = NULL, *gid = NULL;
+ uid_t myuid;
+ uid_t tuid;
+ gid_t tgid;
  uint32 dlen;
  FILE *pwf;
 #ifdef FILE_LOCKING
@@ -236,6 +236,12 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     verrori = 0;
     lowerit(user);
     lowerit(domain);
+
+    vget_assign(domain,NULL,156,&tuid,&tgid);
+    myuid = geteuid();
+    if ( myuid != 0 && myuid != tuid ) {
+	return(NULL);
+    }
 
     mem_size = strlen(domain);
     i = strlen(DEFAULT_DOMAIN);
@@ -531,7 +537,9 @@ int vauth_setquota( char *username, char *domain, char *quota)
  struct vqpasswd *vpw;
 
     if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR
     if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
@@ -1026,7 +1034,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
  uid_t uid;
  gid_t gid;
 
-	vpw = vauth_getpw( user, domain );
+    if( (vpw = vauth_getpw( user, domain )) == NULL) return(0);
 
 	tmpbuf = malloc(MAX_BUFF);
 	snprintf(tmpbuf, MAX_BUFF, "%s/lastauth", vpw->pw_dir);
@@ -1122,4 +1130,11 @@ void vcdb_strip_char( char *instr )
        ++instr;
     }
 
+}
+
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+{
+  if ( vpw == NULL ) return(-1);
+
+  return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
 }

@@ -1,8 +1,5 @@
 /*
- * vpopmail.h
- * part of the vchkpw package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,6 +91,7 @@
 #define V_USER1       0x100
 #define V_USER2       0x200
 #define V_USER3       0x400
+#define NO_SMTP       0x800
 #define QA_ADMIN     0x1000
 
 extern int OptimizeAddDomain;
@@ -135,7 +133,7 @@ int r_mkdir(char *, uid_t uid, gid_t gid);
 struct vqpasswd *vgetent(FILE *);
 int pw_comp(char *, char *, char *, int);
 void vset_default_domain( char *);
-void vopen_smtp_relay();	
+int vopen_smtp_relay();	
 void vupdate_rules(int);
 void vclear_open_smtp(time_t, time_t);
 char *verror(int);
@@ -159,6 +157,7 @@ int vvalidchar( char inchar );
 int is_username_valid( char *user );
 int is_domain_valid( char *domain );
 int vaddaliasdomain( char *alias_domain, char *real_domain);
+char *format_maildirquota(const char *q);
 
 #ifdef APOP
 char *dec2hex(unsigned char *);

@@ -10,9 +10,6 @@
 /* Define to empty if the keyword does not work.  */
 #undef const
 
-/* Define if you need to in order for stat and other things to work.  */
-#undef _POSIX_SOURCE
-
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 #undef size_t
 
@@ -34,7 +31,11 @@
 
 #undef USE_SYBASE
 
+#undef USE_ACTIVE_DIR
+
 #undef USE_ORACLE
+
+#undef USE_POSTGRES
 
 #undef USE_LDAP
 
@@ -57,6 +58,8 @@
 #undef ENABLE_LEARN_PASSWORDS
 
 #undef ENABLE_MYSQL_LOGGING
+
+#undef ENABLE_MYSQL_LIMITS
 
 #undef CLEAR_PASS
 
@@ -84,7 +87,11 @@
 
 #undef HARD_QUOTA
 
+#undef DOMAIN_QUOTAS
+
 #undef QMAIL_EXT
+
+#undef REBUILD_TCPSERVER
 
 #undef VPOPUSER
 
@@ -107,6 +114,10 @@
 #undef DOMAINS_DIR
 
 #undef POP_AUTH_OPEN_RELAY
+
+#undef USERS_BIG_DIR
+
+#undef MAKE_SEEKABLE
 
 /* Define if you have the fdatasync function.  */
 #undef HAVE_FDATASYNC

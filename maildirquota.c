@@ -1,12 +1,19 @@
 /*
- * various maildirquota functions from courier-imap
- * 
- * Copyright 1998 - 1999 Double Precision, Inc.
- * See COPYING in the courier-imap-1.3.11 source for distribution information.
- * 
- * consolidated and slightly modified by Bill Shupp <hostmaster@shupp.org
- * to get maildirquota support in vdelivermail rather than piping to
- * deliverquota.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  *
  */
 
@@ -22,25 +29,30 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/uio.h>
+#include "vlimits.h"
 #include "maildirquota.h"
 #include "config.h"
 
-
+/* private functions - no name clashes with courier */
 static char *makenewmaildirsizename(const char *, int *);
 static int countcurnew(const char *, time_t *, off_t *, unsigned *);
 static int countsubdir(const char *, const char *,
 		time_t *, off_t *, unsigned *);
 static int statcurnew(const char *, time_t *);
 static int statsubdir(const char *, const char *, time_t *);
-static int	doaddquota(const char *, int, const char *, long, int, int);
-static int docheckquota(const char *dir,
-	int *maildirsize_fdptr,
-	const char *quota_type,
-	long xtra_size,
-	int xtra_cnt, int *percentage);
+static int doaddquota(const char *, int, const char *, long, int, int);
+static int docheckquota(const char *dir, int *maildirsize_fdptr,
+	const char *quota_type, long xtra_size, int xtra_cnt, int *percentage);
 static int docount(const char *, time_t *, off_t *, unsigned *);
-int deliver_quota_warning(const char *dir);
-char *format_maildirquota(const char *q);
+static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
+	const char *quota_type, long xtra_size, int xtra_cnt);
+static int maildir_addquota(const char *dir, int maildirsize_fd,
+	const char *quota_type, long maildirsize_size, int maildirsize_cnt);
+static int maildir_safeopen(const char *path, int mode, int perm);
+static char *str_pid_t(pid_t t, char *arg);
+static char *str_time_t(time_t t, char *arg);
+static int maildir_parsequota(const char *n, unsigned long *s);
+
 
 #define  NUMBUFSIZE      60
 #define	MDQUOTA_SIZE	'S'	/* Total size of all messages in maildir */
@@ -48,6 +60,195 @@ char *format_maildirquota(const char *q);
 				maildir -- NOT IMPLEMENTED */
 #define	MDQUOTA_COUNT	'C'	/* Total number of messages in maildir */
 
+
+/* bk: add domain limits functionality */
+int domain_over_maildirquota(const char *userdir)
+{
+struct  stat    stat_buf;
+int     ret_value = 0;
+char	*domdir=(char *)malloc(strlen(userdir)+1);
+char	*p;
+char	domain[256];
+unsigned long size = 0;
+unsigned long maxsize = 0;
+int	cnt = 0;
+int	maxcnt = 0;
+struct vlimits limits;
+
+        if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
+                stat_buf.st_size > 0)
+        {
+
+		/* locate the domain directory */
+		strcpy(domdir, userdir);
+		if ((p = strstr(domdir, "/Maildir/")) != NULL)
+		{
+			while (*(--p) != '/')
+				;
+			*(p+1) = '\0';
+		}
+
+		/* locate the domainname */
+		while (*(--p) != '/')
+			;
+		strncpy(domain, ++p, sizeof(domain));
+		if ((p = strchr(domain, '/')) != NULL)
+			*p = '\0';
+
+		/* get the domain quota */
+		if (vget_limits(domain, &limits))
+		{
+			free(domdir);
+			return 0;
+		}
+		/* convert from MB to bytes */
+		maxsize = limits.diskquota * 1024 * 1024;
+		maxcnt = limits.maxmsgcount;
+
+		/* get the domain usage */
+		if (readdomainquota(domdir, &size, &cnt))
+		{
+			free(domdir);
+			return -1;
+		}
+
+		/* check if either quota (size/count) would be exceeded */
+		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize)
+		{
+			ret_value = 1;
+		}
+		else if (maxcnt > 0 && cnt >= maxcnt)
+		{
+			ret_value = 1;
+		}
+        }
+
+	free(domdir);
+
+        return(ret_value);
+}
+
+int readdomainquota(const char *dir, long *sizep, int *cntp)
+{
+int tries;
+char	checkdir[256];
+DIR	*dirp;
+struct dirent *de;
+
+
+	if (dir == NULL || sizep == NULL || cntp == NULL)
+		return -1;
+
+	*sizep = 0;
+	*cntp = 0;
+
+	dirp=opendir(dir);
+	while (dirp && (de=readdir(dirp)) != 0)
+	{
+		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+			continue;
+
+		strncpy(checkdir, dir, sizeof(checkdir));
+		strncat(checkdir, de->d_name, sizeof(checkdir));
+		strncat(checkdir, "/Maildir/", sizeof(checkdir));
+		tries = 5;
+		while (tries-- && readuserquota(checkdir, sizep, cntp))
+		{
+			if (errno != EAGAIN)
+				return -1;
+			sleep(1);
+		}
+		if (tries <= 0)
+			return -1;
+	}
+	if (dirp)
+	{
+#if	CLOSEDIR_VOID
+		closedir(dirp);
+#else
+		if (closedir(dirp))
+		{
+			return (-1);
+		}
+#endif
+	}
+
+	return 0;
+}
+
+int readuserquota(const char* dir, long *sizep, int *cntp)
+{
+time_t	tm;
+time_t	maxtime;
+DIR	*dirp;
+struct dirent *de;
+
+	maxtime=0;
+
+	if (countcurnew(dir, &maxtime, sizep, cntp))
+	{
+		return (-1);
+	}
+
+	dirp=opendir(dir);
+	while (dirp && (de=readdir(dirp)) != 0)
+	{
+		if (countsubdir(dir, de->d_name, &maxtime, sizep, cntp))
+		{
+			closedir(dirp);
+			return (-1);
+		}
+	}
+	if (dirp)
+	{
+#if	CLOSEDIR_VOID
+		closedir(dirp);
+#else
+		if (closedir(dirp))
+		{
+			return (-1);
+		}
+#endif
+	}
+
+	/* make sure nothing changed while calculating this... */
+	tm=0;
+
+	if (statcurnew(dir, &tm))
+	{
+		return (-1);
+	}
+
+	dirp=opendir(dir);
+	while (dirp && (de=readdir(dirp)) != 0)
+	{
+		if (statsubdir(dir, de->d_name, &tm))
+		{
+			closedir(dirp);
+			return (-1);
+		}
+	}
+	if (dirp)
+	{
+#if	CLOSEDIR_VOID
+		closedir(dirp);
+#else
+		if (closedir(dirp))
+		{
+			return (-1);
+		}
+#endif
+	}
+
+	if (tm != maxtime)	/* Race condition, someone changed something */
+	{
+		errno=EAGAIN;
+		return (-1);
+	}
+	errno=0;
+
+	return 0;
+}
 
 int user_over_maildirquota( const char *dir, const char *q)
 {
@@ -93,41 +294,6 @@ char    quotawarnmsg[500];
                 if (quotafd >= 0)       close(quotafd);
         }
 }
-
-char *format_maildirquota(const char *q) {
-int     i;
-int     per_user_limit;
-static char    tempquota[500];
-
-    /* translate the quota to a number, or leave it */
-    i = strlen(q) - 1;
-    tempquota[0] = '\0'; /* make sure tempquota is 0 length */
-    if(strstr(q, ",") == NULL && q[i] != 'S') {
-        per_user_limit = atol(q);
-        for(i=0;q[i]!=0;++i) {
-            if ( q[i] == 'k' || q[i] == 'K' ) {
-                per_user_limit = per_user_limit * 1000;
-                snprintf(tempquota, 500, "%dS", per_user_limit);
-                break;
-            }
-            if ( q[i] == 'm' || q[i] == 'M' ) {
-                per_user_limit = per_user_limit * 1000000;
-                sprintf(tempquota, "%dS", per_user_limit);
-                break;
-            }
-        }
-
-
-        if(strlen(tempquota) == 0) {
-            sprintf(tempquota, "%sS", q);
-        }
-    } else {
-          sprintf(tempquota, "%s", q);
-    }
-
-    return(tempquota);
-}
-
 
 /* Read the maildirsize file */
 
@@ -261,7 +427,7 @@ int	npercentage=0;
 }
 
 
-int maildir_checkquota(const char *dir,
+static int maildir_checkquota(const char *dir,
 	int *maildirsize_fdptr,
 	const char *quota_type,
 	long xtra_size,
@@ -273,7 +439,7 @@ int	dummy;
 		xtra_size, xtra_cnt, &dummy));
 }
 
-int maildir_readquota(const char *dir, const char *quota_type)
+int vmaildir_readquota(const char *dir, const char *quota_type)
 {
 int	percentage=0;
 int	fd=-1;

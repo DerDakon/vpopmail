@@ -14,9 +14,20 @@ There are some things you need to edit by hand to get it to work.
 
 Change these lines to match the configuration on your network
 
-#define MYSQL_SERVER "localhost"
-#define MYSQL_USER   "root"
-#define MYSQL_PASSWD "yyyyy"
+#define MYSQL_UPDATE_SERVER "localhost"
+#define MYSQL_UPDATE_USER   "root"
+#define MYSQL_UPDATE_PASSWD "secret"
+
+#define MYSQL_READ_SERVER   "localhost"
+#define MYSQL_READ_USER     "root"
+#define MYSQL_READ_PASSWD   "secret"
+
+If you are NOT using mysql replication then set both of
+these sets to be your primary mysql server information.
+
+If you ARE using mysql replication then set the UPDATE
+set to be your master mysql server and set the READ
+set to be your local mysql server.
 
 2) configure options for mysql support.
 
@@ -30,12 +41,12 @@ in the "default" locations, you will need to use these options.
 If your include files are not in /usr/include/mysql or 
 /usr/local/include/mysql, add the following configuration option:
 
---enable-sqlincdir=/path-to-your-include-dir
+--enable-incdir=/path-to-your-include-dir
 
 If your library files are not in /usr/lib/mysql or in 
 /usr/local/lib/myqsl , add the following configuration option:
 
---enable-sqllibdir=/path-to-your-lib-dir
+--enable-libdir=/path-to-your-lib-dir
 
 On my machine I do:
 $ ./configure --enable-mysql=y
@@ -58,11 +69,11 @@ you want to convert them to sql:
 use the vconvert program. You can convert one domain at a time,
 or convert them all.
 
-# ./vconvert -c -s
+# ./vconvert -c -m
 this will convert them all from the vpasswd.cdb format to the default
 single table database
 
-# ./vconvert -c -s virtualdomain1 virtualdomain2 ...
+# ./vconvert -c -m virtualdomain1 virtualdomain2 ...
 will convert the list of virtual domains from vpasswd.cdb layout to
 single table database
 

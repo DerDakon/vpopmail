@@ -1,8 +1,5 @@
 /*
- * voracle.h
- * part of the vchkpw package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,74 +19,71 @@
 #define VPOPMAIL_ORACLE_H
 
 /* Edit to match your set up */ 
-#define ORACLE_SERVICE       "jimmy"
-#define ORACLE_USER          "system"
-#define ORACLE_PASSWD        "manager"
-#define ORACLE_HOME          "ORACLE_HOME=/export/home/oracle"
+#define ORACLE_SERVICE       "service"
+#define ORACLE_USER          "user"
+#define ORACLE_PASSWD        "password"
+#define ORACLE_DATABASE      "orcl1"
+#define ORACLE_HOME          "ORACLE_HOME=/db/u01/app/oracle/product/8.1.7"
 /* End of setup section*/
 
 /* defaults - no need to change */
 #define ORACLE_DEFAULT_TABLE "vpopmail"
-#define ORACLE_DATABASE      "orcl1"
 #define ORACLE_DOT_CHAR '_'
 #define ORACLE_LARGE_USERS_TABLE "users"
 
-/* small site table layout */
-#define SMALL_TABLE_LAYOUT "pw_name char(32) not null, \
-pw_domain varchar(223) not null, \
-pw_passwd varchar(255) not null, \
-pw_uid int, \
-pw_gid int, \
-pw_gecos varchar(255), \
-pw_dir varchar(255), \
-pw_shell varchar(255), primary key(pw_name, pw_domain)"
+#ifdef MANY_DOMAINS
+#ifdef CLEAR_PASS
+#define TABLE_LAYOUT "pw_name char(32) not null, \
+pw_domain char(64) not NULL, \
+pw_passwd char(40), \
+pw_uid int, pw_gid int, \
+pw_gecos char(48), \
+pw_dir char(160), \
+pw_shell char(20), \
+pw_clear_passwd char(16), \
+primary key (pw_name, pw_domain ) "
+#else
+#define TABLE_LAYOUT "pw_name char(32) not null, \
+pw_domain char(64) not null, \
+pw_passwd char(40), \
+pw_uid int, pw_gid int, \
+pw_gecos char(48), \
+pw_dir char(160), \
+pw_shell char(20), \
+primary key (pw_name, pw_domain ) "
+#endif
+#else
+#ifdef CLEAR_PASS
+#define TABLE_LAYOUT "pw_name char(32) not null, \
+pw_passwd char(40), \
+pw_uid int, pw_gid int, \
+pw_gecos char(48), \
+pw_dir char(160), \
+pw_shell char(20), \
+pw_clear_passwd char(16), \
+primary key (pw_name ) "
+#else
+#define TABLE_LAYOUT "pw_name char(32) not null, \
+pw_passwd char(40), \
+pw_uid int, pw_gid int, \
+pw_gecos char(48), \
+pw_dir char(160), \
+pw_shell char(20), \
+primary key (pw_name ) "
+#endif
+#endif
 
-#define SMALL_TABLE_LAYOUT_CLEAR "pw_name char(32) not null, \
-pw_domain varchar(223) not null, \
-pw_passwd varchar(255) not null, \
-pw_uid int, \
-pw_gid int, \
-pw_gecos varchar(255), \
-pw_dir varchar(255), \
-pw_shell varchar(255), \
-pw_clear_passwd varchar(255), \
-primary key (pw_name, pw_domain) "
-
-
-/* large site table layout */
-#define LARGE_TABLE_LAYOUT "pw_name char(32) not null, \
-pw_passwd varchar(255) not null, \
-pw_uid int, \
-pw_gid int, \
-pw_gecos varchar(255), \
-pw_dir varchar(255), \
-pw_shell varchar(255), primary key(pw_name)"
-
-/* large site clear password table layout */
-#define LARGE_TABLE_LAYOUT_CLEAR "pw_name char(32) not null, \
-pw_passwd varchar(255) not null, \
-pw_uid int, \
-pw_gid int, \
-pw_gecos varchar(255), \
-pw_dir varchar(255), \
-pw_shell varchar(255), \
-pw_clear_passwd varchar(255), \
-primary key(pw_name)"
-
-#define RELAY_TABLE_LAYOUT "ip_addr char(18) not null, timestamp bigint primary key(ip_addr)"
+#define RELAY_TABLE_LAYOUT "ip_addr char(18) not null, \
+timestamp char(12), primary key (ip_addr)"
 
 #define LASTAUTH_TABLE_LAYOUT \
 "pw_user char(32) NOT NULL, \
-pw_domain varchar(223) NOT NULL,\
+pw_domain char(64) NOT NULL,\
 remote_ip char(18) not null,  \
-timestamp bigint DEFAULT 0 NOT NULL, \
+timestamp int default 0 NOT NULL, \
 primary key (pw_user, pw_domain)"
 
-#define SMALL_SITE 0
-#define LARGE_SITE 1
-
 char *vauth_munch_domain(char *);
-int vauth_open();
 
 int vauth_adddomain_size(char *, int);
 int vauth_deldomain_size(char *, int);
@@ -102,72 +96,130 @@ struct vqpasswd *vauth_user_size(char *, char *, char*, char *, int);
 struct vqpasswd *vauth_getall_size(char *, int, int, int);
 int vauth_setpw_size( struct vqpasswd *, char *, int);
 
-#define LARGE_INSERT "insert into  %s \
-( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell ) \
-values \
-( '%s', '%s', %d, 0, '%s', '%s', '%s' )"
-
-#define SMALL_INSERT "insert into  %s \
-( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell ) \
-values \
-( '%s', '%s', '%s', %d, 0, '%s', '%s', '%s' )"
-
-#define LARGE_INSERT_CLEAR "insert into  %s \
-( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, pw_clear_passwd ) \
-values \
-( \"%s\", \"%s\", %d, 0, \"%s\", \"%s\", \"%s\", \"%s\" )"
-
-#define SMALL_INSERT_CLEAR "insert into  %s \
-( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, pw_clear_passwd ) \
-values \
-( \"%s\", \"%s\", \"%s\", %d, 0, \"%s\", \"%s\", \"%s\", \"%s\" )"
-
-#define LARGE_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
-pw_gecos, pw_dir, pw_shell from %s where pw_name = '%s'"
-
-#define SMALL_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
-pw_gecos, pw_dir, pw_shell from %s where pw_name = '%s' and pw_domain = '%s'"
-
-#define LARGE_SELECT_CLEAR "select pw_name, pw_passwd, pw_uid, pw_gid, \
-pw_gecos, pw_dir, pw_shell, pw_clear_passwd from %s where pw_name = \"%s\""
-
-#define SMALL_SELECT_CLEAR "select pw_name, pw_passwd, pw_uid, pw_gid, \
-pw_gecos, pw_dir, pw_shell, pw_clear_passwd from %s where pw_name = \"%s\" \
-and pw_domain = \"%s\""
-
-#define LARGE_GETALL "select pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, \
-pw_dir, pw_shell from %s"
-
-#define SMALL_GETALL "select pw_name, pw_passwd, pw_uid, pw_gid, \
-pw_gecos, pw_dir, pw_shell from %s where pw_domain = '%s'"
-
-#define LARGE_SETPW "update %s set pw_passwd = '%s', \
-pw_uid = %lu, pw_gid = %lu, pw_gecos = '%s', pw_dir = '%s', pw_shell = '%s' \
-where pw_name = '%s'" 
-
-#define SMALL_SETPW "update %s set pw_passwd = '%s', \
-pw_uid = %lu, pw_gid = %lu, pw_gecos = '%s', pw_dir = '%s', pw_shell = '%s' \
-where pw_name = '%s' and pw_domain = '%s'"
-
-#define LARGE_SETPW_CLEAR "update %s set pw_passwd = \"%s\", \
-pw_uid = %lu, pw_gid = %lu, pw_gecos = \"%s\", pw_dir = \"%s\", \
-pw_shell = \"%s\", pw_clear_passwd = \"%s\" where pw_name = \"%s\""
-
-#define SMALL_SETPW_CLEAR "update %s set pw_passwd = \"%s\", \
-pw_uid = %lu, pw_gid = %lu, pw_gecos = \"%s\", pw_dir = \"%s\", \
-pw_shell = \"%s\", pw_clear_passwd = \"%s\" \
-where pw_name = \"%s\" and pw_domain = \"%s\""
-
-#ifdef IP_ALIAS_DOMAINS
-#define IP_ALIAS_TABLE_LAYOUT "ip_addr char(18) not null, domain varchar(255),  primary key(ip_addr)"
+#ifdef MANY_DOMAINS
+#ifdef CLEAR_PASS
+#define INSERT "insert into %s \
+( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
+, pw_clear_passwd ) values ( '%s', '%s', \
+'%s', %d, 0, '%s', '%s', '%s' ,'%s' )"
+#else
+#define INSERT "insert into %s \
+( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
+) values ( '%s', '%s', \
+'%s', %d, 0, '%s', '%s', '%s' )"
+#endif
+#else
+#ifdef CLEAR_PASS
+#define INSERT "insert into %s \
+( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
+, pw_clear_passwd ) values ( '%s', \
+'%s', %d, 0, '%s', '%s', '%s' ,'%s' )"
+#else
+#define INSERT "insert into %s \
+( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
+ ) values ( '%s', \
+'%s', %d, 0, '%s', '%s', '%s' )"
+#endif
 #endif
 
-#define DIR_CONTROL_TABLE_LAYOUT "domain varchar(255) not null, cur_users int, \
+#ifdef MANY_DOMAINS
+#define DELETE_USER "delete from %s where pw_name = '%s' \
+and pw_domain = '%s' " 
+#else
+#define DELETE_USER "delete from %s where pw_name = '%s' "
+#endif
+
+
+#ifdef MANY_DOMAINS
+#define SETQUOTA "update %s set pw_shell = '%s' where pw_name = '%s' \
+and pw_domain = '%s' "
+#else
+#define SETQUOTA "update %s set pw_shell = '%s' where pw_name = '%s' "
+#endif
+
+#ifdef MANY_DOMAINS
+#ifdef CLEAR_PASS
+#define USER_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
+pw_gecos, pw_dir, pw_shell , pw_clear_passwd \
+from %s where pw_name = '%s' and pw_domain = '%s' "
+#else
+#define USER_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
+pw_gecos, pw_dir, pw_shell \
+from %s where pw_name = '%s' and pw_domain = '%s' "
+#endif
+#else
+#ifdef CLEAR_PASS
+#define USER_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
+pw_gecos, pw_dir, pw_shell , pw_clear_passwd \
+from %s where pw_name = '%s' " 
+#else
+#define USER_SELECT "select pw_name, pw_passwd, pw_uid, pw_gid, \
+pw_gecos, pw_dir, pw_shell \
+from %s where pw_name = '%s'  "
+#endif
+#endif
+
+#ifdef MANY_DOMAINS
+#ifdef CLEAR_PASS
+#define GETALL "select pw_name, \
+pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, \
+pw_clear_passwd from %s where pw_domain = '%s'"
+#else
+#define GETALL "select pw_name, \
+pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
+from %s where pw_domain = '%s'"
+#endif
+#else
+#ifdef CLEAR_PASS
+#define GETALL "select pw_name, \
+pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, \
+pw_clear_passwd from %s"
+#else
+#define GETALL "select pw_name, \
+pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell from %s "
+#endif
+#endif
+
+#ifdef MANY_DOMAINS
+#ifdef CLEAR_PASS
+#define SETPW "update %s set pw_passwd = '%s', \
+pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
+pw_shell = '%s' \
+, pw_clear_passwd = '%s' \
+where pw_name = '%s' \
+and pw_domain = '%s' "
+#else
+#define SETPW "update %s set pw_passwd = '%s', \
+pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
+pw_shell = '%s' \
+where pw_name = '%s' \
+and pw_domain = '%s' "
+#endif
+#else
+#ifdef CLEAR_PASS
+#define SETPW "update %s set pw_passwd = '%s', \
+pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
+pw_shell = '%s' \
+, pw_clear_passwd = '%s' \
+where pw_name = '%s' "
+#else
+#define SETPW "update %s set pw_passwd = '%s', \
+pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
+pw_shell = '%s' \
+where pw_name = '%s' "
+#endif
+#endif
+
+#ifdef IP_ALIAS_DOMAINS
+#define IP_ALIAS_TABLE_LAYOUT "ip_addr char(18) not null, domain char(64),  primary key(ip_addr)"
+#endif
+
+#define DIR_CONTROL_TABLE_LAYOUT "domain char(64) not null, cur_users int, \
 level_cur int, level_max int, \
 level_start0 int, level_start1 int, level_start2 int, \
 level_end0 int, level_end1 int, level_end2 int, \
 level_mod0 int, level_mod1 int, level_mod2 int, \
-level_index0 int , level_index1 int, level_index2 int, the_dir varchar(255), \
+level_index0 int , level_index1 int, level_index2 int, the_dir char(160), \
 primary key (domain) "
 
 #define DIR_CONTROL_SELECT "cur_users, \
@@ -177,8 +229,40 @@ level_end0, level_end1, level_end2, \
 level_mod0, level_mod1, level_mod2, \
 level_index0, level_index1, level_index2, the_dir"
 
-#define VALIAS_TABLE_LAYOUT "alias varchar(100) not null, \
-domain varchar(100) not null, \
-valias_line varchar(255) not null, index (alias, domain)"
+#define VALIAS_TABLE_LAYOUT "alias char(32) not null, \
+domain char(64) not null, \
+valias_line varchar(255) not null "
 
 #endif
+
+#ifdef ENABLE_ORACLE_LOGGING
+#define VLOG_TABLE_LAYOUT "id BIGINT PRIMARY KEY AUTO_INCREMENT, \
+      user char(32), passwd CHAR(32), \
+      domain CHAR(64), logon VARCHAR(200), \
+      remoteip char(18), message VARCHAR(255), \
+      timestamp int default 0 NOT NULL, error INT, \
+      INDEX user_idx (user), \
+      INDEX domain_idx (domain), INDEX remoteip_idx (remoteip), \
+      INDEX error_idx (error), INDEX message_idx (message)"
+#endif
+
+#ifdef ENABLE_ORACLE_LIMITS
+#define LIMITS_TABLE_LAYOUT "domain CHAR(64) PRIMARY KEY, \
+      maxpopaccounts          INT(10) NOT NULL DEFAULT -1, \
+      maxaliases              INT(10) NOT NULL DEFAULT -1, \
+      maxforwards             INT(10) NOT NULL DEFAULT -1, \
+      maxautoresponders       INT(10) NOT NULL DEFAULT -1, \
+      maxmailinglists         INT(10) NOT NULL DEFAULT -1, \
+      diskquota               INT(12) NOT NULL DEFAULT 0, \
+      defaultquota            INT(12) NOT NULL DEFAULT 0, \
+      disablepop              TINYINT(1) NOT NULL DEFAULT 0, \
+      disableimap             TINYINT(1) NOT NULL DEFAULT 0, \
+      disabledialup           TINYINT(1) NOT NULL DEFAULT 0, \
+      disablepasswordchanging TINYINT(1) NOT NULL DEFAULT 0, \
+      disablewebmail          TINYINT(1) NOT NULL DEFAULT 0, \
+      disablerelay            TINYINT(1) NOT NULL DEFAULT 0, \
+      disablesmtp             TINYINT(1) NOT NULL DEFAULT 0"
+#endif
+
+
+

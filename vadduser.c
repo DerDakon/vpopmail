@@ -1,8 +1,5 @@
 /*
- * vadduser
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,10 +53,21 @@ int main(int argc,char **argv)
 
     get_options(argc,argv);
 
+    for(i=0;i<MAX_BUFF;++i) {
+      User[i] = 'x';
+      Domain[i] = 'x';
+    }
+
     /* parse the email address into user and domain */
     if ( (i=parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
         printf("Error: %s\n", verror(i));
         vexit(i);
+    }
+
+    if ( Domain[0] == 0 ) {
+      printf("You did not use a full email address for the user name\n");
+      printf("Only full email addresses should be used\n");
+      vexit(-1);
     }
 
     /* if the comment field is blank use the user name */

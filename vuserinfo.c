@@ -1,11 +1,5 @@
 /*
- * vuserinfo
- *
- * prints user information from the authentication files
- *
- * part of the vpopmail package
- *
- * Copyright (C) 2000,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -231,6 +225,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("clear passwd: %s\n", mypw->pw_clear_passwd);
         printf("uid:    %lu\n", (long unsigned)mypw->pw_uid);
         printf("gid:    %lu\n", (long unsigned)mypw->pw_gid);
+        printf("gecos: %s\n", mypw->pw_gecos);
 
 	if ( mypw->pw_gid == 0 )  
             printf("        all services available\n");
@@ -258,6 +253,8 @@ void display_user(struct vqpasswd *mypw, char *domain)
             printf("        user flag 2 is set\n");
 	if ( mypw->pw_gid & V_USER3 ) 
             printf("        user flag 3 is set\n");
+	if ( mypw->pw_gid & NO_SMTP ) 
+            printf("        smtp access is closed\n");
 
         printf("dir:       %s\n", mypw->pw_dir);
         printf("quota:     %s\n", mypw->pw_shell);
@@ -265,7 +262,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         sprintf(maildir, "%s/Maildir", mypw->pw_dir);
         if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
             printf("usage:     %d%%\n", 
-                maildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
+                vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
         } else {
             printf("usage:     %s\n", mypw->pw_shell);
         }
@@ -323,6 +320,8 @@ void display_user(struct vqpasswd *mypw, char *domain)
 		    printf("user flag 2 is set\n");
 	    if ( mypw->pw_gid & V_USER3 )
 		    printf("user flag 3 is set\n");
+	    if ( mypw->pw_gid & NO_SMTP )
+		    printf("no smtp flag has been set\n");
         }
         if ( DisplayComment ) printf("%s\n", mypw->pw_gecos);
         if ( DisplayDir ) printf("%s\n", mypw->pw_dir);
@@ -331,7 +330,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
             sprintf(maildir, "%s/Maildir", mypw->pw_dir);
             if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
                 printf("%d%%\n", 
-                    maildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
+                    vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
             } else {
                 printf("%s\n", mypw->pw_shell);
             }

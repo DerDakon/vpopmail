@@ -1,8 +1,5 @@
 /*
- * vpasswd
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +71,6 @@ void usage()
 {
 	printf("vpasswd: usage: [options] email_address [password]\n");
 	printf("options: -v (print version number)\n");
-	printf("         -a (use apop, pop is default)\n");
 }
 
 void get_options(int argc,char **argv)
@@ -91,13 +87,10 @@ void get_options(int argc,char **argv)
 	apop = USE_POP;
 
 	errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"va")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
 		switch(c) {
 			case 'v':
 				printf("version: %s\n", VERSION);
-				break;
-			case 'a':
-				apop = USE_APOP;
 				break;
 			default:
 				errflag = 1;

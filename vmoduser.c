@@ -1,8 +1,5 @@
 /*
- * moduser
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +36,7 @@ char Email[MAX_BUFF];
 char User[MAX_BUFF];
 char Domain[MAX_BUFF];
 char Gecos[MAX_BUFF];
+char Dir[MAX_BUFF];
 char Passwd[MAX_BUFF];
 char Quota[MAX_BUFF];
 char Crypted[MAX_BUFF];
@@ -73,6 +71,7 @@ int main(argc,argv)
         }
         
         if ( Gecos[0] != 0 ) mypw->pw_gecos = Gecos;
+        if ( Dir[0] != 0 ) mypw->pw_dir = Dir;
         if ( Passwd[0] != 0 )  {
             mkpasswd3(Passwd,Crypted, 100);
             mypw->pw_passwd = Crypted;
@@ -98,6 +97,7 @@ int main(argc,argv)
             virgin = 0;
 
             if ( Gecos[0] != 0 ) mypw->pw_gecos = Gecos;
+            if ( Dir[0] != 0 ) mypw->pw_dir = Dir;
             if ( Passwd[0] != 0 )  {
                 mkpasswd3(Passwd,Crypted, 100);
                 mypw->pw_passwd = Crypted;
@@ -136,6 +136,7 @@ void usage()
     printf("         -u ( set no dialup flag )\n");
     printf("         -d ( set no password changing flag )\n");
     printf("         -p ( set no pop access flag )\n");
+    printf("         -s ( set no smtp access flag )\n");
     printf("         -w ( set no web mail access flag )\n");
     printf("         -i ( set no imap access flag )\n");
     printf("         -b ( set bounce mail flag )\n");
@@ -155,11 +156,14 @@ void get_options(int argc,char **argv)
  int errflag;
  extern char *optarg;
  extern int optind;
+ double q;
+ int i;
 
     memset(User, 0, MAX_BUFF);
     memset(Email, 0, MAX_BUFF);
     memset(Domain, 0, MAX_BUFF);
     memset(Gecos, 0, MAX_BUFF);
+    memset(Dir, 0, MAX_BUFF);
     memset(Passwd, 0, MAX_BUFF);
     memset(Crypted, 0, MAX_BUFF);
     memset(Quota, 0, MAX_BUFF);
@@ -168,7 +172,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"avunxc:q:dpwibr0123he:C:")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibr0123he:C:")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -185,18 +189,41 @@ void get_options(int argc,char **argv)
             case 'C':
                 strncpy( Passwd, optarg, MAX_BUFF-1);
                 break;
+            case 'D':
+                strncpy( Dir, optarg, MAX_BUFF-1);
+		break;
             case 'c':
                 strncpy( Gecos, optarg, MAX_BUFF-1);
                 break;
             case 'q':
                 QuotaFlag = 1;
+		/* properly handle the following formats:
+		 * "1M", "1024K", "1048576" (set 1 MB quota)
+		 * "NOQUOTA" (no quota)
+		 * "1048576S,1000C" (1 MB size, 1000 message limit)
+		 */
                 strncpy( Quota, optarg, MAX_BUFF-1);
+		i = strlen (Quota);
+	        q = atof(Quota);
+		if ((Quota[i-1] == 'M') || (Quota[i-1] == 'm')) {
+		    sprintf (Quota, "%.0fS", q * 1024 * 1024);
+		} else if ((Quota[i-1] == 'K') || (Quota[i-1] == 'k')) {
+		    sprintf (Quota, "%.0fS", q * 1024);
+		} else if ((Quota[i-1] == 'S') || (Quota[i-1] == 's') ||
+		    (Quota[i-1] == 'C') || (Quota[i-1] == 'c')) {
+		    /* don't make any changes */
+		} else if (q > 0) {
+		    sprintf (Quota, "%.0fS", q);
+		} /* else don't make any changes */
                 break;
             case 'd':
                 GidFlag |= NO_PASSWD_CHNG;
                 break;
             case 'p':
                 GidFlag |= NO_POP;
+                break;
+            case 's':
+                GidFlag |= NO_SMTP;
                 break;
             case 'w':
                 GidFlag |= NO_WEBMAIL;
