@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.6 2003-10-09 00:39:43 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.7 2003-10-09 22:00:24 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ char *IpAddr;
 char VchkpwLogName[18];
 
 /* For logging, relay info */
-int LocalPort;
+unsigned int LocalPort;
 
 /* storage of authentication information */
 #define AUTH_SIZE 156
@@ -142,8 +142,22 @@ int main( int argc, char **argv)
       ConnType = POP_CONN;
       break;
     default:
-      strcpy(VchkpwLogName, "vchkpw-pop3");
-      ConnType = POP_CONN;
+      sprintf(VchkpwLogName, "vchkpw-%u", LocalPort);
+      /*
+       * We're running on an unknown port, so it could be any one of
+       * the three protocols (SMTP, POP or IMAP).  Try to guess the
+       * protocol based on argv[1].  For SMTP AUTH, argv[1] is usually
+       * /bin/true.  For IMAP, it's usually imapd (or something like
+       * that).  Keep the old default of POP.
+       * Note that the popular Courier-IMAP does not use vchkpw, it
+       * links libvpopmail directly into its server.
+       */
+      if (strstr (argv[1], "true") != NULL)  /* used as STMP AUTH */
+        ConnType = SMTP_CONN;
+      if (strstr (argv[1], "imap") != NULL)  /* used with IMAP */
+        ConnType = IMAP_CONN;
+      else  /* default to POP */
+        ConnType = POP_CONN;
       break;
   }
 
