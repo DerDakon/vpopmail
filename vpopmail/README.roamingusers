@@ -60,8 +60,8 @@ then the list of roaming IPs will be stored in a file called
 ~vpopmail/etc/open-smtp. If the vpopmail server is using the MySQL backend, 
 the roaming IPs will be stored in a database table called relay. The SQL 
 backend will give better performance on a busy server. Either way though, 
-you be cautious about enabling roaming user functionality on a very busy 
-server, as a large amount of disk and CPU will be used with the continual 
+you should be cautious about enabling roaming user functionality on a very 
+busy server, as a large amount of disk and CPU will be used with the continual 
 rebuilding of the tcp.smtp.cdb file. If the server is busy enough you could 
 run into nasty file locking issues which will cause vpopmail password 
 authentication to intermittently fail. If you absolutely must have 
