@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.5 2003-12-07 16:18:29 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.6 2003-12-17 04:22:14 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 #include <time.h>
 #include <sys/uio.h>
 #include "vauth.h"
+#include "vpopmail.h"
 #include "vlimits.h"
 #include "maildirquota.h"
 #include "config.h"
@@ -67,8 +68,7 @@ static int maildir_parsequota(const char *n, unsigned long *s);
 int domain_over_maildirquota(const char *userdir)
 {
 struct  stat    stat_buf;
-int     ret_value = 0;
-char	*domdir=(char *)malloc(strlen(userdir)+1);
+char	domdir[MAX_PW_DIR];
 char	*p;
 char	domain[256];
 unsigned long size = 0;
@@ -82,52 +82,32 @@ struct vlimits limits;
         {
 
 		/* locate the domain directory */
-		strcpy(domdir, userdir);
-		if ((p = strstr(domdir, "/Maildir/")) != NULL)
-		{
-			while (*(--p) != '/')
-				;
-			*(p+1) = '\0';
-		}
+		p = maildir_to_email(userdir);
+		if (p == NULL) return -1;
 
-		/* locate the domainname */
-		while (*(--p) != '/')
-			;
-		snprintf(domain, sizeof(domain), "%s", ++p);
-		if ((p = strchr(domain, '/')) != NULL)
-			*p = '\0';
+		p = strchr (p, '@');
+		if (p == NULL) return -1;
+
+		strcpy(domain, p + 1);
 
 		/* get the domain quota */
-		if (vget_limits(domain, &limits))
-		{
-			free(domdir);
-			return 0;
-		}
+		if (vget_limits(domain, &limits)) return 0;
 		/* convert from MB to bytes */
 		maxsize = limits.diskquota * 1024 * 1024;
 		maxcnt = limits.maxmsgcount;
 
-		/* get the domain usage */
-		if (readdomainquota(domdir, &size, &cnt))
-		{
-			free(domdir);
+		if (vget_assign (domain, domdir, sizeof(domdir), NULL, NULL) == NULL)
 			return -1;
-		}
+
+		/* get the domain usage */
+		if (readdomainquota(domdir, &size, &cnt)) return -1;
 
 		/* check if either quota (size/count) would be exceeded */
-		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize)
-		{
-			ret_value = 1;
-		}
-		else if (maxcnt > 0 && cnt >= maxcnt)
-		{
-			ret_value = 1;
-		}
+		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize) return 1;
+		else if (maxcnt > 0 && cnt >= maxcnt) return 1;
         }
 
-	free(domdir);
-
-        return(ret_value);
+        return 0;
 }
 
 int readdomainquota(const char *dir, long *sizep, int *cntp)
