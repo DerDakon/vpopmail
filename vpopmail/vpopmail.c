@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.15 2003-10-13 22:37:24 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.16 2003-11-02 05:41:18 mbowe Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,8 +45,8 @@
 
 #ifdef POP_AUTH_OPEN_RELAY
 /* keep a output pipe to tcp.smtp file */
-int fdm;
-static char relay_template[MAX_BUFF];
+int tcprules_fdm;
+static char relay_tempfile[MAX_BUFF];
 #endif
 
 int verrori = 0;
@@ -2580,8 +2580,8 @@ long unsigned tcprules_open()
  char bin2[MAX_BUFF];
  char *binqqargs[4];
 
-  /* create a filename extension use when creating a tmp file */
-  snprintf(relay_template, sizeof(relay_template), "tmp.%ld", (long unsigned)getpid());
+  /* create a filename for use as a tmp file */
+  snprintf(relay_tempfile, sizeof(relay_tempfile), "%s.tmp.%ld", TCP_FILE, (long unsigned)getpid());
 
   /* create a pair of filedescriptors for our pipe */
   if (pipe(pim) == -1)  { return(-1);}
@@ -2602,7 +2602,7 @@ long unsigned tcprules_open()
      */ 
     snprintf( bin0, sizeof(bin0), "%s", TCPRULES_PROG);
     snprintf( bin1, sizeof(bin1), "%s.cdb", TCP_FILE);
-    snprintf( bin2, sizeof(bin2), "%s.%s", TCP_FILE, relay_template);
+    snprintf( bin2, sizeof(bin2), "%s", relay_tempfile);
 
     /* put these strings into an argv style array */
     binqqargs[0] = bin0;
@@ -2610,11 +2610,13 @@ long unsigned tcprules_open()
     binqqargs[2] = bin2;
     binqqargs[3] = 0;
 
-    /* run launch the command to build the new tcp rules file */
+    /* run this command now (it will sit waiting for input to be piped in */
     execv(*binqqargs,binqqargs);
   }
 
-  fdm = pim[1]; close(pim[0]);
+  /* tcprules_fdm is a filehandle to this process, which we can pipe rules into */
+  tcprules_fdm = pim[1]; close(pim[0]);
+
   return(pid);
 }
 #endif /* POP_AUTH_OPEN_RELAY */
@@ -2681,7 +2683,7 @@ int update_rules()
   umask(VPOPMAIL_TCPRULES_UMASK);
 
   /* open up a tcprules task, and leave it sitting waiting for the
-   * new set of rules to be piped in (via the filehandle "fdm")
+   * new set of rules to be piped in (via the filehandle "tcprules_fdm")
    */
   if ((pid = tcprules_open()) < 0) return(-1);
 
@@ -2692,7 +2694,7 @@ int update_rules()
   if ( fs != NULL ) {
     /* copy the contents of the current tcp.smtp file into the tcprules pipe */
     while ( fgets(tmpbuf1, sizeof(tmpbuf1), fs ) != NULL ) {
-      write(fdm,tmpbuf1, strlen(tmpbuf1));
+      write(tcprules_fdm,tmpbuf1, strlen(tmpbuf1));
     }
     fclose(fs);
   }
@@ -2701,7 +2703,7 @@ int update_rules()
   /* suck out a list of ips stored in the 'relay' table
    * and write these into 'tcp.smtp' format for the tcprules pipe
    */
-  vupdate_rules(fdm);
+  vupdate_rules(tcprules_fdm);
 
 #else
 
@@ -2720,7 +2722,7 @@ int update_rules()
       tmpstr = strtok( tmpbuf2, "\t");
       strncat(tmpstr, "\n", sizeof(tmpstr)-strlen(tmpstr)-1);
       /* write the line out to the tcprules pipe */
-      write(fdm,tmpstr, strlen(tmpstr));
+      write(tcprules_fdm,tmpstr, strlen(tmpstr));
     }
     fclose(fs);
   }
@@ -2729,14 +2731,19 @@ int update_rules()
   /* close the pipe to the tcprules process. This will cause
    * tcprules to generate a new tcp.smtp.cdb file 
    */
-  close(fdm);  
+  close(tcprules_fdm);  
 
   /* wait untill tcprules finishes so we don't have zombies */
   while(wait(&wstat)!= pid);
 
-  /* unlink the temp file in case tcprules has an error */
-  if ( unlink(relay_template) == -1 ) {
-    return(-1);
+  /* if tcprules encounters an error, then the tempfile will be
+   * left behind on the disk. We dont want this because we could
+   * possibly end up with a large number of these files cluttering
+   * the directory. Therefore we will use unlink now to make
+   * sure to zap the temp file if it still exists
+   */
+  if ( unlink(relay_tempfile) == 0 ) {
+    fprintf(stderr, "Warning: update_rules() - tcprules failed\n");
   }
 
   /* correctly set the ownership of the tcp.smtp.cdb file */
