@@ -82,7 +82,6 @@ void get_options(int argc, char **argv)
 {
  int c;
  int errflag;
- extern char *optarg;
  extern int optind;
 
     DisplayName = 0;

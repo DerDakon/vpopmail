@@ -83,7 +83,7 @@ int main(argc,argv)
         printf(" ** use -D to delete users **\n");
     }
 
-	vexit(0);
+	return(vexit(0));
 }
 #endif
 

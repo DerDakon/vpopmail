@@ -80,7 +80,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   if (ld == NULL ) {
   	if (ldap_connect() != 0) {
   		safe_free((void **) &filter);
-  		return NULL;
+		return NULL;
 	}
   }
 
@@ -344,10 +344,8 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     res = glm;
 
     glm = ldap_next_entry(ld, res);
-    if (glm == NULL) {
-  		ldap_perror(ld,"Error");
+    if (glm == NULL)
        return NULL;
-	   }
 
     vals = ldap_get_values(ld, glm, "uid");
     if (vals == NULL) {
@@ -595,7 +593,7 @@ int vauth_deldomain( char *domain )
   	safe_free((void **) &dn);
 	
 	if (ret != LDAP_SUCCESS ) {
-  		ldap_perror(ld,"Error");
+		ldap_perror(ld,"Error");
 		return -99;
 	}
 
@@ -668,11 +666,12 @@ int vauth_setquota( char *username, char *domain, char *quota)
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
   pw = vauth_getpw(username, domain);
-  if (pw == NULL)
+  if ( (pw == NULL) && (verrori != 0)) 
+  	 return verrori;
+  else if ( pw == NULL )
      return VA_USER_DOES_NOT_EXIST;
 
   pw->pw_shell = safe_strdup(quota);
-
   
   ret = vauth_setpw(pw, domain);
   
@@ -1105,7 +1104,10 @@ int compose_dn (char **dn, char *domain)
 int ldap_connect ()
 {
 	int ret = 0;
-	
+  	/* Set verror here and unset it when successful, is ok, because if one of these
+	three steps fail the whole auth_connection failed */
+	verrori = VA_NO_AUTH_CONNECTION;
+		
 	ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
     if (ld == NULL) {
 		ldap_perror(ld,"Failed to inititialize LDAP-Connection");
@@ -1119,9 +1121,11 @@ int ldap_connect ()
     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
 	if (ret != LDAP_SUCCESS) {
 		ldap_perror(ld,"Error");
-		exit(1);
+		return (VA_NO_AUTH_CONNECTION);
 	}
-	return 0;
+	
+  	verrori = 0;
+	return VA_SUCCESS;
 }
 
 void safe_free (void **p)

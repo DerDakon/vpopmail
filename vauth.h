@@ -103,7 +103,8 @@ char *valias_select_all_next(char *alias);
 int valias_insert( char *alias, char *domain, char *alias_line);
 int valias_delete( char *alias, char *domain);
 int valias_delete_domain( char *domain);
-#endif
 
 /* Log to MySQL Added by David Wartell to support MySQL logging */
 int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
+#endif
+

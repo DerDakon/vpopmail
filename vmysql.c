@@ -98,19 +98,19 @@ void vcreate_lastauth_table();
  */
 int vauth_open_update()
 {
+    unsigned int timeout = 2;
+
     if ( update_open != 0 ) return(0);
     update_open = 1;
 
     verrori = 0;
     mysql_init(&mysql_update);
+    mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
     /* Try to connect to the mysql update server with the specified database. */
     if (!(mysql_real_connect(&mysql_update,MYSQL_UPDATE_SERVER,
             MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD,
             MYSQL_DATABASE, MYSQL_VPORT,NULL,0))) {
-
-        fprintf(stderr, "could not connect to mysql update server %s with database\n",
-              mysql_error(&mysql_update));
 
         /* Could not connect to the update mysql server with the database
          * so try to connect with no database specified
@@ -120,8 +120,6 @@ int vauth_open_update()
                 NULL,0))) {
 
             /* if we can not connect, report a error and return */
-            fprintf(stderr, "could not connect to mysql update server %s\n",
-              mysql_error(&mysql_update));
             verrori = VA_NO_AUTH_CONNECTION;
             return(VA_NO_AUTH_CONNECTION);
         }

@@ -72,10 +72,9 @@ int main(argc,argv)
             printf("Error: %s\n", verror(i));
             vexit(i);
         }
-
 	if ( (mypw = vauth_getpw( User, Domain )) == NULL ) {
 		if ( Domain[0] == 0 || strlen(Domain)==0) {
-			printf("no such user %s@%s\n", User, DEFAULT_DOMAIN);
+			printf("no such user %s\n", User);
 		} else {
 			printf("no such user %s@%s\n", User, Domain);
 		}

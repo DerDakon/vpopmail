@@ -707,7 +707,6 @@ install-data-local:
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/man_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/doc_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/bin
-	chmod 700 $(DESTDIR)@vpopmaildir@/lib
 	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chmod 711 $(DESTDIR)@vpopmaildir@/bin/*
 	chmod 444 $(DESTDIR)@vpopmaildir@/include/*
