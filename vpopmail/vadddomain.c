@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.2 2003-09-30 00:30:49 tomcollins Exp $
+ * $Id: vadddomain.c,v 1.3 2004-01-13 06:05:27 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -128,7 +128,7 @@ void usage()
 	printf("         -g gid (sets the gid to use for this domain)\n");
 	printf("         -O optimize adding, for bulk adds set this for all\n");
 	printf("            except the last one\n");
-	printf("         -r generate a random password for postmaster\n");
+	printf("         -r[len] (generate a len (default 8) char random postmaster password)\n");
 	printf("\n");
 	printf(" [*] omit @-sign to deliver directly into user's Maildir: '-e postmaster'\n");
 }
@@ -157,7 +157,7 @@ void get_options(int argc,char **argv)
 
     /* grab the options */
     errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"q:be:u:vi:g:d:Or")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"q:be:u:vi:g:d:Or::")) != -1 ) {
 	switch(c) {
 	case 'v':
 	    printf("version: %s\n", VERSION);
@@ -188,7 +188,10 @@ void get_options(int argc,char **argv)
 	    break;
         case 'r':
             RandomPw = 1;
-            vrandom_pass (Passwd, 8);
+            if (optarg)
+              vrandom_pass (Passwd, atoi(optarg));
+            else
+              vrandom_pass (Passwd, 8);
             break;
 	default:
 	    errflag = 1;

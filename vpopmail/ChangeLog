@@ -34,6 +34,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Casey Zacek
 	- Create maildirsize file in vsetuserquota(). [869457]
 
+	Anders Brander
+	- Allow optional length for random passwords in vadduser and
+	  vadddomain. [848228]
+
 5.4.0-rc1 - released 1-Jan-04
 
 	Michael Bowe
