@@ -19,7 +19,7 @@ VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
 libvpopmail_a_LIBADD =  cdb/*.o
 
-vpopmailbindir=$(DESTDIR)@vpopmaildir@/bin
+vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
