@@ -1,12 +1,14 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.0 - unreleased
+5.4.0 - released 1-Feb-04
 
 	Tom Collins
 	- Update configure with correct location of vlimits.default.
 	- Fix typo (ammount) in vmoddomlimits. [882884]
 	- Don't include $(DESTDIR) when building vpopmailbindir. [884247]
+	- Mention compatability issues with older SMTP AUTH patches. 
+	  [882351]
 
 5.4.0-rc2 - released 19-Jan-04
 
