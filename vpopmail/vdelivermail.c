@@ -689,7 +689,8 @@ int deliver_mail(char *address, char *quota)
                     /* even rename failed, time to give up */
                     printf("rename failed %s %s errno = %d\n", 
                         local_file, local_file_new, errno);
-                        return(errno);
+                    /* shouldn't we unlink the file here? */
+                    return(errno);
 
                 /* rename worked, so we are okay now */
                 } else {
@@ -701,6 +702,7 @@ int deliver_mail(char *address, char *quota)
                 printf("link REALLY failed %s %s errno = %d\n", 
                     local_file, local_file_new, errno);
                 unlink(local_file);
+                return(errno);
             }
         }
     }
