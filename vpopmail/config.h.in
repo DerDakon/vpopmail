@@ -25,13 +25,10 @@
 #undef ENABLE_MYSQL_LIMITS
 
 /* "" */
-#undef ENABLE_MYSQL_LOGGING
-
-/* "" */
 #undef ENABLE_PASSWD
 
 /* "" */
-#undef ENABLE_PGSQL_LOGGING
+#undef ENABLE_SQL_LOGGING
 
 /* "" */
 #undef FILE_LOCKING

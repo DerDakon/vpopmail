@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.h,v 1.4.2.1 2004-10-20 23:25:41 tomcollins Exp $
+ * $Id: vpgsql.h,v 1.4.2.2 2004-12-16 15:57:34 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -224,8 +224,8 @@ valias_line varchar(160) NOT NULL"
 #define VALIAS_INDEX_LAYOUT "(alias, domain)"
 #endif
 
-#ifdef ENABLE_PGSQL_LOGGING
-#define VLOG_TABLE_LAYOUT "id BIGINT PRIMARY KEY AUTO_INCREMENT, \
+#ifdef ENABLE_SQL_LOGGING
+#define VLOG_TABLE_LAYOUT "id serial, \
       userid char(32), passwd CHAR(32), \
       domain CHAR(64), logon VARCHAR(200), \
       remoteip char(18), message VARCHAR(255), \

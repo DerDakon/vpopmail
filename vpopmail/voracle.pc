@@ -1328,8 +1328,8 @@ char *valias_select_all_next(char *alias)
 }
 #endif
 
-#ifdef ENABLE_ORACLE_LOGGING
-int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
+#ifdef ENABLE_SQL_LOGGING
+int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
 {
  int err;

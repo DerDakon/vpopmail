@@ -3,7 +3,14 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.9 - unreleased
 
+	Charles Boening
+	- Fix logging in PostgreSQL.
+	- Change ENABLE_{MY|PG}SQL_LOGGING to ENABLE_SQL_LOGGING.
+	- Replace --enable-{my|pg}sql-logging with --enable-sql-logging
+	  in configure options.
+
 	Tom Collins
+	- Tweaking of Charles Boening's changes.
 	- vchkpw: Fix problem in md5.h causing segfault in SMTP AUTH on 
 	  amd64. [964843, 958799]
 	- vpopmail.h: Add new error and flag defines from 5.5 series.
