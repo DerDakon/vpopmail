@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.3 2003-10-31 19:29:54 jheesemann Exp $
+ * $Id: vuserinfo.c,v 1.4 2003-12-03 16:25:01 tomcollins Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -233,6 +233,14 @@ void get_options(int argc, char **argv)
 
 }
 
+void display_limit (struct vqpasswd *pw, unsigned int flag, char *message)
+{
+    if (pw->pw_flags & flag) {
+        if (pw->pw_gid & flag) printf ("        %s\n", message);
+        else printf ("        %s (*)\n", message);
+    }
+}
+
 void display_user(struct vqpasswd *mypw, char *domain)
 {
 #ifdef ENABLE_AUTH_LOGGING
@@ -247,38 +255,30 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("clear passwd: %s\n", mypw->pw_clear_passwd);
         printf("uid:    %lu\n", (long unsigned)mypw->pw_uid);
         printf("gid:    %lu\n", (long unsigned)mypw->pw_gid);
+        printf("flags:  %lu\n", (long unsigned)mypw->pw_flags);
         printf("gecos: %s\n", mypw->pw_gecos);
 
-	if ( mypw->pw_gid == 0 )  
-            printf("        all services available\n");
-	if ( mypw->pw_gid & NO_PASSWD_CHNG ) 
-            printf("        password can not be changed by user\n");
-	if ( mypw->pw_gid & NO_POP ) 
-            printf("        pop access closed\n");
-	if ( mypw->pw_gid & NO_WEBMAIL ) 
-            printf("        webmail access closed\n");
-	if ( mypw->pw_gid & NO_IMAP ) 
-            printf("        imap access closed\n");
-	if ( mypw->pw_gid & BOUNCE_MAIL ) 
-            printf("        mail will be bounced back to sender\n");
-	if ( mypw->pw_gid & NO_RELAY ) 
-            printf("        user not allowed to relay mail\n");
-	if ( mypw->pw_gid & NO_DIALUP ) 
-            printf("        no dialup flag has been set\n");
-	if ( mypw->pw_gid & QA_ADMIN ) 
-            printf("        has qmailadmin administrator privileges\n"); 
-	if ( mypw->pw_gid & V_USER0 ) 
-            printf("        user flag 0 is set\n");
-	if ( mypw->pw_gid & V_USER1 ) 
-            printf("        user flag 1 is set\n");
-	if ( mypw->pw_gid & V_USER2 ) 
-            printf("        user flag 2 is set\n");
-	if ( mypw->pw_gid & V_USER3 ) 
-            printf("        user flag 3 is set\n");
-	if ( mypw->pw_gid & NO_SMTP ) 
-            printf("        smtp access is closed\n");
-	if ( mypw->pw_gid & V_OVERRIDE )
-	    printf("        User is not subject to domain limits.\n");
+	if ( mypw->pw_flags == 0 )  
+            printf("limits: No user limits set.\n");
+        else {
+            printf("limits:\n");
+            display_limit (mypw, NO_PASSWD_CHNG, "password can not be changed by user");
+            display_limit (mypw, NO_POP,         "pop access closed");
+            display_limit (mypw, NO_WEBMAIL,     "webmail access closed");
+            display_limit (mypw, NO_IMAP,        "imap access closed");
+            display_limit (mypw, NO_SMTP,        "smtp access is closed");
+            display_limit (mypw, NO_RELAY,       "user not allowed to relay mail");
+            display_limit (mypw, NO_DIALUP,      "no dialup flag has been set");
+            display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
+            display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");
+            display_limit (mypw, V_USER0,        "user flag 0 is set");
+            display_limit (mypw, V_USER1,        "user flag 1 is set");
+            display_limit (mypw, V_USER2,        "user flag 2 is set");
+            display_limit (mypw, V_USER3,        "user flag 3 is set");
+            display_limit (mypw, V_OVERRIDE,     "user is not subject to domain limits");
+            if (mypw->pw_gid != mypw->pw_flags)
+                printf ("        * = set by domain-wide limits\n");
+        }
 
         printf("dir:       %s\n", mypw->pw_dir);
         printf("quota:     %s\n", mypw->pw_shell);
@@ -315,38 +315,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         if ( DisplayClearPasswd ) printf("%s\n", mypw->pw_clear_passwd);
 #endif
         if ( DisplayUid ) printf("%lu\n", (long unsigned)mypw->pw_uid);
-        if ( DisplayGid ) { 
-            printf("%lu\n", (long unsigned)mypw->pw_gid);
-
-	    if ( mypw->pw_gid == 0 )  
-	        printf("all services available\n");
-	    if ( mypw->pw_gid & NO_PASSWD_CHNG ) 
-	        printf("password can not be changed by user\n");
-	    if ( mypw->pw_gid & NO_POP )
-		    printf("pop access closed\n");
-	    if ( mypw->pw_gid & NO_WEBMAIL )
-		    printf("webmail access closed\n");
-	    if ( mypw->pw_gid & NO_IMAP )
-		    printf("imap access closed\n");
-	    if ( mypw->pw_gid & BOUNCE_MAIL )
-		    printf("mail will be bounced back to sender\n");
-	    if ( mypw->pw_gid & NO_RELAY )
-		    printf("user not allowed to relay mail\n");
-	    if ( mypw->pw_gid & NO_DIALUP )
-		    printf("no dialup flag has been set\n");
-	    if ( mypw->pw_gid & QA_ADMIN )
-		    printf("user has qmailadmin administrator privileges\n");
-	    if ( mypw->pw_gid & V_USER0 )
-		    printf("user flag 0 is set\n");
-	    if ( mypw->pw_gid & V_USER1 )
-		    printf("user flag 1 is set\n");
-	    if ( mypw->pw_gid & V_USER2 )
-		    printf("user flag 2 is set\n");
-	    if ( mypw->pw_gid & V_USER3 )
-		    printf("user flag 3 is set\n");
-	    if ( mypw->pw_gid & NO_SMTP )
-		    printf("no smtp flag has been set\n");
-        }
+        if ( DisplayGid ) printf("%lu\n", (long unsigned)mypw->pw_gid);
         if ( DisplayComment ) printf("%s\n", mypw->pw_gecos);
         if ( DisplayDir ) printf("%s\n", mypw->pw_dir);
         if ( DisplayQuota ) printf("%s\n", mypw->pw_shell);
