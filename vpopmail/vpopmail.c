@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.18 2003-11-20 22:45:26 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.19 2003-12-08 12:09:23 mbowe Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -284,7 +284,14 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
 /************************************************************************/
 
-/* Delete a domain from the entire mail system */
+/* Delete a domain from the entire mail system
+ *
+ * If we have problems at any of the following steps, it has been 
+ * decided that the best course of action is to continue rather than
+ * abort. The idea behind this is to allow the removal of a partially
+ * installed domain. We will emit warnings should any of the expected
+ * cleanup steps fail.
+ */
 int vdeldomain( char *domain )
 {
  struct stat statbuf;
@@ -329,8 +336,7 @@ int vdeldomain( char *domain )
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
-      fprintf(stderr, "Error: Could not access (%s)\n",Dir);
-      return(VA_DOMAIN_DOES_NOT_EXIST);
+      fprintf(stderr, "Warning: Could not access (%s)\n",Dir);
     }
 
     /*
@@ -356,8 +362,7 @@ int vdeldomain( char *domain )
      * - delete domain's limit's entries
      */
     if (vauth_deldomain(domain) != VA_SUCCESS ) {
-      fprintf (stderr, "Failed while attempting to delete domain from auth backend\n");
-      return (VA_NO_AUTH_CONNECTION);
+      fprintf (stderr, "Warning: Failed while attempting to delete domain from auth backend\n");
     }
 
     /* vdel_limits does the following :
@@ -375,26 +380,14 @@ int vdeldomain( char *domain )
 
     /* delete the dir control info for this domain */
     if (vdel_dir_control(domain) != 0) {
-      fprintf (stderr, "Failed to delete dir_control for %s\n", domain);
-      /* Michael Bowe 23rd August 2003  
-       * should we return now? or continue and clean up as much  
-       * of the domain as possible
-       * If we dont exit now, how can we signal failure to the  
-       * calling function?  
-       */  
+      fprintf (stderr, "Warning: Failed to delete dir_control for %s\n", domain);
     }
 
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
     if ( S_ISLNK(statbuf.st_mode) ) {
       if ( unlink(Dir) !=0) {
-        fprintf (stderr, "Failed to remove symlink for %s\n", domain);
-        /* Michael Bowe 23rd August 2003
-         * should we return now? or continue and clean up as much
-         * of the domain as possible (eg assign file, dir_control)
-         * If we dont exit now, how can we signal failure to the
-         * calling function?
-         */
+        fprintf (stderr, "Warning: Failed to remove symlink for %s\n", domain);
       }
     } else {
       char cwdbuff[MAX_BUFF];
@@ -403,13 +396,7 @@ int vdeldomain( char *domain )
       /* zap the domain's directory tree */
       cwd = getcwd (cwdbuff, sizeof(cwdbuff));  /* save calling directory */
       if ( vdelfiles(Dir) != 0 ) {
-        fprintf(stderr, "Failed to delete directory tree: %s\n", domain);
-        /* Michael Bowe 23rd August 2003
-         * should we return now? or continue and clean up as much
-         * of the domain as possible (eg assign file, dir_control)
-         * If we dont exit now, how can we signal failure to the
-         * calling function?
-         */
+        fprintf(stderr, "Warning: Failed to delete directory tree: %s\n", domain);
       }
       if (cwd != NULL) chdir (cwd);
     }
@@ -421,26 +408,16 @@ int vdeldomain( char *domain )
 
   /* The following things need to happen for real and aliased domains */
 
-  /* delete the email domain from the qmail control files */
+  /* delete the email domain from the qmail control files :
+   * rcpthosts, morercpthosts, virtualdomains
+   */
   if (del_control(domain_to_del) != 0) {
-    fprintf (stderr, "Failed to delete domain from qmail's control files\n");
-    /* Michael Bowe 23rd August 2003
-     * should we return now? or continue and clean up as much
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the
-     * calling function?
-     */
+    fprintf (stderr, "Warning: Failed to delete domain from qmail's control files\n");
   }
 
   /* delete the assign file line */
   if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
-    fprintf (stderr, "Failed to delete domain from assign file\n");
-    /* Michael Bowe 23rd August 2003
-     * should we return now? or continue and clean up as much
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the
-     * calling function?
-     */
+    fprintf (stderr, "Warning: Failed to delete domain from the assign file\n");
   }
 
   /* send a HUP signal to qmail-send process to reread control files */
@@ -880,6 +857,8 @@ int del_control(char *domain )
  char tmpbuf2[MAX_BUFF];
  struct stat statbuf;
 
+ int problem_occurred = 0;
+
   /* delete entry from control/rcpthosts (if it is found) */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/rcpthosts", QMAILDIR);
   switch ( remove_line( domain, tmpbuf1) ) {
@@ -887,7 +866,7 @@ int del_control(char *domain )
     case -1 :
       /* error ocurred in remove line */
       fprintf (stderr, "Failed while attempting to remove_line() the rcpthosts file\n");
-      return (-1);
+      problem_occurred = 1;
       break;
 
     case 0 :
@@ -897,9 +876,11 @@ int del_control(char *domain )
       switch (remove_line( domain, tmpbuf1) ) {
 
         case -1 :
-          /* error ocurred in remove line */
-          fprintf (stderr, "Failed while attempting to remove_ile() the morercpthosts file\n");
-          return (-1);
+          /* error ocurred in remove line
+           * but this is normal enough as on smaller servers, the morercpthosts
+           * file wont exist. So ignore this 'error' condition.
+           */
+          break; 
 
         case 0 :
          /* not found in morercpthosts */
@@ -922,8 +903,11 @@ int del_control(char *domain )
               /* make sure correct permissions are set on morercpthosts */
               chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
             }
-          } 
+          }
+          break; 
+
       } /* switch for morercpthosts */ 
+      break;
 
     case 1 : /* we removed the line successfully */
       /* make sure correct permissions are set on rcpthosts */
@@ -936,12 +920,17 @@ int del_control(char *domain )
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
   if (remove_line( tmpbuf1, tmpbuf2) < 0 ) {
     fprintf(stderr, "Failed while attempting to remove_line() the virtualdomains file\n"); 
-    return(-1);
+    problem_occurred = 1; 
   }
+
   /* make sure correct permissions are set on virtualdomains */
   chmod(tmpbuf2, VPOPMAIL_QMAIL_MODE ); 
-
-  return(0);
+  
+  if (problem_occurred == 1) {
+    return (-1);
+  } else { 
+    return(0);
+  }
 }
 
 /************************************************************************/
@@ -988,9 +977,9 @@ int del_domain_assign( char *alias_domain, char *real_domain,
  * input: template to search for
  *        file to search inside
  *
- * output: less than zero on failure
- *         0 if successful
- *         1 if match found
+ * output: -1 on failure
+ *          0 on success, no match found
+ *          1 on success, match was found
  */
 int remove_line( char *template, char *filename )
 {
@@ -1125,7 +1114,7 @@ int remove_line( char *template, char *filename )
 #endif
 
   /* return 0 = everything went okay, but we didn't find it
-   *        1 = everything went okay and we found a match
+   *        1 = everything went okay, and we found a match
    */
   return(found);
 
