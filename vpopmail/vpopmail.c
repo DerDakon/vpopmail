@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.10 2003-10-09 00:39:43 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.11 2003-10-09 23:06:38 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1783,10 +1783,10 @@ int r_mkdir(char *path, uid_t uid, gid_t gid )
  int i;
 
   for(i=0;path[i]!=0;++i){
-    if ( path[i] == '/' ) {
+    if ( (i > 0) && (path[i] == '/') ) {
       tmpbuf[i] = 0;
-      mkdir(tmpbuf,VPOPMAIL_DIR_MODE);
-      chown(tmpbuf, uid, gid);
+      if (mkdir(tmpbuf,VPOPMAIL_DIR_MODE) == 0)
+        chown(tmpbuf, uid, gid);
     }
     tmpbuf[i] = path[i];
   }
