@@ -20,6 +20,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  instead of postponing. [859707, temporary fix]
 	- Move maildir_to_email() from vdelivermail.c into vpopmail.c,
 	  replace dupe code that tries to do the same thing. [859098]
+	- Fix domain quota checks to work with hashed directories. [859098]
+	- Fix bug when calling format_maildirquota() with NOQUOTA.
+	- Document use of NOQUOTA in vadduser. [862315]
 
 	Michael Bowe
 	- Revise configure script so choice of auth module is now "OR" 
