@@ -286,7 +286,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #endif
 
   if ((! vpw->pw_gid && V_OVERRIDE)
-    && (vget_limits (in_domain, &limits) == 0)) {
+    && (vget_limits (domain, &limits) == 0)) {
       vpw->pw_flags = vpw->pw_gid | vlimits_get_flag_mask (&limits);
   } else vpw->pw_flags = vpw->pw_gid;
 
