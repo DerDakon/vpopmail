@@ -187,15 +187,12 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   if ( strncmp(adir.p1,"yes",3) != 0 ) return(NULL); 
   
   ad_fill_vpw(&vpw,&adir);
-  /* this is necessary to enforce the qmailadmin-limits
-     a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
-     unless the user has the V_OVERRIDE flag set
-  */
-  if (vget_limits (in_domain,&limits) == 0) {
-    if (! vpw.pw_gid && V_OVERRIDE) {
-      vpw.pw_gid |= vlimits_get_gid_mask (&limits);
-    }
-  }
+
+  if ((! pwent.pw_gid && V_OVERRIDE)
+    && (vget_limits (domain, &limits) == 0) {
+      pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
+  } else pwent.pw_flags = pwent.pw_gid;
+
   return(&vpw);
 }
 

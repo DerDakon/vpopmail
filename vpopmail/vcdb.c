@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.1.1.1 2003-09-10 20:43:12 tomcollins Exp $
+** $Id: vcdb.c,v 1.2 2003-09-13 00:23:15 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -303,20 +303,22 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if (!*uid) { pwent.pw_uid = 0; } else { pwent.pw_uid = atoi(uid); }
     if (!*gid) { pwent.pw_gid = 0; } else { pwent.pw_gid = atoi(gid); }
 
+    if ((! pwent.pw_gid && V_OVERRIDE)
+      && (vget_limits (in_domain, &limits) == 0) {
+        pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
+    } else pwent.pw_flags = pwent.pw_gid;
+
 #ifdef DEBUG
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
     fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
     fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
     fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
+    fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
     fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
     fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
     fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
 #endif
-    if (vget_limits (in_domain,&limits) == 0) {
-        if (! pwent.pw_gid && V_OVERRIDE) {
-            pwent.pw_gid = pwent.pw_gid | vlimits_get_gid_mask (&limits);
-        }
-    }
+
     return(&pwent);
 }
 

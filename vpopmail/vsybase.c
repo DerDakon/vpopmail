@@ -30,7 +30,6 @@
 #include "vlimits.h"
 #include "vsybase.h"
 
-
 static int is_open = 0;
 static LOGINREC *login;
 static DBPROCESS *dbproc;
@@ -283,15 +282,12 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	}
 	dbcancel(dbproc);
 	if ( mem_size == 0 ) return(NULL);
-	/* this is necessary to enforce the qmailadmin-limits
-	a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
-	unless the user has the V_OVERRIDE flag set
-	*/
-	if (vget_limits (in_domain,&limits) == 0) {
-		if (! pwent.pw_gid && V_OVERRIDE) {
-		pwent.pw_gid |= vlimits_get_gid_mask (&limits);
-		}
-	}
+
+	if ((! pwent.pw_gid && V_OVERRIDE)
+		&& (vget_limits (in_domain, &limits) == 0) {
+		pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
+	} else pwent.pw_flags = pwent.pw_gid;
+
 	return(&pwent);
 }
 
