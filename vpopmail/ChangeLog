@@ -25,6 +25,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Install a vlimits.default file if none exists.
 	- Allow for comments in vlimits.default and .qmailadmin-limits.
 
+	Justin Heesemann
+	- Add -d option to vmoddomlimits to work with vlimits.default.
+
+	Bill Shupp
+	- Set uid/gid when creating maildirsize in vuserinfo. [832588,832592]
+
 5.3.29 - 20-Oct-03
 
 	Michael Bowe
