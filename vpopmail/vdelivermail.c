@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.7 2003-12-17 03:39:50 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.8 2004-01-03 07:05:39 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -444,6 +444,9 @@ int deliver_mail(char *address, char *quota)
  FILE *fs;
  char tmp_file[256];
 
+    /* This is a comment, ignore it */
+    if ( *address == '#' ) return(0);
+
     /* check if the email is looping to this user */
     if ( is_looping( address ) == 1 ) {
         printf("message is looping %s\n", address );
@@ -463,11 +466,6 @@ int deliver_mail(char *address, char *quota)
         run_command(address);
         return(0);
       }
-
-    /* This is a comment, ignore it */
-    else if ( *address == '#' ) {
-        return(0);
-    }
 
     /* Contains /Maildir/ ? Then it must be a full or relative
      * path to a Maildir 
