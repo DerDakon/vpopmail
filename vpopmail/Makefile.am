@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.6 2003-11-20 22:58:03 tomcollins Exp $
 # Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
