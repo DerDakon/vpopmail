@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.6 2003-10-21 21:24:37 jheesemann Exp $
+ * $Id: vmoddomlimits.c,v 1.7 2003-10-24 00:29:28 jheesemann Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -371,7 +371,7 @@ void usage()
 {
     printf( "vmoddomlimits: usage: [options] domain \n");
     printf("options: -v ( display the vpopmail version number )\n");
-    printf("         -V ( use the vlimits.default file, instead of domain )\n");
+    printf("         -d ( use the vlimits.default file, instead of domain )\n");
     printf("         -S ( show current settings )\n");
     printf("         -D ( delete limits for this domain, i.e. switch to default limits)\n");
     printf("         -Q quota-in-megabytes ( set domain disk quota, '100' = 100 MB )\n");
@@ -459,7 +459,7 @@ void get_options(int argc,char **argv)
     DeleteLimits = 0;
     EditDefaultLimits = 0;
     errflag = 0;
-    while( (c=getopt(argc,argv,"vSDVQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
+    while( (c=getopt(argc,argv,"vSDdQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -470,7 +470,7 @@ void get_options(int argc,char **argv)
             case 'D':
                 DeleteLimits = 1;
                 break;
-            case 'V':
+            case 'd':
                 EditDefaultLimits = 1;
                 snprintf(Domain, sizeof(Domain), "Default limits: %s", VLIMITS_DEFAULT_FILE);
             case 'Q':
