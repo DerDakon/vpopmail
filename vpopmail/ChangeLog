@@ -4,7 +4,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.4.2 - unreleased
 
 	Tom Collins
-	- Remove attempts to free() static buffers in vpgsql.c.
+	- Remove attempts to free() static buffers in vpgsql.c. [888888]
+	- Fix problems with creating valias table in vpgsql.c. [892595]
 
 5.4.1 - released 10-Feb-04
 
