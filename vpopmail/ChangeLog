@@ -11,6 +11,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vpopmail.c: Add missing ifdef that preventing modification of
 	  one-character username accounts.
 
+	Niki Denev
+	- maildirquota.c: Remove double free() and fix use of free'd
+	  memory in docheckquota().
+
 5.4.9 - released 26-Dec-04
 
 	Jeremy Kister

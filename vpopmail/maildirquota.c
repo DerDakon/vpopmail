@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7 2003-12-19 05:16:36 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.7.2.1 2005-01-13 06:35:48 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -550,10 +550,10 @@ struct dirent *de;
 	if (doaddquota(dir, maildirsize_fd, quota_type, maildirsize_size,
 		maildirsize_cnt, 1))
 	{
-		free(newmaildirsizename);
 		unlink(newmaildirsizename);
 		close(maildirsize_fd);
 		*maildirsize_fdptr= -1;
+		free(newmaildirsizename);
 		free(checkfolder);
 		return (-1);
 	}
@@ -562,7 +562,6 @@ struct dirent *de;
 
 	if (rename(newmaildirsizename, checkfolder))
 	{
-		free(checkfolder);
 		unlink(newmaildirsizename);
 		close(maildirsize_fd);
 		*maildirsize_fdptr= -1;
