@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.5 2003-12-29 11:19:20 mbowe Exp $
+   $Id: README.pgsql,v 1.6 2004-01-10 18:17:02 tomcollins Exp $
 */
 --------------------------------------------------------------------------
 
@@ -104,7 +104,6 @@ Now, build the program with a configure something like this :
 	./configure \
 	  --enable-roaming-users=n \
 	  --enable-logging=p \
-	  --enable-defaultquota=20971520S \
 	  --enable-ip-alias-domains=n \
 	  --enable-passwd=n \
 	  --enable-clear-passwd=y \

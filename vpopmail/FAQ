@@ -289,9 +289,12 @@ qmails:x:509:504::/var/qmail:/bin/bash
     than the HARD_QUOTA limit. The email is bounced back to
     the sender.
 
-    Use the configuration option --enable-defaultquota to change the 
-    size of the hard quota per user.  Please read README.quotas
-    for information on maildirquotas and syntax information.
+    Use the default_quota and default_maxmsgcount options in
+    ~vpopmail/etc/vlimits.default or the .qmailadmin-limits
+    file for the domain to change the default quota for new
+    users.  The program vmoduser can be used to update quotas
+    for existing accounts.  Please read README.quotas for more
+    information on maildirquotas and syntax information.
 
 7. I installed qmail in a place other than /var/qmail. How should
    I configure vpopmail for it?
