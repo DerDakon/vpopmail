@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.14 2004-01-13 23:41:53 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15 2004-01-13 23:56:41 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1292,6 +1292,26 @@ int valias_insert( char *alias, char *domain, char *alias_line)
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
             fprintf(stderr, "vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
+            return(-1);
+        }
+    }
+    return(0);
+}
+
+int valias_remove( char *alias, char *domain, char *alias_line)
+{
+ int err;
+
+    if ( (err=vauth_open_update()) != 0 ) return(err);
+
+    snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+        "delete from valias where alias = \"%s\" \
+and valias_line = \"%s\" and domain = \"%s\"", alias, alias_line, domain );
+
+    if (mysql_query(&mysql_update,SqlBufUpdate)) {
+        vcreate_valias_table();
+        if (mysql_query(&mysql_update,SqlBufUpdate)) {
+            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * $Id: vauth.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vauth.h,v 1.3 2004-01-13 23:56:41 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -111,6 +111,7 @@ char *valias_select_next();
 char *valias_select_all( char *alias, char *domain );
 char *valias_select_all_next(char *alias);
 int valias_insert( char *alias, char *domain, char *alias_line);
+int valias_remove( char *alias, char *domain, char *alias_line);
 int valias_delete( char *alias, char *domain);
 int valias_delete_domain( char *domain);
 

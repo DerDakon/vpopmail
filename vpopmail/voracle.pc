@@ -1245,6 +1245,22 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
+int valias_remove( char *alias, char *domain, char *alias_line)
+{
+ int err;
+
+    if ( (err=vauth_open_update()) != 0 ) return(err);
+
+    snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+        "delete from valias where alias = '%s' \
+and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
+
+    EXEC SQL PREPARE S FROM :SqlBufUpdate;
+    EXEC SQL EXECUTE S;
+    EXEC SQL COMMIT;
+    return(0);
+}
+
 int valias_delete( char *alias, char *domain)
 {
  int err;

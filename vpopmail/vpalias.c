@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.3 2004-01-13 23:06:39 tomcollins Exp $
+ * $Id: vpalias.c,v 1.4 2004-01-13 23:56:41 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -131,6 +131,12 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     fprintf(fs, "%s\n", alias_line);
     fclose(fs);
     return(0);
+}
+
+int valias_remove( char *alias, char *domain, char *alias_line)
+{
+  fprintf (stderr, "Error: valias_remove() not implemented for non-SQL backends.\n");
+  return -1;
 }
 
 int valias_delete( char *alias, char *domain)
