@@ -4815,7 +4815,7 @@ _ACEOF
 
 case "$host" in
   *-*-solaris*)
-    extralibflags="-R$libdir"
+    extralibflags="-R$libdir -lm -lnsl -lsocket"
     { echo "$as_me:$LINENO: WARNING: Solaris install detected.  Using extralibflags for linking: $extralibflags" >&5
 echo "$as_me: WARNING: Solaris install detected.  Using extralibflags for linking: $extralibflags" >&2;}
     ;;
