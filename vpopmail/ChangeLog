@@ -23,6 +23,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix vdeldomain() to delete things in the correct order. [805703]
 	- Update Makefile.am to create bin/doc/etc/include/lib with
 	  correct owner/permissions if not already present.
+	- Send errors to stderr instead of stdout (vmysql, vcdb, vpgsql).
+	- Set umask before opening vpasswd.cdb.
+	- Start adding CVS ID tags to each file.
+	- Replace vgen_pass() with vrandom_pass() which doesn't leak
+	  memory. [793662, 803950]
+	- Fix broken dupe-alias checking code in valias. [807935]
 
 	Kazuho Oku
 	- Fix qmail_inject_open() in vdelivermail to work with addresses 
@@ -31,6 +37,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Anders Brander
 	- Fix mkpasswd3() to use 8-char MD5 salt (instead of 5-char).
 	  [804266]
+	- Allow for swapped parameters to vaddaliasdomain. [812150]
 
 5.3.27 - released 4-Sep-03
 
