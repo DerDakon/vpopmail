@@ -9,6 +9,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
           The actual maximum length of a host name is 256.
         - vcdb.c: use open/read/close instead of stream based
           fopen/fread/fclose in vauth_getpw. Slightly more efficent.
+        - file_lock.c change get_write_lock to use file descriptor
+          instead of FILE *;
+        - vpopmail.c: for locks, use open/close instead of fopen/fclose
+        - vcdb.c: for locks, use open/close instead of fopen/fclose
 
 	Michael Bowe
 	- Minor documentation tweaks

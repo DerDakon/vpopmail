@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.31 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vpopmail.c,v 1.32 2004-04-01 22:54:13 kbo Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -994,7 +994,7 @@ int remove_line( char *template, char *filename )
  FILE *fs_orig;
  FILE *fs_bak;
 #ifdef FILE_LOCKING
- FILE *fs_lock;
+ int fd_lock;
 #endif
  int found;
  int i;
@@ -1007,7 +1007,7 @@ int remove_line( char *template, char *filename )
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
 
   /* open the file with write permissions and check for error */
-  if ( (fs_lock = fopen(tmpbuf1, "w+")) == NULL ) {
+  if ( (fd_lock = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
     /* return error */
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(-1);
@@ -1016,11 +1016,11 @@ int remove_line( char *template, char *filename )
   /* ask for a write lock on the file
    * we don't want anyone writing to it now 
    */
-  if ( get_write_lock(fs_lock) < 0 ) {
+  if ( get_write_lock(fd_lock) < 0 ) {
 
     /* remove lock */
-    unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
-    fclose(fs_lock);
+    unlock_lock(fd_lock, 0, SEEK_SET, 0);
+    close(fd_lock);
 
     /* print error message */
     fprintf(stderr, "could not get write lock on %s\n", tmpbuf1);
@@ -1044,7 +1044,7 @@ int remove_line( char *template, char *filename )
 
 #ifdef FILE_LOCKING
     /* release resources */
-    fclose(fs_lock);
+    close(fd_lock);
 #endif
 
     fprintf(stderr, "%s file would not open w+\n", filename);
@@ -1077,8 +1077,8 @@ int remove_line( char *template, char *filename )
      fprintf(stderr, "%s would not open r+ \n", tmpbuf1);
      fclose(fs_orig);
 #ifdef FILE_LOCKING
-     unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
-     fclose(fs_lock);
+     unlock_lock(fd_lock, 0, SEEK_SET, 0);
+     close(fd_lock);
 #endif
      return(-1);
   }
@@ -1113,10 +1113,10 @@ int remove_line( char *template, char *filename )
 
 #ifdef FILE_LOCKING
   /* unlock, we are done */
-  unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
+  unlock_lock(fd_lock, 0, SEEK_SET, 0);
 
   /* close the lock file to release resources */
-  fclose(fs_lock);
+  close(fd_lock);
 #endif
 
   /* return 0 = everything went okay, but we didn't find it
@@ -1460,7 +1460,7 @@ int update_file(char *filename, char *update_line)
  FILE *fs = NULL;
  FILE *fs1 = NULL;
 #ifdef FILE_LOCKING
- FILE *fs3 = NULL;
+ int fd3 = NULL;
 #endif
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
@@ -1469,20 +1469,20 @@ int update_file(char *filename, char *update_line)
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-  if ( (fs3 = fopen(tmpbuf1, "w+")) == NULL ) {
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
 
-  if ( get_write_lock(fs3) < 0 ) return(-1);
+  if ( get_write_lock(fd3) < 0 ) return(-1);
 #endif
 
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
   fs1 = fopen(tmpbuf1, "w+");
   if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
-    unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-    fclose(fs3);
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
     return(VA_COULD_NOT_UPDATE_FILE);
 #endif
   }
@@ -1492,8 +1492,8 @@ int update_file(char *filename, char *update_line)
     if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
       fclose(fs1);
 #ifdef FILE_LOCKING
-      fclose(fs3);
-      unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
 #endif
       return(VA_COULD_NOT_UPDATE_FILE);
     }
@@ -1528,8 +1528,8 @@ int update_file(char *filename, char *update_line)
   rename(tmpbuf2, tmpbuf1);
 
 #ifdef FILE_LOCKING
-  unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-  fclose(fs3);
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
 #endif
 
   return(0);
@@ -2450,7 +2450,7 @@ int open_smtp_relay()
  FILE *fs_cur_file;
  FILE *fs_tmp_file;
 #ifdef FILE_LOCKING
- FILE *fs_lok_file;
+ int fd_lok_file;
 #endif /* FILE_LOCKING */
  char *ipaddr;
  char *tmpstr;
@@ -2464,8 +2464,8 @@ int open_smtp_relay()
 
 #ifdef FILE_LOCKING
   /* by default the OPEN_SMTP_LOK_FILE is ~vpopmail/etc/open-smtp.lock */
-  if ( (fs_lok_file=fopen(OPEN_SMTP_LOK_FILE, "w+")) == NULL) return(-1);
-  get_write_lock(fs_lok_file);
+  if ( (fd_lok_file=open(OPEN_SMTP_LOK_FILE, O_WRONLY | O_CREAT))<0) return(-1);
+  get_write_lock(fd_lok_file);
 #endif /* FILE_LOCKING */
 
   /* by default the OPEN_SMTP_CUR_FILE is ~vpopmail/etc/open-smtp */
@@ -2473,8 +2473,8 @@ int open_smtp_relay()
     /* open for read/write failed, so try creating it from scratch */
     if ( (fs_cur_file = fopen(OPEN_SMTP_CUR_FILE, "w+")) == NULL ) {
 #ifdef FILE_LOCKING
-      unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-      fclose(fs_lok_file);
+      unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+      close(fd_lok_file);
 #endif /* FILE_LOCKING */
       /* failed trying to access the open-smtp file */
       return(-1);
@@ -2489,8 +2489,8 @@ int open_smtp_relay()
 
   if ( fs_tmp_file == NULL ) {
 #ifdef FILE_LOCKING
-    unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-    fclose(fs_lok_file);
+    unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+    close(fd_lok_file);
 #endif /* FILE_LOCKING */
     /* failed to create the tmp file */
     return(-1);
@@ -2500,8 +2500,8 @@ int open_smtp_relay()
 
   if ( ipaddr == NULL ) {     
 #ifdef FILE_LOCKING
-    unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-    fclose(fs_lok_file);
+    unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+    close(fd_lok_file);
 #endif /* FILE_LOCKING */
     /* failed to get user's ip address */
     return(-1);
@@ -2550,8 +2550,8 @@ int open_smtp_relay()
   }
 
 #ifdef FILE_LOCKING
-  unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-  fclose(fs_lok_file);
+  unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+  close(fd_lok_file);
 #endif /* FILE_LOCKING */
 #endif /* USE_SQL */
   return(0);

@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.14 2004-04-01 22:14:07 kbo Exp $
+ * $Id: vcdb.c,v 1.15 2004-04-01 22:54:13 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.14 2004-04-01 22:14:07 kbo Exp $
+** $Id: vcdb.c,v 1.15 2004-04-01 22:54:13 kbo Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -229,7 +229,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uint32 dlen;
  int pwf;
 #ifdef FILE_LOCKING
- FILE *lock_fs;
+ int lock_fd;
 #endif
 
     verrori = 0;
@@ -249,15 +249,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
 #ifdef FILE_LOCKING
-		if ( (lock_fs = fopen(vpasswd_lock_file, "w+")) == NULL) {
+		if ( (lock_fd=open(vpasswd_lock_file, O_WRONLY|O_CREAT)) < 0) {
 			return(NULL);
 		}
-		get_write_lock( lock_fs );
+		get_write_lock( lock_fd );
 #endif
         make_vpasswd_cdb(domain);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(lock_fs), 0, SEEK_SET, 0);
-		fclose(lock_fs);
+		unlock_lock(lock_fd, 0, SEEK_SET, 0);
+		close(lock_fd);
 #endif
         if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
             return(NULL);
@@ -392,7 +392,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
 
     /* do not trod on the vpasswd file */
@@ -407,8 +407,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
     vcdb_strip_char( gecos );
 
 #ifdef FILE_LOCKING
-    fs3 = fopen(vpasswd_lock_file, "w+");
-    if ( get_write_lock(fs3) < 0 ) return(-2);
+    fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+    if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -420,8 +420,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
 		if ( fs1 != NULL ) fclose(fs1);
 		if ( fs2 != NULL ) fclose(fs2);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -445,8 +445,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);
@@ -471,14 +471,14 @@ int vauth_deluser( char *user, char *domain )
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
 
     set_vpasswd_files( domain );
 
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -490,8 +490,8 @@ int vauth_deluser( char *user, char *domain )
 		if ( fs1 != NULL ) fclose(fs1);
 		if ( fs2 != NULL ) fclose(fs2);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -511,8 +511,8 @@ int vauth_deluser( char *user, char *domain )
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);
@@ -549,7 +549,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
  uid_t myuid;
  uid_t uid;
@@ -575,8 +575,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -589,8 +589,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 		if ( fs2 != NULL ) fclose(fs2);
 
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -634,8 +634,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
 #ifdef SQWEBMAIL_PASS
@@ -704,7 +704,7 @@ int vauth_adduser_line( FILE *fs1,
 int vmkpasswd( char *domain )
 {
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
  char Dir[156];
  uid_t uid;
@@ -719,14 +719,14 @@ int vmkpasswd( char *domain )
     lowerit(domain);
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     make_vpasswd_cdb(domain);
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);

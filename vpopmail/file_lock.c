@@ -1,5 +1,5 @@
 /*
- * $Id: file_lock.c,v 1.3 2004-03-14 18:00:39 kbo Exp $
+ * $Id: file_lock.c,v 1.4 2004-04-01 22:54:13 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -60,11 +60,11 @@ lock_test(int fd, int type, off_t offset, int whence, off_t len)
 	return(lock.l_pid);	/* true, return pid of lock owner */
 }
 
-int get_read_lock(FILE *fs)
+int get_read_lock(int fd)
 {
  int try = 0;
 
-	while(read_lock(fileno(fs), 0, SEEK_SET, 0) < 0)
+	while(read_lock(fd, 0, SEEK_SET, 0) < 0)
 	{
 		if (errno == EAGAIN || errno == EACCES || errno ==ENOLCK ) 
 		{
@@ -84,11 +84,11 @@ int get_read_lock(FILE *fs)
 	return(0);
 }
 
-int get_write_lock( FILE *fs ) 
+int get_write_lock( int fd ) 
 {
  int try = 0;
 
-	while(write_lock(fileno(fs), 0, SEEK_SET, 0) < 0)
+	while(write_lock(fd, 0, SEEK_SET, 0) < 0)
 	{
 		if (errno == EAGAIN || errno == EACCES || errno == ENOLCK ) 
 		{
