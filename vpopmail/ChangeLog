@@ -45,6 +45,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  valias_select_all() and valias_select_all_next() since it's a 
 	  return value buffer.
 	- Remove duplicate code in valias_select_all_next() in vpalias.c.
+	- Fix configure.in to update cdb/conf-cc and cdb/conf-ld. [877168]
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
