@@ -1,5 +1,5 @@
 /*
- * $Id: clearopensmtp.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: clearopensmtp.c,v 1.3 2004-01-13 11:46:28 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,27 +27,27 @@
 
 #ifdef POP_AUTH_OPEN_RELAY
 
-#ifndef USE_MYSQL
+#ifndef USE_SQL
 #define MAX_BUFF 256
 static char TmpBuf1[MAX_BUFF];
 static char TmpBuf2[MAX_BUFF];
-#endif /* ndef USE_MYSQL */
+#endif /* ndef USE_SQL */
 
 int main()
 {
-#ifndef USE_MYSQL
+#ifndef USE_SQL
  FILE *fs_smtp_cur;
  FILE *fs_smtp_tmp;
  char *tmpstr;
  time_t file_time;
-#endif /* ndef USE_MYSQL */
+#endif /* ndef USE_SQL */
  time_t mytime;
  time_t clear_minutes;
 
 	clear_minutes = RELAY_CLEAR_MINUTES * 60;
 	mytime = time(NULL);
 
-#ifdef USE_MYSQL
+#ifdef USE_SQL
         /* scan the relays table in mysql, and purge out any
          * entries that are older than our specified timestamp
          */
@@ -106,7 +106,7 @@ int main()
 #else
 int main()
 {
-	printf("vpopmail not configure with --enable-roaming-users=y\n");
+	printf("vpopmail not configure with --enable-roaming-users\n");
 	return(vexit(0));
 }
 #endif /* POP_AUTH_OPEN_RELAY */
