@@ -232,7 +232,6 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
  char *domstr;
  int mem_size;
  static struct vqpasswd pwent;
- struct vlimits limits;
 
 	lowerit(user);
 	lowerit(domain);
@@ -283,10 +282,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	dbcancel(dbproc);
 	if ( mem_size == 0 ) return(NULL);
 
-	if ((! pwent.pw_gid && V_OVERRIDE)
-		&& (vget_limits (in_domain, &limits) == 0)) {
-		pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
-	} else pwent.pw_flags = pwent.pw_gid;
+	pwent.pw_flags = pwent.pw_gid;
 
 	return(&pwent);
 }

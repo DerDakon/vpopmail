@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/uio.h>
+#include "vauth.h"
 #include "vlimits.h"
 #include "maildirquota.h"
 #include "config.h"
