@@ -27,6 +27,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove references to --eanble-defaultquota in documentation.
 	- vdelivermail.c: Consistent return values in deliver_mail().
 	- More updates to build files. [874831]
+	- Apply patch from http://www.fehcom.de/qmail/smtpauth.html
+	  to fix CRAM-MD5 SMTP AUTH in vchkpw. [871493]
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
