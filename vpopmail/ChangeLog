@@ -11,6 +11,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  [886988]
 	- Properly parse Maildir and mbox delivery lines in .qmail files
 	  in vdelivermail (and exit(111) for mbox lines). [889756]
+	- Temporarily disable -s option to vadduser (since it's broken).
+	  [895375]
 
 5.4.1 - released 10-Feb-04
 
