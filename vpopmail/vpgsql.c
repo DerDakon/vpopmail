@@ -249,7 +249,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   static struct vqpasswd vpw;
   int err;
   PGresult *pgres;
-  struct vlimits limits;
 
   verrori = 0;
   if ( (err=vauth_open()) != 0 ) {
@@ -320,10 +319,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
 #endif
 
-  if ((! vpw.pw_gid && V_OVERRIDE)
-    && (vget_limits (in_domain, &limits) == 0)) {
-      vpw.pw_flags = vpw.pw_gid | vlimits_get_gid_mask (&limits);
-  } else vpw.pw_flags = vpw.pw_gid;
+  vpw.pw_flags = vpw.pw_gid;
 
   return(&vpw);
 }

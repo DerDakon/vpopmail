@@ -29,6 +29,7 @@
 #include "vpopmail.h"
 #include "vlog.h"
 #include "vauth.h"
+#include "vlimits.h"
 
 /* for cram-md5 */
 #include "global.h"
@@ -456,26 +457,40 @@ void login_virtual_user()
 #endif
 #endif
 
+  struct vlimits limits;
+  if (vget_limits (TheDomain, &limits)) {
+    snprintf(LogLine, sizeof(LogLine), "%s: No default vlimits and no vlimits for domain %s found",
+             VchkpwLogName, TheDomain);
+    vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
+    vchkpw_exit(1);
+  }
 
   /* They are authenticated now, check for restrictions
    * Check if they are allowed pop access 
    */
-  if ( ( vpw->pw_gid & NO_POP ) && ConnType == POP_CONN ) {
+  if ( ConnType == POP_CONN && vlimits_check_capability (vpw, &limits, NO_POP)) {
     snprintf(LogLine, sizeof(LogLine), "%s: pop access denied %s@%s:%s", 
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
   }
- 
      /* Check if they are allowed smtp access 
       */
-  if ( ( vpw->pw_gid & NO_SMTP ) && ConnType == SMTP_CONN ) {
+  else if ( ConnType == SMTP_CONN && vlimits_check_capability (vpw, &limits, NO_SMTP)) {
     snprintf(LogLine, sizeof(LogLine), "%s: smtp access denied %s@%s:%s", 
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
   }
 
+    /* Check if they are allowed imap access
+    */
+  else if ( ConnType == IMAP_CONN && vlimits_check_capability (vpw, &limits, NO_IMAP)) {
+    snprintf(LogLine, sizeof(LogLine), "%s: imap access denied %s@%s:%s",
+             VchkpwLogName, TheUser, TheDomain, IpAddr);
+    vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
+    vchkpw_exit(1);
+  }
   /* show success but with no password */
   if ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4) { 
     snprintf(LogLine, sizeof(LogLine), "%s: (%s) login success %s@%s:%s",

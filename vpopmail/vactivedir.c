@@ -159,7 +159,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  static struct vqpasswd vpw;
  static struct actdirvp adir;
  int sock;
- struct vlimits limits;
 
   if ( (sock=ad_open_conn())==-1){
     printf("could not connect\n");
@@ -188,10 +187,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   
   ad_fill_vpw(&vpw,&adir);
 
-  if ((! vpw.pw_gid && V_OVERRIDE)
-    && (vget_limits (domain, &limits) == 0)) {
-      vpw.pw_flags = vpw.pw_gid | vlimits_get_gid_mask (&limits);
-  } else vpw.pw_flags = vpw.pw_gid;
+  vpw.pw_flags = vpw.pw_gid;
 
   return(&vpw);
 }

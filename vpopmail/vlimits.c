@@ -12,8 +12,9 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include "config.h"
-#include "vlimits.h"
 #include "vpopmail.h"
+#include "vauth.h"
+#include "vlimits.h"
 
 #define TOKENS " :\t\n\r"
 
@@ -187,7 +188,7 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
     return 0;
 }
 
-int vlimits_get_gid_mask(struct vlimits *limits)
+int vlimits_get_flag_mask(struct vlimits *limits)
  {
     int mask = 0;
     if (limits->disable_pop != 0) {
@@ -211,11 +212,21 @@ int vlimits_get_gid_mask(struct vlimits *limits)
     if (limits->disable_dialup != 0) {
         mask |= NO_POP;
     }
-    /* return mask; */
+    return mask;
     /* this feature has been temporarily disabled until we can figure
      * out a solution to the problem where edited users will have domain
      * limits saved into their user limits.
      */
+    //return 0;
+}
+
+int vlimits_check_capability (struct vqpasswd *pw, struct vlimits *limits, int flags) {
+    if (pw->pw_flags & V_OVERRIDE) {
+        if ( pw->pw_flags & flags) return 1;
+        else return 0;
+    } else if (vlimits_get_flag_mask (limits) & flags) {
+        return 1;
+    }
     return 0;
 }
 
@@ -255,7 +266,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
         /* Successfully read the file in */
         chown(dir,uid,gid);
         chmod(dir, S_IRUSR|S_IWUSR);
-    } else if (vlimits_read_limits_file (VLIMITS_DEFAULT_FILE, limits)) {
+    } else if (vlimits_read_limits_file (VLIMITS_DEFAULT_FILE, limits) == 0) {
         /* We couldnt find a .qmail-admin limits in the domain's dir.
          * but we did find a global file at ~vpopmail/etc/vlimits.default file
          * so we have used that instead
