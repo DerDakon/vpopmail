@@ -1,4 +1,6 @@
 /*
+ * $Id: seek.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ *
  * Copyright (c) 1987 University of Maryland Computer Science Department.
  * All rights reserved.
  * Permission to copy for any purpose is hereby granted so long as this

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vcdb.c,v 1.8 2003-10-20 18:59:57 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.7 2003-10-08 22:45:02 jheesemann Exp $
+** $Id: vcdb.c,v 1.8 2003-10-20 18:59:57 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
