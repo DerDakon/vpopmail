@@ -67,7 +67,6 @@ char msgbuf[MSG_BUF_SIZE];
 
 #define BUFF_SIZE 300
 int fdm;
-static char *binqqargs[4];
 char *maildir_to_email(char *maildir);
 
 #define QUOTA_WARN_PERCENT 90
@@ -395,6 +394,7 @@ long unsigned qmail_inject_open(char *address)
  long unsigned pid;
  int i=0;
  static char *in_address;
+ static char *binqqargs[4];
 
     in_address = malloc(strlen(address)+1);  
     strcpy(in_address, address);
@@ -413,7 +413,8 @@ long unsigned qmail_inject_open(char *address)
         close(pim[1]);
         if (vfd_move(0,pim[0]) == -1 ) _exit(-1);
         binqqargs[0] = QMAILINJECT;
-        binqqargs[1] = &in_address[i];
+        binqqargs[1] = "--";
+        binqqargs[2] = &in_address[i];
         execv(*binqqargs, binqqargs);
     }
     fdm = pim[1];
