@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.7 2003-10-24 00:29:28 jheesemann Exp $
+ * $Id: vmoddomlimits.c,v 1.8 2004-01-23 15:45:33 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -378,11 +378,11 @@ void usage()
     printf("         -q quota-in-bytes ( set default user quota, '10M' = 10 MB )\n");
     printf("         -M count ( set domain max msg count )\n");
     printf("         -m count ( set default user max msg count )\n");
-    printf("         -P count ( set max ammount of pop accounts )\n");
-    printf("         -A count ( set max ammount of aliases )\n");
-    printf("         -F count ( set max ammount of forwards )\n");
-    printf("         -R count ( set max ammount of autoresponders )\n");
-    printf("         -L count ( set max ammount of mailing lists )\n");
+    printf("         -P count ( set max amount of pop accounts )\n");
+    printf("         -A count ( set max amount of aliases )\n");
+    printf("         -F count ( set max amount of forwards )\n");
+    printf("         -R count ( set max amount of autoresponders )\n");
+    printf("         -L count ( set max amount of mailing lists )\n");
     
 
     printf("the following options are bit flags in the gid int field\n");
