@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.1-pre1 - unreleased
 
+	Tom Collins
+	- Add dotqmail2valias program for converting .qmail-alias files
+	  to valias table entries.
+
 5.4.0 - released 1-Feb-04
 
 	Tom Collins
