@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.23 2004-02-23 00:39:35 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.24 2004-03-09 06:09:18 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -162,7 +162,7 @@ int vauth_adddomain( char *domain )
   return (vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT, 1));
 #else
   /* if creation fails, don't show an error */
-  vauth_create_table (MYSQL_DEFAULT_TABLE, TABLE_LAYOUT, 0);
+  vauth_create_table (PGSQL_DEFAULT_TABLE, TABLE_LAYOUT, 0);
   return (0);
 #endif
 }
