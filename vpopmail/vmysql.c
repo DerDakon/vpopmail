@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.19 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vmysql.c,v 1.20 2004-06-03 23:49:09 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,7 +80,7 @@ char IDir[SMALL_BUFF];
 char IShell[SMALL_BUFF];
 char IClearPass[SMALL_BUFF];
 
-char sqlerr[MAX_BUFF];
+char sqlerr[MAX_BUFF] = "";
 char *last_query = NULL;
 
 void vcreate_dir_control(char *domain);
