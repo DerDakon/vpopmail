@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: valias.c,v 1.2 2003-09-30 01:16:37 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
 	case VALIAS_INSERT:
 		/* check to see if it already exists */
 		AliasExists = 0;
-		tmpalias = valias_select_all( Alias, Domain );
+		tmpalias = valias_select( Alias, Domain );
 		while (tmpalias != NULL ) {
 			if (strcmp (tmpalias, AliasLine) == 0) AliasExists = 1;
 			tmpalias = valias_select_next();
