@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.10 - unreleased
 
+	Peter Seiderer
+	- vcdb.c: vauth_getpw() didn't check for invalid domain.
+
 	Bill Shupp
 	- vuserinfo: display spamassassin info.
 
@@ -18,6 +21,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- vlimits.c: print errors to stderr.
 	- vmoduser.c: add clarity to usage/help for bit flags.
+	- vcdb.c: be sure to close password file in vauth_getpw().
 
 	Michael Bowe
 	- configure.in: fix typo of where the configure script says it
