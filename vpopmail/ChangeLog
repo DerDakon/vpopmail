@@ -9,6 +9,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove unnecessary check for C++ from configure[.in].
 	- Don't include DESTDIR when building inc_deps and lib_deps.
 	  [886988]
+	- Properly parse Maildir and mbox delivery lines in .qmail files
+	  in vdelivermail (and exit(111) for mbox lines). [889756]
 
 5.4.1 - released 10-Feb-04
 
