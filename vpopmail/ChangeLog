@@ -26,6 +26,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Update README.quotas with note about domain quotas not working.
 	- vpopmail.c: remove unused sys/varargs.h include.
 	- vdominfo: fix broken -a option.
+	- vdominfo: better display of real name for alias domains. [981335]
 
 	Gentoo Port
 	- Integrate vuserinfo patch to fix the -a option and to display 
