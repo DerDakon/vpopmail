@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vcdb.c,v 1.18 2004-06-03 23:34:51 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
+** $Id: vcdb.c,v 1.18 2004-06-03 23:34:51 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -47,6 +47,9 @@
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
+
+char sqlerr[MAX_BUFF] = "";
+char *last_query = NULL;
 
 extern int cdb_seek();
 
