@@ -29,6 +29,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Change permissions on vpopmail.mysql to 0640. [848605]
 	- vuserinfo: indicate whether limit came from domain limits.
 	- Correctly apply domain limits to user accounts.
+	- Fix problem in maildirquota.c where off_t was assumed to be
+	  long.  Created wrapper function to do conversion. [797011]
 
 5.3.30 - 20-Nov-03
 
