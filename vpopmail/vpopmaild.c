@@ -1572,7 +1572,7 @@ int get_lastauth()
   strncpy(WriteBuf,RET_OK_MORE,sizeof(WriteBuf));
   wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "%ld" RET_CRLF, last_auth_time);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%ld" RET_CRLF, (long int) last_auth_time);
   return(0);
 }
 
