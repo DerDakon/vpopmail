@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.42 2004-05-27 00:53:01 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.43 2004-06-03 23:54:00 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2497,7 +2497,6 @@ char *verror(int va_err )
 int vexiterror( FILE *f, char *comment )
 {
 
-
     fprintf( f, "Error - %s. %s\n", verror( verrori ), comment );
 
     if( NULL != sqlerr && strlen(sqlerr) > 0 ) {
@@ -2620,8 +2619,11 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
  char cdb_file[MAX_BUFF];
  char *cdb_buf;
 
-  /* cant lookup a null domain! */
-  if ( domain == NULL || *domain == 0) return(NULL);
+  /* cant lookup a null domain! -- but it does clear the cache */
+  if ( domain == NULL || *domain == 0) {
+    in_domain = NULL;
+    return(NULL);
+  }
 
   /* if domain matches last lookup, use cached values */
   lowerit(domain);

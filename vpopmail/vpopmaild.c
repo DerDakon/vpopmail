@@ -909,6 +909,7 @@ int add_alias_domain()
 int del_domain()
 {
  char *domain;
+ char *dummy="";
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
@@ -925,6 +926,9 @@ int del_domain()
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
     return(-1);
   }
+
+  /*  Clear the domain info cache  */
+  vget_assign(dummy, NULL, 0, NULL, NULL );
 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   return(0);
