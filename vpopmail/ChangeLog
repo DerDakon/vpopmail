@@ -7,6 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Add SpamAssassin support for vdelivermail.
         - Increase max domain name size from 64 to 96. 
           The actual maximum length of a host name is 256.
+        - vcdb.c: use open/read/close instead of stream based
+          fopen/fread/fclose in vauth_getpw. Slightly more efficent.
 
 	Michael Bowe
 	- Minor documentation tweaks

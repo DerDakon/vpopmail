@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.13 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vcdb.c,v 1.14 2004-04-01 22:14:07 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.13 2004-03-14 18:00:40 kbo Exp $
+** $Id: vcdb.c,v 1.14 2004-04-01 22:14:07 kbo Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -227,7 +227,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t tuid;
  gid_t tgid;
  uint32 dlen;
- FILE *pwf;
+ int pwf;
 #ifdef FILE_LOCKING
  FILE *lock_fs;
 #endif
@@ -247,7 +247,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     set_vpasswd_files( in_domain );
 
-    if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
+    if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
 #ifdef FILE_LOCKING
 		if ( (lock_fs = fopen(vpasswd_lock_file, "w+")) == NULL) {
 			return(NULL);
@@ -259,7 +259,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 		unlock_lock(fileno(lock_fs), 0, SEEK_SET, 0);
 		fclose(lock_fs);
 #endif
-        if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
+        if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
             return(NULL);
         }
     }
@@ -269,18 +269,18 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     ptr = line;
     while (*ptr != ':') { ptr++; }
     ptr++;
-    switch (cdb_seek(fileno(pwf),user,strlen(user),&dlen)) {
+    switch (cdb_seek(pwf,user,strlen(user),&dlen)) {
         case -1:
-            fclose(pwf);
+            close(pwf);
             return NULL;
         case 0:
-            fclose(pwf);
+            close(pwf);
             return NULL;
     }
-    if (fread(ptr,sizeof(char),dlen,pwf) != dlen) {
+    if (read(pwf, ptr,dlen) != dlen) {
         return NULL;
     }
-    fclose(pwf);
+    close(pwf);
     line[(dlen+strlen(user)+1)] = 0;
 
     pwent.pw_name   = "";
