@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.14 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.15 2004-04-28 09:03:53 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -127,10 +127,12 @@ char *vgetpasswd( char *);
 int vdelfiles( char *);
 int add_domain_assign( char *alias_domain, char *real_domain, 
                        char *dir, uid_t uid, gid_t gid);
-int del_control( char *);
-int del_domain_assign( char *alias_domain, char *real_domain,
+//int del_control( char *);
+int del_control( char *aliases[MAX_DOM_ALIAS], int aliascount);
+int del_domain_assign( char *aliasies[MAX_DOM_ALIAS], int aliascount, 
+                       char *real_domain,
                        char *dir, uid_t uid, gid_t gid);
-int remove_line( char *, char *);
+int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount);
 int r_chown( char *, uid_t, gid_t);
 int signal_process( char *, int );
 int update_newu();

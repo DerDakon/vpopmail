@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.38 2004-04-28 05:42:52 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.39 2004-04-28 09:03:53 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,6 +98,16 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char tmpbuf[MAX_BUFF];
  char Dir[MAX_BUFF];
  char calling_dir[MAX_BUFF];
+
+ char *aliases[1];
+ int aliascount=0;
+ 
+  /*
+   * In case we need to use delete_line, build an array and count 
+   * to use as its parameters 
+   *
+   */
+  aliases[aliascount++]=strdup(domain);
 
   /* we only do lower case */
   lowerit(domain);
@@ -259,11 +269,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     vget_assign(domain, Dir, sizeof(Dir), &uid, &gid );
 
-    if ( del_domain_assign(domain, domain, Dir, uid, gid) != 0) {
+    if ( del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
       fprintf(stderr, "Failed while attempting to remove domain from assign file\n");
     }
 
-    if (del_control(domain) !=0) {
+    if (del_control(aliases,aliascount) !=0) {
       fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
@@ -284,6 +294,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
   /* return back to the callers directory and return success */
   chdir(calling_dir);
+
+  free( aliases[0] );
 
   return(VA_SUCCESS);
 }
@@ -306,6 +318,9 @@ int vdeldomain( char *domain )
  char dircontrol[MAX_BUFF];
  uid_t uid;
  gid_t gid;
+ char *aliases[MAX_DOM_ALIAS];
+ domain_entry *entry;
+ int i=0, aliascount=0;
 
   /* we always convert domains to lower case */
   lowerit(domain);
@@ -335,10 +350,17 @@ int vdeldomain( char *domain )
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
 
-  /* if this is an NOT aliased domain....
-   * (aliased domains dont have any filestructure of their own)
-   */
-  if ( strcmp(domain_to_del, domain) == 0 ) {
+  if ( strcmp(domain_to_del, domain) != 0 ) {
+     /*  This is just an alias, so add it to the list of aliases
+      *  that are about to be deleted.  It will be the only one
+      *  but I will use the same code as multi domains anyway.
+      */
+     aliases[aliascount++] = strdup( domain_to_del );
+
+  } else {
+    /* this is an NOT aliased domain....
+     * (aliased domains dont have any filestructure of their own)
+     */
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
@@ -355,7 +377,35 @@ int vdeldomain( char *domain )
      *    aliases are removed 1st (list them)
      * 2. Zap all the aliases in additon to this domain
      *
+     * Rick Widmer 28 April 3004
+     *
+     * OK.  Option 2 won.  If this domain has aliases they will all
+     * be deleted.  If you want to warn people about this it should
+     * be done by the program calling vdeldomain() before you call it.
+     * You shuould be able to find example code in vdeldomain.c.
+     *
      */
+
+     entry = get_domain_entries( domain );
+
+     if (entry==NULL) {   //  something went wrong
+       if( verrori ) {    //  could not open file
+         fprintf(stderr,"%s\n", verror(verrori));
+
+       } else {           //  domain does not exist
+         fprintf(stderr,"%s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
+       }
+     }
+
+     while( entry ) {
+       aliases[aliascount++] = strdup(entry->domain);
+       entry = get_domain_entries(NULL);
+     }
+
+//   Dump the alias list
+//     for(i=0;i<aliascount;i++) {
+//       fprintf(stderr,"alias %s\n", aliases[i]);
+//     }
 
     /* call the auth module to delete the domain from the storage */
     /* Note !! We must del domain from auth module __before__ we delete it from
@@ -417,17 +467,23 @@ int vdeldomain( char *domain )
   /* delete the email domain from the qmail control files :
    * rcpthosts, morercpthosts, virtualdomains
    */
-  if (del_control(domain_to_del) != 0) {
+  if (del_control(aliases,aliascount) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from qmail's control files\n");
   }
 
   /* delete the assign file line */
-  if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
+  if (del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from the assign file\n");
   }
 
   /* send a HUP signal to qmail-send process to reread control files */
   signal_process("qmail-send", SIGHUP);
+
+  /*  clean up memory used by the alias list  */
+  for(i=0;i<aliascount;i++) {
+    free( aliases[i] );
+  }
+
 
   return(VA_SUCCESS);
 
@@ -863,6 +919,10 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  struct stat mystat;
  char tmpstr1[MAX_BUFF];
  char tmpstr2[MAX_BUFF];
+ char *aliases[1];
+ int aliascount=0;
+
+ aliases[aliascount++]=strdup(alias_domain);
 
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/users/assign", QMAILDIR);
 
@@ -933,11 +993,13 @@ int add_domain_assign( char *alias_domain, char *real_domain,
 
   /* make sure it's not in locals and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/locals", QMAILDIR);
-  if (remove_line( alias_domain, tmpstr1) < 0) {
-    fprintf (stderr, "Failure while attempting to remove_line() the locals file\n");
+  if (remove_lines( tmpstr1, aliases, aliascount) < 0) {
+    fprintf (stderr, "Failure while attempting to remove_lines() the locals file\n");
     return(-1);
   }
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+
+  free( aliases[0] );
 
   return(0);
 }
@@ -950,21 +1012,22 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  * - /var/qmail/control/rcpthosts
  * - /var/qmail/control/virtualdomains
  */
-int del_control(char *domain ) 
+int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount ) 
 {
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
  struct stat statbuf;
+ char *virthosts[MAX_DOM_ALIAS];
 
- int problem_occurred = 0;
+ int problem_occurred = 0, i=0;
 
   /* delete entry from control/rcpthosts (if it is found) */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/rcpthosts", QMAILDIR);
-  switch ( remove_line( domain, tmpbuf1) ) {
+  switch ( remove_lines(tmpbuf1, aliases, aliascount) ) {
 
     case -1 :
       /* error ocurred in remove line */
-      fprintf (stderr, "Failed while attempting to remove_line() the rcpthosts file\n");
+      fprintf (stderr, "Failed while attempting to remove_lines() the rcpthosts file\n");
       problem_occurred = 1;
       break;
 
@@ -972,7 +1035,7 @@ int del_control(char *domain )
       /* not found in rcpthosts, so try morercpthosts */
       snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/morercpthosts", QMAILDIR);
   
-      switch (remove_line( domain, tmpbuf1) ) {
+      switch (remove_lines(tmpbuf1, aliases, aliascount) ) {
 
         case -1 :
           /* error ocurred in remove line
@@ -1015,11 +1078,20 @@ int del_control(char *domain )
   } /* switch for rcpthosts */
 
   /* delete entry from control/virtualdomains (if it exists) */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", domain, domain);
+  
+  for(i=0;i<aliascount;i++) {
+    snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", aliases[i], aliases[i]);
+    virthosts[i]=strdup(tmpbuf1);
+  }
+
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
-  if (remove_line( tmpbuf1, tmpbuf2) < 0 ) {
-    fprintf(stderr, "Failed while attempting to remove_line() the virtualdomains file\n"); 
+  if (remove_lines( tmpbuf2, virthosts, aliascount) < 0 ) {
+    fprintf(stderr, "Failed while attempting to remove_lines() the virtualdomains file\n"); 
     problem_occurred = 1; 
+  }
+
+  for(i=0;i<aliascount;i++) {
+    free( virthosts[i] );
   }
 
   /* make sure correct permissions are set on virtualdomains */
@@ -1037,26 +1109,34 @@ int del_control(char *domain )
 /*
  * delete a domain from the users/assign file
  * input : lots ;)
- * output : 0 = success
+ *
+ * output : 0 = success no aliases
  *          less than error = failure
+ *          greater than 0 = number of aliases deleted
  *
  */
-int del_domain_assign( char *alias_domain, char *real_domain, 
+int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount, 
+                       char *real_domain, 
                        char *dir, gid_t uid, gid_t gid )  
 {
  char search_string[MAX_BUFF];
  char assign_file[MAX_BUFF];
+ char *virthosts[MAX_DOM_ALIAS];
+ int i;
 
   /* format the removal string */ 
-  snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
-    alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
+  for(i=0;i<aliascount;i++) {
+    snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
+      aliases[i], real_domain, (long unsigned)uid, (long unsigned)gid, dir);
+    virthosts[i] = strdup( search_string );
+  }
 
   /* format the assign file name */
   snprintf(assign_file, sizeof(assign_file), "%s/users/assign", QMAILDIR);
 
   /* remove the formatted string from the file */
-  if (remove_line( search_string, assign_file) < 0) {
-    fprintf(stderr, "Failed while attempting to remove_line the assign file\n");
+  if (remove_lines( assign_file, virthosts, aliascount ) < 0) {
+    fprintf(stderr, "Failed while attempting to remove_lines() the assign file\n");
     return (-1);
   }
 
@@ -1080,143 +1160,96 @@ int del_domain_assign( char *alias_domain, char *real_domain,
  *          0 on success, no match found
  *          1 on success, match was found
  */
-int remove_line( char *template, char *filename )
+int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
 {
+ FILE *fs = NULL;
+ FILE *fs1 = NULL;
+#ifdef FILE_LOCKING
+ int fd3 = 0;
+#endif
  char tmpbuf1[MAX_BUFF];
- struct stat statbuf;
- FILE *fs_orig;
- FILE *fs_bak;
-#ifdef FILE_LOCKING
- int fd_lock;
-#endif
- int found;
- int i;
+ char tmpbuf2[MAX_BUFF];
+ int i, count=0, removed=0, doit=0;
 
-  /* if we can't stat the file, return error */
-  if ( stat(filename,&statbuf) == -1 ) return(-1);
+//  fprintf( stderr, "\n***************************************\n" 
+//                      "remove lines - file: %s\n", filename );
+//  for(i=0;i<aliascount;i++) {
+//    fprintf( stderr,  "               line: %s\n", aliases[i] );
+//  }
+
 
 #ifdef FILE_LOCKING
-  /* format the lock file name */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-
-  /* open the file with write permissions and check for error */
-  if ( (fd_lock = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
-    /* return error */
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
-    return(-1);
+    return(VA_COULD_NOT_UPDATE_FILE);
   }
 
-  /* ask for a write lock on the file
-   * we don't want anyone writing to it now 
-   */
-  if ( get_write_lock(fd_lock) < 0 ) {
-
-    /* remove lock */
-    unlock_lock(fd_lock, 0, SEEK_SET, 0);
-    close(fd_lock);
-
-    /* print error message */
-    fprintf(stderr, "could not get write lock on %s\n", tmpbuf1);
-
-    /* return error */
-    return(-1);
-  }
+  if ( get_write_lock(fd3) < 0 ) return(-1);
 #endif
 
-  /* format a backup file name */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.bak", filename);
-
-  /* remove the file if it exists already */
-  unlink(tmpbuf1);
-
-  /* move the orignal file to the .bak file */
-  rename(filename, tmpbuf1);
-
-  /* open the file and check for error */
-  if ( (fs_orig = fopen(filename, "w+")) == NULL ) {
-
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf1, "w+");
+  if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
-    /* release resources */
-    close(fd_lock);
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
+    return(VA_COULD_NOT_UPDATE_FILE);
 #endif
-
-    fprintf(stderr, "%s file would not open w+\n", filename);
-    return(-1);
   }
 
-  /* open the .bak file in read mode and check for error */
-
-/* Michael Bowe 23rd August 2003
- * Isnt the w+ bit of this code wrong?
- * At this point our orignal file is known as .bak
- * so why would we want to try and w+ it? Wont this
- * del the contents of the file? Ouch!
- * I have remarked the original code out and left my version below
- *
- *  if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
- *   if ( (fs_bak = fopen(tmpbuf1, "w+")) == NULL ) {
- *     fprintf(stderr, "%s would not open r+ or w+\n", tmpbuf1);
- *     fclose(fs_orig);
- * #ifdef FILE_LOCKING
- *     unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
- *     fclose(fs_lock);
- * #endif
- *      return(-1);
- *    }
- *  }
- */
-
-  if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
-     fprintf(stderr, "%s would not open r+ \n", tmpbuf1);
-     fclose(fs_orig);
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  if ( (fs = fopen(tmpbuf1, "r+")) == NULL ) {
+    if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
+      fclose(fs1);
 #ifdef FILE_LOCKING
-     unlock_lock(fd_lock, 0, SEEK_SET, 0);
-     close(fd_lock);
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
 #endif
-     return(-1);
-  }
-
-  /* Search the .bak file line by line.
-   * Copy across any lines that do not contain our search string
-   * back to the original filename.
-   */
-  found = 0;
-  /* suck in a line from the .bak file */
-  while (fgets(tmpbuf1,sizeof(tmpbuf1),fs_bak)!=NULL){
-    /* if a newline was sucked in (likely), change it to be a \0 */
-    for(i=0;tmpbuf1[i]!=0;++i) if (tmpbuf1[i]=='\n') tmpbuf1[i]=0;
-    /* look to see if this line contains our search string */ 
-    if ( strcmp(template, tmpbuf1) != 0) {
-      /* match not found, so copy this line from the .bak to the filename */
-      fputs(tmpbuf1, fs_orig);
-      fputs("\n", fs_orig);
-    } else {
-      found = 1;
+      return(VA_COULD_NOT_UPDATE_FILE);
     }
   }
 
-  /* we are done with these two, release the resources */
-  fclose(fs_orig);
-  fclose(fs_bak);
+  while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
+    count++;
 
-  /* format the name of the backup file */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.bak", filename);
-  /* remove the .bak file */
-  unlink(tmpbuf1);
+    //  Trim \n off end of line.
+    for(i=0;tmpbuf1[i]!=0;++i) {
+      if (tmpbuf1[i]=='\n') {
+        tmpbuf1[i]=0;
+      }
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    doit=1;
+    for(i=0;i<aliascount;i++) {
+      if( 0 == strcmp(tmpbuf1,aliases[i])) {
+        doit=0;
+//        fprintf( stderr, "      ***  DELETE  ***\n");
+        }
+      }    
+    if( doit ) {
+      fprintf(fs1, "%s\n", tmpbuf1);
+    } else {
+      removed++;
+    }
+  }
+
+  fclose(fs);
+  fclose(fs1);
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  snprintf(tmpbuf2, sizeof(tmpbuf2), "%s.%lu", filename, (long unsigned)getpid());
+
+  rename(tmpbuf2, tmpbuf1);
 
 #ifdef FILE_LOCKING
-  /* unlock, we are done */
-  unlock_lock(fd_lock, 0, SEEK_SET, 0);
-
-  /* close the lock file to release resources */
-  close(fd_lock);
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
 #endif
 
-  /* return 0 = everything went okay, but we didn't find it
-   *        1 = everything went okay, and we found a match
-   */
-  return(found);
-
+  return(removed);
 }
 
 /************************************************************************/

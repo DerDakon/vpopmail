@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.4 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vdeldomain.c,v 1.5 2004-04-28 09:03:52 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
+int force=0;
 
 char Domain[MAX_BUFF];
 
@@ -40,12 +41,56 @@ int main(int argc, char *argv[])
 {
  int err;
 
+ domain_entry *entry;
+ char *aliases[MAX_DOM_ALIAS];
+ char parent[MAX_BUFF];
+ int  i, aliascount=0, doit=1;
+
 	get_options(argc,argv);
 
-	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
-		printf("Error: %s\n", verror(err));
+	entry = get_domain_entries( Domain );
+	if (entry==NULL) {
+		if( verrori ) {
+			printf("Can't get domain entries - %s\n", verror( verrori ));
+			vexit(verrori);
+		} else {
+			printf("Invalid domain name\n");
+			vexit(VA_DOMAIN_DOES_NOT_EXIST);
+		}
 	}
 
+	while( entry ) {
+		if (strcmp(entry->domain, entry->realdomain) != 0) {
+			aliases[aliascount++] = strdup(entry->domain);
+		} else {
+			strcpy(parent,entry->domain);
+		}
+
+		entry = get_domain_entries(NULL);
+	}
+
+	if( aliascount > 0 && 0 == strncmp(Domain,parent,MAX_BUFF)) {  
+		//  Have aliases
+		if( force ) {
+			printf("Warning: Alias domains deleted:\n");
+		} else {
+			printf("Warning: Alias domains exist:\n");
+			doit=0;
+		}
+
+		for(i=0;i<aliascount;i++) {
+			printf ("   %s\n", aliases[i]);
+			free( aliases[i] );
+		} 
+	}
+
+        if( doit ) {
+	 	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
+			printf("Error: %s\n", verror(err));
+		}
+	} else {
+		printf("   use -f to force delete of domain and all aliases\n");
+	}
 	return(vexit(err));
 }
 
@@ -54,6 +99,7 @@ void usage()
 {
 	printf("vdeldomain: usage: [options] domain_name\n");
 	printf("options: -v (print version number)\n");
+	printf("options: -f (force delete of virtual domains)\n");
 }
 
 void get_options(int argc,char **argv)
@@ -64,10 +110,13 @@ void get_options(int argc,char **argv)
 	memset(Domain, 0, sizeof(Domain));
 
 	errflag = 0;
-	while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
+	while( !errflag && (c=getopt(argc,argv,"vf")) != -1 ) {
 		switch(c) {
 			case 'v':
 				printf("version: %s\n", VERSION);
+				break;
+			case 'f':
+                                force=1;
 				break;
 			default:
 				errflag = 1;
