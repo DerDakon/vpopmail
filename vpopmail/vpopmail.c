@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.23 2003-12-17 03:39:50 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.24 2003-12-17 04:21:10 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3077,14 +3077,14 @@ char *get_remote_ip()
 }
 
 
-char *maildir_to_email(char *maildir)
+char *maildir_to_email(const char *maildir)
 {
  static char email[256];
  int i, j=0;
  char *pnt, *last;
 
     memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
+    for(last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
         last = pnt;
     }
     if(!last) return "";
@@ -3102,7 +3102,7 @@ char *maildir_to_email(char *maildir)
 
     email[j++] = '@';
 
-    for (last=NULL, pnt=maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
+    for (last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
         last = pnt;
     }
 
