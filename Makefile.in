@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -76,14 +76,17 @@ SUBDIRS = cdb
 
 noinst_LIBRARIES = libvpopmail.a
 
-COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c
+COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES = vauth.c
 
 libvpopmail_a_SOURCES = $(COMMONSOURCES) 
 libvpopmail_a_LIBADD = cdb/*.o
 
 vpopmailbindir = @vpopmaildir@/bin
-vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap  vdominfo vconvert vqmaillocal vkill
+vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
+ vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
+ vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
+ vdominfo vconvert vqmaillocal vkill
 
 
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
@@ -92,7 +95,7 @@ vuserinfo_LDADD = libvpopmail.a @auth_libs@
 vdominfo_SOURCES = vdominfo.c
 vdominfo_LDADD = libvpopmail.a @auth_libs@
 
-vchkpw_SOURCES = vchkpw.c 
+vchkpw_SOURCES = vchkpw.c md5.c hmac_md5.c
 vchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
@@ -162,11 +165,11 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libvpopmail_a_DEPENDENCIES =  cdb/*.o
 libvpopmail_a_OBJECTS =  vpopmail.o md5.o bigdir.o vauth.o file_lock.o \
-vpalias.o
+vpalias.o seek.o vlimits.o maildirquota.o
 AR = ar
 PROGRAMS =  $(vpopmailbin_PROGRAMS)
 
-vchkpw_OBJECTS =  vchkpw.o
+vchkpw_OBJECTS =  vchkpw.o md5.o hmac_md5.o
 vchkpw_DEPENDENCIES =  libvpopmail.a
 vchkpw_LDFLAGS = 
 vdelivermail_OBJECTS =  vdelivermail.o maildirquota.o
@@ -470,7 +473,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" = "." && dot_seen=yes; \
+	  test "$$subdir" != "." || dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
@@ -693,6 +696,7 @@ install-data-local:
 	cp config.h       $(DESTDIR)@vpopmaildir@/include
 	cp config.h       $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 	cp vauth.h        $(DESTDIR)@vpopmaildir@/include
+	cp vlimits.h      $(DESTDIR)@vpopmaildir@/include
 	cp doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html
 	cp doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html
 
@@ -703,14 +707,11 @@ install-data-local:
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/man_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/doc/doc_html
 	chmod 755 $(DESTDIR)@vpopmaildir@/bin
-	chmod 750 $(DESTDIR)@vpopmaildir@/bin/vdeloldusers
+	chmod 700 $(DESTDIR)@vpopmaildir@/lib
 	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chmod 711 $(DESTDIR)@vpopmaildir@/bin/*
 	chmod 444 $(DESTDIR)@vpopmaildir@/include/*
 	chmod 444 $(DESTDIR)@vpopmaildir@/doc/doc_html/*
-
-	chown root    $(DESTDIR)@vpopmaildir@/lib
-	chmod og-rwxs $(DESTDIR)@vpopmaildir@/lib
 
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"

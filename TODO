@@ -1,6 +1,4 @@
-tarpitting pop connections
-
-welcome message when adding new user
-
-
-
+* Allow handling for ":" in clear passwords in cdb module (bug)
+* Welcome message when adding new user
+* Remove old apop code, and update the API
+* Audit maildirquota.c for proper recalculation

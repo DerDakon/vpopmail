@@ -12,7 +12,11 @@
 
 #undef USE_SYBASE
 
+#undef USE_ACTIVE_DIR
+
 #undef USE_ORACLE
+
+#undef USE_POSTGRES
 
 #undef USE_LDAP
 
@@ -37,6 +41,8 @@
 #undef ENABLE_LEARN_PASSWORDS
 
 #undef ENABLE_MYSQL_LOGGING
+
+#undef ENABLE_MYSQL_LIMITS
 
 #undef CLEAR_PASS
 
@@ -64,7 +70,11 @@
 
 #undef HARD_QUOTA
 
+#undef DOMAIN_QUOTAS
+
 #undef QMAIL_EXT
+
+#undef REBUILD_TCPSERVER
 
 #undef VPOPUSER
 
@@ -90,3 +100,6 @@
 
 #undef POP_AUTH_OPEN_RELAY
 
+#undef USERS_BIG_DIR
+
+#undef MAKE_SEEKABLE

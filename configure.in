@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
-AM_INIT_AUTOMAKE(vpopmail,5.2.1)
+AM_INIT_AUTOMAKE(vpopmail,5.3.20)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
@@ -388,6 +388,22 @@ case $ENABLE_MYSQL_LOGGING in
           ;;
 esac
 
+AC_ARG_ENABLE(mysql-limits,
+        [  --enable-mysql-limits=y|n   Turn on (y) or off (n, default) mysql handling of .qmailadmin-limits ],
+        ENABLE_MYSQL_LIMITS=$enableval,
+                [
+                        ENABLE_MYSQL_LIMITS=n
+                ])
+
+case $ENABLE_MYSQL_LIMITS in
+1*|y*|Y*)
+      ENABLE_MYSQL_LIMITS=1
+          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,$ENABLE_MYSQL_LIMITS)
+      ;;
+*)
+          ;;
+esac
+
 AC_ARG_ENABLE(clear-passwd,
         [  --enable-clear-passwd=n|y  Turn on (y) or off (y, default) storing clear text passwords],
         CLEAR_PASS=$enableval,
@@ -404,8 +420,24 @@ case $CLEAR_PASS in
 	  ;;
 esac
 
+AC_ARG_ENABLE(users-big-dir,
+        [  --enable-users-big-dir=n|y  Turn on (y) or off (y, default) using big dirs for users],
+        USERS_BIG_DIR=$enableval,
+                [
+                        USERS_BIG_DIR=y
+                ])
+
+case $USERS_BIG_DIR in
+1*|y*|Y*)
+      USERS_BIG_DIR=1
+	  AC_DEFINE_UNQUOTED(USERS_BIG_DIR,$USERS_BIG_DIR)
+      ;;
+*)
+	  ;;
+esac
+
 AC_ARG_ENABLE(logging,
-        [  --enable-logging=e|y|n|p|v   Turn on (y) or off (n) logging to syslog, (e) only log errors, include passwords in errors (p) , (v) verbose errors with passwords],
+        [  --enable-logging=e|y|n|p|v   Turn on (y) or off (n) logging to syslog, (e) only log errors, include passwords in errors (p) , (v) verbose success and errors with passwords],
         ENABLE_LOGGING=$enableval,
                 [
                         ENABLE_LOGGING=e
@@ -424,7 +456,7 @@ p*|P*)
       ENABLE_LOGGING=3
 	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
 	  ;;
- v*|V*)
+v*|V*)
        ENABLE_LOGGING=4
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING)
           ;;
@@ -526,13 +558,6 @@ case $USE_MYSQL in
 		AC_CHECK_LIB(m,floor)
 		AC_CHECK_LIB(z,compress)
 
-		for f in /usr/local/include/mysql /usr/include/mysql
-		do
-    		if test -d $f
-    		then
-        		incdir=$f
-    		fi
-		done
         if test "$incdir" = ""
         then
             AC_MSG_ERROR([Unable to find your inc dir, specify --enable-incdir.])
@@ -541,13 +566,6 @@ case $USE_MYSQL in
 		auth_inc="-I$incdir"
 		AC_SUBST(auth_inc)
 
-		for f in /usr/local/lib/mysql /usr/lib/mysql
-		do
-    		if test -d $f
-    		then
-        		libdir=$f
-    		fi
-		done
         if test "$libdir" = ""
         then
             AC_MSG_ERROR([Unable to find your sql libraries dir, specify --enable-libdir.])
@@ -636,7 +654,21 @@ case $FILE_SYNC in
 	  ;;
 esac
 
+AC_ARG_ENABLE(make-seekable,
+        [  --enable-make-seekable=n|y  If input to vdelivermail is not seekable, make it seekable.  Default is (y)],
+        MAKE_SEEKABLE=$enableval,
+                [
+                        MAKE_SEEKABLE=y
+                ])
 
+case $MAKE_SEEKABLE in
+1*|y*|Y*)
+	MAKE_SEEKABLE=1
+	AC_DEFINE_UNQUOTED(MAKE_SEEKABLE,$MAKE_SEEKABLE)
+      ;;
+*)
+	  ;;
+esac
 
 AC_ARG_ENABLE(many-domains,
         [  --enable-many-domains=n|y   Default is yes, no optimizes for sites with one domain and many users],
@@ -671,6 +703,7 @@ case $USE_LDAP in
 		AC_SUBST(auth_libs)
 		auth_inc="-I/usr/local/include"
 		AC_SUBST(auth_inc)
+		echo "-L$vpopmaildir/lib -lvpopmail -L$libdir -lldap -llber -lresolv" > $vpopmaildir/etc/lib_deps
         ;;
 *)
         ;;
@@ -699,6 +732,29 @@ case $USE_ORACLE in
         ;;
 esac
 
+AC_ARG_ENABLE(postgres,
+        [  --enable-postgres=n|y   use postgres, default is no],
+        USE_POSTGRES=$enableval,
+                [
+                        USE_POSTGRES=no
+                ])
+case $USE_POSTGRES in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_SQL=1
+		USE_POSTGRES=1
+		rm -rf vauth.c
+		ln -sf voracle.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES)
+		auth_libs="-L$libdir -lpq" 
+		AC_SUBST(auth_libs)
+		auth_inc="-I$incdir"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
 AC_ARG_ENABLE(sybase,
         [  --enable-sybase=n|y   use sybase, default is no],
         USE_SYBASE=$enableval,
@@ -716,6 +772,29 @@ case $USE_SYBASE in
 		auth_libs="-L/opt/sybase/lib -lsybdb -lm"
 		AC_SUBST(auth_libs)
 		auth_inc="-I/opt/sybase/include"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(active-directory,
+        [  --enable-active-directory=n|y   use active directory, default is no],
+        USE_ACTIVE_DIR=$enableval,
+                [
+                        USE_ACTIVE_DIR=no
+                ])
+case $USE_ACTIVE_DIR in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_ACTIVE_DIR=1
+		rm -rf vauth.c
+		ln -sf vactivedir.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR)
+		authlib=
+		AC_SUBST(authlib)
+		auth_inc=""
+		echo "-L$vpopmaildir/lib -lvpopmail" > $vpopmaildir/etc/lib_deps
 		AC_SUBST(auth_inc)
         ;;
 *)
@@ -749,6 +828,21 @@ case $QMAIL_EXT in
 1*|y*|Y*)
 		QMAIL_EXT=1
 		AC_DEFINE_UNQUOTED(QMAIL_EXT,$QMAIL_EXT)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(rebuild-tcpserver-file,
+        [  --enable-rebuild-tcpserver-file=y|n   enable rebuilding of tcpserver relay control file(default yes). ],
+        REBUILD_TCPSERVER=$enableval,
+                [
+                        REBUILD_TCPSERVER=y
+                ])
+case $REBUILD_TCPSERVER in
+1*|y*|Y*)
+		REBUILD_TCPSERVER=1
+		AC_DEFINE_UNQUOTED(REBUILD_TCPSERVER,$REBUILD_TCPSERVER)
         ;;
 *)
         ;;
@@ -928,6 +1022,21 @@ case $ENABLE_HARD_QUOTA in
 	  ;;
 esac
 
+AC_ARG_ENABLE(domainquotas,
+        [  --enable-domainquotas=y|n  Turn on (y) or off (n, default) non-system domain quotas.   See README.quotas for more info.],
+        ENABLE_DOMAIN_QUOTAS=$enableval,
+                [
+                        ENABLE_DOMAIN_QUOTAS=0
+                ])
+
+case $ENABLE_DOMAIN_QUOTAS in
+0*|n*|N*)
+      ;;
+*)
+      ENABLE_DOMAIN_QUOTAS=1
+	  AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS)
+	  ;;
+esac
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
@@ -974,6 +1083,16 @@ echo "address extentions = OFF --enable-qmail-ext=n (default)"
         ;;
 esac
 
+case $REBUILD_TCPSERVER in
+1*|y*|Y*)
+echo "rebuild tcpserver file = YES  --enable-rebuild-tcpserver-file=y (default)"
+echo " --enable-rebuild-tcpserver-file=y \\" >> vpopmail.config.sh
+        ;;
+*)
+echo "rebuild tcpserver file = NO --enable-rebuild-tcpserver-file=n"
+        ;;
+esac
+
 case $POPRELAY in
 1*|y*|Y*)
 echo " --enable-roaming-users=y \\" >> vpopmail.config.sh
@@ -982,17 +1101,27 @@ echo "    tcpserver file = $tcpserver_file"
 echo "    open_smtp file = $open_smtp_cur"
         ;;
 *)
-echo "     roaming users = OFF --enable-roaming-users=n default"
+echo "     roaming users = OFF --enable-roaming-users=n (default)"
         ;;
 esac
 
 case $ENABLE_HARD_QUOTA in
 0*|n*|N*)
-echo "        user quota = OFF --enable-defaultquota=NOQUOTA default"
+echo "        user quota = OFF --enable-defaultquota=NOQUOTA (default)"
       ;;
 *)
 echo "        user quota = $ENABLE_HARD_QUOTA -enable-hardquota=$ENABLE_HARD_QUOTA"
 echo " --enable-defaultquota=$ENABLE_HARD_QUOTA \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $ENABLE_DOMAIN_QUOTAS in
+0*|n*|N*)
+echo "     domain quotas = OFF --enable-domainquotas=n (default)"
+      ;;
+*)
+echo "     domain quotas = ON  --enable-domainquotas=y"
+echo " --enable-domainquotas=y \\" >> vpopmail.config.sh
 	  ;;
 esac
 
@@ -1006,7 +1135,7 @@ echo " mysql replication = ON  --enable-mysql-replication=y"
 echo " --enable-mysql-replication=y \\" >> vpopmail.config.sh
 	  ;;
 *)
-echo " mysql replication = OFF --enable-mysql-replication=n default" 
+echo " mysql replication = OFF --enable-mysql-replication=n (default)" 
 	  ;;
 esac
 
@@ -1015,10 +1144,8 @@ fi
 
 if test $MANY_DOMAINS = 1 
 then 
-echo "table optimization = many domains --enable-many-domains=y default"
-fi
-if test $MANY_DOMAINS = 0 
-then 
+echo "table optimization = many domains --enable-many-domains=y (default)"
+else
 echo "table optimization = one domain with many users --enable-many-domains=n"
 echo " --enable-many-domains=n \\" >> vpopmail.config.sh
 fi
@@ -1029,15 +1156,33 @@ echo "       auth module = oracle --enable-oracle=y"
 echo " --enable-oracle=y \\" >> vpopmail.config.sh
 fi
 
+if test $USE_POSTGRES = 1 
+then
+echo "       auth module = postgres --enable-postgres=y"
+echo " --enable-postgres=y \\" >> vpopmail.config.sh
+fi
+
 if test $USE_SYBASE = 1 
 then
 echo "       auth module = sybase --enable-sybase=y"
 echo " --enable-sybase=y \\" >> vpopmail.config.sh
 fi
 
+if test $USE_LDAP = 1 
+then
+echo "       auth module = ldap --enable-ldap=y"
+echo " --enable-ldap=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_ACTIVE_DIR = 1 
+then
+echo "       auth module = active directory --enable-active-directory=y"
+echo " --enable-active-directory=y \\" >> vpopmail.config.sh
+fi
+
 if test $USE_CDB = 1 
 then
-echo "       auth module = cdb default"
+echo "       auth module = cdb (default)"
 fi
 
 case $ENABLE_PASSWD in
@@ -1046,13 +1191,13 @@ echo "  system passwords = ON  --enable-passwd=y"
 echo " --enable-passwd=y \\" >> vpopmail.config.sh
       ;;
 *)
-echo "  system passwords = OFF --enable-passwd=n default"
+echo "  system passwords = OFF --enable-passwd=n (default)"
 	  ;;
 esac
 
 case $FILE_LOCKING in
 1*|y*|Y*)
-echo "      file locking = ON  --enable-file-locking=y default"
+echo "      file locking = ON  --enable-file-locking=y (default)"
       ;;
 *)
 echo "      file locking = OFF --enable-file-locking=n"
@@ -1066,14 +1211,25 @@ echo "         file sync = ON  --enable-file-sync=y enable vdelivermail fsync"
 echo " --enable-file-sync=y \\" >> vpopmail.config.sh
       ;;
 *)
-echo "         file sync = OFF --enable-file-sync=n default disable vdelivermail fsync"
+echo "         file sync = OFF --enable-file-sync=n disable vdelivermail fsync 
+                         (default)"
 echo " --enable-file-sync=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $MAKE_SEEKABLE in
+1*|y*|Y*)
+echo "     make seekable = ON  --enable-make-seekable=y (default)"
+      ;;
+*)
+echo "     make seekable = OFF --enable-make-seekable=n"
+echo " --enable-make-seekable=n \\" >> vpopmail.config.sh
 	  ;;
 esac
 
 case $ENABLE_AUTH_LOGGING in
 1*|y*|Y*)
-echo "      auth logging = ON  --enable-auth-logging=y default"
+echo "      auth logging = ON  --enable-auth-logging=y (default)"
 echo " --enable-auth-logging=y \\" >> vpopmail.config.sh
       ;;
 *)
@@ -1087,7 +1243,7 @@ echo "     mysql logging = ON  --enable-mysql-logging=y"
 echo " --enable-mysql-logging=y \\" >> vpopmail.config.sh
       ;;
 *)
-echo "     mysql logging = OFF --enable-mysql-logging=n default"
+echo "     mysql logging = OFF --enable-mysql-logging=n (default)"
           ;;
 esac
 
@@ -1101,6 +1257,16 @@ echo " --enable-clear-passwd=n \\" >> vpopmail.config.sh
 	  ;;
 esac
 
+case $USERS_BIG_DIR in
+1*|y*|Y*)
+echo "     users big dir = ON  --enable-users-big-dir=y (default)"
+      ;;
+*)
+echo "     users big dir = OFF --enable-users-big-dir=n"
+echo " --enable-users-big-dir=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
 case $VALIAS in
 1*|y*|Y*)
 echo " valias processing = ON  --enable-valias=y"
@@ -1111,6 +1277,17 @@ echo " valias processing = OFF --enable-valias=n"
 	  ;;
 esac
 
+case $ENABLE_MYSQL_LIMITS in
+1*|y*|Y*)
+echo "      mysql limits = ON  --enable-mysql-limits=y"
+echo " --enable-mysql-limits=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "      mysql limits = OFF --enable-mysql-limits=n (default)"
+	  ;;
+esac
+
+
 case $ENABLE_LOGGING in
 1*|y*|Y*)
 echo "        pop syslog = show successful and failure login attempts"
@@ -1119,7 +1296,7 @@ echo " --enable-logging=y \\" >> vpopmail.config.sh
       ;;
 2*|e*|E*)
 echo "        pop syslog = show only failure attempts"
-echo "                     --enable-logging=e default"
+echo "                     --enable-logging=e (default)"
 	  ;;
 3*|p*|P*)
 echo "        pop syslog = show failure attempts with clear text password" 
@@ -1127,7 +1304,7 @@ echo "                     --enable-logging=p"
 echo " --enable-logging=p \\" >> vpopmail.config.sh
 	  ;;
 4*|v*|V*)
-echo "        pop syslog = log everything, including passwords in errors"
+echo "        pop syslog = log success and errors including passwords"
 echo "                     --enable-logging=v"
 echo " --enable-logging=v \\" >> vpopmail.config.sh
 	  ;;
@@ -1143,4 +1320,4 @@ echo "          auth lib = $auth_libs"
 
 echo ""
 echo ""
-
+echo "" >> vpopmail.config.sh

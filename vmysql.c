@@ -1,8 +1,5 @@
 /*
- * vmysql
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +26,8 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vlimits.h"
 #include "vmysql.h"
-
 
 static MYSQL mysql_update;
 static MYSQL mysql_read_getall;
@@ -63,7 +60,7 @@ static MYSQL_RES *res_read = NULL;
 static MYSQL_ROW row;
 static MYSQL_ROW row_getall;
 
-#define SQL_BUF_SIZE 600
+#define SQL_BUF_SIZE 2048
 static char SqlBufRead[SQL_BUF_SIZE];
 static char SqlBufUpdate[SQL_BUF_SIZE];
 static char SqlBufCreate[SQL_BUF_SIZE];
@@ -225,7 +222,7 @@ int vauth_adddomain( char *domain )
 #ifndef MANY_DOMAINS
         tmpstr = vauth_munch_domain( domain );
 #else
-	tmpstr = MYSQL_DEFAULT_TABLE;
+        tmpstr = MYSQL_DEFAULT_TABLE;
 #endif
 
    snprintf(SqlBufUpdate,SQL_BUF_SIZE, 
@@ -323,11 +320,17 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
- char *in_domain;
  char *domstr;
- int mem_size;
  static struct vqpasswd vpw;
+ static char in_domain[156];
  int err;
+ uid_t myuid;
+ uid_t uid;
+ gid_t gid;
+
+    vget_assign(domain,NULL,156,&uid,&gid);
+    myuid = geteuid();
+    if ( myuid != 0 && myuid != uid ) return(NULL);
 
     verrori = 0;
     if ( (err=vauth_open_read()) != 0 ) {
@@ -338,9 +341,8 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     lowerit(user);
     lowerit(domain);
 
-    mem_size = 100; 
-    in_domain = calloc(mem_size, sizeof(char));
-    strncpy(in_domain, domain, mem_size);
+    memset(in_domain,0,156);
+    strncpy(in_domain, domain, 155);
 
     vset_default_domain( in_domain );
     /*vget_real_domain(in_domain, 100);*/
@@ -351,16 +353,13 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     domstr = MYSQL_DEFAULT_TABLE; 
 #endif
 
-    if ( domstr == NULL || domstr[0] == 0 ) {
-        domstr = MYSQL_LARGE_USERS_TABLE;
-    }
+    if ( domstr == NULL || domstr[0] == 0 ) domstr = MYSQL_LARGE_USERS_TABLE;
 
     snprintf(SqlBufRead, SQL_BUF_SIZE, USER_SELECT, domstr, user
 #ifdef MANY_DOMAINS
 , in_domain
 #endif
 );
-    free(in_domain);
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         printf("vmysql: sql error[3]: %s\n", mysql_error(&mysql_update));
@@ -447,6 +446,8 @@ int vauth_deldomain( char *domain )
     mysql_free_result(res_update);
 #endif
 
+    vdel_limits(domain);
+
     return(0);
 }
 
@@ -498,7 +499,9 @@ int vauth_setquota( char *username, char *domain, char *quota)
  int err;
 
     if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR
     if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
     
@@ -699,16 +702,17 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 }
 
 #ifdef POP_AUTH_OPEN_RELAY
-void vopen_smtp_relay()
+int vopen_smtp_relay()
 {
  char *ipaddr;
  time_t mytime;
  int err;
+ int rows;
 
     mytime = time(NULL);
     ipaddr = getenv("TCPREMOTEIP");
     if ( ipaddr == NULL ) {
-        return;
+        return 0;
     }
 
     if ( ipaddr != NULL &&  ipaddr[0] == ':') {
@@ -717,7 +721,7 @@ void vopen_smtp_relay()
         ++ipaddr;
     }
 
-    if ( (err=vauth_open_update()) != 0 ) return;
+    if ( (err=vauth_open_update()) != 0 ) return 0;
 
     snprintf( SqlBufUpdate, SQL_BUF_SIZE,
 "replace into relay ( ip_addr, timestamp ) values ( \"%s\", %d )",
@@ -728,9 +732,13 @@ void vopen_smtp_relay()
             printf("vmysql: sql error[7]: %s\n", mysql_error(&mysql_update));
         }
     }
+    rows = mysql_affected_rows(&mysql_update);
     res_update = mysql_store_result(&mysql_update);
     mysql_free_result(res_update);
-    return;
+
+    /* return true if only INSERT (didn't exist) */
+    /* would return 2 if replaced, or -1 if error */
+    return rows == 1;
 }
 
 void vupdate_rules(int fdm)
@@ -840,7 +848,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vsql_getpw: store result failed 4\n");
+        printf("vget_ip_map: store result failed 4\n");
         return(-4);
     }
     while((row = mysql_fetch_row(res_read))) {
@@ -897,7 +905,6 @@ int vshow_ip_map( int first, char *ip, char *domain )
     if ( domain == NULL ) return(-1);
     if ( vauth_open_read() != 0 ) return(-1);
 
-    if ( vauth_open_read()!= 0 ) return(-1);
     if ( first == 1 ) {
 
         snprintf(SqlBufRead,SQL_BUF_SIZE, 
@@ -907,7 +914,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
         res_read = NULL;
 
         if (mysql_query(&mysql_read,SqlBufRead)) {
-	    vcreate_ip_map_table();
+            vcreate_ip_map_table();
             if (mysql_query(&mysql_read,SqlBufRead)) {
                 return(0);
             }
@@ -939,20 +946,20 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
  int found = 0;
 
     if ( vauth_open_read() != 0 ) return(-1);
-    snprintf(SqlBufUpdate, SQL_BUF_SIZE, 
+    snprintf(SqlBufRead, SQL_BUF_SIZE, 
         "select %s from dir_control where domain = \"%s\"", 
         DIR_CONTROL_SELECT, domain );
-    if (mysql_query(&mysql_read,SqlBufUpdate)) {
+    if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_dir_control(domain);
-        snprintf(SqlBufUpdate, SQL_BUF_SIZE, 
+        snprintf(SqlBufRead, SQL_BUF_SIZE, 
             "select %s from dir_control where domain = \"%s\"", 
            DIR_CONTROL_SELECT, domain );
-        if (mysql_query(&mysql_read,SqlBufUpdate)) {
+        if (mysql_query(&mysql_read,SqlBufRead)) {
             return(-1);
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vsql_getpw: store result failed 6\n");
+        printf("vread_dir_control: store result failed 6\n");
         return(0);
     }
 
@@ -1086,11 +1093,11 @@ int vdel_dir_control(char *domain)
         "delete from dir_control where domain = \"%s\"", 
         domain); 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-	vcreate_dir_control(domain);
-    	if (mysql_query(&mysql_update,SqlBufUpdate)) {
+        vcreate_dir_control(domain);
+            if (mysql_query(&mysql_update,SqlBufUpdate)) {
                 printf("vmysql: sql error[e]: %s\n", mysql_error(&mysql_update));
-        	return(-1);
-	}
+                return(-1);
+        }
     }
     res_update = mysql_store_result(&mysql_update);
     mysql_free_result(res_update);
@@ -1353,7 +1360,7 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
         vcreate_vlog_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
                 fprintf(stderr,
-                  "error inserting into lastauth table\n");
+                  "error inserting into vlog table\n");
         }
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1370,7 +1377,7 @@ void vcreate_vlog_table()
     snprintf( SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE vlog ( %s )",
         VLOG_TABLE_LAYOUT);
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "could not create lastauth table %s\n", SqlBufCreate);
+        fprintf(stderr, "could not create vlog table %s\n", SqlBufCreate);
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1390,4 +1397,169 @@ void vmysql_escape( char *instr, char *outstr )
 
   /* make sure the terminating NULL char is included */
   *outstr++ = *instr++;
+}
+
+#ifdef ENABLE_MYSQL_LIMITS
+void vcreate_limits_table()
+{
+    if (vauth_open_update() != 0)
+        return;
+
+    snprintf( SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE limits ( %s )",
+        LIMITS_TABLE_LAYOUT);
+    if (mysql_query(&mysql_update,SqlBufCreate)) {
+        fprintf(stderr, "could not create limits table %s\n", SqlBufCreate);
+        return;
+    }
+    res_update = mysql_store_result(&mysql_update);
+    mysql_free_result(res_update);
+}
+
+int vget_limits(const char *domain, struct vlimits *limits)
+{
+    vdefault_limits (limits);
+
+    if (vauth_open_read() != 0)
+         return(-1);
+
+    snprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT maxpopaccounts, maxaliases, "
+        "maxforwards, maxautoresponders, maxmailinglists, diskquota, "
+        "maxmsgcount, defaultquota, defaultmaxmsgcount, "
+        "disable_pop, disable_imap, disable_dialup, "
+        "disable_passwordchanging, disable_webmail, disable_relay, "
+        "disable_smtp, perm_account, perm_alias, perm_forward, "
+        "perm_autoresponder, perm_maillist, perm_quota, perm_defaultquota \n"
+        "FROM limits \n"
+        "WHERE domain = '%s'", domain);
+
+
+    if (mysql_query(&mysql_read,SqlBufRead)) {
+        vcreate_limits_table();
+        if (mysql_query(&mysql_read,SqlBufRead)) {
+            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
+            return(-1);
+        }
+    }
+    if (!(res_read = mysql_store_result(&mysql_read))) {
+        fprintf(stderr, "vmysql: store result failed\n");
+        return -1;
+    }
+
+    if (mysql_num_rows(res_read) == 0) {
+        fprintf(stderr, "vmysql: can't find limits for domain '%s', using defaults.\n", domain);
+        return -1;
+    }
+
+    if ((row = mysql_fetch_row(res_read)) != NULL) {
+        int perm = atol(row[20]);
+
+        limits->maxpopaccounts = atoi(row[0]);
+        limits->maxaliases = atoi(row[1]);
+        limits->maxforwards = atoi(row[2]);
+        limits->maxautoresponders = atoi(row[3]);
+        limits->maxmailinglists = atoi(row[4]);
+        limits->diskquota = atoi(row[5]);
+        limits->maxmsgcount = atoi(row[6]);
+        limits->defaultquota = atoi(row[7]);
+        limits->defaultmaxmsgcount = atoi(row[8]);
+        limits->disable_pop = atoi(row[9]);
+        limits->disable_imap = atoi(row[10]);
+        limits->disable_dialup = atoi(row[11]);
+        limits->disable_passwordchanging = atoi(row[12]);
+        limits->disable_webmail = atoi(row[13]);
+        limits->disable_relay = atoi(row[14]);
+        limits->disable_smtp = atoi(row[15]);
+        limits->perm_account = atoi(row[16]);
+        limits->perm_alias = atoi(row[17]);
+        limits->perm_forward = atoi(row[18]);
+        limits->perm_autoresponder = atoi(row[19]);
+        limits->perm_maillist = perm & VLIMIT_DISABLE_ALL;
+        perm >>= VLIMIT_DISABLE_BITS;
+        limits->perm_maillist_users = perm & VLIMIT_DISABLE_ALL;
+        perm >>= VLIMIT_DISABLE_BITS;
+        limits->perm_maillist_moderators = perm & VLIMIT_DISABLE_ALL;
+        limits->perm_quota = atoi(row[21]);
+        limits->perm_defaultquota = atoi(row[22]);
+    }
+    mysql_free_result(res_read);
+
+    return 0;
+}
+
+int vset_limits(const char *domain, const struct vlimits *limits)
+{
+    if (vauth_open_update() != 0)
+        return(-1);
+
+    snprintf(SqlBufUpdate, SQL_BUF_SIZE, "REPLACE INTO limits ("
+        "domain, maxpopaccounts, maxaliases, "
+        "maxforwards, maxautoresponders, maxmailinglists, "
+        "diskquota, maxmsgcount, defaultquota, defaultmaxmsgcount, "
+        "disable_pop, disable_imap, disable_dialup, "
+        "disable_passwordchanging, disable_webmail, disable_relay, "
+        "disable_smtp, perm_account, perm_alias, perm_forward, "
+        "perm_autoresponder, perm_maillist, perm_quota, perm_defaultquota) \n"
+        "VALUES \n"
+        "('%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+        domain,
+        limits->maxpopaccounts,
+        limits->maxaliases,
+        limits->maxforwards,
+        limits->maxautoresponders,
+        limits->maxmailinglists,
+        limits->diskquota,
+        limits->maxmsgcount,
+        limits->defaultquota,
+        limits->defaultmaxmsgcount,
+        limits->disable_pop,
+        limits->disable_imap,
+        limits->disable_dialup,
+        limits->disable_passwordchanging,
+        limits->disable_webmail,
+        limits->disable_relay,
+        limits->disable_smtp,
+        limits->perm_account,
+        limits->perm_alias,
+        limits->perm_forward,
+        limits->perm_autoresponder,
+        (limits->perm_maillist |
+         (limits->perm_maillist_users << VLIMIT_DISABLE_BITS) |
+         (limits->perm_maillist_moderators << (VLIMIT_DISABLE_BITS * 2))),
+        limits->perm_quota,
+        limits->perm_defaultquota);
+
+    if (mysql_query(&mysql_update,SqlBufUpdate)) {
+        vcreate_limits_table();
+        if (mysql_query(&mysql_update,SqlBufUpdate)) {
+            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_update));
+            return(-1);
+        }
+    }
+    if (!(res_update = mysql_store_result(&mysql_update))) {
+        fprintf(stderr, "vmysql: store result failed\n");
+        return -1;
+    }
+    mysql_free_result(res_update);
+
+    return 0;
+}
+
+int vdel_limits(const char *domain)
+{
+    snprintf(SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM limits WHERE domain = \"%s\"", domain);
+
+    if (mysql_query(&mysql_update,SqlBufUpdate))
+        return(-1);
+    res_update = mysql_store_result(&mysql_update);
+    mysql_free_result(res_update);
+    return 0;
+}
+
+#endif
+
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+{
+  if ( vpw == NULL ) return(-1);
+
+  return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
 }

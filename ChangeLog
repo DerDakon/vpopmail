@@ -1,3 +1,379 @@
+5.3.20
+4/02/03  Albert Weichselbraun
+         - vpopmail+system-quotas: if user is over system quota no error
+           message is returned. Use over-quota-msg code to return an 
+           informational bounce.
+         - replace sprintf's with snprintf's in vdelivermail.c
+
+ 
+4/01/03  Tom Collins 
+         - If there isn't a limits entry for the domain in MySQL, it uses 
+           potentially random settings (nothing initializes the limits 
+           structure).  I've updated a few files so that vget_limits in 
+           mysql.c initializes the limits structure to defaults before 
+           attempting to load from the database.
+
+3/26/03  Ken Jones
+         - add -D flag to vmoduser to change the directory
+
+3/25/03  James Raftery
+         -  Change -e flag behaviour for vadddomain.
+            -e contains an @: forward as normal
+            -e without an @: treat as name of user into whose Maildir to deliver
+            e.g.:
+            -e postmaster@forward.com
+               fridge# cat forward.com/.qmail-default
+               | /usr/local/vpopmail/bin/vdelivermail '' postmaster@forward.com
+
+            -e postmaster
+               fridge# cat maildir.org/.qmail-default (all on one line)
+               | /usr/local/vpopmail/bin/vdelivermail '' 
+                 /usr/local/vpopmail/domains/maildr.org/postmaster
+
+3/24/03  Tom Collins 
+         - Update vmoduser.c to write quotas out in the proper format.
+           Automatically convert xxM and xxK formats to # of bytes.
+         - Update vgetent in vpopmail.c to properly read old vpasswd files 
+           without a cleartext password field.
+
+3/18/03  "Ken Jones" kbo at inter7 dot com
+         - add --enable-rebuild-tcpserver-file option, default yes
+           turning it off will stop tcprules from being run 
+         - add display during configure if ldap is selected
+         - add --enable-active-directory option
+         - create new vauth_crypt() function to use instead of crypt directly
+           this is needed since active directory is so brain dead
+         - remove pw_comp() function and use new vauth_crypt function.
+           
+5.3.19
+3/5/03   "Bill Shupp" hostmaster at shupp dot org
+         - Updated DOMAIN QUOTAS section in README.quotas
+         - added --enable-domainquotas configure option.  Default is off.
+         - added newline to the end of vpopmail.config.sh so that it's usable
+3/2/03   "Anders Brander anders at brander dot dk"
+         - Do not report "failure to open limits file" to syslog
+2/26/03  "Brian Kolaci" bk at kola dot com
+         - bugfix - increase the SQL buffer size to 2K rather than 600 bytes
+           in vmysql.c
+         - updates to maildirquota.c so that it can now be compiled into
+           libvpopmail without clashing with courier declarations.
+
+
+5.3.18
+2/20/03  "Bill Shupp" hostmaster at shupp dot org
+         - Added DOMAIN QUOTAS section to README.quotas
+         - Fixed vget_limits() problem with loading from .qmailadmin-limits 
+2/20/03  "Brian Kolaci" bk at kola dot com
+         - added non-system domain quotas to vdelivermail with these 2 
+           functions:
+         - int readdomainquota(const char *dir, long *sizep, int *cntp);
+         - int readuserquota(const char* dir, long *sizep, int *cntp);
+
+
+5.3.17
+2/20/03  "Andrew Kohlsmith" akohlsmith-vpopmail at benshaw dot com
+         - Updates to the PostgreSQL module
+
+2/20/03  "Bill Shupp" hostmaster at shupp dot org
+         - vpopbull now terminates if '-f [email_file]' is omitted
+         - vpopbull now checks that email_file is not empty
+         - vpopbull now reports domains given on the command line that do not 
+           exist, but does not exit
+2/17/03  "Bill Shupp" hostmaster at shupp dot org
+         - Fixed vset_lastauth bug in vcdb.c that didn't check the return of 
+           vauth_getpw.  This caused vadduser -s to coredump.
+2/10/03  "Ken Jones" kbo at inter7 dot com
+         - New oracle module
+
+
+5.3.16
+1/27/03  "Brian Kolaci" bk at kola dot com
+         - Performance improvement to vopen_smtp_relay() - now tcprules is
+           only run if a new IP is added to the relay table.  This applies
+           to sql authentication modules, as cdb already had this feature.
+
+
+5.3.15
+1/25/03  "Bill Shupp" hostmaster at shupp dot org
+         - Added ifdefs to vdeloldusers so it will compile with
+         --enable-auth-logging=n
+1/23/03  "Brian Kolaci" bk at kola dot com
+         - Updated vlimits patch
+
+
+5.3.14
+1/13/03  "Michael Bowe" mbowe at pipeline dot com dot au
+         - fix for --enable-mysql-logging being too verbose
+
+
+5.3.13
+1/13/03  "Bill Shupp" hostmaster at shupp dot org
+         - major changes to vdeloldusers
+         - Works with any module that supports auth-logging (mysql, cdb)
+         - lots of cleanup.. removed all mysql specific code
+         - deprecated -r switch, replaced it with -V (verbose)
+         - users are NOT deleted by default.. a new -D argument is 
+           required to actually delete users
+         - brought back the -d option to specify only one domain
+
+
+5.3.12
+12/7/02  "Bill Shupp" hostmaster at shupp dot org
+         - Minor changes to vlimits.c so that it will compile, but more
+           effort is needed to implement Brian's new structure
+12/6/02  "Jens Jahr" Jens dot Jahr at novasoft dot de
+         - Various LDAP fixes
+11/20/02 "Brian Kolaci" bk at kola com
+         - Updated vlimits structure
+10/31/02 "Bill Shupp" hostmaster at shupp dot org
+         - Changed valias_line to be type "text" instead of "blob"
+
+10/25/02 Justin Heesemann jh at ionium dot org
+         - Minor fix for users-big-dir
+
+10/24/02 "Bill Shupp" hostmaster at shupp dot org
+         - fix for vipmap so that usage() is displayed if no arguments are 
+           given
+         - TCPLOCALIP is in IPv6 format from couriertcpd.  Convert to IPv4 
+           in host_in_locals() so that ip-alias works with courier-imap
+
+5.3.11
+10/23/02 "Bill Shupp" hostmaster at shupp dot org
+         - Forgot to change defualtquota type in limits structure
+
+10/23/02 "Pablo Murillo" pm at rednet dot com dot ar
+         - Fix for Delivered-To header getting mangled if you used a 
+           different DOMAINS_DIR.
+
+5.3.10
+10/23/02 "Bill Shupp" hostmaster at shupp dot org
+         - Added limits table layout to vmysql.h
+         - Changed valias_line to be type "blob" to compensate for large
+           mailing list commands.  Increased FILE_LINE_SIZE to 1024 in 
+           vcalias for the same reason.  vcalias now escapes FileLine input.
+           Thanks to Brad Dameron for pointing this out.
+         - Added disable_smtp support to the new vlimits functions
+         - Fixed configure.in so that --enable-mysql-limits is now reported
+           after running configure
+         - Moved format_maildirquota() to the vpopmail library.  Updated 
+           vlimits.c to use format_maildirquota() for default_quota.
+         - format_maildirquota() now uses 1024 and and 1048576 when 
+           converting KB and MB instead of 1000 and 1000000, respectively.
+
+10/23/02 "Anders Brander" anders at brander dot dk
+         - vdelivermail: Check for | *before* /Maildir/ in .qmail processing
+         - vdelivermail: Add missing case for error code 100
+
+5.3.9
+10/21/02 "Bill Shupp" hostmaster at shupp dot org
+         - Add error checking to vpopbull so that if copy_email fails,
+           report it on the command line.
+         - Update admin guide to reflect new limits functions
+
+10/21/02 "Edoardo Serra"  vpopml at connecting dot to dot it
+         - automatically create maildir in vpopbull if it doesn't exist
+
+10/18/02 "Bill Shupp" hostmaster at shupp dot org
+         - Added wildcard support (i.e listname-default) to vdelivermail's
+           process_valias function.  Should allow ezmlm lists to be run
+           from the valias table.
+
+10/17/02 "Brian Kolaci" bk at kola dot com
+         - Added 3 new api functions to administer .qmailadmin-limits:
+              int vget_limits( char *domain, struct vlimits *limits )
+              int vset_limits( char *domain, struct vlimits *limits )
+              int vdel_limits( char *domain )
+
+10/16/02 "Bill Shupp" hostmaster at shupp dot org
+         - Fixed typo in vcalias.c
+
+09/11/02 Dave Boodman dave at boodman dot com
+         - vdelivermail missing case for exit code 99 when exec'ing
+           users .qmail programs. Needed for processing of autorepsond
+           result codes of 99
+
+09/05/02 "Steve Fulton" steve at esoteric dot ca
+         - vdelivermail now handles error return codes 100 and 99
+           when processing users .qmail files. Support for autoresponder
+           exiting with 99. 
+
+5.3.8
+07/16/02 "Bill Shupp" hostmaster at shupp dot org
+         - one last patch for the vgetent problem
+         - comment out lseek definition for bsd users
+         - Replaced old qmail-pop3d-maildirquota patch with 
+           qmail-maildir++.patch.  This one adds Maildir++ support not only 
+           to qmail-pop3d, but also to qmail-local.  Updated documentation 
+           to reflect this.  This one is closer to Sam's original code, too.
+
+07/10/02 "Boris Manojlovic" steki at verat dot net
+         - CLEAR_PASS ifdefs in vpopmail.c
+
+5.3.7
+06/21/02 "Bill Shupp" hostmaster at shupp dot org
+         - add --enable-make-seekable option (default y) so that people can
+           turn off the seek patch if they want
+         - relplace MIN with vmin(int x, int y) in seek.c for better 
+           portability (thanks to Ken Jones)
+         - Change exit codes to 1 instead of 0 for NO_POP and NO_SMTP 
+           restrictions.  Thanks to Michael Bowe for pointing this out.
+
+06/20/02   "Maurice Snellen" maurice at hypercube dot demon dot nl
+         - replace inappropriate strcmp test when for checking LocalPort in
+           vchkpw.c
+
+06/12/02   "Paul Kremer" pkremer at dullboy dot gms dot lu
+         - set ldap protocol version before each ldap_simple_bind_s call.
+           Default version is 3, but you can change it in vldap.h.
+
+06/04/02  "Justin Heesemann" jh at ionium dot org
+         --enable-users-big-dir option.  On by default, this allows you to 
+           turn off using big dirs for users (and allow 1 char account names)
+
+05/17/02   "Rui Barreiros" rui at websolut dot net
+         - fix aliased domain problems
+
+12/13/01   "Marcus Williams" marcus at quintic.co.uk
+         - seek patch.  Original code by University of Maryland Computer 
+           Science Department.
+
+5.3.6
+05/18/02   "Bill Shupp" hostmaster at shupp dot org
+         - New APOP code for vchkpw.  Relies on clear passwords to work.
+         - APOP arguments removed from vadduser, vpasswd, and vadddomain since
+           the new APOP code doesn't need them.  (still need to remove old APOP 
+           code, update API)
+         - Added CRAM-MD5 support for SMTP-AUTH only.  Requires clear passwords
+           and the smtp-auth patch (for qmail-smtpd) from:
+           http://members.elysium.pl/brush/qmail-smtpd-auth/
+         - Authentication type is now logged upon successful authentications
+         - Removed logging of *correct* passwords
+         - Fixed vgetent() problem that should clear up the clear/crypted
+           password problems in the cdb module.
+         - Added NO_SMTP gid flag and support for it in vchkpw, vmoduser, and 
+           vuserinfo
+         - Fixed lots of bugs in vpopbull.  The old -v switch is now -V 
+          (verbose) and now -v is the version argument (for compatibility)
+         - qcalc() fix for incorrect quota percentages with large quotas
+         - vdelivermail now checks the EXITCODE of a forked process
+         - updated TODO
+
+
+5.3.5
+04/16/02 - tab character replaced by 4 spaces in open-smtp file broke
+           roamin-users feature
+         - vchkpw syntax error when checking if roaming-users should be
+           called based on the incoming portnumber.
+
+
+04/03/02   Tim at timtasi dot com
+         - much better parse_email function
+
+5.3.4
+04/02/02 - Doh! syntax error in vmysql.c, fixed
+
+04/01/02   Matt Wierdl Dept of Math. Sciences University of Memphis
+         - If we can not get a lock file on updating a file return an error
+
+         - vget_assign: strncpy into in_domain malloc'ed memory instead
+           of into incoming domain variable.
+
+03/28/02 - vmysql.c: remove malloc in vauth_pw and use static local var
+
+03/27/02 - code review and indent updating of vpopmail.c
+         - more cleanup of parse_email function. it is still nasty looking
+
+03/25/02   Tim tim at timtsai dot com
+         - parse_email not terminating the user with a null in the right spot
+
+03/20/02 - clean up indentation in vchkpw.c
+         - enable-logging=v was not logging successes with passwords
+
+03/18/02   Andrey Chichmeli az at primorsky dot ru 
+         - vpopmail.c: use MAX_PW_GECOS to check pw_gecos string
+
+03/15/02 - domains must be at least 3 characters long: a.b
+
+03/13/02 - new version
+          
+           "Joe Ingersoll" jingersoll at geektech dot com
+         - vconvert.c -e -m needed pw_passwd+1 instead of pw_name+1
+
+5.3.3
+03/12/02 - relay control: read in tcp.smtp before the open smtp lines
+           that way the tcp.smtp file will take precedence 
+
+02/24/02   Antonio Nati" tonix at interazioni dot it
+         - syntax error in vcdb.c git_t should be gid_t
+
+02/23/02 - blank password fields would cause cdb module to not
+           return all users.
+         - --enable-ldap=y was not setting the lib_dep file correctly
+
+02/22/02   Nelson admin at typhoon dot jp
+         - more changes to postgresql modules. Now vadddomain, vadduser
+           vdeldomain and vdeluser work.
+         - new README.pgsql
+
+           Tyler gtyler at onestop dot net
+         - addition to FAQ file for runnin vadddomain or vdeldomain as
+           non root user (vpopmail in our case).
+
+02/20/02   Nelson admin at typhoon dot jp
+         - vmysql.c duplicate vauth_open_read in vshow_ip_map  removed
+         - port vmysql.c to vpgsql.c
+           We now have a beta upgraded PostgreSQL file!
+
+02/19/02 - update README.mysql to be current, it was saying to use
+           --enable-sqlincdir and --enable-sqllibdir. It should say
+           --enable-incdir and --enable-libdir
+         - restrict access to vauth_getpw function to only root
+           or the user who owns the domain.
+
+5.3.2
+02/19/02 - add checks and set globals depending on what port the
+           connection is coming in on. 
+         - set the syslog message string based on what port the
+           connection is coming in on.
+         - For smtp authentication connections no need to setuid,
+           setgid or change directory.
+
+02/18/02 - change vchkpw.c message when people run on the command line.
+
+02/17/02   "Maxim Krikuha" <maxim@sibtel.ru>
+         - update vdelivermail.c to support .no-user.msg file in
+           either the domains directory or under the vpopmail home
+           domains directory.
+
+5.3.1
+02/13/02 - code review of virtual and system users authentication 
+           with vchkpw.c 
+
+02/12/02  "Brad Dameron" <bdameron@tscnet.com>
+         - typo in vcalias.c file fixed
+
+          "Bill Shupp" <hostmaster@shupp.org>
+         - update vchkpw.c if thelocal port is 25 or 465 then
+           do not open a relay and 
+           use vchkpw-smtp or vchkpw-smtps in the logs
+ 
+02/11/02 - mysql section was ignoring --enable-libdir and --enable-incdir
+           if /usr/local/mysql exists
+
+02/09/02 - remove redundant permission settings in Makefile.am for 
+           make install on the bin and lib directories
+
+02/05/02 - vpopmail.h increase MAX_PW_QUOTA  to 20 to support Maildir++
+         - vconvert.c parse assign file instead of walking the
+           vpopmail/domains directory to find all domains
+
+02/04/02 - change permisisons on vpopmail/bin to only allow
+           root and vpopmail users to access it. This combined
+           with the permissions on the lib directory for mysql
+           sites secure the compiled in password from user detection.
+         - remove root setting on lib directory. Allow root and vpopmail
+           access to the libraries.
+
 5.2.1
 05/18/02   "Bill Shupp" <hostmaster@shupp.org>
          - Back ported these fixes from 5.3.6 for an interim stable release:
@@ -7,11 +383,8 @@
             - EXITCODE checking for vdelivermail
 
 5.2
-02/05/02 - update vpopmail.h 
-             #define MAX_PW_QUOTA        20
-
 02/01/02   "Michael Bowe" <mbowe@pipeline.com.au>
-         - increase the mysql pw_shell (quota) field from 12 to 16 chars.
+         - increase the mysql pw_shell (quota) field from 12 to 20 chars.
          - vmysql_escape was not applying the terminating NULL char and
            hence could contain additional strings from prior calls.
          - look for quotawarn message in both the virtual domain directory

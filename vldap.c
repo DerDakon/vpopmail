@@ -1,8 +1,4 @@
-/*
- * vldap.c
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+/* * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,63 +48,63 @@ char *ldap_fields[8] = {
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
   int ret = 0;
-  static struct vqpasswd vpw;
+  size_t len = 0;
+  struct vqpasswd *vpw = NULL;
   LDAPMessage *res = NULL, *msg = NULL;
   char *filter = NULL, **vals = NULL, *h = NULL, *t = NULL, *passwd = NULL;
-  int eret = 0;
-  char *basedn = NULL;
+  char *dn = NULL;
+  uid_t myuid; 
+  uid_t uid; 
+  gid_t gid;
+
 
   verrori = 0;
   lowerit(user);
   lowerit(domain);
 
-  ret = (strlen(user) + 32 + 1);
-  eret = (strlen(VLDAP_BASEDN) - 2 + strlen(domain) + 1);
-
-  filter = (char *)malloc(ret);
-  if (filter == NULL) {
-     return NULL;
+  vget_assign(domain,NULL,156,&uid,&gid);
+  
+  myuid = geteuid();
+  if ( myuid != 0 && myuid != uid ) {
+    return(NULL);
   }
   
-  memset((char *)filter, 0, ret);
-  basedn = (char *)malloc(eret);
-  if (basedn == NULL) {
-     free(filter);
-     return NULL;
+  if (compose_dn(&dn,domain) != 0)
+  	return NULL;
+  
+  len = (strlen(user) + 32 + 1);
+  filter = (char *)safe_malloc(len);
+  memset((char *)filter, 0, len);
+  snprintf(filter, len, "(&(objectclass=qmailUser)(uid=%s))", user);
+
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0) {
+  		safe_free((void **) &filter);
+  		return NULL;
+	}
   }
 
-  memset((char *)basedn, 0, eret);
-
-  snprintf(filter, ret, "(&(objectclass=qmailUser)(uid=%s))", user);
-  snprintf(basedn, eret, VLDAP_BASEDN, domain);
-
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL) {
-        free(filter);
-        return NULL;
-     }
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS) {
-        free(filter);
-        return NULL;
-     }
-  }
-
-  ret = ldap_search_s(ld, basedn, LDAP_SCOPE_SUBTREE,
+  ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
                       filter, vldap_attrs, 0, &res);
-  free(basedn);
-  free(filter);
   
-  if (ret != LDAP_SUCCESS) return NULL;
-     
-  msg = ldap_first_entry(ld, res);
-  ret = ldap_count_entries(ld, msg);
+  safe_free((void **) &filter);
 
-  if (ret != 1) return NULL;
+  if (ret != LDAP_SUCCESS ) {
+  	ldap_perror(ld,"Error");
+	return NULL;
+  }
+
+  msg = ldap_first_entry(ld, res);
   
-  memset((struct vqpasswd *)&vpw, 0, sizeof(struct vqpasswd));
+  if (msg == NULL) 
+	return NULL;
+	
+  ret = ldap_count_entries(ld, msg);
+  if (ret == -1 ) {
+  	ldap_perror(ld,"Error");
+	return NULL;
+	}
+
   
   /*
      Fetch userPassword first so we can make sure
@@ -116,14 +112,14 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   */
  
   vals = ldap_get_values(ld, msg, "userPassword");
-  if (vals == NULL)
+  if (vals == NULL) {
+  	ldap_perror(ld,"Error");
      return NULL;
+	}
 
   t = h = NULL;
 
-  passwd = (char *)malloc((strlen(*vals) + 1));
-  if (passwd == NULL)
-     return NULL;
+  passwd = (char *)safe_malloc((strlen(*vals) + 1));
 
   memset((char *)passwd, 0, (strlen(*vals) + 1));
   memcpy((char *)passwd, (char *)(*vals), strlen(*vals));  
@@ -174,16 +170,19 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
      }
   }
   
-  vpw.pw_passwd = (char *)malloc((strlen(passwd) + 1));
-  if (vpw.pw_passwd == NULL) {
+  vpw = (struct vqpasswd *) safe_malloc(sizeof(struct vqpasswd));
+  memset((struct vqpasswd *)vpw, 0, sizeof(struct vqpasswd));
+  
+  vpw->pw_passwd = (char *)safe_malloc((strlen(passwd) + 1));
+  memset((char *)vpw->pw_passwd, 0, (strlen(passwd) + 1));
+  memcpy((char *)vpw->pw_passwd, (char *)(passwd), strlen(passwd));
+  
+  if (vpw->pw_passwd == NULL) {
      free(h - 1);
      ldap_value_free(vals);
      return NULL;
   }
   
-  memset((char *)vpw.pw_passwd, 0, (strlen(passwd) + 1));
-  memcpy((char *)vpw.pw_passwd, (char *)(passwd), strlen(passwd));
-
   /*
      Old passwd pointer.
      ..and don't forget to check if you even set the pointer *smack*
@@ -197,90 +196,74 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   
   vals = ldap_get_values(ld, msg, "uid");
   if (vals == NULL) {
-     free(vpw.pw_passwd);
+     safe_free((void **) &vpw->pw_passwd);
+  	 ldap_perror(ld,"Error");
      return NULL;
   }
 
-  vpw.pw_name = (char *)malloc((strlen(*vals) + 1));
-  if (vpw.pw_name == NULL) {
-     free(vpw.pw_passwd);
-     ldap_value_free(vals);
-     return NULL;
-  }
+  vpw->pw_name = (char *)safe_malloc((strlen(*vals) + 1));
 
-  memset((char *)vpw.pw_name, 0, (strlen(*vals) + 1));
-  memcpy((char *)vpw.pw_name, (char *)(*vals), strlen(*vals));
+  memset((char *)vpw->pw_name, 0, (strlen(*vals) + 1));
+  memcpy((char *)vpw->pw_name, (char *)(*vals), strlen(*vals));
   ldap_value_free(vals);
 
   vals = ldap_get_values(ld, msg, "mailQuota");
   if (vals)
-     vpw.pw_shell = (char *)malloc((strlen(*vals) + 1));
+     vpw->pw_shell = (char *)safe_malloc((strlen(*vals) + 1));
   else
-     vpw.pw_shell = (char *)malloc(1); 
+     vpw->pw_shell = (char *)safe_malloc(1); 
   
-  if (vpw.pw_shell == NULL) {
-     free(vpw.pw_name);
-     free(vpw.pw_passwd);
- 
-     if (vals)
-        ldap_value_free(vals);
-
-     return NULL;
-  }
-
   if (vals) {
-     memset((char *)vpw.pw_shell, 0, (strlen(*vals) + 1));
-     memcpy((char *)vpw.pw_shell, (char *)(*vals), strlen(*vals));     
+     memset((char *)vpw->pw_shell, 0, (strlen(*vals) + 1));
+     memcpy((char *)vpw->pw_shell, (char *)(*vals), strlen(*vals));     
 
      ldap_value_free(vals);
   }
-  else
-     *vpw.pw_shell = '\0';
+  else {
+     *vpw->pw_shell = '\0';
+  	ldap_perror(ld,"Error");
+	}
 
   vals = ldap_get_values(ld, msg, "qmaildomain");
   if ( vals ) {
-  	vpw.pw_gecos = (char *)malloc((strlen(*vals) + 1));
-  	if (vpw.pw_gecos == NULL) {
-     		free(vpw.pw_passwd);
-     		free(vpw.pw_name);
-     		free(vpw.pw_dir);
-     		free(vpw.pw_shell);
-     		ldap_value_free(vals);
-     		return NULL;     
-	}
-  	memset((char *)vpw.pw_gecos, 0, (strlen(*vals) + 1));
-  	memcpy((char *)vpw.pw_gecos, (char *)(*vals), strlen(*vals));
+  	vpw->pw_gecos = (char *)safe_malloc((strlen(*vals) + 1));
+  	
+	memset((char *)vpw->pw_gecos, 0, (strlen(*vals) + 1));
+  	memcpy((char *)vpw->pw_gecos, (char *)(*vals), strlen(*vals));
   	ldap_value_free(vals);
   }
+	else 
+  		ldap_perror(ld,"Error");
 
   vals = ldap_get_values(ld, msg, "mailMessageStore");
   if ( vals ){
-  	vpw.pw_dir = (char *)malloc((strlen(*vals) + 1));
-  	if (vpw.pw_dir == NULL) {
-    		free(vpw.pw_passwd);
-    		free(vpw.pw_name);
-    		free(vpw.pw_shell);
-    		ldap_value_free(vals);
-    		return NULL;
-  	}  
-  	memset((char *)vpw.pw_dir, 0, (strlen(*vals) + 1));
-  	memcpy((char *)vpw.pw_dir, (char *)(*vals), strlen(*vals));
+  	vpw->pw_dir = (char *)safe_malloc((strlen(*vals) + 1));
+  	
+	memset((char *)vpw->pw_dir, 0, (strlen(*vals) + 1));
+  	memcpy((char *)vpw->pw_dir, (char *)(*vals), strlen(*vals));
         ldap_value_free(vals);
   }
+	else 
+  		ldap_perror(ld,"Error");
 
   vals = ldap_get_values(ld, msg, "qmailUID");
   if ( vals ) {
-  	vpw.pw_uid = atoi(*vals);
+  	vpw->pw_uid = atoi(*vals);
   	ldap_value_free(vals);
   }
+	else 
+  		ldap_perror(ld,"Error");
 
   vals = ldap_get_values(ld, msg, "qmailGID");
   if ( vals ) {
-  	vpw.pw_gid = atoi(*vals);
+  	vpw->pw_gid = atoi(*vals);
   	ldap_value_free(vals);
   }
+	else 
+  		ldap_perror(ld,"Error");
 
-  return(&vpw);
+ return vpw;
+
 }
 void vauth_end_getall()
 {
@@ -289,54 +272,53 @@ void vauth_end_getall()
 struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 {
   int ret = 0;
+  size_t len = 0;
   struct vqpasswd *pw = NULL;
   LDAPMessage *res = NULL;
   char *filter = NULL, **vals = NULL;
-  int eret = 0;
   char *basedn = NULL;
 
   if (first) {
      lowerit(domain);
 
-     ret = (32 + 1);
-     eret = (strlen(VLDAP_BASEDN) - 2 + strlen(domain) + 1);
+     len = (32 + 1);
 
-    filter = (char *)malloc(ret);
-    if (filter == NULL)
-       return NULL;     
+    filter = (char *)safe_malloc(len);
   
-    memset((char *)filter, 0, ret);
-    basedn = (char *)malloc(eret);
-    if (basedn == NULL) {
-       free(filter);
-       return NULL;
-    } 
+    memset((char *)filter, 0, len);
+    
+	if (compose_dn(&basedn,domain) != 0)  {
+		safe_free((void **) &filter);
+  		return NULL;
+	}
 
-    memset((char *)basedn, 0, eret);
+    snprintf(filter, len, "(objectclass=qmailUser)");
 
-    snprintf(filter, ret, "(objectclass=qmailUser)");
-    snprintf(basedn, eret, VLDAP_BASEDN, domain);
-
-    if (ld == NULL) {
-       ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-       if (ld == NULL) {
-          free(filter);
-          return NULL;
-       }
- 
-       ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-       if (ret != LDAP_SUCCESS) {
-          free(filter);
-          return NULL;
-       }
-     }
-
-    ret = ldap_search_s(ld, basedn, LDAP_SCOPE_SUBTREE,
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0) {
+  		safe_free((void **) &filter);
+  		return NULL;
+		}
+	}
+    
+	ret = ldap_search_s(ld, basedn, LDAP_SCOPE_SUBTREE,
                         filter, vldap_attrs, 0, &res);
+	
+    safe_free((void **) &basedn);
+    safe_free((void **) &filter);
 
-    free(basedn);
-    free(filter);
-  
+	if (ret != LDAP_SUCCESS) {
+  		ldap_perror(ld,"Error");
+		return NULL;
+	}
+
+
+ 	if ( ldap_sort_entries( ld, &res, "uid", &strcasecmp ) != 0)  {
+  		ldap_perror(ld,"Error");
+		return NULL;
+	}
+
+ 
     if (ret != LDAP_SUCCESS)
        return NULL;
      
@@ -345,8 +327,10 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
        return NULL;
 
     vals = ldap_get_values(ld, glm, "uid");
-    if (vals == NULL)
+    if (vals == NULL) {
+  		ldap_perror(ld,"Error");
        return NULL;
+	}
 
     pw = vauth_getpw(*vals, domain);
 
@@ -360,12 +344,16 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     res = glm;
 
     glm = ldap_next_entry(ld, res);
-    if (glm == NULL)
+    if (glm == NULL) {
+  		ldap_perror(ld,"Error");
        return NULL;
+	   }
 
     vals = ldap_get_values(ld, glm, "uid");
-    if (vals == NULL)
+    if (vals == NULL) {
+  		ldap_perror(ld,"Error");
        return NULL;    
+	}
     
     pw = vauth_getpw(*vals, domain);
 
@@ -384,12 +372,13 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *dir, int apop )
 {
   char *dn = NULL;
+  char *dn_tmp = NULL;
   LDAPMod **lm = NULL; 
   char dom_dir[156];
   uid_t uid;
   gid_t gid;
   int ret = 0, vd = 0;
-  int i,j;
+  int i,len;
   char *b = NULL;
   char crypted[100] = { 0 };
 
@@ -406,8 +395,8 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
      ret = strlen(dom_dir) + 5 + strlen(user);
   }
 
-  b = (char *)malloc(ret);
-  if (b == NULL) return -98;
+  b = (char *)safe_malloc(ret);
+  
   memset((char *)b, 0, ret);
   
   if (vd) {
@@ -418,35 +407,25 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
 
   dir = b;
   
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL)
-        return -99;
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS)
-        return -99;
-  }
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0)
+  		return -99;
+	}
 
-  lm = (LDAPMod **)malloc(sizeof(LDAPMod *) * 9);
-  if (lm == NULL) return -98;   
+  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * 9);
 
   for(i=0;i<8;++i) {
-    lm[i] = (LDAPMod *)malloc(sizeof(LDAPMod)); 
-    if (lm[i] == NULL) {
-      for(j=0;j<i;++j) free(lm[j]);
-        free(lm);
-        return -98;
-    }
-    memset((LDAPMod *)lm[i], 0, sizeof(LDAPMod));
+    lm[i] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
+    
+	memset((LDAPMod *)lm[i], 0, sizeof(LDAPMod));
     lm[i]->mod_op = LDAP_MOD_ADD; 
-    lm[i]->mod_type = strdup(ldap_fields[i]);
-    lm[i]->mod_values = (char **)malloc(sizeof(char *) * 2);
+    lm[i]->mod_type = safe_strdup(ldap_fields[i]);
+    lm[i]->mod_values = (char **)safe_malloc(sizeof(char *) * 2);
     lm[i]->mod_values[1] = NULL;
   }
   lm[8] = NULL;
 
-  lm[0]->mod_values[0] = strdup(user);
+  lm[0]->mod_values[0] = safe_strdup(user);
 
   memset((char *)crypted, 0, 100);
   if ( password[0] == 0 ) {
@@ -455,60 +434,62 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
     mkpasswd3(password, crypted, 100);
   }
 
-  lm[1]->mod_values[0] = malloc(strlen(crypted) + 7 + 1);
+  lm[1]->mod_values[0] = (char *) safe_malloc(strlen(crypted) + 7 + 1);
 #ifdef MD5_PASSWORDS
   snprintf(lm[1]->mod_values[0], strlen(crypted) + 7 + 1, "{MD5}%s", crypted);
 #else
   snprintf(lm[1]->mod_values[0], strlen(crypted) + 7 + 1, "{crypt}%s", crypted);
 #endif
 
-  lm[2]->mod_values[0] = malloc(10);
+  lm[2]->mod_values[0] = (char *) safe_malloc(10);
   if ( apop == USE_POP ) sprintf(lm[2]->mod_values[0], "%d", 1 );
   else sprintf(lm[2]->mod_values[0], "%d", 2 );
 
-  lm[3]->mod_values[0] = malloc(10);
+  lm[3]->mod_values[0] = (char *) safe_malloc(10);
   sprintf(lm[3]->mod_values[0], "%d", 0);
-  lm[4]->mod_values[0] = strdup(gecos);
-  lm[5]->mod_values[0] = strdup(dir);
+  lm[4]->mod_values[0] = safe_strdup(gecos);
+  lm[5]->mod_values[0] = safe_strdup(dir);
 #ifdef HARD_QUOTA
-  lm[6]->mod_values[0] = malloc(10); 
+  lm[6]->mod_values[0] = (char *) safe_malloc(10); 
   sprintf(lm[6]->mod_values[0], "%s", HARD_QUOTA); 
 #else
-  lm[6]->mod_values[0] = strdup("NOQUOTA");
+  lm[6]->mod_values[0] = safe_strdup("NOQUOTA");
 #endif
-  lm[7]->mod_values[0] = strdup("qmailUser");
+  lm[7]->mod_values[0] = safe_strdup("qmailUser");
 
 
-  ret = 4 + strlen(user) + 2 + strlen(VLDAP_BASEDN) - 2 + strlen(domain) + 1;
-  b = (char *)malloc(ret);
-
-  dn = (char *)malloc(ret);
-  if (dn == NULL) {
+  
+  if (compose_dn(&dn_tmp,domain) != 0) {
      for(i=0;i<8;++i) { 
-	free(lm[i]->mod_type);
-	free(lm[i]->mod_values[0]);
+		safe_free((void **) &lm[i]->mod_type);
+		safe_free((void **) &lm[i]->mod_values[0]);
      }
-     free(lm);
+     safe_free((void **) &lm);
+	 safe_free((void **) &dn);
      return -98;
   }
   
-  memset((char *)dn, 0, ret);
-
-  memset((char *)b, 0, ret);
-  snprintf(b, ret, "uid=%s, %s", user, VLDAP_BASEDN);
-  snprintf(dn, ret, b, domain);
-  free(b);
+  len = 4 + strlen(user) + 2 + strlen(VLDAP_BASEDN) + 4 + strlen(domain) + 1;
+  
+  dn = (char *) safe_malloc(len);
+	
+  memset((char *)dn, 0, len);
+  snprintf(dn, len, "uid=%s, %s", user, dn_tmp);
+  
+  safe_free((void **) &dn_tmp);
 
   ret = ldap_add_s(ld, dn, lm);
- 
-  free(dn);
+  safe_free((void **) &dn);
+
   for(i=0;i<8;++i) {
-  	free(lm[i]->mod_type);
-  	free(lm[i]->mod_values[0]);
+  	safe_free((void **) &lm[i]->mod_type);
+  	safe_free((void **) &lm[i]->mod_values[0]);
   }
-  free(lm);
+  
+  safe_free((void **) &lm);
 
   if (ret != LDAP_SUCCESS) {
+  	 ldap_perror(ld,"Error");
      if (ret == LDAP_ALREADY_EXISTS) return VA_USERNAME_EXISTS;
      return -99;
   }
@@ -521,33 +502,19 @@ int vauth_adddomain( char *domain )
   char *dn = NULL;
   LDAPMod **lm = NULL; 
 
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL)
-        return -99;
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS)
-        return -99;
-  }
+  if (ld == NULL ) {
+  	ret = ldap_connect();
+  	if (ret != 0) {
+  		return -99;
+		/* Attention I am not quite shure, when we return NULL or -99, see above */
+		}
+	}
 
-  lm = (LDAPMod **)malloc(sizeof(LDAPMod *) * 2);
-  if (lm == NULL)
-     return -98;   
+  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * 2);
 
-  lm[0] = (LDAPMod *)malloc(sizeof(LDAPMod)); 
-  if (lm[0] == NULL) {
-     free(lm);
-     return -98;
-  }
+  lm[0] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
 
-  lm[1] = (LDAPMod *)malloc(sizeof(LDAPMod)); 
-  if (lm[1] == NULL) {
-     free(lm[0]);
-     free(lm);
-     return -98;
-  }
-
+  lm[1] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
   lm[2] = NULL;
 
   memset((LDAPMod *)lm[0], 0, sizeof(LDAPMod));
@@ -556,47 +523,45 @@ int vauth_adddomain( char *domain )
   lm[0]->mod_op = LDAP_MOD_ADD; 
   lm[1]->mod_op = LDAP_MOD_ADD; 
 
-  lm[0]->mod_type = strdup("ou");
-  lm[1]->mod_type = strdup("objectclass");
+  lm[0]->mod_type = safe_strdup("ou");
+  lm[1]->mod_type = safe_strdup("objectclass");
   
-  lm[0]->mod_values = (char **)malloc(sizeof(char *) * 2);
-  lm[1]->mod_values = (char **)malloc(sizeof(char *) * 2);
+  lm[0]->mod_values = (char **)safe_malloc(sizeof(char *) * 2);
+  lm[1]->mod_values = (char **)safe_malloc(sizeof(char *) * 2);
 
   lm[0]->mod_values[1] = NULL;
   lm[1]->mod_values[1] = NULL;
 
-  lm[0]->mod_values[0] = strdup(domain);
-  lm[1]->mod_values[0] = strdup("organizationalUnit");
+  lm[0]->mod_values[0] = safe_strdup(domain);
+  lm[1]->mod_values[0] = safe_strdup("organizationalUnit");
 
-  ret = strlen(domain) + strlen(VLDAP_BASEDN) - 2 + 1;
-
-  dn = (char *)malloc(ret);
-  if (dn == NULL) {
-     free(lm[0]->mod_type);
-     free(lm[1]->mod_type);
-     free(lm[0]->mod_values[0]);
-     free(lm[1]->mod_values[0]);
-     free(lm[1]);
-     free(lm[0]);
-     free(lm);
-
-     return -98;
-  }
-  
-  memset((char *)dn, 0, ret);
-  snprintf(dn, ret, VLDAP_BASEDN, domain);
+  if (compose_dn(&dn,domain) != 0 ) {
+     safe_free((void **) &lm[0]->mod_type);
+     safe_free((void **) &lm[1]->mod_type);
+     safe_free((void **) &lm[0]->mod_values[0]);
+     safe_free((void **) &lm[1]->mod_values[0]);
+     safe_free((void **) &lm[1]);
+     safe_free((void **) &lm[0]);
+     safe_free((void **) &lm);
+	return -98;
+	}
 
   ret = ldap_add_s(ld, dn, lm);
  
-  free(dn);
-  free(lm[0]->mod_type);
-  free(lm[1]->mod_type);
-  free(lm[0]->mod_values[0]);
-  free(lm[1]->mod_values[0]);
-  free(lm[2]);
-  free(lm[1]);
-  free(lm[0]);
-  free(lm);
+ if (ret != LDAP_SUCCESS) {
+  	ldap_perror(ld,"Error");
+    return -99;
+	} 
+
+  safe_free((void **) &dn);
+  safe_free((void **) &lm[0]->mod_type);
+  safe_free((void **) &lm[1]->mod_type);
+  safe_free((void **) &lm[0]->mod_values[0]);
+  safe_free((void **) &lm[1]->mod_values[0]);
+  safe_free((void **) &lm[2]);
+  safe_free((void **) &lm[1]);
+  safe_free((void **) &lm[0]);
+  safe_free((void **) &lm);
 
   if (ret != LDAP_SUCCESS) {
      if (ret == LDAP_ALREADY_EXISTS) return VA_USERNAME_EXISTS;
@@ -609,37 +574,31 @@ int vauth_adddomain( char *domain )
 int vauth_deldomain( char *domain )
 {
   int ret = 0;
+  size_t len = 0;
   char *dn = NULL;
   struct vqpasswd *pw = NULL;
 
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL)
-        return -99;
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS)
-        return -99;
-  }
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0)
+  		return -99;
+	}
 
-  ret = strlen(domain) + strlen(VLDAP_BASEDN) - 2 + 1;
-  
-  dn = (char *)malloc(ret);
-  if (dn == NULL)
+  len = strlen(domain) + strlen(VLDAP_BASEDN) + 4 + 1;
+ 
+  if (compose_dn(&dn,domain) != 0) 
      return -98;
 
-  memset((char *)dn, 0, ret);
-  snprintf(dn, ret, VLDAP_BASEDN, domain);
+  for (pw = vauth_getall(domain, 1, 0); pw; pw = vauth_getall(domain, 0, 0)) 
+      vauth_deluser(pw->pw_name, domain); 
+	 
+  	ret = ldap_delete_s(ld, dn);
+  	safe_free((void **) &dn);
+	
+	if (ret != LDAP_SUCCESS ) {
+  		ldap_perror(ld,"Error");
+		return -99;
+	}
 
-  for (pw = vauth_getall(domain, 1, 0); pw; pw = vauth_getall(domain, 0, 0))
-      vauth_deluser(pw->pw_name, domain);
-
-  ret = ldap_delete_s(ld, dn);
-
-  free(dn);
-
-  if (ret != LDAP_SUCCESS)
-     return -99;
 
   return VA_SUCCESS;
 }
@@ -653,7 +612,7 @@ int vauth_vpasswd( char *user, char *domain, char *crypted, int apop )
   if (pw == NULL)
      return VA_USER_DOES_NOT_EXIST;
 
-  pw->pw_passwd = strdup(crypted);
+  pw->pw_passwd = safe_strdup(crypted);
 
   ret = vauth_setpw(pw, domain);
   
@@ -663,40 +622,35 @@ int vauth_vpasswd( char *user, char *domain, char *crypted, int apop )
 int vauth_deluser( char *user, char *domain )
 {
   int ret = 0;
+  size_t len = 0;
   char *dn = NULL;
-  char *b = NULL;
+  char *dn_tmp = NULL;
 
 
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL)
-        return -99;
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS)
-        return -99;
-  }
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0)
+  		return -99;
+	}
 
-  ret = 4 + strlen(user) + 2 + strlen(VLDAP_BASEDN) - 2 + strlen(domain) + 1;
+  len = 4 + strlen(user) + 2 + strlen(VLDAP_BASEDN) + 4 + strlen(domain) + 1;
 
-  b = (char *)malloc(ret);
+  if (compose_dn(&dn_tmp,domain) != 0)
+  	return -98;
 
-  dn = (char *)malloc(ret);
-  if (dn == NULL)
-     return -98;  
+  dn = (char *)safe_malloc(len);
+  memset((char *)dn, 0, len);
   
-  memset((char *)dn, 0, ret);
-  memset((char *)b, 0, ret);
-  snprintf(b, ret, "uid=%s, %s", user, VLDAP_BASEDN);
-  snprintf(dn, ret, b, domain);
-  free(b);
+  snprintf(dn, len, "uid=%s, %s", user, dn_tmp);
+  safe_free((void **) &dn_tmp);
 
   ret = ldap_delete_s(ld, dn);
 
-  free(dn);  
+  safe_free((void **) &dn);  
 
-  if (ret != LDAP_SUCCESS)
+  if (ret != LDAP_SUCCESS) {
+  	ldap_perror(ld,"Error");
      return -99;
+	}
 
   return VA_SUCCESS;
 }
@@ -707,7 +661,9 @@ int vauth_setquota( char *username, char *domain, char *quota)
   struct vqpasswd *pw = NULL;
 
     if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR
     if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
@@ -715,8 +671,9 @@ int vauth_setquota( char *username, char *domain, char *quota)
   if (pw == NULL)
      return VA_USER_DOES_NOT_EXIST;
 
-  pw->pw_shell = strdup(quota);
+  pw->pw_shell = safe_strdup(quota);
 
+  
   ret = vauth_setpw(pw, domain);
   
   return ret;
@@ -725,93 +682,78 @@ int vauth_setquota( char *username, char *domain, char *quota)
 int vauth_setpw( struct vqpasswd *inpw, char *domain ) 
 {
   int ret = 0;
+  size_t len = 0;
   char *dn = NULL;
+  char *dn_tmp = NULL;
   LDAPMod **lm = NULL;
-  char *b = NULL;
-  int i,j;
+  int i;
 #ifdef SQWEBMAIL_PASS
   uid_t uid;
   gid_t gid;
 #endif
-
     ret = vcheck_vqpw(inpw, domain);
-    if ( ret != 0 ) return(ret);
+    if ( ret != 0 ) { return(ret); }
+  
+  if (ld == NULL ) {
+  	if (ldap_connect() != 0)
+  		return -99;
+	}
 
-  if (ld == NULL) {
-     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
-     if (ld == NULL)
-        return -99;
- 
-     ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
-     if (ret != LDAP_SUCCESS)
-        return -99;
-  }
-
-  lm = (LDAPMod **)malloc(sizeof(LDAPMod *) * 9);
-  if (lm == NULL)
-     return -98;   
+  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * 9);
 
   for(i=0;i<8;++i) {
-  	lm[i] = (LDAPMod *)malloc(sizeof(LDAPMod)); 
-  	if (lm[i] == NULL) {
-		for(j=0;j<i;++j) free(lm[j]);
-		free(lm);
-		return -98;
-	}
+  	lm[i] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
   	memset((LDAPMod *)lm[i], 0, sizeof(LDAPMod));
     lm[i]->mod_op = LDAP_MOD_REPLACE; 
-    lm[i]->mod_values = (char **)malloc(sizeof(char *) * 2);
+    lm[i]->mod_values = (char **)safe_malloc(sizeof(char *) * 2);
     lm[i]->mod_values[1] = NULL;
-    lm[i]->mod_type = strdup(ldap_fields[i]);
+    lm[i]->mod_type = safe_strdup(ldap_fields[i]);
   }
   lm[8] = NULL;
 
-  lm[0]->mod_values[0] = strdup(inpw->pw_name);  
+  lm[0]->mod_values[0] = safe_strdup(inpw->pw_name);  
 
-  lm[1]->mod_values[0] = malloc(strlen(inpw->pw_passwd) + 7 + 1);
+  lm[1]->mod_values[0] = safe_malloc(strlen(inpw->pw_passwd) + 7 + 1);
   snprintf(lm[1]->mod_values[0], strlen(inpw->pw_passwd) + 7 + 1, 
 	"{crypt}%s", inpw->pw_passwd);
 
-  lm[2]->mod_values[0] = malloc(10);
+  lm[2]->mod_values[0] = (char *)safe_malloc(10);
   sprintf(lm[2]->mod_values[0], "%d", inpw->pw_uid);
 
-  lm[3]->mod_values[0] = malloc(10);
+  lm[3]->mod_values[0] = (char *) safe_malloc(10);
   sprintf(lm[3]->mod_values[0], "%d", inpw->pw_gid);
 
   if ( inpw->pw_gecos == NULL) {
-  	lm[4]->mod_values[0] = strdup(""); 
+  	lm[4]->mod_values[0] = safe_strdup(""); 
   } else {
-  	lm[4]->mod_values[0] = strdup(inpw->pw_gecos);  
+  	lm[4]->mod_values[0] = safe_strdup(inpw->pw_gecos);  
   }
-  lm[5]->mod_values[0] = strdup(inpw->pw_dir);
-  lm[6]->mod_values[0] = strdup(inpw->pw_shell);  
-  lm[7]->mod_values[0] = strdup("qmailUser");
+  lm[5]->mod_values[0] = safe_strdup(inpw->pw_dir);
+  lm[6]->mod_values[0] = safe_strdup(inpw->pw_shell);  
+  lm[7]->mod_values[0] = safe_strdup("qmailUser");
 
-  ret = 4 + strlen(inpw->pw_name) + 2 + strlen(VLDAP_BASEDN) - 2 + strlen(domain) + 1;
-  b = (char *)malloc(ret);
-
-  dn = (char *)malloc(ret);
-  if (dn == NULL) {
-     free(lm);
+  if (compose_dn(&dn_tmp,domain) != 0 ) {
+     safe_free((void **) &lm);
      return -98;
   }
-  
-  memset((char *)dn, 0, ret);
 
-  memset((char *)b, 0, ret);
-  snprintf(b, ret, "uid=%s, %s", inpw->pw_name, VLDAP_BASEDN);
-  snprintf(dn, ret, b, domain);
-  free(b);
+  len = 4 + strlen(inpw->pw_name) + 2 + strlen(VLDAP_BASEDN) + 4 + strlen(domain) + 1;
+  dn = (char *) safe_malloc (len);
+  memset((char *)dn, 0, len);
+  
+  snprintf(dn, len, "uid=%s, %s", inpw->pw_name, dn_tmp);
 
   ret = ldap_modify_s(ld, dn, lm);
- 
-  free(dn);
+  safe_free((void **) &dn);
+  
   for(i=0;i<8;++i) free(lm[i]);
-  free(lm);
+  	safe_free((void **) &lm);
 
-  if (ret != LDAP_SUCCESS)
-     return -99;  
-
+  if (ret != LDAP_SUCCESS) {
+  	 ldap_perror(ld,"Error");
+     return -99; 	 
+	}
+/* MARK */
 #ifdef SQWEBMAIL_PASS
     vget_assign(domain, NULL, 156, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
@@ -951,10 +893,10 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
 
 	vpw = vauth_getpw( user, domain );
 
-	tmpbuf = malloc(MAX_BUFF);
+	tmpbuf = (char *) safe_malloc(MAX_BUFF);
 	sprintf(tmpbuf, "%s/lastauth", vpw->pw_dir);
 	if ( (fs = fopen(tmpbuf,"w+")) == NULL ) {
-		free(tmpbuf);
+		safe_free((void **) &tmpbuf);
 		return(-1);
 	}
 	fprintf(fs, "%s", remoteip);
@@ -964,7 +906,7 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
         utime(tmpbuf, &ubuf);
         vget_assign(domain,NULL,0,&uid,&gid);
         chown(tmpbuf,uid,gid);
-	free(tmpbuf);
+	safe_free((void **) &tmpbuf);
 #else
 	return(0);
 #endif
@@ -976,13 +918,13 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
  char *tmpbuf;
  struct stat mystatbuf;
 
-	tmpbuf = malloc(MAX_BUFF);
+	tmpbuf = (char *) safe_malloc(MAX_BUFF);
 	sprintf(tmpbuf, "%s/lastauth", pw->pw_dir);
 	if ( stat(tmpbuf,&mystatbuf) == -1 ) {
-		free(tmpbuf);
+		safe_free((void **) &tmpbuf);
 		return(0);
 	}
-	free(tmpbuf);
+	safe_free((void **) &tmpbuf);
 	return(mystatbuf.st_mtime);
 #else
 	return(0);
@@ -1144,3 +1086,85 @@ int vshow_ip_map( int first, char *ip, char *domain)
 
 }
 #endif
+
+int compose_dn (char **dn, char *domain)
+{
+    size_t len = 0;
+  
+  	len = strlen(domain) + strlen(VLDAP_BASEDN) + 5;
+	
+	*dn = (char *)safe_malloc(len);
+  	memset((char *)*dn, 0, len);
+
+  	snprintf(*dn,len,"ou=%s,%s",domain,VLDAP_BASEDN);
+ 
+  return 0;
+ 
+}
+
+int ldap_connect ()
+{
+	int ret = 0;
+	
+	ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
+    if (ld == NULL) {
+		ldap_perror(ld,"Failed to inititialize LDAP-Connection");
+    	return -99;
+	}
+    ret = ldap_set_option( ld, LDAP_OPT_PROTOCOL_VERSION, &ldapversion );
+	if (ret != LDAP_OPT_SUCCESS) {
+		ldap_perror(ld,"Failed to set LDAP-Option");
+		return -99;
+	}
+    ret = ldap_simple_bind_s(ld, VLDAP_USER, VLDAP_PASSWORD);
+	if (ret != LDAP_SUCCESS) {
+		ldap_perror(ld,"Error");
+		exit(1);
+	}
+	return 0;
+}
+
+void safe_free (void **p)
+{
+  if (*p)
+  {
+    free (*p); 
+    *p = 0;
+  }
+}
+
+
+char *safe_strdup (const char *s)
+{
+  char *p;
+  size_t l;
+
+  if (!s || !*s)
+    return 0;
+  l = strlen (s) + 1;
+  p = (char *)safe_malloc (l);
+  memcpy (p, s, l);
+  return (p);
+}
+
+
+void *safe_malloc (size_t siz)
+{
+  void *p;
+
+  if (siz == 0)
+    return 0;
+  if ((p = (void *) malloc (siz)) == 0) 
+  {
+     printf("No more memory...exiting\n");
+    exit (1);
+  }
+  return (p);
+}
+
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+{
+  if ( vpw == NULL ) return(-1);
+
+  return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
+}

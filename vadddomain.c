@@ -1,8 +1,5 @@
 /*
- * vadddomain
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,19 +79,26 @@ int main(argc,argv)
         vsetuserquota( "postmaster", Domain, Quota ); 
     }
     if ( BounceEmail[0] != 0 ) {
-        if ( strstr(BounceEmail, "@") != NULL ) { 
-            vget_assign(Domain, a_dir, 156, &a_uid, &a_gid );
-            snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-default", a_dir);
-            if ( (fs = fopen(TmpBuf1, "w+"))!=NULL) {
+        vget_assign(Domain, a_dir, 156, &a_uid, &a_gid );
+        snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-default", a_dir);
+        if ( (fs = fopen(TmpBuf1, "w+"))!=NULL) {
+
+            if ( strstr(BounceEmail, "@") != NULL ) { 
                 fprintf(fs, "| %s/bin/vdelivermail '' %s\n", VPOPMAILDIR, 
                     BounceEmail);
-                fclose(fs);
-                chown(TmpBuf1, a_uid, a_gid);
+
+            /* No '@' - assume it's a mailbox name */
+            /* James Raftery <james@now.ie> 8th. Jan. 2003 */
             } else {
-                printf("Error: could not open %s\n", TmpBuf1);
+                fprintf(fs, "| %s/bin/vdelivermail '' %s/%s\n", VPOPMAILDIR,
+                    a_dir, BounceEmail);
             }
+
+            fclose(fs);
+            chown(TmpBuf1, a_uid, a_gid);
+
         } else {
-            printf("Invalid bounce email address %s\n", BounceEmail);
+            printf("Error: could not open %s\n", TmpBuf1);
         }
     }
     if ( RandomPw == 1 ) printf("Random password: %s\n", Passwd );
@@ -108,15 +112,16 @@ int usage()
 	printf("options: -v prints the version\n");
 	printf("         -q quota_in_bytes (sets the quota for postmaster account)\n");
 	printf("         -b (bounces all mail that doesn't match a user, default)\n");
-	printf("         -e email_address (forwards all non matching user to this address)\n");
+	printf("         -e email_address (forwards all non matching user to this address [*])\n");
 	printf("         -u user (sets the uid/gid based on a user in /etc/passwd)\n");
 	printf("         -d dir (sets the dir to use for this domain)\n");
 	printf("         -i uid (sets the uid to use for this domain)\n");
 	printf("         -g gid (sets the gid to use for this domain)\n");
-	printf("         -a sets the account to use APOP, default is POP\n");
 	printf("         -O optimize adding, for bulk adds set this for all\n");
 	printf("            except the last one\n");
 	printf("         -r generate a random password for postmaster\n");
+	printf("\n");
+	printf(" [*] omit @-sign to deliver directly into user's Maildir: '-e postmaster'\n");
 	exit(0);
 }
 
@@ -141,7 +146,7 @@ void get_options(int argc,char **argv)
     RandomPw = 0;
 
     errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"aq:be:u:vi:g:d:Or")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"q:be:u:vi:g:d:Or")) != -1 ) {
 	switch(c) {
 	case 'v':
 	    printf("version: %s\n", VERSION);
@@ -166,9 +171,6 @@ void get_options(int argc,char **argv)
 	    break;
 	case 'b':
 	    Bounce = 1;
-	    break;
-	case 'a':
-	    Apop = USE_APOP;
 	    break;
 	case 'O':
             OptimizeAddDomain = 1;

@@ -1,8 +1,5 @@
 /*
- * vpopbull
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999,2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +69,7 @@ int main(argc,argv)
  char *domain;
  char *domain_dir = NULL;
  char *tmpstr;
+ static struct stat statbuf;
 
   memset(TmpBuf,0,MAX_BUFF);
   memset(MsgBuf,0,MSG_BUF_SIZE);
@@ -93,7 +91,19 @@ int main(argc,argv)
     if ( (fsi = fopen(EmailFile, "r")) == NULL ) {
         printf("Could not open file %s\n", EmailFile);
         vexit(-1);
+    } else {
+        /* make sure the file size is not 0 */
+        stat(EmailFile, &statbuf);
+        if(statbuf.st_size == 0) {
+            printf("Error: %s is empty\n", EmailFile);
+            vexit(-1);
+        }
     }
+  } else {
+    /* require -f [email_file] */
+    printf("Error: email_file not specified\n");
+    usage();
+    vexit(-1);
   }
 
   if ( ExcludeFileFlag == 1 ) {
@@ -110,6 +120,8 @@ int main(argc,argv)
     while (domain != NULL ) {
         if((vget_assign(domain, domain_dir, 156, NULL, NULL)) != NULL) {
             process_domain(domain,  fsi, fsx );
+        } else {
+            printf("Error: domain %s does not exist\n", domain);
         }
         domain = strtok(NULL, " ");
     }
@@ -166,7 +178,14 @@ int process_domain(domain, fsi, fsx )
 				printf("%s@%s\n", pwent->pw_name, domain);
 			}
 			if ( DoNothing == 0 ) {
-				copy_email( fsi, filename, domain, pwent);
+				if(copy_email( fsi, filename, domain, pwent) == 0) {
+			        if ( Verbose == 1 ) {
+				        printf("%s@%s\n", pwent->pw_name, domain);
+			        }
+                } else {
+				    printf("%s@%s: ERROR COPYING TO %s\n", pwent->pw_name, 
+                        domain, pwent->pw_dir);
+                }
 			}
 		}
 	}	
@@ -183,6 +202,15 @@ int copy_email( fs_file, name, domain, pwent)
  static char tmpbuf1[MAX_BUFF];
  FILE *fs;
  int count;
+ struct stat mystatbuf;
+
+    /* check if the directory exists and create if needed */
+    if ( stat(pwent->pw_dir, &mystatbuf ) == -1 ) {
+        if ( vmake_maildir(domain, pwent->pw_dir )!= VA_SUCCESS ) {
+            printf("Auto re-creation of maildir failed. vpopmail (#5.9.9)\n");
+            return(-1);
+        }
+    }
 
 	sprintf(tmpbuf, "%s/Maildir/new/%s", pwent->pw_dir, name );
 	
@@ -302,7 +330,7 @@ void get_options(int argc, char **argv)
 
 void usage()
 {
-	printf("usage: vpopbull [options] [virtual_domain] [...]\n");
+	printf("usage: vpopbull [options] -f [email_file] [virtual_domain] [...]\n");
 	printf("       -v (print version number)\n");
 	printf("       -V (verbose)\n");
 	printf("       -f email_file (file with message contents)\n");

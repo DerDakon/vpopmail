@@ -494,6 +494,21 @@ struct *vauth_getall( char *domain, int first, int sort_it )</H4>
 	sort_it = 1 to have the user list sorted alphabetically. This has no
 	effect on vpasswd/cdb method, since all users are added
 	alphabetically. With mysql it adds an order by pw_name to the query.</DD></DL>
+<H4>
+int vget_limits( char *domain, struct vlimits *limits )</H4>
+<DL>
+	<DD>domain = domain name to get limits for</DD>
+	<DD>limits = name of limits structure</DD></DL>
+<H4>
+int vset_limits( char *domain, struct vlimits *limits )</H4>
+<DL>
+	<DD>domain = domain name to set limits for</DD>
+	<DD>limits = name of limits structure</DD></DL>
+<H4>
+int vdel_limits( char *domain )</H4>
+<DL>
+	<DD>domain = domain name to delete limits for</DD>
+	<DD>limits = name of limits structure</DD></DL>
 <P STYLE="margin-bottom: 0in">
 <BR>
 </P>

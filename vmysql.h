@@ -1,7 +1,4 @@
 /*
- * vmyvsql.h
- * part of the vchkpw package
- * 
  * Copyright (C) 1999 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -238,7 +235,7 @@ level_index0, level_index1, level_index2, the_dir"
 
 #define VALIAS_TABLE_LAYOUT "alias char(32) not null, \
 domain char(64) not null, \
-valias_line char(160) not null, index (alias, domain)"
+valias_line text not null, index (alias, domain)"
 
 #endif
 
@@ -251,5 +248,32 @@ valias_line char(160) not null, index (alias, domain)"
       INDEX user_idx (user), \
       INDEX domain_idx (domain), INDEX remoteip_idx (remoteip), \
       INDEX error_idx (error), INDEX message_idx (message)"
+#endif
+
+#ifdef ENABLE_MYSQL_LIMITS
+#define LIMITS_TABLE_LAYOUT "domain CHAR(64) PRIMARY KEY, \
+      maxpopaccounts           INT(10) NOT NULL DEFAULT -1, \
+      maxaliases               INT(10) NOT NULL DEFAULT -1, \
+      maxforwards              INT(10) NOT NULL DEFAULT -1, \
+      maxautoresponders        INT(10) NOT NULL DEFAULT -1, \
+      maxmailinglists          INT(10) NOT NULL DEFAULT -1, \
+      diskquota                INT(12) NOT NULL DEFAULT 0, \
+      maxmsgcount              INT(12) NOT NULL DEFAULT 0, \
+      defaultquota             INT(12) NOT NULL DEFAULT 0, \
+      defaultmaxmsgcount       INT(12) NOT NULL DEFAULT 0, \
+      disable_pop              TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_imap             TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_dialup           TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_passwordchanging TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_webmail          TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_relay            TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_smtp             TINYINT(1) NOT NULL DEFAULT 0, \
+      perm_account             TINYINT(2) NOT NULL DEFAULT 0, \
+      perm_alias               TINYINT(2) NOT NULL DEFAULT 0, \
+      perm_forward             TINYINT(2) NOT NULL DEFAULT 0, \
+      perm_autoresponder       TINYINT(2) NOT NULL DEFAULT 0, \
+      perm_maillist            TINYINT(4) NOT NULL DEFAULT 0, \
+      perm_quota               TINYINT(2) NOT NULL DEFAULT 0, \
+      perm_defaultquota        TINYINT(2) NOT NULL DEFAULT 0"
 #endif
 

@@ -1,11 +1,5 @@
 /*
- * Modified By David Wartell david@actionwebservices.com to support
- * logging to MySQL 6/21/2001
- *
- * auth.h
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ *
  */
 
 #ifndef VPOPMAIL_VAUTH_H
@@ -48,6 +43,7 @@ int vauth_deldomain(char *);
 
 int vauth_adduser(char *username, char *domain, char *passwd, char *gecos, char * dir, int apop);
 
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw);
 int vauth_deluser(char *, char *);
 int vauth_setquota( char *, char *, char *);
 struct vqpasswd *vauth_getpw(char *, char *);

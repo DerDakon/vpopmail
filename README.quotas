@@ -1,4 +1,4 @@
-VPOPMAIL CHANGE TO MAILDIRQUOTAS                         (updated 1/17/2002)
+VPOPMAIL AND MAILDIRQUOTAS                                 (updated 3/05/2003)
 
 * OVERVIEW
 
@@ -54,6 +54,26 @@ VPOPMAIL CHANGE TO MAILDIRQUOTAS                         (updated 1/17/2002)
     To change the percentage to something other than 90, edit 
     QUOTA_WARN_PERCENT in vdelivermail.c and recompile.
 
+* DOMAIN QUOTAS
+
+    If you want to implement a quota for a whole domain, you have 2 options.
+    You can either put the domain under a unique system id and implement
+    system quotas, or (as of 5.3.18) you can use a non-system domain quota.  To 
+    implement the former, just use 'vadddomain -u <system user> <domain>' and
+    set the system quota for that user.  To implement the latter, you must first
+    compile vpopmail with "--enable-domainquotas=y".  Then, you can add this to 
+    your .qmailadmin-limits file
+
+        quota 50
+
+    This would set a total domain quota of 50MB for the domain.  Note that if
+    you compile with --enable-mysql-limits, you would not enter this in the
+    .qmailadmin-limits file, but rather put it in the limits table.
+
+    NOTE: Non-system domain quotas are only enforcable when vdelivermail is the
+    local delivery agent.  If you pipe your mail into anything else, like
+    maildrop, then the non-system domain quota will be ignored.
+
 * CAVEATS
 
     MAILDROP
@@ -63,16 +83,16 @@ VPOPMAIL CHANGE TO MAILDIRQUOTAS                         (updated 1/17/2002)
 
     POP SERVERS
 
-    qmail-pop3d does not update maildirsize when you delete messages.  This 
-    problem will correct itself within 15 minutes, since the Maildir++ spec
-    dictates that the maildirsize file must be recalculated at least every
-    15 minutes.  But there are 2 ways to avoid this:
+    qmail-pop3d does not update maildirsize when you delete messages.  
+    Furthermore, when using aliases via .qmail files, qmail-local does not 
+    know about Maildir++, so messages delivered directly by qmail-local do not 
+    get added to the maildirsize file either.  These problem should correct 
+    themselves within 15 minutes according to the Maildir++ specification, but 
+    this does not appear to be that reliable yet.  
 
-    1. Patch qmail with the qmail-pop3d-maildirquota.patch in the contrib
-       directory.
-    2. Use courier's pop server which ships with courier-imap.  It supports
-       maildirquotas natively.  See http://www.inter7.com/courierimap for
-       details.
+    The best available solution is to patch qmail with qmail-maildir++.patch, 
+    included in the contrib directory of the vpopmail source.  It will add 
+    Maildir++ support to both qmail-pop3d and qmail-local.
 
 * CREDITS
 

@@ -6,6 +6,20 @@
 
 
 
+/* I've removed pretty much the whole file execept for
+   some public functions so as to not conflict with courier.
+   I"ve made the courier functions static.
+   - Brian Kolaci
+*/
+int readdomainquota(const char *dir, long *sizep, int *cntp);
+int readuserquota(const char* dir, long *sizep, int *cntp);
+int domain_over_maildirquota(const char *userdir);
+int user_over_maildirquota(const char *dir, const char *quota);
+void add_warningsize_to_quota( const char *dir, const char *quota);
+int vmaildir_readquota(const char *dir,	const char *quota);
+
+/* skip the rest... */
+#if 0
 
 /* from maildirquota.h */
 
@@ -245,5 +259,6 @@ char	*strh_ino_t(ino_t, char *);
 
 #ifdef	__cplusplus
 }
+#endif
 #endif
 #endif

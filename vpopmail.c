@@ -1,8 +1,5 @@
 /*
- * vpopmail library
- * part of the vpopmail package
- * 
- * Copyright (C) 2000,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -98,116 +94,115 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char *domain_sub_dir;
  char tmpbuf[156];
 
-    /* we only do lower case */
-    lowerit(domain);
-    if ( strlen( domain ) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  /* we only do lower case */
+  lowerit(domain);
+  if ( strlen( domain ) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
-    /* check invalid email domain characters */
-    for(i=0;domain[i]!=0;++i) {
-        if (i == 0 && domain[i] == '-' ) return(VA_INVALID_DOMAIN_NAME);
-        if (isalnum((int)domain[i])==0 && domain[i]!='-' && domain[i]!='.')
-            return(VA_INVALID_DOMAIN_NAME);
-
+  /* check invalid email domain characters */
+  for(i=0;domain[i]!=0;++i) {
+    if (i == 0 && domain[i] == '-' ) return(VA_INVALID_DOMAIN_NAME);
+    if (isalnum((int)domain[i])==0 && domain[i]!='-' && domain[i]!='.') {
+      return(VA_INVALID_DOMAIN_NAME);
     }
-    if ( domain[i-1] == '-' ) return(VA_INVALID_DOMAIN_NAME);
+  }
+  if ( domain[i-1] == '-' ) return(VA_INVALID_DOMAIN_NAME);
+  if ( strlen(domain)<3) return(VA_INVALID_DOMAIN_NAME);
 
-    /* after the name is okay, check if it already exists */
-    if ( vget_assign(domain, NULL, 156, NULL, NULL ) != NULL ) {
-        chdir(TmpBuf1);
-        return(VA_DOMAIN_ALREADY_EXISTS);
-    }
-
-    /* set our file creation mask for machines where the
-     * sysadmin has tightened default permissions
-     */
-    umask(VPOPMAIL_UMASK);
-
-    /* remember where we are */
-    getcwd(TmpBuf1, MAX_BUFF);
-
-
-    /* go to the directory
-     * check for error and return error on error
-     */
-    if ( chdir(dir) != 0 ) {
-	return(VA_BAD_V_DIR);
-    }
-
-    /* go into our vpopmail domains directory */
-    if ( chdir(DOMAINS_DIR) != 0 ) {
-
-	/* if it's not there, no problem, just try to create it */
-        if ( mkdir(DOMAINS_DIR, VPOPMAIL_DIR_MODE) != 0 ) {
-            if ( chdir(TmpBuf1) != 0 ) {
-            	return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
-	    } 
-        }
-
-	/*  set the permisions on our new directory */
-    	chown(DOMAINS_DIR,uid,gid);
-
-	/* try this again */
-	if ( chdir(DOMAINS_DIR) != 0 ) {
-            return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
-	}
-    }
-
-    /* since domains can be added under any /etc/passwd
-     * user, we have to create dir_control information
-     * for each user/domain combination
-     */
-    snprintf(tmpbuf, 156, "dom_%lu", (long unsigned)uid);
-
-    open_big_dir(tmpbuf, uid, gid);
-    domain_sub_dir = next_big_dir(uid, gid);
-    close_big_dir(tmpbuf, uid, gid);
-
-    if ( strlen(domain_sub_dir) > 0 ) {
-	snprintf(DomainSubDir, FILE_SIZE, "%s/%s", domain_sub_dir, domain);
-    } else {
-	snprintf(DomainSubDir, FILE_SIZE, "%s", domain);
-    }
-   
-    if ( r_mkdir(DomainSubDir, uid, gid ) != 0 ) {
-        chdir(TmpBuf1);
-        return(VA_COULD_NOT_MAKE_DOMAIN_DIR);
-    }
-    
-    if ( chdir(DomainSubDir) != 0 ) {
-        chdir(TmpBuf1);
-        return(VA_BAD_D_DIR);
-    }
-
-    snprintf(TmpBuf, MAX_BUFF, 
-        "%s/%s/%s/.qmail-default", dir, DOMAINS_DIR, DomainSubDir);
-    if ( (fs = fopen(TmpBuf, "w+"))==NULL) {
-        chdir(TmpBuf1);
-        return(VA_COULD_NOT_OPEN_QMAIL_DEFAULT);
-    } else {
-        fprintf(fs, "| %s/bin/vdelivermail '' bounce-no-mailbox\n",
-             VPOPMAILDIR);
-        fclose(fs);
-    }
-    snprintf(TmpBuf, MAX_BUFF, "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
-
-    add_domain_assign( domain, domain, TmpBuf, uid, gid );
-
-    /* recursively change ownership to new file system entries */
-    snprintf(TmpBuf, MAX_BUFF, "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
-    r_chown(TmpBuf, uid, gid);
-
-    /* ask the authentication module to add the domain entry */
-    vauth_adddomain( domain );
-
-    /* ask qmail to re-read it's new control files */
-    if ( OptimizeAddDomain == 0 ) {
-        signal_process("qmail-send", SIGHUP);
-    }
-
-    /* return back to the callers directory and return success */
+  /* after the name is okay, check if it already exists */
+  if ( vget_assign(domain, NULL, 156, NULL, NULL ) != NULL ) {
     chdir(TmpBuf1);
+    return(VA_DOMAIN_ALREADY_EXISTS);
+  }
 
-    return(VA_SUCCESS);
+  /* set our file creation mask for machines where the
+   * sysadmin has tightened default permissions
+   */
+  umask(VPOPMAIL_UMASK);
+
+  /* remember where we are */
+  getcwd(TmpBuf1, MAX_BUFF);
+
+
+  /* go to the directory
+   * check for error and return error on error
+   */
+  if ( chdir(dir) != 0 ) return(VA_BAD_V_DIR);
+
+  /* go into our vpopmail domains directory */
+  if ( chdir(DOMAINS_DIR) != 0 ) {
+
+    /* if it's not there, no problem, just try to create it */
+    if ( mkdir(DOMAINS_DIR, VPOPMAIL_DIR_MODE) != 0 ) {
+      if ( chdir(TmpBuf1) != 0 ) {
+        return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
+      } 
+    }
+
+    /*  set the permisions on our new directory */
+    chown(DOMAINS_DIR,uid,gid);
+
+    /* try this again */
+    if ( chdir(DOMAINS_DIR) != 0 ) {
+      return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
+    }
+  }
+
+  /* since domains can be added under any /etc/passwd
+   * user, we have to create dir_control information
+   * for each user/domain combination
+   */
+  snprintf(tmpbuf, 156, "dom_%lu", (long unsigned)uid);
+
+  open_big_dir(tmpbuf, uid, gid);
+  domain_sub_dir = next_big_dir(uid, gid);
+  close_big_dir(tmpbuf, uid, gid);
+
+  if ( strlen(domain_sub_dir) > 0 ) {
+    snprintf(DomainSubDir, FILE_SIZE, "%s/%s", domain_sub_dir, domain);
+  } else {
+    snprintf(DomainSubDir, FILE_SIZE, "%s", domain);
+  }
+   
+  if ( r_mkdir(DomainSubDir, uid, gid ) != 0 ) {
+    chdir(TmpBuf1);
+    return(VA_COULD_NOT_MAKE_DOMAIN_DIR);
+  }
+    
+  if ( chdir(DomainSubDir) != 0 ) {
+    chdir(TmpBuf1);
+    return(VA_BAD_D_DIR);
+  }
+
+  snprintf(TmpBuf, MAX_BUFF, "%s/%s/%s/.qmail-default", dir, DOMAINS_DIR, 
+    DomainSubDir);
+  if ( (fs = fopen(TmpBuf, "w+"))==NULL) {
+    chdir(TmpBuf1);
+    return(VA_COULD_NOT_OPEN_QMAIL_DEFAULT);
+  } else {
+    fprintf(fs, "| %s/bin/vdelivermail '' bounce-no-mailbox\n", VPOPMAILDIR);
+    fclose(fs);
+  }
+  snprintf(TmpBuf, MAX_BUFF, "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
+
+  add_domain_assign( domain, domain, TmpBuf, uid, gid );
+
+  /* recursively change ownership to new file system entries */
+  snprintf(TmpBuf, MAX_BUFF, "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
+  r_chown(TmpBuf, uid, gid);
+
+  /* ask the authentication module to add the domain entry */
+  vauth_adddomain( domain );
+
+  /* ask qmail to re-read it's new control files */
+  if ( OptimizeAddDomain == 0 ) {
+    signal_process("qmail-send", SIGHUP);
+  }
+
+  /* return back to the callers directory and return success */
+  chdir(TmpBuf1);
+
+  return(VA_SUCCESS);
+
 }
 
 int vdeldomain( char *domain )
@@ -219,56 +214,66 @@ int vdeldomain( char *domain )
  uid_t uid;
  gid_t gid;
 
-    getcwd(TmpBuf1, MAX_BUFF);
+  getcwd(TmpBuf1, MAX_BUFF);
 
-    lowerit(domain);
-    strcpy(real_domain, domain);
-    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-    if ( tmpstr == NULL ) {
-	return(VA_DOMAIN_DOES_NOT_EXIST);
+  lowerit(domain);
+  strcpy(real_domain, domain);
+  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  if ( tmpstr == NULL ) {
+    return(VA_DOMAIN_DOES_NOT_EXIST);
+  }
+  /* Because this function was not called, the rest of the code, treats 
+   * real_domain = domain due to the strcpy above, that i think it's used 
+   * to initialize the var
+   */
+  vget_real_domain(real_domain,  1);
+
+  /* if this is an NOT aliased domain */
+  if ( strcmp(real_domain, domain) == 0 ) {
+    if ( stat(Dir, &statbuf) != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_DOMAIN_DOES_NOT_EXIST);
     }
 
-    /* if this is an NOT aliased domain */
-    if ( strcmp(real_domain, domain) == 0 ) {
-        if ( stat(Dir, &statbuf) != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_DOMAIN_DOES_NOT_EXIST);
-        }
+    /* if it's a symbolic link just remove the link */
+    if ( S_ISLNK(statbuf.st_mode) ) {
+      unlink(Dir);
 
-        /* if it's a symbolic link just remove the link */
-        if ( S_ISLNK(statbuf.st_mode) ) {
-           unlink(Dir);
-        } else {
-	    /* delete the domain from the filesystem */ 
-            if ( vdelfiles(Dir) != 0 ) {
-              printf("could not delete directory %s\n", domain);
-              return(VA_BAD_DIR);
-	    }
-            /* call the auth module to delete the domain from the storage */
-            vauth_deldomain(domain);
-        }
+    /* delete the domain from the filesystem */ 
+    } else {
+      if ( vdelfiles(Dir) != 0 ) {
+        printf("could not delete directory %s\n", domain);
+        return(VA_BAD_DIR);
+      }
+      /* call the auth module to delete the domain from the storage */
+      vauth_deldomain(domain);
     }
+  }
+  /* Actually the real_domain and domain are switched, before, the real_domain
+   * pointed to our aliased domain, now, it is correct, it's the real fisical 
+   *  one.
+   */
 
-    /* delete the assign file line */
-    del_domain_assign(real_domain, domain, Dir, uid, gid);
+  /* delete the assign file line */
+  del_domain_assign(domain, real_domain, Dir, uid, gid);
 
-    /* delete the email domain from the qmail control files */
-    del_control(real_domain);
+  /* delete the email domain from the qmail control files */
+  del_control(domain);
 
-    /* delete the dir control info for this domain */
-    vdel_dir_control(real_domain);
+  /* delete the dir control info for this domain */
+  vdel_dir_control(domain);
 
-    /* decrement the master domain control info */
-    snprintf(Dir, 156, "dom_%lu", (long unsigned)uid);
-    dec_dir_control(Dir, uid, gid);
+  /* decrement the master domain control info */
+  snprintf(Dir, 156, "dom_%lu", (long unsigned)uid);
+  dec_dir_control(Dir, uid, gid);
 
-    /* send a HUP signal to qmail-send process to reread control files */
-    signal_process("qmail-send", SIGHUP);
+  /* send a HUP signal to qmail-send process to reread control files */
+  signal_process("qmail-send", SIGHUP);
 
-    /* return back to the callers directory */
-    chdir(TmpBuf1);
+  /* return back to the callers directory */
+  chdir(TmpBuf1);
 
-    return(VA_SUCCESS);
+  return(VA_SUCCESS);
 
 }
 
@@ -283,80 +288,80 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
  uid_t uid = VPOPMAILUID;
  gid_t gid = VPOPMAILGID;
 
-    /* check gecos for : characters - bad */
-    if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
+  /* check gecos for : characters - bad */
+  if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
 
-    if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-    if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
-    if ( strlen(gecos) > MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR
+  if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(gecos) > MAX_PW_GECOS )    return(VA_GECOS_TOO_LONG);
 
-    umask(VPOPMAIL_UMASK);
-    lowerit(username);
-    lowerit(domain);
+  umask(VPOPMAIL_UMASK);
+  lowerit(username);
+  lowerit(domain);
 
-    if ( is_username_valid(username) != 0 ) return(VA_ILLEGAL_USERNAME);
-    if ( is_domain_valid(domain) != 0 ) return(VA_INVALID_DOMAIN_NAME);
+  if ( is_username_valid(username) != 0 ) return(VA_ILLEGAL_USERNAME);
+  if ( is_domain_valid(domain) != 0 ) return(VA_INVALID_DOMAIN_NAME);
+  if ( vauth_getpw( username, domain ) != NULL ) return(VA_USERNAME_EXISTS);
 
-    if ( vauth_getpw( username, domain ) != NULL ) {
-        return(VA_USERNAME_EXISTS);
+  getcwd(TmpBuf1, MAX_BUFF);
+  if ( domain==0 || domain[0] == 0 ) {
+    if ( chdir(VPOPMAILDIR) != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_DIR);
+    }
+    if ( chdir("users") != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_U_DIR);
+    }
+  } else {
+    if ( vget_assign(domain, Dir, 156, &uid, &gid)==NULL){
+      return(VA_DOMAIN_DOES_NOT_EXIST);
     }
 
-    getcwd(TmpBuf1, MAX_BUFF);
-    if ( domain==0 || domain[0] == 0 ) {
-    	if ( chdir(VPOPMAILDIR) != 0 ) {
-        	chdir(TmpBuf1);
-        	return(VA_BAD_DIR);
-    	}
-        if ( chdir("users") != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_BAD_U_DIR);
-        }
-    } else {
-	if ( vget_assign(domain, Dir, 156, &uid, &gid)==NULL){
-	    return(VA_DOMAIN_DOES_NOT_EXIST);
-	}
-
-        if ( chdir(Dir) != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_BAD_D_DIR);
-        }
+    if ( chdir(Dir) != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_D_DIR);
     }
+  }
 
-    if ( (dir=make_user_dir(username, domain, uid, gid)) == NULL ) {
-        if (verrori != 0 ) return(verrori);
-        else return(VA_BAD_U_DIR);
-    }
+  if ( (dir=make_user_dir(username, domain, uid, gid)) == NULL ) {
+    if (verrori != 0 ) return(verrori);
+    else return(VA_BAD_U_DIR);
+  }
         
-    if ( apop & USE_APOP ) {
-        if (vauth_adduser(username, domain, password, gecos, dir, apop )!=0){
-		return(VA_BAD_U_DIR);
-	}
-    } else {
-        if (vauth_adduser(username, domain, password, gecos, dir, apop )!=0){
-		return(VA_BAD_U_DIR);
-	}
+  if ( apop & USE_APOP ) {
+    if (vauth_adduser(username, domain, password, gecos, dir, apop )!=0){
+      return(VA_BAD_U_DIR);
     }
-    if ( domain == NULL || domain[0] == 0 ) {
-        add_user_assign(username, dir );
+  } else {
+    if (vauth_adduser(username, domain, password, gecos, dir, apop )!=0){
+      return(VA_BAD_U_DIR);
     }
+  }
+
+  if ( domain == NULL || domain[0] == 0 ) {
+    add_user_assign(username, dir );
+  }
 #ifdef SQWEBMAIL_PASS
-    {
-       struct vqpasswd *mypw;
-        mypw = vauth_getpw( username, domain);
-        if ( mypw != NULL ) {
-		vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
-	}
+  {
+   struct vqpasswd *mypw;
+    mypw = vauth_getpw( username, domain);
+    if ( mypw != NULL ) { 
+      vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
     }
+  }
 #endif
 
 #ifdef ENABLE_AUTH_LOGGING
-    vset_lastauth(username,domain,NULL_REMOTE_IP);
+  vset_lastauth(username,domain,NULL_REMOTE_IP);
 #endif
 
-    chdir(TmpBuf1);
-    return(VA_SUCCESS);
+  chdir(TmpBuf1);
+  return(VA_SUCCESS);
 }
 
 char randltr(void)
@@ -364,14 +369,14 @@ char randltr(void)
  char rand;
  char retval = 'a';
 
-    rand = random() % 64;
+  rand = random() % 64;
 
-    if (rand < 26) retval = rand + 'a';
-    if (rand > 25) retval = rand - 26 + 'A';
-    if (rand > 51) retval = rand - 52 + '0';
-    if (rand == 62) retval = ';';
-    if (rand == 63) retval = '.';
-    return retval;
+  if (rand < 26) retval = rand + 'a';
+  if (rand > 25) retval = rand - 26 + 'A';
+  if (rand > 51) retval = rand - 52 + '0';
+  if (rand == 62) retval = ';';
+  if (rand == 63) retval = '.';
+  return retval;
 }
 
 /*
@@ -395,31 +400,30 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
  char salt[9];
  time_t tm;
 
-    time(&tm);
-    srandom (tm % 65536);
+  time(&tm);
+  srandom (tm % 65536);
 
 #ifdef MD5_PASSWORDS
-    salt[0] = '$';
-    salt[1] = '1';
-    salt[2] = '$';
-    salt[3] = randltr();
-    salt[4] = randltr();
-    salt[5] = randltr();
-    salt[6] = randltr();
-    salt[7] = randltr();
-    salt[8] = 0;
+  salt[0] = '$';
+  salt[1] = '1';
+  salt[2] = '$';
+  salt[3] = randltr();
+  salt[4] = randltr();
+  salt[5] = randltr();
+  salt[6] = randltr();
+  salt[7] = randltr();
+  salt[8] = 0;
 #else
-    salt[0] = randltr();
-    salt[1] = randltr();
-    salt[2] = 0;
+  salt[0] = randltr();
+  salt[1] = randltr();
+  salt[2] = 0;
 #endif
 
-    tmpstr = crypt(clearpass,salt);
-    if ( tmpstr == NULL ) {
-        return(VA_CRYPT_FAILED);
-    }
-    strncpy(crypted,tmpstr, ssize);
-    return(VA_SUCCESS);
+  tmpstr = crypt(clearpass,salt);
+  if ( tmpstr == NULL ) return(VA_CRYPT_FAILED);
+
+  strncpy(crypted,tmpstr, ssize);
+  return(VA_SUCCESS);
 }
 
 /* 
@@ -432,20 +436,20 @@ char *vgetpasswd( user )
  static char pass2[128];
  static char tmpstr[128];
 
-    memset(pass1, 0, 128);
-    memset(pass2, 0, 128);
-    snprintf( tmpstr, 128, "Please enter password for %s: ", user);
+  memset(pass1, 0, 128);
+  memset(pass2, 0, 128);
+  snprintf( tmpstr, 128, "Please enter password for %s: ", user);
 
-    while( 1 ) {
-        strncpy( pass1, getpass(tmpstr), 128);
-        strncpy( pass2, getpass("enter password again: "), 128);
-        if ( strcmp( pass1, pass2 ) != 0 ) {
-            printf("Passwords do not match, try again\n");
-        } else {
-            break;
-        }
+  while( 1 ) {
+    strncpy( pass1, getpass(tmpstr), 128);
+    strncpy( pass2, getpass("enter password again: "), 128);
+    if ( strcmp( pass1, pass2 ) != 0 ) {
+      printf("Passwords do not match, try again\n");
+    } else {
+      break;
     }
-    return(pass1);
+  }
+  return(pass1);
 }
 
 /* 
@@ -463,103 +467,101 @@ int vdelfiles(dir)
  struct dirent *mydirent;
  struct stat statbuf;
 
-    /* Modified By David Wartell david@actionwebservices.com to work with 
-     * Solaris. Unlike Linux, Solaris will NOT return error when unlink() 
-     * is called on a directory.   A correct implementation to support 
-     * Linux & Solaris is to test to see if the file is a directory.  
-     * If it is not a directory unlink() it. 
-     * If unlink() returns an error return error.
-     */
+  /* Modified By David Wartell david@actionwebservices.com to work with 
+   * Solaris. Unlike Linux, Solaris will NOT return error when unlink() 
+   * is called on a directory.   A correct implementation to support 
+   * Linux & Solaris is to test to see if the file is a directory.  
+   * If it is not a directory unlink() it. 
+   * If unlink() returns an error return error.
+   */
 
-    if (lstat(dir, &statbuf) == 0) {
+  if (lstat(dir, &statbuf) == 0) {
 
-        /* if dir is not a directory unlink it */
-        if ( !( S_ISDIR(statbuf.st_mode) ) ) {
-
-            if ( unlink(dir) == 0 ) {
-                /* return success we deleted the file */
-                return(0);
-            } else {
-                /* error, return error to calling function, 
-                 * we couldn't unlink the file 
-                 */
-                return(-1);
-            }
-        }
-
-    } else {
+    /* if dir is not a directory unlink it */
+    if ( !( S_ISDIR(statbuf.st_mode) ) ) {
+      if ( unlink(dir) == 0 ) {
+        /* return success we deleted the file */
+        return(0);
+      } else {
         /* error, return error to calling function, 
-         * we couldn't lstat the file 
+         * we couldn't unlink the file 
          */
         return(-1);
+      }
     }
 
-	/* go to the directory, and check for error */ 
-    if (chdir(dir) == -1) {
-		/* error, return error to calling function */
-		return(-1);
-	}
+  } else {
+    /* error, return error to calling function, 
+     * we couldn't lstat the file 
+     */
+    return(-1);
+  }
 
-	/* open the directory and check for an error */
-    if ( (mydir = opendir(".")) == NULL ) {
+  /* go to the directory, and check for error */ 
+  if (chdir(dir) == -1) {
+    /* error, return error to calling function */
+    return(-1);
+  }
 
-		/* error, return error */
-		printf("Failed to opendir()");
-		return(-1);
-	}
+  /* open the directory and check for an error */
+  if ( (mydir = opendir(".")) == NULL ) {
+    /* error, return error */
+    printf("Failed to opendir()");
+    return(-1);
+  }
 
-    while((mydirent=readdir(mydir))!=NULL){
+  while((mydirent=readdir(mydir))!=NULL){
 
-		/* skip the current directory and the parent directory entries */
-        if ( strncmp(mydirent->d_name,".", 2) !=0 &&
-             strncmp(mydirent->d_name,"..", 3)!=0 ) {
+    /* skip the current directory and the parent directory entries */
+    if ( strncmp(mydirent->d_name,".", 2) !=0 &&
+         strncmp(mydirent->d_name,"..", 3)!=0 ) {
 
-			/* stat the file to check it's type, I/O expensive */
-            stat( mydirent->d_name, &statbuf);
+      /* stat the file to check it's type, I/O expensive */
+      stat( mydirent->d_name, &statbuf);
 
-			/* Is the entry a directory? */
-            if ( S_ISDIR(statbuf.st_mode) ) {
+      /* Is the entry a directory? */
+      if ( S_ISDIR(statbuf.st_mode) ) {
 
-				/* delete the sub tree, -1 means an error */
-                if ( vdelfiles ( mydirent->d_name) == -1 ) {
+        /* delete the sub tree, -1 means an error */
+        if ( vdelfiles ( mydirent->d_name) == -1 ) {
 
-					/* on error, close the directory stream */
-    				closedir(mydir);
+          /* on error, close the directory stream */
+          closedir(mydir);
 
-					/* and return error */
-					return(-1);
-				}
-
-			/* the entry is not a directory, unlink it to delete */
-            } else {
-
-				/* unlink the file and check for error */
-                if (unlink(mydirent->d_name) == -1) {
-
-					/* print error message and return and error */
-                    printf ("Failed to delete directory %s", mydirent->d_name);
-                    return(-1);
-                }
-            }
+          /* and return error */
+          return(-1);
         }
+
+      /* the entry is not a directory, unlink it to delete */
+      } else {
+
+        /* unlink the file and check for error */
+        if (unlink(mydirent->d_name) == -1) {
+
+          /* print error message and return and error */
+          printf ("Failed to delete directory %s", mydirent->d_name);
+          return(-1);
+        }
+      }
     }
-	
-	/* close the directory stream, we don't need it anymore */
-    closedir(mydir);
+  }
+  
+  /* close the directory stream, we don't need it anymore */
+  closedir(mydir);
 
-	/* go back to the parent directory and check for error */
-    if (chdir("..") == -1) {
+  /* go back to the parent directory and check for error */
+  if (chdir("..") == -1) {
 
-		/* print error message and return an error */
-		printf("Failed to cd to parent");
-		return(-1);
-	}
+    /* print error message and return an error */
+    printf("Failed to cd to parent");
+    return(-1);
+  }
 
-	/* delete the directory, I/O expensive */
-    rmdir(dir);
+  /* delete the directory, I/O expensive */
+  rmdir(dir);
 
-	/* return success */
-    return(0);
+  /* return success */
+  return(0);
 }
 
 /* 
@@ -578,65 +580,61 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  static char tmpstr2[MAX_BUFF];
  static char tmpstr3[MAX_BUFF];
 
-    snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
+  snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
 
-    /* stat assign file, if it's not there create one */
-    if ( stat(tmpstr1,&mystat) != 0 ) {
-        /* put a . on one line by itself */
-        if ( (fs1 = fopen(tmpstr1, "w+"))==NULL ) {
-            printf("could not open assign file\n");
-            return(-1);
-        }
-        fputs(".\n", fs1);
-        fclose(fs1);
+  /* stat assign file, if it's not there create one */
+  if ( stat(tmpstr1,&mystat) != 0 ) {
+    /* put a . on one line by itself */
+    if ( (fs1 = fopen(tmpstr1, "w+"))==NULL ) {
+      printf("could not open assign file\n");
+      return(-1);
     }
+    fputs(".\n", fs1);
+    fclose(fs1);
+  }
 
-    snprintf(tmpstr3, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::",
-        alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
+  snprintf(tmpstr3, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::",
+    alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
 
-    /* update the file and add the above line and remove duplicates */
-    update_file(tmpstr1, tmpstr3);
+  /* update the file and add the above line and remove duplicates */
+  update_file(tmpstr1, tmpstr3);
 
-    /* set the mode in case we are running with a strange mask */
+  /* set the mode in case we are running with a strange mask */
+  chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+
+  /* compile the assign file */
+  if ( OptimizeAddDomain == 0 ) update_newu();
+
+  /* If we have more than 50 domains in rcpthosts
+   * make a morercpthosts and compile it
+   */
+  if ( count_rcpthosts() >= 50 ) {
+    snprintf(tmpstr1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
+    update_file(tmpstr1, alias_domain);
+    snprintf(tmpstr1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
     chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+    if ( OptimizeAddDomain == 0 ) compile_morercpthosts();
 
-    /* compile the assign file */
-    if ( OptimizeAddDomain == 0 ) {
-        update_newu();
-    }
-
-    /* If we have more than 50 domains in rcpthosts
-     * make a morercpthosts and compile it
-     */
-    if ( count_rcpthosts() >= 50 ) {
-        snprintf(tmpstr1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
-        update_file(tmpstr1, alias_domain);
-        snprintf(tmpstr1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
-        chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
-        if ( OptimizeAddDomain == 0 ) {
-            compile_morercpthosts();
-        }
-
-    /* or just add to rcpthosts */
-    } else {
-        snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
-        update_file(tmpstr1, alias_domain);
-        snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
-        chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
-    }
+  /* or just add to rcpthosts */
+  } else {
+    snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
+    update_file(tmpstr1, alias_domain);
+    snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
+    chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+  }
     
-    /* Add to virtualdomains file and remove duplicates  and set mode */
-    snprintf(tmpstr1, MAX_BUFF, "%s/control/virtualdomains", QMAILDIR );
-    snprintf(tmpstr2, MAX_BUFF, "%s:%s", alias_domain, alias_domain );
-    update_file(tmpstr1, tmpstr2);
-    chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+  /* Add to virtualdomains file and remove duplicates  and set mode */
+  snprintf(tmpstr1, MAX_BUFF, "%s/control/virtualdomains", QMAILDIR );
+  snprintf(tmpstr2, MAX_BUFF, "%s:%s", alias_domain, alias_domain );
+  update_file(tmpstr1, tmpstr2);
+  chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
-    /* make sure it's not in locals and set mode */
-    snprintf(tmpstr1, MAX_BUFF, "%s/control/locals", QMAILDIR);
-    remove_line( alias_domain, tmpstr1); 
-    chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+  /* make sure it's not in locals and set mode */
+  snprintf(tmpstr1, MAX_BUFF, "%s/control/locals", QMAILDIR);
+  remove_line( alias_domain, tmpstr1); 
+  chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
-    return(0);
+  return(0);
 }
 
 /*
@@ -648,32 +646,32 @@ int del_control( domain )
  static char tmpbuf1[MAX_BUFF];
  static char tmpbuf2[MAX_BUFF];
 
-    snprintf(tmpbuf1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
-    if ( remove_line( domain, tmpbuf1) == 0 ) {
-        snprintf(tmpbuf1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
-        if ( remove_line( domain, tmpbuf1) == 1 ) {
-            struct stat statbuf;
-            if ( stat( tmpbuf1, &statbuf) == 0 ) {
-                if ( statbuf.st_size == 0 ) {
-                    unlink(tmpbuf1);
-                    strncat(tmpbuf1, ".cdb", MAX_BUFF);
-                    unlink(tmpbuf1);
-                } else {
-                    compile_morercpthosts();
-                    chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
-                }
-            }
+  snprintf(tmpbuf1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
+  if ( remove_line( domain, tmpbuf1) == 0 ) {
+    snprintf(tmpbuf1, MAX_BUFF, "%s/control/morercpthosts", QMAILDIR);
+    if ( remove_line( domain, tmpbuf1) == 1 ) {
+     struct stat statbuf;
+      if ( stat( tmpbuf1, &statbuf) == 0 ) {
+        if ( statbuf.st_size == 0 ) {
+          unlink(tmpbuf1);
+          strncat(tmpbuf1, ".cdb", MAX_BUFF);
+          unlink(tmpbuf1);
+        } else {
+          compile_morercpthosts();
+          chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
         }
-    } else {
-        chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
+      }
     }
+  } else {
+    chmod(tmpbuf1, VPOPMAIL_QMAIL_MODE ); 
+  }
 
-    snprintf(tmpbuf1, MAX_BUFF, "%s:%s", domain, domain);
-    snprintf(tmpbuf2, MAX_BUFF, "%s/control/virtualdomains", QMAILDIR);
-    remove_line( tmpbuf1, tmpbuf2); 
-    chmod(tmpbuf2, VPOPMAIL_QMAIL_MODE ); 
+  snprintf(tmpbuf1, MAX_BUFF, "%s:%s", domain, domain);
+  snprintf(tmpbuf2, MAX_BUFF, "%s/control/virtualdomains", QMAILDIR);
+  remove_line( tmpbuf1, tmpbuf2); 
+  chmod(tmpbuf2, VPOPMAIL_QMAIL_MODE ); 
 
-    return(0);
+  return(0);
 }
 
 /*
@@ -689,40 +687,38 @@ int del_domain_assign( char *alias_domain, char *real_domain,
  int len1, len2;
  char *tmpstr1, *tmpstr2;
 
-	/* get some memory for string1 */
-	len1 = (strlen(alias_domain)) + strlen(real_domain) + strlen(dir) + 40;
-	if ( (tmpstr1 = calloc(1, len1)) == NULL ) {
-		return(-1);
-	}
+  /* get some memory for string1 */
+  len1 = (strlen(alias_domain)) + strlen(real_domain) + strlen(dir) + 40;
+  if ( (tmpstr1 = calloc(1, len1)) == NULL ) return(-1);
 
-	/* get some memory for string2 */
-	len2 = strlen(QMAILDIR) + 30; 
-	if ( (tmpstr2 = calloc(1, len2)) == NULL ) {
-		free(tmpstr1);
-		return(-1);
-	}
-
-    /* format the removal string */ 
-    snprintf(tmpstr1, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::", alias_domain, 
-        real_domain, (long unsigned)uid, (long unsigned)gid, dir);
-
-    /* format the file name */
-    snprintf(tmpstr2, MAX_BUFF, "%s/users/assign", QMAILDIR);
-
-    /* remove the formatted string from the file */
-    remove_line( tmpstr1, tmpstr2); 
-
-    /* force the permission on the file */
-    chmod(tmpstr2, VPOPMAIL_QMAIL_MODE ); 
-
-    /* free the temporary memory */
+  /* get some memory for string2 */
+  len2 = strlen(QMAILDIR) + 30; 
+  if ( (tmpstr2 = calloc(1, len2)) == NULL ) {
     free(tmpstr1);
-    free(tmpstr2);
+    return(-1);
+  }
 
-    /* compile assign file */
-    update_newu();
+  /* format the removal string */ 
+  snprintf(tmpstr1, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::", alias_domain, 
+    real_domain, (long unsigned)uid, (long unsigned)gid, dir);
 
-    return(0);
+  /* format the file name */
+  snprintf(tmpstr2, MAX_BUFF, "%s/users/assign", QMAILDIR);
+
+  /* remove the formatted string from the file */
+  remove_line( tmpstr1, tmpstr2); 
+
+  /* force the permission on the file */
+  chmod(tmpstr2, VPOPMAIL_QMAIL_MODE ); 
+
+  /* free the temporary memory */
+  free(tmpstr1);
+  free(tmpstr2);
+
+  /* compile assign file */
+  update_newu();
+
+  return(0);
 }
 
 /*
@@ -747,135 +743,135 @@ int remove_line( char *template, char *filename )
  int found;
  int i;
 
-	/* if we can't stat the file, return error */
-    if ( stat(filename,&statbuf) == -1 ) {
-		return(-1);
-	}
+  /* if we can't stat the file, return error */
+  if ( stat(filename,&statbuf) == -1 ) {
+    return(-1);
+  }
 
-	len = strlen(filename) + 10;
-	if ( len < 300 ) len = 300; 
-	if ( (tmpbuf = calloc(1, len)) == NULL ) {
-		printf("%d bytes of memory not available\n", len);
-		return(-1);
-	}
-
-#ifdef FILE_LOCKING
-	/* format the file name */
-    strncpy(tmpbuf, filename, len);
-    strncat(tmpbuf, ".lock", len);
-
-
-	/* open the file with write permissions
-	 * and check for error 
-	 */
-	if ( (fs3 = fopen(tmpbuf, "w+")) == NULL ) {
-		/* return error */
-		printf("could not open lock file %s\n", tmpbuf);
-		free(tmpbuf);
-		return(-1);
-	}
-
-	/* ask for a write lock on the file
-	 * we don't want anyone writing to it now 
-	 */
-	if ( get_write_lock(fs3) < 0 ) {
-
-		/* remove lock */
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
-
-		/* release the memory */
-		free(tmpbuf);
-
-		/* print error message */
-		printf("could not get write lock on %s\n", tmpbuf);
-
-		/* return error */
-		return(-1);
-	}
-#endif
-
-	/* format a new string */
-    strncpy(tmpbuf, filename, len);
-    strncat(tmpbuf, ".bak", len);
-
-	/* remove the file */
-    unlink(tmpbuf);
-
-	/* move the orignal file to the .bak file */
-    rename(filename, tmpbuf);
-
-	/* open the file
-	 * and check for error
-	 */
-    if ( (fs1 = fopen(filename, "w+")) == NULL ) {
+  len = strlen(filename) + 10;
+  if ( len < 300 ) len = 300; 
+  if ( (tmpbuf = calloc(1, len)) == NULL ) {
+    printf("%d bytes of memory not available\n", len);
+    return(-1);
+  }
 
 #ifdef FILE_LOCKING
-		/* release resources */
-		fclose(fs3);
+  /* format the file name */
+  strncpy(tmpbuf, filename, len);
+  strncat(tmpbuf, ".lock", len);
+
+
+  /* open the file with write permissions
+   * and check for error 
+   */
+  if ( (fs3 = fopen(tmpbuf, "w+")) == NULL ) {
+    /* return error */
+    printf("could not open lock file %s\n", tmpbuf);
+    free(tmpbuf);
+    return(-1);
+  }
+
+  /* ask for a write lock on the file
+   * we don't want anyone writing to it now 
+   */
+  if ( get_write_lock(fs3) < 0 ) {
+
+    /* remove lock */
+    unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+    fclose(fs3);
+
+    /* release the memory */
+    free(tmpbuf);
+
+    /* print error message */
+    printf("could not get write lock on %s\n", tmpbuf);
+
+    /* return error */
+    return(-1);
+  }
 #endif
-		free(tmpbuf);
 
-		printf("%s file would not open w+\n", filename);
-		return(-1);
-	}
+  /* format a new string */
+  strncpy(tmpbuf, filename, len);
+  strncat(tmpbuf, ".bak", len);
 
-	/* open in read mode 
-	 * and check for error 
-	 */
-    if ( (fs2 = fopen(tmpbuf, "r+")) == NULL ) {
-		if ( (fs2 = fopen(tmpbuf, "w+")) == NULL ) {
-			printf("%s would not open r+ or w+\n", tmpbuf);
-			fclose(fs1);
+  /* remove the file */
+  unlink(tmpbuf);
+
+  /* move the orignal file to the .bak file */
+  rename(filename, tmpbuf);
+
+  /* open the file
+   * and check for error
+   */
+  if ( (fs1 = fopen(filename, "w+")) == NULL ) {
+
 #ifdef FILE_LOCKING
-			unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-			fclose(fs3);
+    /* release resources */
+    fclose(fs3);
 #endif
-			free(tmpbuf);
-			return(-1);
-		}
-	}
+    free(tmpbuf);
 
-	/* pound away on the files 
-	 * run the search algorythm
-	 */
-    found = 0;
-    while (fgets(tmpbuf,len,fs2)!=NULL){
-        for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
-        if ( strcmp(template, tmpbuf) != 0) {
-            fputs(tmpbuf, fs1);
-            fputs("\n", fs1);
-        } else {
-            found = 1;
-        }
+    printf("%s file would not open w+\n", filename);
+    return(-1);
+  }
+
+  /* open in read mode 
+   * and check for error 
+   */
+  if ( (fs2 = fopen(tmpbuf, "r+")) == NULL ) {
+    if ( (fs2 = fopen(tmpbuf, "w+")) == NULL ) {
+      printf("%s would not open r+ or w+\n", tmpbuf);
+      fclose(fs1);
+#ifdef FILE_LOCKING
+      unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+      fclose(fs3);
+#endif
+      free(tmpbuf);
+      return(-1);
     }
+  }
 
-	/* we are done with these two, release the resources */
-    fclose(fs1);
-    fclose(fs2);
+  /* pound away on the files 
+   * run the search algorythm
+   */
+  found = 0;
+  while (fgets(tmpbuf,len,fs2)!=NULL){
+    for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
+    if ( strcmp(template, tmpbuf) != 0) {
+      fputs(tmpbuf, fs1);
+      fputs("\n", fs1);
+    } else {
+      found = 1;
+    }
+  }
 
-	/* format more strings */
-    strncpy(tmpbuf, filename, len);
-    strncat(tmpbuf, ".bak", len);
+  /* we are done with these two, release the resources */
+  fclose(fs1);
+  fclose(fs2);
 
-	/* remove the .bak file */
-    unlink(tmpbuf);
+  /* format more strings */
+  strncpy(tmpbuf, filename, len);
+  strncat(tmpbuf, ".bak", len);
 
-	/* release the formatting string temporary memory, not needed anymore */
-	free(tmpbuf);
+  /* remove the .bak file */
+  unlink(tmpbuf);
+
+  /* release the formatting string temporary memory, not needed anymore */
+  free(tmpbuf);
 
 #ifdef FILE_LOCKING
-	/* unlock, we are done */
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+  /* unlock, we are done */
+  unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
 
-	/* close the lock file to release resources */
-	fclose(fs3);
+  /* close the lock file to release resources */
+  fclose(fs3);
 #endif
 
-	/* return 0 = everything went okay, but we didn't find it
-	 *        1 = everything went okay and we found a match
-	 */
-    return(found);
+  /* return 0 = everything went okay, but we didn't find it
+   *        1 = everything went okay and we found a match
+   */
+  return(found);
 
 }
 
@@ -891,31 +887,31 @@ int r_chown( path, owner, group )
  struct dirent *mydirent;
  struct stat statbuf;
 
-    chown(path,owner,group);
-    if (chdir(path) == -1) {
-        printf("Failed to cd to directory %s", path);
-        return(-1);
-    }
-    mydir = opendir(".");
-    if ( mydir == NULL ) { 
-        printf("Failed to opendir()");
-        return(-1);
-    }
+  chown(path,owner,group);
+  if (chdir(path) == -1) {
+    printf("Failed to cd to directory %s", path);
+    return(-1);
+  }
+  mydir = opendir(".");
+  if ( mydir == NULL ) { 
+    printf("Failed to opendir()");
+    return(-1);
+  }
 
-    while((mydirent=readdir(mydir))!=NULL){
-        if ( strncmp(mydirent->d_name,".", 2)!=0 &&
-             strncmp(mydirent->d_name,"..", 3)!=0 ) {
-            stat( mydirent->d_name, &statbuf);
-            if ( S_ISDIR(statbuf.st_mode) ) {
-                r_chown( mydirent->d_name, owner, group);
-            } else {
-                chown(mydirent->d_name,owner,group);
-            }
-        }
+  while((mydirent=readdir(mydir))!=NULL){
+    if ( strncmp(mydirent->d_name,".", 2)!=0 && 
+         strncmp(mydirent->d_name,"..", 3)!=0 ) {
+      stat( mydirent->d_name, &statbuf);
+      if ( S_ISDIR(statbuf.st_mode) ) {
+        r_chown( mydirent->d_name, owner, group);
+      } else {
+        chown(mydirent->d_name,owner,group);
+      }
     }
-    if (chdir("..") == -1) {printf("Failed to cd to parent");return(-1);}
-    closedir(mydir);
-    return(0);
+  }
+  if (chdir("..") == -1) {printf("Failed to cd to parent");return(-1);}
+  closedir(mydir);
+  return(0);
 }
 
 /* 
@@ -936,46 +932,45 @@ int signal_process( name, sig_num)
  int  pid_col=0;
  static char pid[MAX_BUFF];
 
-    mypid = getpid();
-    memset(pid,0,MAX_BUFF);
-    if ( (ps = popen(PS_COMMAND, "r")) == NULL ) {
-        perror("popen on ps command");
-        return(-1);
-    }
+  mypid = getpid();
+  memset(pid,0,MAX_BUFF);
+  if ( (ps = popen(PS_COMMAND, "r")) == NULL ) {
+    perror("popen on ps command");
+    return(-1);
+  }
 
-    if (fgets(TmpBuf, MAX_BUFF, ps)!= NULL ) {
-        col=0;
-        tmpstr = strtok(TmpBuf, TOKENS);
-        while (tmpstr != NULL ) {
-            if (strcmp(tmpstr, "PID") == 0 ) {
-                pid_col = col;
-            }
-            tmpstr = strtok(NULL, TOKENS);
-            ++col;
-        }
-    }
+  if (fgets(TmpBuf, MAX_BUFF, ps)!= NULL ) {
+    col=0;
+    tmpstr = strtok(TmpBuf, TOKENS);
+    while (tmpstr != NULL ) {
+      if (strcmp(tmpstr, "PID") == 0 ) pid_col = col;
 
-    while (fgets(TmpBuf, MAX_BUFF, ps)!= NULL ) {
-        if ( strstr( TmpBuf, name ) != NULL && 
-             strstr(TmpBuf,"supervise")==NULL) {
-            tmpstr = strtok(TmpBuf, TOKENS);
-            col = 0;
-            do {
-                if( col == pid_col ) {
-                    strncpy(pid, tmpstr, MAX_BUFF);
-                    break;
-                } 
-                ++col;
-                tmpstr = strtok(NULL, TOKENS);
-            } while ( tmpstr!=NULL );
-    	    tmppid = atoi(pid);
-            if ( tmppid != mypid ) { 
-	      kill(tmppid,sig_num);
-            }
-        }
+      tmpstr = strtok(NULL, TOKENS);
+      ++col;
     }
-    pclose(ps);
-    return(0);
+  }
+
+  while (fgets(TmpBuf, MAX_BUFF, ps)!= NULL ) {
+    if ( strstr( TmpBuf, name ) != NULL && 
+         strstr(TmpBuf,"supervise")==NULL) {
+      tmpstr = strtok(TmpBuf, TOKENS);
+      col = 0;
+      do {
+        if( col == pid_col ) {
+          strncpy(pid, tmpstr, MAX_BUFF);
+          break;
+        } 
+        ++col;
+        tmpstr = strtok(NULL, TOKENS);
+      } while ( tmpstr!=NULL );
+      tmppid = atoi(pid);
+      if ( tmppid != mypid ) { 
+        kill(tmppid,sig_num);
+      }
+    }
+  }
+  pclose(ps);
+  return(0);
 }
 
 /*
@@ -985,14 +980,14 @@ int update_newu()
 {
  int pid;
 
-    pid=vfork();
-    if ( pid==0){
-        execl(QMAILNEWU,"qmail-newu", NULL);
-        exit(127);
-    } else {
-        wait(&pid);
-    }
-    return(0);
+  pid=vfork();
+  if ( pid==0){
+    execl(QMAILNEWU,"qmail-newu", NULL);
+    exit(127);
+  } else {
+    wait(&pid);
+  }
+  return(0);
 }
 
 /*
@@ -1012,51 +1007,45 @@ int parse_email( email, user, domain, buff_size )
  int  buff_size;
 {
  int i;
- int j;
- int k;
- int found;
+ int n;
+ int len;
+ char *at = NULL;
 
-    for( i=0,j=0,found=0; found==0 && j<buff_size && email[i]!=0; ++i,++j) {
-        for(k=0;ATCHARS[k]!=0;++k){
-            if ( email[i] == ATCHARS[k] ) {
-                found = 1;
-                continue;
-            }
-        }
-        if ( found == 0 )  { 
-          user[j] = email[i];
-        }
-    }
-    user[j] = 0;
-    lowerit(user);
+  lowerit(email);
 
+  len = strlen(ATCHARS);
+  for(i=0;i<len; ++i ) if ((at=strchr(email,ATCHARS[i]))) break;
+
+  if ( at!=NULL ) {
+    n = at - email + 1;
+    if ( n > buff_size ) n = buff_size;
+    strncpy(user, email, n);
+    user[n-1] = 0;
+    strncpy(domain, ++at, buff_size);
+    domain[buff_size-1] = 0;
+  } else {
+    strncpy(user, email, buff_size);
+    user[buff_size-1] = 0;
     domain[0] = 0;
-    if (email[i]!=0) {
-        for(j=0;j<buff_size&&email[i]!=0&&email[i]!='@';++i,++j) {
-            domain[j] = email[i];
-        }
-        domain[j] = 0;
-        lowerit(domain);
-    }
+  }
 
-    if ( is_username_valid( user ) != 0 ) {
-       printf("user invalid %s\n", user);
-       return(-1);
-    }
+  if ( is_username_valid( user ) != 0 ) {
+    printf("user invalid %s\n", user);
+    return(-1);
+  }
 
-    if ( is_domain_valid( domain ) != 0 ) {
-       printf("domain invalid %s\n", domain);
-       return(-1);
-    }
+  if ( is_domain_valid( domain ) != 0 ) {
+    printf("domain invalid %s\n", domain);
+    return(-1);
+  }
 
-    /* if the domain is blank put in the default domain 
-     * if it was configured with --enable-default-domain=something
-     */
-    vset_default_domain(domain);
+  /* if the domain is blank put in the default domain 
+   * if it was configured with --enable-default-domain=something
+   */
+  vset_default_domain(domain);
+  vget_real_domain(domain, buff_size);
 
-    vget_real_domain(domain, buff_size);
-
-    return(0);
+  return(0);
 } 
 
 /*
@@ -1070,29 +1059,31 @@ int vpasswd( char *username, char *domain, char *password, int apop )
  gid_t gid;
 #endif
 
-    if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-    if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR  
+  if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
 
-    lowerit(username);
-    lowerit(domain);
+  lowerit(username);
+  lowerit(domain);
 
-    mypw = vauth_getpw( username, domain);
-    if ( mypw == NULL ) return(-1); 
+  mypw = vauth_getpw( username, domain);
+  if ( mypw == NULL ) return(-1); 
 
-    if ( mypw->pw_gid & NO_PASSWD_CHNG ) return(-1);
-    mkpasswd3(password,Crypted, MAX_BUFF);
-    mypw->pw_passwd = Crypted;
+  if ( mypw->pw_gid & NO_PASSWD_CHNG ) return(-1);
+  mkpasswd3(password,Crypted, MAX_BUFF);
+  mypw->pw_passwd = Crypted;
 
 #ifdef CLEAR_PASS
-    mypw->pw_clear_passwd = password;
+  mypw->pw_clear_passwd = password;
 #endif
 #ifdef SQWEBMAIL_PASS
-    vget_assign(domain, NULL, 0, &uid, &gid );
-    vsqwebmail_pass( mypw->pw_dir, Crypted, uid, gid);
+  vget_assign(domain, NULL, 0, &uid, &gid );
+  vsqwebmail_pass( mypw->pw_dir, Crypted, uid, gid);
 #endif
-    return (vauth_setpw( mypw, domain));
+  return (vauth_setpw( mypw, domain));
 }
 
 /* 
@@ -1106,42 +1097,42 @@ int add_user_assign( char *user, char *dir )
  static char tmpstr2[MAX_BUFF];
  int new_file = 0;
 
-    /* stat assign file, if it's not there create one */
-    snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
-    if ( stat(tmpstr1,&mystat) != 0 ) new_file = 1;
+  /* stat assign file, if it's not there create one */
+  snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
+  if ( stat(tmpstr1,&mystat) != 0 ) new_file = 1;
 
-    snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
-    if ( dir == 0 || dir[0] == 0 ) {
-        snprintf(tmpstr2, MAX_BUFF, "=%s:%s:%lu:%lu:%s/users/%s:::",
-            user, user, (long unsigned)VPOPMAILUID, 
-            (long unsigned)VPOPMAILGID, VPOPMAILDIR, user);
-    } else {
-        snprintf(tmpstr2, MAX_BUFF, "=%s:%s:%lu:%lu:%s/users/%s/%s:::",
-            user, user, (long unsigned)VPOPMAILUID, 
-            (long unsigned)VPOPMAILGID, VPOPMAILDIR, dir, user);
-    }
-    update_file(tmpstr1, tmpstr2);
+  snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
+  if ( dir == 0 || dir[0] == 0 ) {
+    snprintf(tmpstr2, MAX_BUFF, "=%s:%s:%lu:%lu:%s/users/%s:::",
+      user, user, (long unsigned)VPOPMAILUID, 
+      (long unsigned)VPOPMAILGID, VPOPMAILDIR, user);
+  } else {
+    snprintf(tmpstr2, MAX_BUFF, "=%s:%s:%lu:%lu:%s/users/%s/%s:::",
+      user, user, (long unsigned)VPOPMAILUID, 
+      (long unsigned)VPOPMAILGID, VPOPMAILDIR, dir, user);
+  }
+  update_file(tmpstr1, tmpstr2);
 
-    snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
-    if ( dir == 0 || dir[0] == 0 ) {
-        snprintf(tmpstr2, MAX_BUFF, "+%s-:%s:%lu:%lu:%s/users/%s:-::",
-            user, user, (long unsigned)VPOPMAILUID, 
-            (long unsigned)VPOPMAILGID, VPOPMAILDIR, user);
-    } else {
-        snprintf(tmpstr2, MAX_BUFF, "+%s-:%s:%lu:%lu:%s/users/%s/%s:-::",
-            user, user, (long unsigned)VPOPMAILUID, 
-            (long unsigned)VPOPMAILGID, VPOPMAILDIR, dir, user);
-    }
-    update_file(tmpstr1, tmpstr2);
+  snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
+  if ( dir == 0 || dir[0] == 0 ) {
+    snprintf(tmpstr2, MAX_BUFF, "+%s-:%s:%lu:%lu:%s/users/%s:-::",
+      user, user, (long unsigned)VPOPMAILUID, 
+      (long unsigned)VPOPMAILGID, VPOPMAILDIR, user);
+  } else {
+    snprintf(tmpstr2, MAX_BUFF, "+%s-:%s:%lu:%lu:%s/users/%s/%s:-::",
+      user, user, (long unsigned)VPOPMAILUID, 
+      (long unsigned)VPOPMAILGID, VPOPMAILDIR, dir, user);
+  }
+  update_file(tmpstr1, tmpstr2);
 
-    if ( new_file == 1 ) {
-        snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
-        fs = fopen(tmpstr1, "w+");
-        fprintf(fs, ".\n");
-        fclose(fs);
-    }
-    update_newu();
-    return(0);
+  if ( new_file == 1 ) {
+    snprintf(tmpstr1, MAX_BUFF, "%s/users/assign", QMAILDIR);
+    fs = fopen(tmpstr1, "w+");
+    fprintf(fs, ".\n");
+    fclose(fs);
+  }
+  update_newu();
+  return(0);
 }
 
 /*
@@ -1154,25 +1145,24 @@ int del_user_assign( char *user )
  struct vqpasswd *mypw;
 
     
-    tmpbuf1[0] = 0;
-    if ( (mypw = vauth_getpw( user, tmpbuf1 )) == NULL ) {
-        return(-1);
-    }
-    snprintf(tmpbuf2, MAX_BUFF, "%s/users/assign", QMAILDIR);
+  tmpbuf1[0] = 0;
+  if ( (mypw = vauth_getpw( user, tmpbuf1 )) == NULL ) return(-1);
 
-    snprintf(tmpbuf1, MAX_BUFF, "=%s:%s:%lu:%lu:%s:::",
-        user, user, (long unsigned)VPOPMAILUID, 
-        (long unsigned)VPOPMAILGID, mypw->pw_dir);
-    remove_line( tmpbuf1, tmpbuf2); 
+  snprintf(tmpbuf2, MAX_BUFF, "%s/users/assign", QMAILDIR);
 
-    snprintf(tmpbuf1, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::",
-        user, user, (long unsigned)VPOPMAILUID, 
-        (long unsigned)VPOPMAILGID, mypw->pw_dir);
-    remove_line( tmpbuf1, tmpbuf2); 
+  snprintf(tmpbuf1, MAX_BUFF, "=%s:%s:%lu:%lu:%s:::",
+    user, user, (long unsigned)VPOPMAILUID, 
+    (long unsigned)VPOPMAILGID, mypw->pw_dir);
+  remove_line( tmpbuf1, tmpbuf2); 
 
-    update_newu();
+  snprintf(tmpbuf1, MAX_BUFF, "+%s-:%s:%lu:%lu:%s:-::",
+    user, user, (long unsigned)VPOPMAILUID, 
+    (long unsigned)VPOPMAILGID, mypw->pw_dir);
+  remove_line( tmpbuf1, tmpbuf2); 
 
-    return(0);
+  update_newu();
+
+  return(0);
 }
 
 /*
@@ -1186,56 +1176,54 @@ int vdeluser( char *user, char *domain )
  uid_t uid;
  gid_t gid;
 
-    if ( user == 0 || strlen(user)<=0) { 
-	return(VA_ILLEGAL_USERNAME);
+  if ( user == 0 || strlen(user)<=0) return(VA_ILLEGAL_USERNAME);
+
+  umask(VPOPMAIL_UMASK);
+  lowerit(user);
+  lowerit(domain);
+  if ((passent = vauth_getpw(user, domain)) == NULL) { 
+    return(VA_USER_DOES_NOT_EXIST);
+  }
+
+  getcwd(TmpBuf1, MAX_BUFF);
+
+  if ( domain == NULL || domain[0] == 0 ) {
+    if ( chdir(VPOPMAILDIR) != 0 ) {
+      return(VA_BAD_V_DIR);
+    }
+    if ( chdir("users") != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_U_DIR);
+    }
+    del_user_assign( user );
+    uid = VPOPMAILUID;
+    gid = VPOPMAILGID;
+  } else {
+    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+    if ( chdir(Dir) != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_D_DIR);
     }
 
-    umask(VPOPMAIL_UMASK);
-    lowerit(user);
-    lowerit(domain);
-    if ((passent = vauth_getpw(user, domain)) == NULL) { 
-        return(VA_USER_DOES_NOT_EXIST);
+    if ( chdir("..") != 0 ) {
+      chdir(TmpBuf1);
+      return(VA_BAD_D_DIR);
     }
+  }
+  vauth_deluser( user, domain );
+  dec_dir_control(domain, uid, gid);
 
-    getcwd(TmpBuf1, MAX_BUFF);
+  /* remove the users directory from the file system 
+   * and check for error
+   */
+  if ( vdelfiles(passent->pw_dir) != 0 ) {
+    printf("could not remove %s\n", passent->pw_dir);
+    return(VA_BAD_DIR);
+  }
 
-    if ( domain == NULL || domain[0] == 0 ) {
-    	if ( chdir(VPOPMAILDIR) != 0 ) {
-	    return(VA_BAD_V_DIR);
-	}
-        if ( chdir("users") != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_BAD_U_DIR);
-        }
-        del_user_assign( user );
-	uid = VPOPMAILUID;
-	gid = VPOPMAILGID;
-    } else {
-    	tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-        if ( chdir(Dir) != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_BAD_D_DIR);
-        }
-
-        if ( chdir("..") != 0 ) {
-            chdir(TmpBuf1);
-            return(VA_BAD_D_DIR);
-        }
-    }
-    vauth_deluser( user, domain );
-    dec_dir_control(domain, uid, gid);
-
-    /* remove the users directory from the file system 
-     * and check for error
-     */
-    if ( vdelfiles(passent->pw_dir) != 0 ) {
-	printf("could not remove %s\n", passent->pw_dir);
-	return(VA_BAD_DIR);
-    }
-
-    /* go back to the callers directory */
-    chdir(TmpBuf1);
-    return(VA_SUCCESS);
+  /* go back to the callers directory */
+  chdir(TmpBuf1);
+  return(VA_SUCCESS);
 
 }
 
@@ -1247,18 +1235,16 @@ void lowerit( instr )
 {
  int size;
 
-    if (instr==NULL) return;
-    for(size=0;*instr!=0;++instr,++size ) {
-        if (isupper((int)*instr)) {
-            *instr = tolower(*instr);
-        }
+  if (instr==NULL) return;
+  for(size=0;*instr!=0;++instr,++size ) {
+    if (isupper((int)*instr)) *instr = tolower(*instr);
 
-        /* add alittle size protection */
-        if ( size == 156 ) {
-            *instr = 0;
-            return;
-        }
-    } 
+    /* add alittle size protection */
+    if ( size == 156 ) {
+      *instr = 0;
+      return;
+    }
+  } 
 }
 
 int update_file(filename, update_line)
@@ -1276,63 +1262,71 @@ int update_file(filename, update_line)
  int i;
 
 #ifdef FILE_LOCKING
-    snprintf(tmpbuf, MAX_BUFF, "%s.lock", filename);
-    fs3 = fopen(tmpbuf, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-1);
+  snprintf(tmpbuf, MAX_BUFF, "%s.lock", filename);
+  if ( (fs3 = fopen(tmpbuf, "w+")) == NULL ) {
+    printf("could not open lock file %s\n", tmpbuf);
+    return(VA_COULD_NOT_UPDATE_FILE);
+  }
+
+  if ( get_write_lock(fs3) < 0 ) return(-1);
 #endif
 
-    snprintf(tmpbuf, MAX_BUFF, "%s.%lu", filename, (long unsigned)getpid());
-    fs1 = fopen(tmpbuf, "w+");
-    if ( fs1 == NULL ) {
-#ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
-        return(VA_COULD_NOT_UPDATE_FILE);
-#endif
-    }
-
-    snprintf(tmpbuf, MAX_BUFF, "%s", filename);
-    if ( (fs = fopen(tmpbuf, "r+")) == NULL ) {
-        if ( (fs = fopen(tmpbuf, "w+")) == NULL ) {
-			fclose(fs1);
-#ifdef FILE_LOCKING
-			fclose(fs3);
-			unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-#endif
-            return(VA_COULD_NOT_UPDATE_FILE);
-        }
-    }
-
-    while( fgets(tmpbuf,200,fs) != NULL ) {
-        strncpy(tmpbuf1, tmpbuf, MAX_BUFF);
-        for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
-        /* special case for users/assign */
-        if ( strcmp(tmpbuf,".") == 0 ) {
-            fprintf(fs1, "%s\n", update_line);
-            user_assign = 1;
-        } else if ( strcmp(tmpbuf,update_line) != 0 ) {
-            fputs(tmpbuf1, fs1);
-        }
-    }
-
-    if ( user_assign == 1 ) fprintf(fs1, ".\n");
-    else fprintf(fs1, "%s\n", update_line);
-
-    fclose(fs);
-    fclose(fs1);
-
-    snprintf(tmpbuf, MAX_BUFF, "%s", filename);
-    snprintf(tmpbuf1, MAX_BUFF, "%s.%lu", filename, (long unsigned)getpid());
-
-    rename(tmpbuf1, tmpbuf);
-
-
+  snprintf(tmpbuf, MAX_BUFF, "%s.%lu", filename, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf, "w+");
+  if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
     unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
     fclose(fs3);
+    return(VA_COULD_NOT_UPDATE_FILE);
+#endif
+  }
+
+  snprintf(tmpbuf, MAX_BUFF, "%s", filename);
+  if ( (fs = fopen(tmpbuf, "r+")) == NULL ) {
+    if ( (fs = fopen(tmpbuf, "w+")) == NULL ) {
+      fclose(fs1);
+#ifdef FILE_LOCKING
+      fclose(fs3);
+      unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+#endif
+      return(VA_COULD_NOT_UPDATE_FILE);
+    }
+  }
+
+  while( fgets(tmpbuf,200,fs) != NULL ) {
+    strncpy(tmpbuf1, tmpbuf, MAX_BUFF);
+    for(i=0;tmpbuf[i]!=0;++i) {
+      if (tmpbuf[i]=='\n') {
+        tmpbuf[i]=0;
+      }
+    }
+
+    /* special case for users/assign */
+    if ( strcmp(tmpbuf,".") == 0 ) {
+      fprintf(fs1, "%s\n", update_line);
+      user_assign = 1;
+    } else if ( strcmp(tmpbuf,update_line) != 0 ) {
+      fputs(tmpbuf1, fs1);
+      }
+  }
+
+  if ( user_assign == 1 ) fprintf(fs1, ".\n");
+  else fprintf(fs1, "%s\n", update_line);
+
+  fclose(fs);
+  fclose(fs1);
+
+  snprintf(tmpbuf, MAX_BUFF, "%s", filename);
+  snprintf(tmpbuf1, MAX_BUFF, "%s.%lu", filename, (long unsigned)getpid());
+
+  rename(tmpbuf1, tmpbuf);
+
+#ifdef FILE_LOCKING
+  unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+  fclose(fs3);
 #endif
 
-    return(0);
+  return(0);
 }
 
 /*
@@ -1342,17 +1336,19 @@ int vsetuserquota( char *username, char *domain, char *quota )
 {
  struct vqpasswd *mypw;
 
-    if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-    if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
+  if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR  
+  if ( strlen(username) == 1 ) return(VA_ILLEGAL_USERNAME);
+#endif  
+  if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+  if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
-    lowerit(username);
-    lowerit(domain);
-    vauth_setquota( username, domain, quota);
-    mypw = vauth_getpw( username, domain );
-    remove_maildirsize(mypw->pw_dir);
-    return(0);
+  lowerit(username);
+  lowerit(domain);
+  vauth_setquota( username, domain, quota);
+  mypw = vauth_getpw( username, domain );
+  remove_maildirsize(mypw->pw_dir);
+  return(0);
 }
 
 /*
@@ -1364,15 +1360,15 @@ int count_rcpthosts()
  FILE *fs;
  int count;
 
-    snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
-    fs = fopen(tmpstr1, "r");
-    if ( fs == NULL ) return(0);
+  snprintf(tmpstr1, MAX_BUFF, "%s/control/rcpthosts", QMAILDIR);
+  fs = fopen(tmpstr1, "r");
+  if ( fs == NULL ) return(0);
 
-    count = 0;
-    while( fgets(tmpstr1, MAX_BUFF, fs) != NULL ) ++count;
+  count = 0;
+  while( fgets(tmpstr1, MAX_BUFF, fs) != NULL ) ++count;
 
-    fclose(fs);
-    return(count);
+  fclose(fs);
+  return(count);
 
 }
 
@@ -1383,14 +1379,14 @@ int compile_morercpthosts()
 {
  int pid;
 
-    pid=vfork();
-    if ( pid==0){
-        execl(QMAILNEWMRH,"qmail-newmrh", NULL);
-        exit(127);
-    } else {
-        wait(&pid);
-    }
-    return(0);
+  pid=vfork();
+  if ( pid==0){
+    execl(QMAILNEWMRH,"qmail-newmrh", NULL);
+    exit(127);
+  } else {
+    wait(&pid);
+  }
+  return(0);
 }
 
 /*
@@ -1408,13 +1404,7 @@ struct vqpasswd *vgetent(FILE *pw)
     if (fgets(line,sizeof(line),pw) == NULL) return NULL;
 
     for (i=0; line[i] != 0; i++) if (line[i] == ':') j++;
-
-#ifdef CLEAR_PASS
-    /* Must count the clear password field */
-    if ( j != 7) return NULL;
-#else
-    if ( j != 6) return NULL;
-#endif
+    if (j < 6) return NULL;
 
     tmpstr = line;
     pwent.pw_name   = line;
@@ -1435,23 +1425,22 @@ struct vqpasswd *vgetent(FILE *pw)
     *tmpstr = 0; ++tmpstr;
     pwent.pw_gid = atoi(tmpstr1); 
 
-
     pwent.pw_gecos  = tmpstr; 
     while (*tmpstr!=0 && *tmpstr!=':') ++tmpstr;
     *tmpstr = 0; ++tmpstr;
 
     pwent.pw_dir    = tmpstr; 
     while (*tmpstr!=0 && *tmpstr!=':') ++tmpstr;
-    *tmpstr = 0; ++tmpstr;
+    if (*tmpstr) { *tmpstr = 0; ++tmpstr; }
 
     pwent.pw_shell  = tmpstr; 
     while (*tmpstr!=0 && *tmpstr!=':' && *tmpstr!='\n') ++tmpstr;
-    *tmpstr = 0; ++tmpstr;
+    if (*tmpstr) { *tmpstr = 0; ++tmpstr; }
 
 #ifdef CLEAR_PASS
     pwent.pw_clear_passwd  = tmpstr; 
     while (*tmpstr!=0 && *tmpstr!=':' && *tmpstr!='\n') ++tmpstr;
-    *tmpstr = 0; ++tmpstr;
+    if (*tmpstr) { *tmpstr = 0; ++tmpstr; }
 #endif
 
     return &pwent;
@@ -1468,86 +1457,87 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
  char *tmpdir;
  struct vqpasswd *mypw;
 
-    verrori = 0;
-    tmpbuf = malloc(MAX_BUFF);
-    getcwd(tmpbuf, MAX_BUFF);
+  verrori = 0;
+  tmpbuf = malloc(MAX_BUFF);
+  getcwd(tmpbuf, MAX_BUFF);
 
-    tmpdir = malloc(MAX_BUFF);
-    vget_assign(domain, tmpdir, MAX_BUFF, NULL, NULL); 
-    chdir(tmpdir); 
+  tmpdir = malloc(MAX_BUFF);
+  vget_assign(domain, tmpdir, MAX_BUFF, NULL, NULL); 
+  chdir(tmpdir); 
 
-    open_big_dir(domain, uid, gid);
-    tmpstr = next_big_dir(uid, gid);
-    close_big_dir(domain, uid, gid);
-    chdir(tmpstr);
-
-  
-    if ( mkdir(username, VPOPMAIL_DIR_MODE) != 0 ) {
-      verrori = VA_EXIST_U_DIR;
-      return(NULL);
-    }
-
-    if ( chdir(username) != 0 ) {
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf( "make_user_dir: error 2\n");
-        return(NULL);
-    }
-
-    if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1){ 
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf("make_user_dir: error 3\n");
-        return(NULL);
-    }
-
-    if (chdir("Maildir") == -1) { 
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf("make_user_dir: error 4\n");
-        return(NULL);
-    }
-
-    if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) {  
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf("make_user_dir: error 5\n");
-        return(NULL);
-    }
-
-    if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { 
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf("make_user_dir: error 6\n");
-        return(NULL);
-    }
-
-    if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) {  
-        chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	printf("make_user_dir: error 7\n");
-        return(NULL);
-    }
-
-    chdir("../..");
-    r_chown(username, uid, gid);
-
-    mypw = vauth_getpw( username, domain);
-    if ( mypw == NULL ) { 
-    	chdir(tmpbuf); free(tmpbuf); free(tmpdir);
-	return(tmpstr);
-    }
-
-    mypw->pw_dir = malloc(MAX_BUFF);
-    if ( strlen(tmpstr) > 0 ) {
-	snprintf(mypw->pw_dir, 156, "%s/%s/%s", tmpdir, tmpstr, username);
-    } else {
-	snprintf(mypw->pw_dir, 156, "%s/%s", tmpdir, username);
-    }
-    vauth_setpw( mypw, domain );
-
-#ifdef SQWEBMAIL_PASS
-    if ( mypw != NULL ) {
-	vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
-    }
+  tmpstr = "";
+#ifdef USERS_BIG_DIR
+  open_big_dir(domain, uid, gid);
+  tmpstr = next_big_dir(uid, gid);
+  close_big_dir(domain, uid, gid);
+  chdir(tmpstr);
 #endif
 
+  
+  if ( mkdir(username, VPOPMAIL_DIR_MODE) != 0 ) {
+    verrori = VA_EXIST_U_DIR;
+    return(NULL);
+  }
+
+  if ( chdir(username) != 0 ) {
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf( "make_user_dir: error 2\n");
+    return(NULL);
+  }
+
+  if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1){ 
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf("make_user_dir: error 3\n");
+    return(NULL);
+  }
+
+  if (chdir("Maildir") == -1) { 
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf("make_user_dir: error 4\n");
+    return(NULL);
+  }
+
+  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) {  
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf("make_user_dir: error 5\n");
+    return(NULL);
+  }
+
+  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { 
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf("make_user_dir: error 6\n");
+    return(NULL);
+  }
+
+  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) {  
+    chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+    printf("make_user_dir: error 7\n");
+    return(NULL);
+  }
+
+  chdir("../..");
+  r_chown(username, uid, gid);
+
+  mypw = vauth_getpw( username, domain);
+  if ( mypw == NULL ) { 
     chdir(tmpbuf); free(tmpbuf); free(tmpdir);
     return(tmpstr);
+  }
+
+  mypw->pw_dir = malloc(MAX_BUFF);
+  if ( strlen(tmpstr) > 0 ) {
+    snprintf(mypw->pw_dir, 156, "%s/%s/%s", tmpdir, tmpstr, username);
+  } else {
+    snprintf(mypw->pw_dir, 156, "%s/%s", tmpdir, username);
+  }
+  vauth_setpw( mypw, domain );
+
+#ifdef SQWEBMAIL_PASS
+  if ( mypw!=NULL ) vsqwebmail_pass( mypw->pw_dir, mypw->pw_passwd, uid, gid);
+#endif
+
+  chdir(tmpbuf); free(tmpbuf); free(tmpdir);
+  return(tmpstr);
 }
 
 int r_mkdir(char *path, uid_t uid, gid_t gid )
@@ -1555,98 +1545,35 @@ int r_mkdir(char *path, uid_t uid, gid_t gid )
  static char tmpbuf[MAX_DIR_NAME];
  int i;
 
-    for(i=0;path[i]!=0;++i){
-        if ( path[i] == '/' ) {
-            tmpbuf[i] = 0;
-            mkdir(tmpbuf,VPOPMAIL_DIR_MODE);
-            chown(tmpbuf, uid, gid);
-        }
-        tmpbuf[i] = path[i];
+  for(i=0;path[i]!=0;++i){
+    if ( path[i] == '/' ) {
+      tmpbuf[i] = 0;
+      mkdir(tmpbuf,VPOPMAIL_DIR_MODE);
+      chown(tmpbuf, uid, gid);
     }
-    mkdir(path,VPOPMAIL_DIR_MODE);
-    chown(path, uid, gid);
-    return(0);
+    tmpbuf[i] = path[i];
+  }
+  mkdir(path,VPOPMAIL_DIR_MODE);
+  chown(path, uid, gid);
+  return(0);
 }
 
-int pw_comp(char *supp, char *curr, char *apop, int type)
-{
-    /* Type can be: 0 -- try both APOP and user/passwd
-            1 -- user/passwd only
-            2 -- only do an APOP check
-       If only APOP or PASSWD auth is compiled in (ie, not both), then the
-       type field is ignored.
-    */
-#ifdef APOP
-    char buf[100];
-    unsigned char digest[16];
-    char ascii[33];
-    MD5_CTX context;
-#endif
-
-#ifdef DEBUG
-    fprintf (stderr,"pw_comp: on entry: %s -- %s -- %s -- %d\n",supp,curr,apop,type);
-#endif
-
-#ifndef APOP
-    type = 1;
-#endif
-
-/*
-#ifndef ENABLE_PASSWD
-    type = 2;
-#endif
-*/
-
-#ifdef APOP
-    memset(ascii,0,sizeof(ascii));
-    if (type != 1) {
-        strncpy(buf,apop,sizeof(buf));
-        strncat(buf,curr,sizeof(buf));
-#ifdef DEBUG
-        fprintf (stderr,"pw_comp: making digest for %s\n",buf);
-#endif
-        MD5Init (&context);
-        MD5Update (&context,buf,strlen(buf));
-        MD5Final (digest, &context);
-        strncpy(ascii,dec2hex(digest),sizeof(ascii));
-#ifdef DEBUG
-        fprintf (stderr,"pw_comp: comparing digests %s and %s\n",ascii,supp);
-#endif
-        if (!strcmp(ascii,supp))
-            return 1;
-    }
-#endif
-
-    if (type != 2) {
-#ifdef DEBUG
-        fprintf (stderr,"pw_comp: Comparing %s (%s) with %s\n",supp,crypt(supp,curr),curr);
-#endif
-
-        if (!strcmp(curr,crypt(supp,curr))) return 2;
-    }
-
-#ifdef DEBUG
-    fprintf (stderr,"pw_comp: Bugger -- nothing passwd :-/\n");
-#endif
-    /* If we got this far, one of the checks failed */
-    return 0;
-}
 
 #ifdef APOP
 char *dec2hex(unsigned char *digest)
 {
-    static char ascii[33];
-    char *hex="0123456789abcdef";
-    int i,j,k;
-    memset(ascii,0,sizeof(ascii));
-    for (i=0; i < 16; i++) {
-        j = digest[i]/16;
-        k = digest[i]%16;
-        ascii[i*2] = hex[j];
-        ascii[(i*2)+1] = hex[k];
-    }
+  static char ascii[33];
+  char *hex="0123456789abcdef";
+  int i,j,k;
+  memset(ascii,0,sizeof(ascii));
+  for (i=0; i < 16; i++) {
+    j = digest[i]/16;
+    k = digest[i]%16;
+    ascii[i*2] = hex[j];
+    ascii[(i*2)+1] = hex[k];
+  }
 
-    return ascii;
+  return ascii;
 }
 #endif
 
@@ -1658,20 +1585,15 @@ struct vqpasswd *vauth_user(char *user, char *domain, char* password, char *apop
  uid_t uid;
  gid_t gid;
 
-    if ( password == NULL ) return(NULL);
+  if ( password == NULL ) return(NULL);
+  mypw = vauth_getpw(user, domain);
+  if ( mypw == NULL ) return(NULL);
+  if ( vauth_crypt(user, domain, password, mypw) != 0 ) return(NULL);
 
-    mypw = vauth_getpw(user, domain);
-    if ( mypw == NULL ) return(NULL);
-
-    if (pw_comp(password,mypw->pw_passwd,apop,mypw->pw_uid)==0) {
-        return(NULL);
-    }
-
-    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-
-    mypw->pw_uid = uid;
-    mypw->pw_gid = gid;
-    return(mypw);
+  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  mypw->pw_uid = uid;
+  mypw->pw_gid = gid;
+  return(mypw);
 
 }
 
@@ -1686,27 +1608,36 @@ void vset_default_domain( char *domain )
  char host[156];
 #endif
 
-    if ( domain == 0 || strlen(domain)>0) return;
+  if ( domain == 0 || strlen(domain)>0) return;
 
-	tmpstr = getenv("VPOPMAIL_DOMAIN");
-	if ( tmpstr != NULL ) {
-		strncpy(domain,tmpstr,156);
-		return;
-	}
+  tmpstr = getenv("VPOPMAIL_DOMAIN");
+  if ( tmpstr != NULL ) {
+    strncpy(domain,tmpstr,156);
+    return;
+  }
+
 #ifdef IP_ALIAS_DOMAINS
-	tmpstr = getenv("TCPLOCALIP");
-	memset(host,0,156);
-	if ( vget_ip_map(tmpstr,host,156)==0 && !host_in_locals(host)){
-		if ( strlen(host) > 0 ) {
-			strncpy( domain, host, 156 );
-		}
-		return;
-	}
+  tmpstr = getenv("TCPLOCALIP");
+
+  /* courier-imap uses IPv6 */
+  if ( tmpstr != NULL &&  tmpstr[0] == ':') {
+    tmpstr +=2;
+    while(*tmpstr!=':') ++tmpstr;
+    ++tmpstr;
+  }
+
+  memset(host,0,156);
+  if ( vget_ip_map(tmpstr,host,156)==0 && !host_in_locals(host)){
+    if ( strlen(host) > 0 ) {
+      strncpy( domain, host, 156 );
+    }
+    return;
+  }
 #endif
 
-	if ( (i=strlen(DEFAULT_DOMAIN)) > 0 ) {
-		strncpy(domain,DEFAULT_DOMAIN, i+1);
-    }
+  if ( (i=strlen(DEFAULT_DOMAIN)) > 0 ) {
+    strncpy(domain,DEFAULT_DOMAIN, i+1);
+  }
 }
 
 #ifdef IP_ALIAS_DOMAINS
@@ -1714,114 +1645,113 @@ int host_in_locals(domain)
  char *domain;
 {
  int i;
-	char *tmpbuf;
- 	FILE *fs;
+ char *tmpbuf;
+ FILE *fs;
 
-	tmpbuf = malloc(200);
-	
-	snprintf(tmpbuf, 200, "%s/control/locals", QMAILDIR);
-	fs = fopen(tmpbuf,"r");
-	if ( fs == NULL ) {
-		free(tmpbuf);
-		return(0);
-	}
+  tmpbuf = malloc(200);
+  
+  snprintf(tmpbuf, 200, "%s/control/locals", QMAILDIR);
+  fs = fopen(tmpbuf,"r");
+  if ( fs == NULL ) {
+    free(tmpbuf);
+    return(0);
+  }
 
-	while( fgets(tmpbuf,200,fs) != NULL ) {
-		for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
-		if ( strcmp( domain, tmpbuf ) == 0 ) {
-			free(tmpbuf);
-			fclose(fs);
-			return(1);
-		}
-		if ( strcmp(domain, "localhost") == 0 && 
-			 strstr(domain,"localhost") != NULL ) {
-			free(tmpbuf);
-			fclose(fs);
-			return(1);
-		}
-	}
+  while( fgets(tmpbuf,200,fs) != NULL ) {
+    for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
+    if ( strcmp( domain, tmpbuf ) == 0 ) {
+      free(tmpbuf);
+      fclose(fs);
+      return(1);
+    }
+    if ( strcmp(domain, "localhost") == 0 && 
+       strstr(domain,"localhost") != NULL ) {
+      free(tmpbuf);
+      fclose(fs);
+      return(1);
+    }
+  }
 
-	free(tmpbuf);
-	fclose(fs);
-	return(0);
+  free(tmpbuf);
+  fclose(fs);
+  return(0);
 }
 #endif
 
 char *verror(int va_err )
 {
-    switch(va_err) {
-      case VA_SUCCESS:
-          return("Success");
-      case VA_ILLEGAL_USERNAME:
-          return("Illegal username");
-      case VA_USERNAME_EXISTS:
-          return("Username exists");
-      case VA_BAD_DIR:
-          return("Unable to chdir to vpopmail directory");
-      case VA_BAD_U_DIR:
-          return("Unable to chdir to vpopmail/users directory");
-      case VA_BAD_D_DIR:
-          return("Unable to chdir to vpopmail/" DOMAINS_DIR " directory");
-      case VA_BAD_V_DIR:
-          return("Unable to chdir to vpopmail/" DOMAINS_DIR "/domain directory");
-      case VA_EXIST_U_DIR:
-          return("User's directory already exists?");
-      case VA_BAD_U_DIR2:
-          return("Unable to chdir to user's directory");
-      case VA_SUBDIR_CREATION:
-          return("Creation of user's subdirectories failed?");
-      case VA_USER_DOES_NOT_EXIST:
-          return("User does not exist");
-      case VA_DOMAIN_DOES_NOT_EXIST:
-          return("Domain does not exist");
-      case VA_INVALID_DOMAIN_NAME:
-          return("Invalid domain name");
-      case VA_DOMAIN_ALREADY_EXISTS:
-          return("Domain already exists");
-      case VA_COULD_NOT_MAKE_DOMAIN_DIR:
-          return("Could not make domain dir");
-      case VA_COULD_NOT_OPEN_QMAIL_DEFAULT:
-          return("Could not open qmail default");
-      case VA_CAN_NOT_MAKE_DOMAINS_DIR:
-          return("Can not make " DOMAINS_DIR " directory");
-      case VA_COULD_NOT_UPDATE_FILE:
-          return("Could not update file");
-      case VA_CRYPT_FAILED:
-          return("Crypt failed");
-      case VA_COULD_NOT_OPEN_DOT_QMAIL:
-          return("Could not open dot qmail file");
-      case VA_BAD_CHAR:
-          return("bad character");
-      case VA_BAD_UID:
-          return("running as invalid uid");
-      case VA_NO_AUTH_CONNECTION:
-          return("no auth connection");
-      case VA_MEMORY_ALLOC_ERR:
-          return("memory allocation error");
-      case VA_USER_NAME_TOO_LONG:
-          return("user name too long");
-      case VA_DOMAIN_NAME_TOO_LONG:
-          return("domain name too long");
-      case VA_PASSWD_TOO_LONG:
-          return("password too long");
-      case VA_GECOS_TOO_LONG:
-          return("gecos too long");
-      case VA_QUOTA_TOO_LONG:
-          return("quota too long");
-      case VA_DIR_TOO_LONG:
-          return("dir too long");
-      case VA_CLEAR_PASSWD_TOO_LONG:
-          return("clear password too long");
-      case VA_ALIAS_LINE_TOO_LONG:
-          return("alias line too long");
-      case VA_NULL_POINTER:
-          return("null pointer");
-      case VA_INVALID_EMAIL_CHAR:
-          return("invalid email character");
-      default:
-          return("Unknown error");
-    }
-
+  switch(va_err) {
+   case VA_SUCCESS:
+    return("Success");
+   case VA_ILLEGAL_USERNAME:
+    return("Illegal username");
+   case VA_USERNAME_EXISTS:
+    return("Username exists");
+   case VA_BAD_DIR:
+    return("Unable to chdir to vpopmail directory");
+   case VA_BAD_U_DIR:
+    return("Unable to chdir to vpopmail/users directory");
+   case VA_BAD_D_DIR:
+    return("Unable to chdir to vpopmail/" DOMAINS_DIR " directory");
+   case VA_BAD_V_DIR:
+    return("Unable to chdir to vpopmail/" DOMAINS_DIR "/domain directory");
+   case VA_EXIST_U_DIR:
+    return("User's directory already exists?");
+   case VA_BAD_U_DIR2:
+    return("Unable to chdir to user's directory");
+   case VA_SUBDIR_CREATION:
+    return("Creation of user's subdirectories failed?");
+   case VA_USER_DOES_NOT_EXIST:
+    return("User does not exist");
+   case VA_DOMAIN_DOES_NOT_EXIST:
+    return("Domain does not exist");
+   case VA_INVALID_DOMAIN_NAME:
+    return("Invalid domain name");
+   case VA_DOMAIN_ALREADY_EXISTS:
+    return("Domain already exists");
+   case VA_COULD_NOT_MAKE_DOMAIN_DIR:
+    return("Could not make domain dir");
+   case VA_COULD_NOT_OPEN_QMAIL_DEFAULT:
+    return("Could not open qmail default");
+   case VA_CAN_NOT_MAKE_DOMAINS_DIR:
+    return("Can not make " DOMAINS_DIR " directory");
+   case VA_COULD_NOT_UPDATE_FILE:
+    return("Could not update file");
+   case VA_CRYPT_FAILED:
+    return("Crypt failed");
+   case VA_COULD_NOT_OPEN_DOT_QMAIL:
+    return("Could not open dot qmail file");
+   case VA_BAD_CHAR:
+    return("bad character");
+   case VA_BAD_UID:
+    return("running as invalid uid");
+   case VA_NO_AUTH_CONNECTION:
+    return("no auth connection");
+   case VA_MEMORY_ALLOC_ERR:
+    return("memory allocation error");
+   case VA_USER_NAME_TOO_LONG:
+    return("user name too long");
+   case VA_DOMAIN_NAME_TOO_LONG:
+    return("domain name too long");
+   case VA_PASSWD_TOO_LONG:
+    return("password too long");
+   case VA_GECOS_TOO_LONG:
+    return("gecos too long");
+   case VA_QUOTA_TOO_LONG:
+    return("quota too long");
+   case VA_DIR_TOO_LONG:
+    return("dir too long");
+   case VA_CLEAR_PASSWD_TOO_LONG:
+    return("clear password too long");
+   case VA_ALIAS_LINE_TOO_LONG:
+    return("alias line too long");
+   case VA_NULL_POINTER:
+    return("null pointer");
+   case VA_INVALID_EMAIL_CHAR:
+    return("invalid email character");
+   default:
+    return("Unknown error");
+  }
 }
 
 int vadddotqmail( char *alias, char *domain,... ) 
@@ -1835,28 +1765,28 @@ int vadddotqmail( char *alias, char *domain,... )
  gid_t gid;
  char *tmpstr;
 
-    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-    snprintf(TmpBuf1, 200, "%s/.qmail-%s", Dir, alias);
-    if ((fs=fopen(TmpBuf1, "w")) == NULL) return(VA_COULD_NOT_OPEN_DOT_QMAIL);
+  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  snprintf(TmpBuf1, 200, "%s/.qmail-%s", Dir, alias);
+  if ((fs=fopen(TmpBuf1, "w")) == NULL) return(VA_COULD_NOT_OPEN_DOT_QMAIL);
 
-    va_start(args,domain);
-    while ( (email=va_arg(args, char *)) != NULL ) {
-        if ( strstr(email, "@") == NULL ) {
-            mypw = vauth_getpw( email, domain );
-            if ( mypw == NULL ) return(VA_USER_DOES_NOT_EXIST);
-            fprintf(fs, "%s/Maildir/\n", mypw->pw_dir);
-        } else {
-            fprintf(fs, "%s\n", email);
-        }
+  va_start(args,domain);
+  while ( (email=va_arg(args, char *)) != NULL ) {
+    if ( strstr(email, "@") == NULL ) {
+      mypw = vauth_getpw( email, domain );
+      if ( mypw == NULL ) return(VA_USER_DOES_NOT_EXIST);
+      fprintf(fs, "%s/Maildir/\n", mypw->pw_dir);
+    } else {
+      fprintf(fs, "%s\n", email);
     }
-    fclose(fs);
+  }
+  fclose(fs);
 
-    snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-%s", Dir, alias);
-    chown(TmpBuf1,uid,gid);
-    printf("%s\n", TmpBuf1);
+  snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-%s", Dir, alias);
+  chown(TmpBuf1,uid,gid);
+  printf("%s\n", TmpBuf1);
 
-    va_end(args);
-    return(VA_SUCCESS);
+  va_end(args);
+  return(VA_SUCCESS);
 }
 
 int vdeldotqmail( char *alias, char *domain )
@@ -1866,12 +1796,10 @@ int vdeldotqmail( char *alias, char *domain )
  gid_t gid;
  char *tmpstr;
 
-    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-    snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-%s", Dir, alias);
-    if ( unlink(TmpBuf1) < 0 ) {
-        return(VA_COULD_NOT_OPEN_DOT_QMAIL);
-    }
-    return(VA_SUCCESS);
+  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  snprintf(TmpBuf1, MAX_BUFF, "%s/.qmail-%s", Dir, alias);
+  if ( unlink(TmpBuf1) < 0 ) return(VA_COULD_NOT_OPEN_DOT_QMAIL);
+  return(VA_SUCCESS);
 }
 
 /*
@@ -1900,79 +1828,80 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
  static uid_t in_uid = -1;
  static gid_t in_gid = -1;
 
-    if ( domain == NULL || *domain == 0) return(NULL);
+  if ( domain == NULL || *domain == 0) return(NULL);
 
-    lowerit(domain);
-    if ( in_domain_size != 0 && 
-         in_domain!=NULL && in_dir!=NULL &&
-         strncmp( in_domain, domain, in_domain_size )==0 ){
-        if ( uid!=NULL ) *uid = in_uid;
-        if ( gid!=NULL ) *gid = in_gid;
-        if ( dir!=NULL ) strncpy( dir, in_dir, dir_len);
-        return(in_dir);
-    }
+  lowerit(domain);
+  if ( in_domain_size != 0 && 
+       in_domain!=NULL && in_dir!=NULL &&
+       strncmp( in_domain, domain, in_domain_size )==0 ){
 
-    if ( in_domain != NULL ) free(in_domain);
+    if ( uid!=NULL ) *uid = in_uid;
+    if ( gid!=NULL ) *gid = in_gid;
+    if ( dir!=NULL ) strncpy( dir, in_dir, dir_len);
+    return(in_dir);
+  }
 
-    in_domain_size = strlen(domain)+3;
-    in_domain = malloc(in_domain_size);
-    strncpy(in_domain, domain, in_domain_size);
+  if ( in_domain != NULL ) free(in_domain);
 
-    mem_size = strlen(domain) + 3;
-    tmpstr = malloc(mem_size);
-    strncpy(tmpstr, "!", mem_size);
-    strncat(tmpstr, domain, mem_size);
-    strncat(tmpstr, "-", mem_size);
+  in_domain_size = 156;
+  in_domain = malloc(in_domain_size);
+  strncpy(in_domain, domain, in_domain_size);
 
-    snprintf(tmpbuf2, 200, "%s/users/cdb", QMAILDIR);
-    if ( (fs = fopen(tmpbuf2, "r")) == 0 ) {
-        free(tmpstr);
-        return(NULL);
-    }
-    i = cdb_seek(fileno(fs), tmpstr, mem_size-1, &dlen);
-    in_uid = -1;
-    in_gid = -1;
-    if ( i == 1 ) {
-        tmpbuf = malloc(dlen);
-        i = fread(tmpbuf,sizeof(char),dlen,fs);
+  mem_size = strlen(domain) + 3;
+  tmpstr = malloc(mem_size);
+  strncpy(tmpstr, "!", mem_size);
+  strncat(tmpstr, domain, mem_size);
+  strncat(tmpstr, "-", mem_size);
 
-        /* get the domain line */
-        strcpy(domain, tmpbuf);
-
-        /* get the uid */
-        ptr = tmpbuf;
-        while( *ptr != 0 ) ++ptr;
-        ++ptr;
-        in_uid = atoi(ptr);
-        if ( uid!=NULL) *uid = in_uid;
-
-        /* get the gid */
-        while( *ptr != 0 ) ++ptr;
-        ++ptr;
-        in_gid = atoi(ptr);
-        if ( gid!=NULL) *gid = in_gid;
-
-        while( *ptr != 0 ) ++ptr;
-        ++ptr;
-
-        if ( dir!=NULL ) strncpy( dir, ptr, dir_len);
-        if ( in_dir != NULL ) free(in_dir);
-        in_dir_size = strlen(ptr)+1;
-        in_dir = malloc(in_dir_size);
-        strncpy( in_dir, ptr, in_dir_size);
-
-        free(tmpstr);
-        free(tmpbuf);
-	fclose(fs);
-        return(in_dir);
-    } else {
-        if ( in_domain != NULL ) free(in_domain);
-        in_domain = NULL;
-        in_domain_size = 0;
-    }
-    fclose(fs);
+  snprintf(tmpbuf2, 200, "%s/users/cdb", QMAILDIR);
+  if ( (fs = fopen(tmpbuf2, "r")) == 0 ) {
     free(tmpstr);
     return(NULL);
+  }
+  i = cdb_seek(fileno(fs), tmpstr, mem_size-1, &dlen);
+  in_uid = -1;
+  in_gid = -1;
+  if ( i == 1 ) {
+    tmpbuf = malloc(dlen);
+    i = fread(tmpbuf,sizeof(char),dlen,fs);
+
+    /* get the domain line */
+    strncpy(in_domain, tmpbuf, 155);
+
+    /* get the uid */
+    ptr = tmpbuf;
+    while( *ptr != 0 ) ++ptr;
+    ++ptr;
+    in_uid = atoi(ptr);
+    if ( uid!=NULL) *uid = in_uid;
+
+    /* get the gid */
+    while( *ptr != 0 ) ++ptr;
+    ++ptr;
+    in_gid = atoi(ptr);
+    if ( gid!=NULL) *gid = in_gid;
+
+    while( *ptr != 0 ) ++ptr;
+    ++ptr;
+
+    if ( dir!=NULL ) strncpy( dir, ptr, dir_len);
+    if ( in_dir != NULL ) free(in_dir);
+    in_dir_size = strlen(ptr)+1;
+    in_dir = malloc(in_dir_size);
+    strncpy( in_dir, ptr, in_dir_size);
+
+    free(tmpstr);
+    free(tmpbuf);
+    fclose(fs);
+    return(in_dir);
+  } else {
+    if ( in_domain != NULL ) free(in_domain);
+    in_domain = NULL;
+    in_domain_size = 0;
+  }
+  fclose(fs);
+  free(tmpstr);
+  return(NULL);
 
 }
 
@@ -1984,26 +1913,26 @@ int vget_real_domain(char *domain, int len )
  gid_t gid;
  int i;
 
-    if ( domain == NULL ) return(0);
+  if ( domain == NULL ) return(0);
 
-    /* process the default domain 
-    if ( domain[0] == 0 ) {
-        if ( strlen(DEFAULT_DOMAIN) > 0 ) {
-            strncpy(domain, DEFAULT_DOMAIN, len);
-            return(0);
-        }
-        return(0);
+  /* process the default domain 
+  if ( domain[0] == 0 ) {
+    if ( strlen(DEFAULT_DOMAIN) > 0 ) {
+      strncpy(domain, DEFAULT_DOMAIN, len);
+      return(0);
     }
-    */
-
-    tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
-    if ( tmpstr == NULL ) return(0);
-
-    for(gid=strlen(Dir),uid=gid;Dir[uid]!='/';--uid);
-    for(i=0,++uid;Dir[uid]!=0&&uid<gid;++uid,++i) domain[i] = Dir[uid];
-    domain[i] = 0;
-
     return(0);
+  }
+  */
+
+  tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  if ( tmpstr == NULL ) return(0);
+
+  for(gid=strlen(Dir),uid=gid;Dir[uid]!='/';--uid);
+  for(i=0,++uid;Dir[uid]!=0&&uid<gid;++uid,++i) domain[i] = Dir[uid];
+  domain[i] = 0;
+
+  return(0);
 }
 
 int vmake_maildir(char *domain, char *dir )
@@ -2015,65 +1944,63 @@ int vmake_maildir(char *domain, char *dir )
  char *tmpstr;
  int i;
 
-    getcwd(tmpbuf2, 156);
+  getcwd(tmpbuf2, 156);
 
-    /* set the mask for file creation */
-    umask(VPOPMAIL_UMASK);
+  /* set the mask for file creation */
+  umask(VPOPMAIL_UMASK);
  
-    if ( vget_assign(domain, tmpbuf, 156, &uid, &gid ) == NULL ) {
-      return( VA_DOMAIN_DOES_NOT_EXIST );
-    }
+  if ( vget_assign(domain, tmpbuf, 156, &uid, &gid ) == NULL ) {
+    return( VA_DOMAIN_DOES_NOT_EXIST );
+  }
 
-    /* walk to where the sub directory starts */
-    for(i=0,tmpstr=dir;tmpbuf[i]==*tmpstr&&tmpbuf[i]!=0&&*dir!=0;++i,++tmpstr);
+  /* walk to where the sub directory starts */
+  for(i=0,tmpstr=dir;tmpbuf[i]==*tmpstr&&tmpbuf[i]!=0&&*dir!=0;++i,++tmpstr);
 
-    /* walk past trailing slash */
-    while ( *tmpstr == '/'  ) ++tmpstr;
+  /* walk past trailing slash */
+  while ( *tmpstr == '/'  ) ++tmpstr;
 
-    if ( chdir(tmpbuf) == -1 ) {
-      return( VA_BAD_DIR);
-    }
+  if ( chdir(tmpbuf) == -1 ) return( VA_BAD_DIR);
 
-    /* automatically create the sub directories */
-    r_mkdir(tmpstr, uid, gid);
+  /* automatically create the sub directories */
+  r_mkdir(tmpstr, uid, gid);
 
-    /* create the Maildir */
-    if ( chdir(dir) != 0 ) return(-1);
-    if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1) return(-1);
-    if (chdir("Maildir") == -1) return(-1);
-    if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) return(-1);
-    if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) return(-1);
-    if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) return(-1);
-    chdir(dir);
-    r_chown(dir, uid, gid);
-    chdir(dir);
+  /* create the Maildir */
+  if ( chdir(dir) != 0 ) return(-1);
+  if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1) return(-1);
+  if (chdir("Maildir") == -1) return(-1);
+  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) return(-1);
+  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) return(-1);
+  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) return(-1);
+  chdir(dir);
+  r_chown(dir, uid, gid);
+  chdir(dir);
 
-    /* change back to the orignal dir */
-    chdir(tmpbuf2);
-    return(0);
+  /* change back to the orignal dir */
+  chdir(tmpbuf2);
+  return(0);
 }
 
 int vsqwebmail_pass( char *dir, char *crypted, uid_t uid, gid_t gid )
 {
  FILE *fs;
 
-	if ( dir == NULL ) return(VA_SUCCESS);
-    snprintf(TmpBuf2, MAX_BUFF, "%s/Maildir/sqwebmail-pass", dir);
-    if ( (fs = fopen(TmpBuf2, "w")) != NULL ) {
-        fprintf(fs, "\t%s\n", crypted);
-        fclose(fs);
-        chown(TmpBuf2,uid,gid);
-        return(0);
-    }
-    return(VA_SQWEBMAIL_PASS_FAIL);
+  if ( dir == NULL ) return(VA_SUCCESS);
+  snprintf(TmpBuf2, MAX_BUFF, "%s/Maildir/sqwebmail-pass", dir);
+  if ( (fs = fopen(TmpBuf2, "w")) != NULL ) {
+    fprintf(fs, "\t%s\n", crypted);
+    fclose(fs);
+    chown(TmpBuf2,uid,gid);
+    return(0);
+  }
+  return(VA_SQWEBMAIL_PASS_FAIL);
 }
 
 #ifdef POP_AUTH_OPEN_RELAY 
 int open_smtp_relay()
 {
 #ifdef USE_SQL
-	vopen_smtp_relay();	
-	update_rules();
+  if (vopen_smtp_relay())
+    update_rules();
 #else
  FILE *fs;
  FILE *fs1;
@@ -2087,73 +2014,72 @@ int open_smtp_relay()
  char tmpbuf[156];
 
 
-	mytime = time(NULL);
+  mytime = time(NULL);
 #ifdef FILE_LOCKING
-	if ( (fs3=fopen(OPEN_SMTP_LOK_FILE, "w+")) == NULL) return(-1);
-	get_write_lock(fs3);
+  if ( (fs3=fopen(OPEN_SMTP_LOK_FILE, "w+")) == NULL) return(-1);
+  get_write_lock(fs3);
 #endif
 
-	if ( (fs = fopen(OPEN_SMTP_CUR_FILE, "r+")) == NULL ) {
-		if ( (fs = fopen(OPEN_SMTP_CUR_FILE, "w+")) == NULL ) {
+  if ( (fs = fopen(OPEN_SMTP_CUR_FILE, "r+")) == NULL ) {
+    if ( (fs = fopen(OPEN_SMTP_CUR_FILE, "w+")) == NULL ) {
 #ifdef FILE_LOCKING
-			unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-			fclose(fs3);
+      unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+      fclose(fs3);
 #endif
-			return(0);
-		}
-	}
-	snprintf(tmpbuf, 156, 
-            "%s.%lu", OPEN_SMTP_TMP_FILE, (long unsigned)getpid());
-	fs1 = fopen(tmpbuf, "w+");
+      return(0);
+    }
+  }
+  snprintf(tmpbuf, 156, "%s.%lu", OPEN_SMTP_TMP_FILE, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf, "w+");
 
-	if ( fs1 == NULL ) {
+  if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+    unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+    fclose(fs3);
 #endif
-		return(0);
-	}
+    return(0);
+  }
 
-	ipaddr = getenv("TCPREMOTEIP");
+  ipaddr = getenv("TCPREMOTEIP");
 
-	/* courier-imap mangles TCPREMOTEIP */
-	if ( ipaddr != NULL &&  ipaddr[0] == ':') {
-		ipaddr +=2;
-		while(*ipaddr!=':') ++ipaddr;
-		++ipaddr;
-	}
+  /* courier-imap mangles TCPREMOTEIP */
+  if ( ipaddr != NULL &&  ipaddr[0] == ':') {
+    ipaddr +=2;
+    while(*ipaddr!=':') ++ipaddr;
+    ++ipaddr;
+  }
 
-	if ( ipaddr == NULL ) {
+  if ( ipaddr == NULL ) {
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+    unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+    fclose(fs3);
 #endif
-		return(0);
-	}
+    return(0);
+  }
 
-	while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
-		strncpy(TmpBuf2, TmpBuf1, BUFF_SIZE);
-		tmpstr = strtok( TmpBuf2, ":");
-		if ( strcmp( tmpstr, ipaddr ) != 0 ) {
-			fputs(TmpBuf1, fs1);
-		} else {
-			rebuild_cdb = 0;
-		}
-	}
-	fprintf( fs1, "%s:allow,RELAYCLIENT=\"\",RBLSMTPD=\"\"	 %d\n", 
-		ipaddr, (int)mytime);
-	fclose(fs);
-	fclose(fs1);
+  while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
+    strncpy(TmpBuf2, TmpBuf1, BUFF_SIZE);
+    tmpstr = strtok( TmpBuf2, ":");
+    if ( strcmp( tmpstr, ipaddr ) != 0 ) {
+      fputs(TmpBuf1, fs1);
+    } else {
+      rebuild_cdb = 0;
+    }
+  }
+  fprintf( fs1, "%s:allow,RELAYCLIENT=\"\",RBLSMTPD=\"\"\t%d\n", 
+    ipaddr, (int)mytime);
+  fclose(fs);
+  fclose(fs1);
 
-	rename(tmpbuf, OPEN_SMTP_CUR_FILE);
-	if ( rebuild_cdb ) update_rules();
+  rename(tmpbuf, OPEN_SMTP_CUR_FILE);
+  if ( rebuild_cdb ) update_rules();
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+  unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+  fclose(fs3);
 #endif
 #endif
-	return(0);
+  return(0);
 }
 #endif
 
@@ -2164,34 +2090,34 @@ long unsigned tcprules_open()
  int pim[2];
  long unsigned pid;
 
-	memset(bin0,0,BUFF_SIZE);
-	memset(bin1,0,BUFF_SIZE);
-	memset(bin2,0,BUFF_SIZE);
-	snprintf(relay_template, 300, "tmp.%ld", (long unsigned)getpid());
+  memset(bin0,0,BUFF_SIZE);
+  memset(bin1,0,BUFF_SIZE);
+  memset(bin2,0,BUFF_SIZE);
+  snprintf(relay_template, 300, "tmp.%ld", (long unsigned)getpid());
 
-	if (pipe(pim) == -1)  { return(-1);}
+  if (pipe(pim) == -1)  { return(-1);}
 
-	switch( pid=vfork()){
-	case -1:
-		close(pim[0]); close(pim[1]);
-		return(-1);
-	case 0:
-		close(pim[1]);
-		if (vfd_move(0,pim[0]) == -1) _exit(120);
-		strncpy(bin0, TCPRULES_PROG, BUFF_SIZE);
-		strncpy( bin1, TCP_FILE, BUFF_SIZE);
-		strncat( bin1, ".cdb", BUFF_SIZE);
-		strncpy( bin2, TCP_FILE, BUFF_SIZE);
-		strncat( bin2, relay_template, BUFF_SIZE);
-		binqqargs[0] = bin0;
-		binqqargs[1] = bin1;
-		binqqargs[2] = bin2;
-		binqqargs[3] = 0;
-		execv(*binqqargs,binqqargs);
-	}
+  switch( pid=vfork()){
+   case -1:
+    close(pim[0]); close(pim[1]);
+    return(-1);
+   case 0:
+    close(pim[1]);
+    if (vfd_move(0,pim[0]) == -1) _exit(120);
+    strncpy(bin0, TCPRULES_PROG, BUFF_SIZE);
+    strncpy( bin1, TCP_FILE, BUFF_SIZE);
+    strncat( bin1, ".cdb", BUFF_SIZE);
+    strncpy( bin2, TCP_FILE, BUFF_SIZE);
+    strncat( bin2, relay_template, BUFF_SIZE);
+    binqqargs[0] = bin0;
+    binqqargs[1] = bin1;
+    binqqargs[2] = bin2;
+    binqqargs[3] = 0;
+    execv(*binqqargs,binqqargs);
+  }
 
-	fdm = pim[1]; close(pim[0]);
-	return(pid);
+  fdm = pim[1]; close(pim[0]);
+  return(pid);
 }
 #endif
 
@@ -2201,8 +2127,11 @@ int from;
 {
   if (to == from) return 0;
   if (fcntl(from,F_GETFL,0) == -1) return -1;
+
   close(to);
+
   if (fcntl(from,F_DUPFD,to) == -1) return -1;
+
   return 0;
 }
 int vfd_move(int to, int from)
@@ -2223,72 +2152,75 @@ int update_rules()
  char *tmpstr;
 #endif
 
-	umask(VPOPMAIL_TCPRULES_UMASK);
-	if ((pid = tcprules_open()) < 0) {
-		return(-1);
-	}
-
-#ifdef USE_SQL
-	vupdate_rules(fdm);
-#else
-	fs = fopen(OPEN_SMTP_CUR_FILE, "r");
-	if ( fs != NULL ) {
-		while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
-			strncpy(TmpBuf2, TmpBuf1, BUFF_SIZE);
-			tmpstr = strtok( TmpBuf2, "\t");
-			strncat(tmpstr, "\n", BUFF_SIZE);
-			write(fdm,tmpstr, strlen(tmpstr));
-		}
-		fclose(fs);
-	}
+#ifndef REBUILD_TCPSERVER
+  return(0);
 #endif
 
-	fs = fopen(TCP_FILE, "r");
-	if ( fs != NULL ) {
-		while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
-			write(fdm,TmpBuf1, strlen(TmpBuf1));
-		}
-		fclose(fs);
-	}
-	close(fdm);	
+  umask(VPOPMAIL_TCPRULES_UMASK);
+  if ((pid = tcprules_open()) < 0) return(-1);
 
-	/* wait untill tcprules finishes so we don't have zombies */
-	while(wait(&wstat)!= pid);
+  fs = fopen(TCP_FILE, "r");
+  if ( fs != NULL ) {
+    while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
+      write(fdm,TmpBuf1, strlen(TmpBuf1));
+    }
+    fclose(fs);
+  }
 
-        /* unlink the temp file in case tcprules has an error */
-        if ( unlink(relay_template) == -1 ) {
-		return(-1);
-        }
+#ifdef USE_SQL
+  vupdate_rules(fdm);
+#else
+  fs = fopen(OPEN_SMTP_CUR_FILE, "r");
+  if ( fs != NULL ) {
+    while ( fgets(TmpBuf1, 100, fs ) != NULL ) {
+      strncpy(TmpBuf2, TmpBuf1, BUFF_SIZE);
+      tmpstr = strtok( TmpBuf2, "\t");
+      strncat(tmpstr, "\n", BUFF_SIZE);
+      write(fdm,tmpstr, strlen(tmpstr));
+    }
+    fclose(fs);
+  }
+#endif
 
-	/* Set the ownership of the file */
-	snprintf(TmpBuf1, MAX_BUFF, "%s.cdb", TCP_FILE);
-	chown(TmpBuf1,VPOPMAILUID,VPOPMAILGID);
+  close(fdm);  
 
-        return(0);
+  /* wait untill tcprules finishes so we don't have zombies */
+  while(wait(&wstat)!= pid);
+
+  /* unlink the temp file in case tcprules has an error */
+  if ( unlink(relay_template) == -1 ) {
+    return(-1);
+  }
+
+  /* Set the ownership of the file */
+  snprintf(TmpBuf1, MAX_BUFF, "%s.cdb", TCP_FILE);
+  chown(TmpBuf1,VPOPMAILUID,VPOPMAILGID);
+
+  return(0);
 }
 #endif
 
 char *vversion(char *outbuf)
 {
-	if ( outbuf != NULL ) strcpy(outbuf, VERSION);
-	return(VERSION);
+  if ( outbuf != NULL ) strcpy(outbuf, VERSION);
+  return(VERSION);
 }
 
 int vexit(int err)
 {
-    vclose();
-    exit(err);
+  vclose();
+  exit(err);
 }
 
 void remove_maildirsize(char *dir) {
  char maildirsize[500];
  FILE *fs;
 
-    sprintf(maildirsize, "%s/Maildir/maildirsize", dir);
-    if ( (fs = fopen(maildirsize, "r+"))!=NULL) {
-        fclose(fs);
-        unlink(maildirsize);
-    }
+  sprintf(maildirsize, "%s/Maildir/maildirsize", dir);
+  if ( (fs = fopen(maildirsize, "r+"))!=NULL) {
+    fclose(fs);
+    unlink(maildirsize);
+  }
 }
 
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
@@ -2302,17 +2234,21 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
   if ( inpw->pw_gecos == NULL )        return(VA_NULL_POINTER);
   if ( inpw->pw_dir == NULL )          return(VA_NULL_POINTER);
   if ( inpw->pw_shell == NULL )        return(VA_NULL_POINTER);
+#ifdef CLEAR_PASS
   if ( inpw->pw_clear_passwd == NULL ) return(VA_NULL_POINTER);
+#endif
 
   if ( strlen(inpw->pw_name) > MAX_PW_NAME )   return(VA_USER_NAME_TOO_LONG);
   if ( strlen(inpw->pw_name) == 1 )            return(VA_ILLEGAL_USERNAME);
   if ( strlen(domain) > MAX_PW_DOMAIN )        return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(inpw->pw_passwd) > MAX_PW_PASS ) return(VA_PASSWD_TOO_LONG);
-  if ( strlen(inpw->pw_gecos) > MAX_PW_PASS )  return(VA_GECOS_TOO_LONG);
+  if ( strlen(inpw->pw_gecos) > MAX_PW_GECOS ) return(VA_GECOS_TOO_LONG);
   if ( strlen(inpw->pw_dir) > MAX_PW_DIR )     return(VA_DIR_TOO_LONG);
   if ( strlen(inpw->pw_shell) > MAX_PW_QUOTA ) return(VA_QUOTA_TOO_LONG);
+#ifdef CLEAR_PASS
   if ( strlen(inpw->pw_clear_passwd) > MAX_PW_CLEAR_PASSWD )
                                                return(VA_CLEAR_PASSWD_TOO_LONG);
+#endif
   return(VA_SUCCESS);
 
 }
@@ -2334,8 +2270,8 @@ char *vgen_pass(int len)
   memset((char *)p, len, 0);
 
   for (i = 0; i < len; i++) {
-      k = rand()%gen_char_len;
-      p[i] = gen_chars[k];
+    k = rand()%gen_char_len;
+    p[i] = gen_chars[k];
   }
   return p;
 
@@ -2409,20 +2345,54 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
  static char Dir[156];
  int err;
 
-    lowerit(alias_domain);
-    lowerit(real_domain);
+  lowerit(alias_domain);
+  lowerit(real_domain);
 
-    if ( (err=is_domain_valid(real_domain)) != VA_SUCCESS ) return(err);
-    if ( (err=is_domain_valid(alias_domain)) != VA_SUCCESS ) return(err);
+  if ( (err=is_domain_valid(real_domain)) != VA_SUCCESS ) return(err);
+  if ( (err=is_domain_valid(alias_domain)) != VA_SUCCESS ) return(err);
 
-    tmpstr = vget_assign(alias_domain, Dir, 156, &uid, &gid);
-    if ( tmpstr != NULL ) return(VA_DOMAIN_ALREADY_EXISTS);
+  tmpstr = vget_assign(alias_domain, Dir, 156, &uid, &gid);
+  if ( tmpstr != NULL ) return(VA_DOMAIN_ALREADY_EXISTS);
 
-    tmpstr = vget_assign(real_domain, Dir, 156, &uid, &gid);
-    if ( tmpstr == NULL ) return(VA_DOMAIN_DOES_NOT_EXIST);
+  tmpstr = vget_assign(real_domain, Dir, 156, &uid, &gid);
+  if ( tmpstr == NULL ) return(VA_DOMAIN_DOES_NOT_EXIST);
 
-    add_domain_assign( alias_domain, real_domain, Dir, uid, gid );
-    signal_process("qmail-send", SIGHUP);
+  add_domain_assign( alias_domain, real_domain, Dir, uid, gid );
+  signal_process("qmail-send", SIGHUP);
 
-    return(VA_SUCCESS);
+  return(VA_SUCCESS);
+}
+
+char *format_maildirquota(const char *q) {
+int     i;
+int     per_user_limit;
+static char    tempquota[500];
+
+    /* translate the quota to a number, or leave it */
+    i = strlen(q) - 1;
+    tempquota[0] = '\0'; /* make sure tempquota is 0 length */
+    if(strstr(q, ",") == NULL && q[i] != 'S') {
+        per_user_limit = atol(q);
+        for(i=0;q[i]!=0;++i) {
+            if ( q[i] == 'k' || q[i] == 'K' ) {
+                per_user_limit = per_user_limit * 1024;
+                snprintf(tempquota, 500, "%dS", per_user_limit);
+                break;
+            }
+            if ( q[i] == 'm' || q[i] == 'M' ) {
+                per_user_limit = per_user_limit * 1048576;
+                sprintf(tempquota, "%dS", per_user_limit);
+                break;
+            }
+        }
+
+
+        if(strlen(tempquota) == 0) {
+            sprintf(tempquota, "%sS", q);
+        }
+    } else {
+          sprintf(tempquota, "%s", q);
+    }
+
+    return(tempquota);
 }
