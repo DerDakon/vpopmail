@@ -5,6 +5,7 @@ For more information see the README files
  README.ldap  
  README.sybase
  README.oracle  
+ README.vlimits
  README.quotas
  README.roamingusers
 
