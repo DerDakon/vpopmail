@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.10 - unreleased
 
+	Stephan Tesch
+	- md5.h: fix related to segfaults in vchkpw on Sparc64.
+
 	Peter Seiderer
 	- vcdb.c: vauth_getpw() didn't check for invalid domain.
 
