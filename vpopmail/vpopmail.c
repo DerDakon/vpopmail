@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.39 2004-04-28 09:03:53 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.40 2004-05-06 04:06:36 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1503,6 +1503,16 @@ int vdeluser( char *user, char *domain )
    * somewhere else and is passed with a null domain?
    * Should we display en error (which is what will happen when
    * vget_assign runs below.
+   *
+   * Rick Widmer 4 May 2004
+   * No don't use a default domain, if the domain is empty 
+   * or bad, complain and exit.  It should not do any I/O, 
+   * just return an error state.
+   *
+   * Also check the catchall account, if delete user is catchall
+   * refuse to delete the user.  Error message should suggest
+   * changing the catchall settings first.
+   *
    */
 
   umask(VPOPMAIL_UMASK);

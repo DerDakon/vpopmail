@@ -65,6 +65,7 @@ char TmpUser[AUTH_SIZE];
 char TmpPass[AUTH_SIZE];        /* for C/R this is 'TheResponse' */
 char TmpDomain[AUTH_SIZE];
 
+int compact_output = 0;
 
 int login();
 int add_user();
@@ -82,6 +83,8 @@ int rm_file();
 int write_file();
 int read_file();
 int list_domains();
+int find_domain();
+int domain_count();
 int list_users();
 int list_alias();
 int list_lists();
@@ -136,12 +139,14 @@ func_t Functions[] = {
 {"rm_file", rm_file, "/full/path/to/file<crlf>" },
 {"write_file", write_file, "/full/path (data lines)<crlf>.<crlf>" },
 {"read_file", read_file, "/full/path<crlf>" },
-{"list_domains", list_domains, "<crlf>" },
+{"list_domains", list_domains, "[page per_page]<crlf>" },
+{"find_domain", find_domain, "domain [per-page]<crlf>" },
+{"domain_count", domain_count, "<crlf>" },
 {"list_users", list_users, "domain<crlf>" },
 {"list_alias", list_alias, "domain<crlf>" },
 {"list_lists", list_lists, "domain<crlf>" },
 {"get_ip_map", get_ip_map, "domain<crlf>" },
-{"add_ip_map", add_ip_map, "domain (to be determined in this version)<crlf>" },
+{"add_ip_map", add_ip_map, "domain ip<crlf>" },
 {"del_ip_map", del_ip_map, "domain<crlf>" },
 {"show_ip_map", show_ip_map, "domain<crlf>" },
 {"get_limits", get_limits, "domain<crlf>" },
@@ -260,6 +265,7 @@ int login()
  char *command;
  char *email;
  char *pass;
+ char *param;
  uid_t uid;
  gid_t gid;
 
@@ -288,6 +294,13 @@ int login()
     return(-2);
   }
 
+  if ((param=strtok(NULL,TOKENS))!=NULL) {
+    if( strcmp(param,"compact")==0) {
+      compact_output=1;
+//      fprintf(stderr,"compact mode\n" );
+    }
+  }
+
   if ( parse_email( email, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "XXX invalid login" RET_CRLF);
@@ -302,7 +315,7 @@ int login()
 
   if ( vauth_crypt(TheUser, TheDomain, pass, tmpvpw) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-     RET_ERR "XXX invalid login" RET_CRLF);
+     RET_ERR "112 invalid login" RET_CRLF);
     return(-1);
   } 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
@@ -586,6 +599,11 @@ int mod_user()
       if ( atoi(value) == 1 ) tmpvpw->pw_gid |= SA_ADMIN;
       else if ( atoi(value) == 0 ) tmpvpw->pw_gid &= ~SA_ADMIN;
 
+    } else if ( AuthVpw.pw_gid & SA_ADMIN && 
+                strcmp(param,"system_expert_privileges") == 0 ) {
+      if ( atoi(value) == 1 ) tmpvpw->pw_gid |= SA_EXPERT;
+      else if ( atoi(value) == 0 ) tmpvpw->pw_gid &= ~SA_EXPERT;
+
     } else if ( (AuthVpw.pw_gid & SA_ADMIN || AuthVpw.pw_gid & QA_ADMIN) &&
                  strcmp(param,"domain_admin_privileges") == 0 ) {
       if ( atoi(value) == 1 ) tmpvpw->pw_gid |= QA_ADMIN;
@@ -688,112 +706,119 @@ void send_user_info(struct vqpasswd *tmpvpw)
     tmpvpw->pw_clear_passwd);
   wait_write();
 
-  if ( tmpvpw->pw_gid & NO_PASSWD_CHNG ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_password_change 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_password_change 0" RET_CRLF);
-  }
-  wait_write();
+  if( compact_output ) {
+    snprintf(WriteBuf, sizeof(WriteBuf), "gidflags %i" RET_CRLF, tmpvpw->pw_gid);
+    wait_write();
 
-  if ( tmpvpw->pw_gid & NO_POP ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_pop 1" RET_CRLF);
   } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_pop 0" RET_CRLF);
-  }
-  wait_write();
 
-  if ( tmpvpw->pw_gid & NO_WEBMAIL ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_webmail 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_webmail 0" RET_CRLF);
-  }
-  wait_write();
+    if ( tmpvpw->pw_gid & NO_PASSWD_CHNG ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_password_change 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_password_change 0" RET_CRLF);
+    }
+    wait_write();
 
-  if ( tmpvpw->pw_gid & NO_IMAP ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_imap 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_imap 0" RET_CRLF);
-  }
-  wait_write();
+    if ( tmpvpw->pw_gid & NO_POP ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_pop 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_pop 0" RET_CRLF);
+    }
+    wait_write();
 
-  if ( tmpvpw->pw_gid & BOUNCE_MAIL ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "bounce_mail 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "bounce_mail 0" RET_CRLF);
+    if ( tmpvpw->pw_gid & NO_WEBMAIL ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_webmail 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_webmail 0" RET_CRLF);
+    }
+    wait_write();
+
+    if ( tmpvpw->pw_gid & NO_IMAP ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_imap 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_imap 0" RET_CRLF);
+    }
+    wait_write();
+
+    if ( tmpvpw->pw_gid & BOUNCE_MAIL ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "bounce_mail 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "bounce_mail 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & NO_RELAY ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_relay 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_relay 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & NO_DIALUP ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_dialup 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_dialup 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & V_USER0 ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_0 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_0 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & V_USER1 ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_1 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_1 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & V_USER2 ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_2 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_2 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & V_USER3 ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_3 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_3 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & NO_SMTP ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_smtp 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_smtp 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & QA_ADMIN ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & V_OVERRIDE ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "override_domain_limits 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "override_domain_limits 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & NO_SPAMASSASSIN ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_spamassassin 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_spamassassin 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & DELETE_SPAM ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & SA_ADMIN ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "system_admin_privileges 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "system_admin_privileges 0" RET_CRLF);
+    }
+    wait_write();
   }
-  wait_write();
-  if ( tmpvpw->pw_gid & NO_RELAY ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_relay 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_relay 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & NO_DIALUP ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_dialup 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_dialup 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & V_USER0 ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_0 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_0 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & V_USER1 ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_1 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_1 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & V_USER2 ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_2 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_2 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & V_USER3 ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_3 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "user_flag_3 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & NO_SMTP ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_smtp 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_smtp 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & QA_ADMIN ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "domain_admin_privileges 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & V_OVERRIDE ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "override_domain_limits 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "override_domain_limits 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & NO_SPAMASSASSIN ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_spamassassin 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "no_spamassassin 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & DELETE_SPAM ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
-  }
-  wait_write();
-  if ( tmpvpw->pw_gid & SA_ADMIN ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "system_admin_privileges 1" RET_CRLF);
-  } else {
-    snprintf(WriteBuf, sizeof(WriteBuf), "system_admin_privileges 0" RET_CRLF);
-  }
-  wait_write();
   snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
 
 }
@@ -1376,6 +1401,112 @@ int list_domains()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
+int find_domain()
+{
+ domain_entry *entry;
+ char *tmpstr;
+ char *domain;
+ int miss;
+ int count;
+ int page;
+ int per_page;
+
+  per_page = 0;
+ 
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((domain=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    return(-1);
+  }
+
+  if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
+    per_page = atoi(tmpstr);
+  }
+
+  entry=get_domain_entries( "" );
+  if ( entry == NULL ) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "XXX could not open assign file" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  count = 0;
+  miss  = 1;
+
+  while( entry ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), "** %s %s %i" RET_CRLF, 
+      entry->realdomain, entry->domain, count);
+    wait_write();
+       
+    if( strcmp(domain, entry->domain)==0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), "HIT count: %i " RET_CRLF, count );
+      wait_write();
+       
+      miss = 0; 
+      break;
+    }
+    count++;
+
+    entry=get_domain_entries(NULL);
+    
+  }
+
+  if( miss ) {
+    page = 0;
+  } else if( per_page > 0 ) {
+    page = ( count / per_page ) + 1;
+  } else {
+    page = count;
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), "page %i" RET_CRLF, page );
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  return(0);
+}
+
+int domain_count()
+{
+ domain_entry *entry;
+ int count;
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+
+  entry=get_domain_entries( "" );
+  if ( entry == NULL ) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "XXX could not open assign file" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  count = 0;
+  while( entry ) {
+    ++count;
+    entry=get_domain_entries(NULL);
+    
+  }
+  snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  return(0);
+}
+
 
 int list_users()
 {

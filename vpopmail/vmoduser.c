@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.6 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vmoduser.c,v 1.7 2004-05-06 04:06:36 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -242,6 +242,9 @@ void get_options(int argc,char **argv)
                 break;
             case 'S':
                 if ( getuid()==0 ) GidFlag |= SA_ADMIN;
+                break;
+            case 'E':
+                if ( getuid()==0 ) GidFlag |= SA_EXPERT;
                 break;
             case 'f':
                 GidFlag |= NO_SPAMASSASSIN;
