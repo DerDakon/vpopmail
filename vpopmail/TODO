@@ -5,8 +5,13 @@ in all programs except the following along with function vauth_open() that
 tests for access to the database.  It should probably be added to the following
 programs too:
 
-vchkpw
-vdelivermail
-vkill
-vpopmaild
+   vchkpw
+   vdelivermail
+   vkill
+   vpopmaild
+
+
+Actually use the webmail ip address ./configure option
+
+
 
