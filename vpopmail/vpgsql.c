@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.27 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.28 2004-06-26 01:38:47 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -288,9 +288,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 	   );
   pgres=PQexec(pgc, SqlBufRead);
   if ( ! pgres || PQresultStatus(pgres)!=PGRES_TUPLES_OK) {
+#ifdef DEBUG
     fprintf(stderr, 
 	    "vauth_getpw: failed select: %s : %s\n", 
 	    SqlBufRead, PQerrorMessage(pgc));
+#endif
     if( pgres ) PQclear(pgres);	
     return NULL;
   }
@@ -664,7 +666,7 @@ int vopen_smtp_relay()
     pgres=PQexec(pgc, SqlBufUpdate);
     }
 
-  if(!pgres || PQresultStatus(pgres)!= PGRES_COMMAND_OK ) {
+  if(pgres && PQresultStatus(pgres) == PGRES_COMMAND_OK ) {
     /* need to return non-zero value if value inserted */
     if( pgres ) PQclear(pgres);
     return 1;

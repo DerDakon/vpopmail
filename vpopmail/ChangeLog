@@ -177,6 +177,47 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Multiple fixes to vpgsql.c related to freeing PGresults and
 	  attempting to access NULL PGresults when reporting errors.
 
+5.4.5 - released 25-Jun-04
+
+	fernando (at) telemacro (dot) com (dot) br
+	- Patch for vpgsql.c fixes bug with Postgres and roaming users
+	  (POP before SMTP). [895501]
+
+	Françoi Wautier
+	- Fix method used to open database in vauth_open_update of
+	  vmysql.c. [967994, 946983]
+
+	Pit Palme
+	- Show 'delete' as valid option to vdelivermail in docs. [951245]
+
+	rstml
+	- Hide error message during POP3 auth with Postgres. [915485]
+
+	Tom Collins
+	- Fix `vuserinfo -l` output, based on Bill Shupp's patch
+	  (moved code to a single function call). [961742]
+
+5.4.4 - released 26-May-04
+
+	Tom Collins
+	- Link math lib when compiling for MySQL.
+	- Create ~vpopmail and ~vpopmail/etc in configure script. [930939]
+	  Note that any code creating files in ~vpopmail should probably
+	  be moved from configure and into Makefile (under make install).
+	- Use MAX_PW_DIR when checking max size of domain's directory.
+
+	Ken Jones
+	- vdelivermail.c: wait on pid for qmail-inject to finish
+	  before continuing in deliver_mail function. [from 5.5.1]
+
+        Michael Bowe
+        - Minor documentation tweaks
+        - Fix for : If roaming users were enabled, and auth module was not
+          SQL based, and user's IP address was not available (eg being
+          called from Courier-IMAP with authdaemon enabled), then
+          open_smtp.tmp.pid files would be created for each auth 
+          but never removed.
+
 5.4.3 - released 11-Mar-04
 
 	Tom Collins

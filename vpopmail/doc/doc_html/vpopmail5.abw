@@ -281,8 +281,9 @@
 <p>first is not used (it is there for backward compatibility). The</p>
 <p>second parameter is the default delivery if a virtual domain user can</p>
 <p>not be found. Basicly, it can be a directory to deliver the email to,</p>
-<p>an email address to forward the email to or the string</p>
-<p>&amp;quot;bounce-no-mailbox&amp;quot; to bounce the mail back to the sender.&lt;/P&gt;</p>
+<p>an email address to forward the email to, the string</p>
+<p>&amp;quot;bounce-no-mailbox&amp;quot; to bounce the mail back to the sender</p>
+<p>or the string &amp;quot;delete&amp;quot; to drop/delete the mail.&lt;/P&gt;</p>
 <p>&lt;P&gt;Once vdelivermail is started up, it uses the core vpopmail api</p>
 <p>calls to check for a virtual domain user. If the user exists, the</p>
 <p>email is delivered into their directory. If vpopmail was configured</p>
