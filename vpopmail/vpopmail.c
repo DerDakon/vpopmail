@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.12 2003-10-09 23:58:10 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.13 2003-10-11 21:21:10 mbowe Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2579,7 +2579,7 @@ long unsigned tcprules_open()
      */ 
     snprintf( bin0, sizeof(bin0), "%s", TCPRULES_PROG);
     snprintf( bin1, sizeof(bin1), "%s.cdb", TCP_FILE);
-    snprintf( bin2, sizeof(bin2), "%s%s", TCP_FILE, relay_template);
+    snprintf( bin2, sizeof(bin2), "%s.%s", TCP_FILE, relay_template);
 
     /* put these strings into an argv style array */
     binqqargs[0] = bin0;
