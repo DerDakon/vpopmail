@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11.2.1 2004-11-03 22:33:05 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,6 +98,14 @@ int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *c
 #define POP_CONN  0
 #define SMTP_CONN 1
 #define IMAP_CONN 2
+#define WEBMAIL_CONN 3
+
+/* POP/IMAP connections from the following IPs will be classified as
+ * "web mail" instead of POP/IMAP.  On single-server networks, this
+ * will typically be just 'localhost'.  For clusters, add the IP
+ * addresses of all webmail servers.
+ */
+char *webmailips[] = { "127.0.0.1" };
 
 int ConnType = 0;
 
@@ -161,6 +169,15 @@ int main( int argc, char **argv)
       break;
   }
 
+  if ((ConnType == IMAP_CONN) || (ConnType == POP_CONN)) {
+    int i;
+    for (i = 0; i < (sizeof(webmailips)/sizeof(webmailips[0])); i++) {
+      if (strcmp (IpAddr, webmailips[i]) == 0) {
+        ConnType = WEBMAIL_CONN;
+        break;
+      }
+    }
+  }
 
   /* read in the user name and password from file descriptor 3 */
   read_user_pass();
@@ -498,6 +515,15 @@ void login_virtual_user()
       */
   else if ( ConnType == SMTP_CONN && (vpw->pw_flags & NO_SMTP)) {
     snprintf(LogLine, sizeof(LogLine), "%s: smtp access denied %s@%s:%s",
+             VchkpwLogName, TheUser, TheDomain, IpAddr);
+    vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
+    vchkpw_exit(1);
+  }
+
+    /* Check if they are allowed webmail access
+    */
+  else if ( ConnType == WEBMAIL_CONN && (vpw->pw_flags & NO_WEBMAIL)) {
+    snprintf(LogLine, sizeof(LogLine), "%s: webmail access denied %s@%s:%s",
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
