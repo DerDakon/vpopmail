@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.14 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.15 2004-01-09 20:43:42 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -782,7 +782,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL ) return(-2);
-  if ( vauth_open_read() != 0 ) return(-3);
+  if ( vauth_open() != 0 ) return(-3);
 
   snprintf(SqlBufRead, SQL_BUF_SIZE,
 	   "select domain from ip_alias_map where ip_addr = '%s'",
@@ -823,7 +823,7 @@ int vadd_ip_map( char *ip, char *domain)
     return(err);
   }
   snprintf(SqlBufUpdate,SQL_BUF_SIZE,  
-	   "delete from ip_alias_map where ip_addr='%s' and domain='%'",
+	   "delete from ip_alias_map where ip_addr='%s' and domain='%s'",
 	   ip, domain);
 
   /* step 1: delete previous entry */
@@ -849,8 +849,9 @@ int vadd_ip_map( char *ip, char *domain)
       free(SqlBufUpdate);
       return -1;
     }
-    if( pgres ) PQclear(pgres);
-    return ( pg_end() ); /* end transaction */
+  }
+  if( pgres ) PQclear(pgres);
+  return ( pg_end() ); /* end transaction */
 }
 
 int vdel_ip_map( char *ip, char *domain) 
@@ -885,7 +886,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
 
   if ( ip == NULL ) return(-1);
   if ( domain == NULL ) return(-1);
-  if ( ( err=open_read() ) != 0 ) return(err);
+  if ( ( err=vauth_open() ) != 0 ) return(err);
 
   if ( first == 1 ) {
     snprintf(SqlBufRead,SQL_BUF_SIZE, 
@@ -894,13 +895,13 @@ int vshow_ip_map( int first, char *ip, char *domain )
       PQclear(pgres);
       ntuples=ctuple=0;
     }	
-    if ( ! (pgres=PQexec(pgc, qr))
+    if ( ! (pgres=PQexec(pgc, SqlBufRead))
          || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       if(pgres) PQclear(pgres);
       snprintf(SqlBufRead,SQL_BUF_SIZE, 
 	       "select ip_addr, domain from ip_alias_map"); 
       vcreate_ip_map_table();
-      if ( ! (pgres=PQexec(pgc, qr))
+      if ( ! (pgres=PQexec(pgc, SqlBufRead))
 	   || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
 	return(0);
       }
