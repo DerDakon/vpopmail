@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.9 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vpopmail.h,v 1.10 2004-04-01 22:03:54 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 /* max field sizes */
 #define MAX_PW_NAME         32
-#define MAX_PW_DOMAIN       64
+#define MAX_PW_DOMAIN       96
 #define MAX_PW_PASS         40
 #define MAX_PW_GECOS        48
 #define MAX_PW_CLEAR_PASSWD 16
