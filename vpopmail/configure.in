@@ -292,7 +292,7 @@ do
     fi
 done
 
-AC_ARG_ENABLE(tcpserver_file, [  --enable-tcpserver-file=~vpopmail/etc/tcp.smtp  File where tcpserver -x relay information is stored.],
+AC_ARG_ENABLE(tcpserver_file, [  --enable-tcpserver-file=/home/vpopmail/etc/tcp.smtp  File where tcpserver -x relay information is stored.],
     tcpserver_file="$enableval",
     [
         if test "$tcpserver_file" = ""
