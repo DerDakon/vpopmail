@@ -20,6 +20,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove unused variable (fs) from vset_limits() in vlimits.c.
 	  [846509]
 	- Change permissions on vpopmail.mysql to 0640. [848605]
+	- vuserinfo: indicate whether limit came from domain limits.
+	- Correctly apply domain limits to user accounts.
 
 5.3.30 - 20-Nov-03
 
