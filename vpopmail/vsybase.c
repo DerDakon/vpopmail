@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vsybase.c,v 1.6 2003-10-16 22:43:40 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -228,18 +229,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
 struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 {
- char *in_domain;
+ char in_domain[156];
  char *domstr;
- int mem_size;
  static struct vqpasswd pwent;
  struct vlimits limits;
 
 	lowerit(user);
 	lowerit(domain);
 
-	mem_size = strlen(domain)+1;
-	in_domain = calloc(mem_size, sizeof(char));
-	strncpy(in_domain, domain, mem_size);
+	sprintf(in_domain, "%s", domain, sizeof(in_domain));
 
 	vauth_open();
 	vset_default_domain( in_domain );
@@ -254,7 +252,6 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	} else {
 		sprintf(SqlBuf, SMALL_SELECT,  SYBASE_DEFAULT_TABLE, user, in_domain);
 	}
-	free(in_domain);
 
 	dbcmd(dbproc, SqlBuf);
 	if ( dbsqlexec(dbproc) == FAIL || dbresults(dbproc)== FAIL ) { 
