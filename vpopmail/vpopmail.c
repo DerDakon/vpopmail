@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.21 2003-12-12 18:23:09 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.22 2003-12-17 03:13:40 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2486,24 +2486,9 @@ int open_smtp_relay()
     return(-1);
   }
 
-  /* grab the user's ip address (12.34.56.78 or ::ffff:12.34.56.78) */
-  ipaddr = getenv("TCPREMOTEIP");
+  ipaddr = get_remote_ip();
 
-  if ( ipaddr != NULL ) {     
-    /* Convert ::ffff:127.0.0.1 format to 127.0.0.1
-     * While avoiding buffer overflow.
-     */  
-    if (*ipaddr == ':') {
-      ipaddr++;
-      if (*ipaddr != '\0') ipaddr++;
-      while((*ipaddr != ':') && (*ipaddr != '\0')) ipaddr++;
-      if (*ipaddr != '\0') ipaddr++;
-    }
-
-    /* As a security precaution, remove all but good chars */  
-    for (cp = ipaddr; *(cp += strspn(cp, ok_env_chars)); ) {*cp='_';}  
-    
-  } else {
+  if ( ipaddr == NULL ) {     
 #ifdef FILE_LOCKING
     unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
     fclose(fs_lok_file);
@@ -3057,3 +3042,31 @@ char *date_header()
   return dh;
 }
 
+char *get_remote_ip()
+{
+  char *ipenv;
+  static char ipbuf[30];
+  char *ipaddr;
+  char *p;
+
+  ipenv = getenv("TCPREMOTEIP");
+  if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipaddr))) return ipenv;
+
+  strcpy (ipbuf, ipenv);
+  ipaddr = ipbuf;
+
+  /* Convert ::ffff:127.0.0.1 format to 127.0.0.1
+   * While avoiding buffer overflow.
+   */
+  if (*ipaddr == ':') {
+    ipaddr++;
+    if (*ipaddr != '\0') ipaddr++;
+    while((*ipaddr != ':') && (*ipaddr != '\0')) ipaddr++;
+    if (*ipaddr != '\0') ipaddr++;
+  }
+
+  /* remove invalid characters */
+  for (p = ipaddr; *(p += strspn(p, ok_env_chars)); ) {*p='_';}
+
+  return ipaddr;  
+}

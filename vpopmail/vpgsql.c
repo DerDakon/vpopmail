@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.12 2003-12-03 16:41:14 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.13 2003-12-17 03:13:40 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -623,15 +623,9 @@ int vopen_smtp_relay()
   int err;
 
   mytime = time(NULL);
-  ipaddr = getenv("TCPREMOTEIP");
+  ipaddr = get_remote_ip();
   if ( ipaddr == NULL ) {
     return 0;
-  }
-
-  if ( ipaddr != NULL &&  ipaddr[0] == ':') {
-    ipaddr +=2;
-    while(*ipaddr!=':') ++ipaddr;
-    ++ipaddr;
   }
 
   if ( (err=vauth_open()) != 0 ) return 0;
