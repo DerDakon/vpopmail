@@ -19,10 +19,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Better detection of connection type in vchkpw.c. [818943]
 	- Remove extraneous calls to mysql_store_result(). [809472]
 	- Minor cleanup of make_user_dir() in vpopmail.c.
+	- Don't prompt for password in `vadduser -e ...`. [822308]
 
 	Justin Heeseman
 	- Set pw_flags field based on pw_gid and domain limits. [795688]
 	- Use pw_flags instead of pw_gid to check permissions.
+	- Allow K/KB/M/MB modifiers on vmoddomlimits -Q. [821892]
 
 5.3.28 - released 3-Oct-03
 
