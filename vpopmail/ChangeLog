@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.29 - unreleased
+5.3.29 - 20-Oct-03
 
 	Michael Bowe
 	- Fix formatting error in tcp.smtp.tmp.pid filename
@@ -20,6 +20,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove extraneous calls to mysql_store_result(). [809472]
 	- Minor cleanup of make_user_dir() in vpopmail.c.
 	- Don't prompt for password in `vadduser -e ...`. [822308]
+	- Set quota to default when adding new users. [821995]
+	- vpgsql.c vauth_getpw(): Put in_domain on the stack. [822175]
+	- Fix vget_limits calls. [824067, 824070]
+	- Update example for --enable-tcpserver-file in configure. [824077]
+	- Fix loop checking on Delivered-To header. [826231]
 
 	Justin Heeseman
 	- Set pw_flags field based on pw_gid and domain limits. [795688]
