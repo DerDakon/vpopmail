@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.1 2004-11-03 18:00:49 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.3.2.2 2004-12-15 07:11:34 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
 void usage()
 {
-    printf( "vmoduser: usage: [options] email_addr or domain ( for the entire domain )\n");
+    printf( "vmoduser: usage: [options] email_addr or domain (for each user in domain)\n");
     printf("options: -v ( display the vpopmail version number )\n");
     printf("         -n ( don't rebuild the vpasswd.cdb file )\n");
     printf("         -q quota ( set quota )\n");
