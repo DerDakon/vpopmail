@@ -534,17 +534,10 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 
 char randltr(void)
 {
- char rand;
- char retval = 'a';
+  static const char saltchar =
+    "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  rand = random() % 64;
-
-  if (rand < 26) retval = rand + 'a';
-  if (rand > 25) retval = rand - 26 + 'A';
-  if (rand > 51) retval = rand - 52 + '0';
-  if (rand == 62) retval = ';';
-  if (rand == 63) retval = '.';
-  return retval;
+  return saltchar[(random() % 64)];
 }
 
 /************************************************************************/
