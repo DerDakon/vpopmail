@@ -19,6 +19,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Update vpopbull to skip alias domains. [790778]
 	- Look for MySQL in /usr/local/mysql/{include,lib} during configure.
 	- Added pw_flags to vqpasswd struct, still need to update code.
+	- Return error if link fails at end of deliver_mail().
 
 5.3.27 - released 4-Sep-03
 
