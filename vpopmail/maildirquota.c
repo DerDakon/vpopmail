@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7.2.1 2005-01-13 06:35:48 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.7.2.2 2005-03-20 17:01:43 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -49,8 +49,10 @@ static int docheckquota(const char *dir, int *maildirsize_fdptr,
 static int docount(const char *, time_t *, off_t *, unsigned *);
 static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt);
+/* moved into maildirquota.h as non-static
 static int maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt);
+*/
 static int maildir_safeopen(const char *path, int mode, int perm);
 static char *str_pid_t(pid_t t, char *arg);
 static char *str_time_t(time_t t, char *arg);
@@ -253,46 +255,18 @@ int readuserquota(const char* dir, long *sizep, int *cntp)
 int user_over_maildirquota( const char *dir, const char *q)
 {
 struct  stat    stat_buf;
-int     quotafd;
-int     ret_value;
+int     quotafd = 0;
+int     ret_value = 0;
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0 && *q)
         {
-                if (maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1)
-                        && errno != EAGAIN)
-                {
-                        if (quotafd >= 0)       close(quotafd);
-                        ret_value = 1;
-                } else {
-                        maildir_addquota(dir, quotafd, q, stat_buf.st_size, 1);
-                        if (quotafd >= 0)       close(quotafd);
-                        ret_value = 0;
-                }
-        } else {
-                ret_value = 0;
+                ret_value = (maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1)
+                        && errno != EAGAIN);
         }
 
+        if (quotafd >= 0)       close(quotafd);
         return(ret_value);
-}
-
-void add_warningsize_to_quota( const char *dir, const char *q)
-{
-struct  stat    stat_buf;
-int     quotafd;
-char    quotawarnmsg[500];
-
-        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
-
-        if (stat(quotawarnmsg, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
-                stat_buf.st_size > 0 && *q)
-        {
-                maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1);
-                if (quotafd >= 0)       close(quotafd);
-                maildir_addquota(dir, quotafd, q, 
-                    stat_buf.st_size, 1);
-                if (quotafd >= 0)       close(quotafd);
-        }
 }
 
 /* Read the maildirsize file */
@@ -504,6 +478,8 @@ struct dirent *de;
 			return (n);
 	}
 
+	/* rebuild the maildirsize file */
+
 	maxtime=0;
 	maildirsize_size=0;
 	maildirsize_cnt=0;
@@ -613,7 +589,7 @@ struct dirent *de;
 		quota_type, percentage));
 }
 
-static int	maildir_addquota(const char *dir, int maildirsize_fd,
+int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
 	if (!quota_type || !*quota_type)	return (0);

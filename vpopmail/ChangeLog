@@ -3,6 +3,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.11 - unreleased
 
+	Tom Collins
+	- vdelivermail: code cleanup (fix exit codes, improve reliability,
+	  fix problems with quotas). [837146, 840749, 904155, 1111291,
+	  1119741, 1145618]
+
 5.4.10 - released 20-Mar-05
 
 	Stephan Tesch
