@@ -23,7 +23,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- Install a vlimits.default file if none exists (fixes "can't
-	  read domain limits" errors).
+	  read domain limits" errors). [828428,828658]
 	- Allow for comments in vlimits.default and .qmailadmin-limits.
 	- Ignore K/KB/M/MB modifiers on vmoddomlimits -Q. [821892]
 	- Update help for vmoddomlimits to indicate that -Q is MB.
@@ -39,6 +39,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Dmitry Vodennikov
 	- Save/restore current working directory before/after calling
 	  vdelfiles() in vdeldomain(). [835724]
+
+	Rolf Eike Beer
+	- Fix some prototypes and typecasts in maildirquota.c to allow for
+	  compilation with cc on HP-UX 11.00. [840001]
+	- Add vchangepw program to allow any user to change their password
+	  (modified from vpasswd). [840001]
 
 5.3.29 - 20-Oct-03
 
