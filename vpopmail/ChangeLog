@@ -14,6 +14,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Pit Palme
 	- Show 'delete' as valid option to vdelivermail in docs. [951245]
 
+	rstml
+	- Hide error message during POP3 auth with Postgres. [915485]
+
 	Tom Collins
 	- Fix `vuserinfo -l` output, based on Bill Shupp's patch
 	  (moved code to a single function call). [961742]

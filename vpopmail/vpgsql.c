@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.1 2004-06-11 04:39:52 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.2 2004-06-11 15:58:23 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -276,9 +276,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   pgres=PQexec(pgc, SqlBufRead);
   if ( ! pgres || PQresultStatus(pgres)!=PGRES_TUPLES_OK) {
     if( pgres ) PQclear(pgres);	
+#ifdef DEBUG
     fprintf(stderr, 
 	    "vauth_getpw: failed select: %s : %s\n", 
 	    SqlBufRead, PQresultErrorMessage(pgres));
+#endif
     return NULL;
   }
   if ( PQntuples(pgres) <= 0 ) { /* rows count */
