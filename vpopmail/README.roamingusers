@@ -74,7 +74,8 @@ Over time POP-before-SMTP seems to slowly becoming a less favored way of
 allowing roaming users to relay mail. SMTP-Auth appears to becoming the more 
 preferred option, as it scales much more easily on a busy server. However for 
 a small to medium sized server, POP-before-SMTP is still quite a workable 
-option. ( http://www.shupp.org/toaster/ )
+option. Bill Shupp's qmail toaster guide shows an example of how to integrate 
+SMTP-Auth with a vpopmail server ( http://www.shupp.org/toaster/ )
 
 ----------------------------------------------------------------------------
 
