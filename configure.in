@@ -502,21 +502,21 @@ rm -f vpopusername
 
 #----------------------------------------------------------------------
 
-if test ! -d $vpopmaildir/etc
+if test ! -d ${D}/$vpopmaildir/etc
 then
-  if test ! -d $vpopmaildir
+  if test ! -d ${D}/$vpopmaildir
   then
     AC_MSG_WARN( creating $vpopmaildir )
-    mkdir -p $vpopmaildir
-    chown $vpopmailuid $vpopmaildir
-    chgrp $vpopmailgid $vpopmaildir
-    chmod 755 $vpopmaildir
+    mkdir -p ${D}/$vpopmaildir
+    chown $vpopmailuid ${D}/$vpopmaildir
+    chgrp $vpopmailgid ${D}/$vpopmaildir
+    chmod 755 ${D}/$vpopmaildir
   fi
   AC_MSG_WARN( making a vpopmail etc directory )
-  mkdir $vpopmaildir/etc
-  chown $vpopmailuid "$vpopmaildir"/etc
-  chgrp $vpopmailgid "$vpopmaildir"/etc
-  chmod 755 "$vpopmaildir"/etc
+  mkdir ${D}/$vpopmaildir/etc
+  chown $vpopmailuid ${D}/$vpopmaildir/etc
+  chgrp $vpopmailgid ${D}/$vpopmaildir/etc
+  chmod 755 ${D}/$vpopmaildir/etc
 fi
 
 #----------------------------------------------------------------------
