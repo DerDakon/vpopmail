@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vmysql.c,v 1.8 2003-10-09 22:34:58 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -230,8 +231,6 @@ int vauth_open_update()
             fprintf(stderr, "vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
             return(-1);
         } 
-        res_update = mysql_store_result(&mysql_update);
-        mysql_free_result(res_update);
 
         /* set the database */ 
         if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
@@ -328,8 +327,6 @@ int vauth_adddomain( char *domain )
         return(-1);
 #endif
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     return(0);
 }
@@ -406,8 +403,6 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
         fprintf(stderr, "vmysql: sql error[2]: %s\n", mysql_error(&mysql_update));
         return(-1);
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     return(0);
 
@@ -535,8 +530,6 @@ int vauth_deldomain( char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         return(-1);
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
 #ifdef VALIAS 
     valias_delete_domain( domain);
@@ -548,8 +541,6 @@ int vauth_deldomain( char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         return(-1);
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 #endif
 
     vdel_limits(domain);
@@ -583,8 +574,6 @@ int vauth_deluser( char *user, char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         err = -1;
     } 
-        res_update = mysql_store_result(&mysql_update);
-        mysql_free_result(res_update);
 
 #ifdef ENABLE_AUTH_LOGGING
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -593,8 +582,6 @@ int vauth_deluser( char *user, char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         err = -1;
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 #endif
     return(err);
 }
@@ -630,8 +617,6 @@ int vauth_setquota( char *username, char *domain, char *quota)
         fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
         return(-1);
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -672,7 +657,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         }
 
         if (!(res_read_getall=mysql_store_result(&mysql_read_getall))) {
-            fprintf(stderr, "vsql_getpw: store result failed 2\n");
+            fprintf(stderr, "vmysql: store result failed 2\n");
             return(NULL);
         }
     } else if ( more == 0 ) {
@@ -797,9 +782,6 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
         return(-1);
     } 
 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
-
 #ifdef SQWEBMAIL_PASS
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
@@ -839,8 +821,6 @@ int vopen_smtp_relay()
         }
     }
     rows = mysql_affected_rows(&mysql_update);
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     /* return true if only INSERT (didn't exist) */
     /* would return 2 if replaced, or -1 if error */
@@ -860,7 +840,7 @@ void vupdate_rules(int fdm)
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        fprintf(stderr, "vsql_getpw: store result failed 3\n");
+        fprintf(stderr, "vmysql: store result failed 3\n");
         return;
     }
     while((row = mysql_fetch_row(res_read))) {
@@ -896,8 +876,6 @@ void vcreate_relay_table()
         fprintf(stderr, "vmysql: sql error[9]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return;
 }
 #endif
@@ -934,8 +912,6 @@ void vcreate_ip_map_table()
         fprintf(stderr, "vmysql: sql error[a]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return;
 }
 
@@ -962,7 +938,6 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
         strncpy(domain, row[0], domain_size);
     }
     mysql_free_result(res_read);
-    res_update = mysql_store_result(&mysql_read);
     return(ret);
 }
 
@@ -981,8 +956,6 @@ int vadd_ip_map( char *ip, char *domain)
             return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -998,8 +971,6 @@ int vdel_ip_map( char *ip, char *domain)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         return(0);
     } 
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1027,7 +998,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
         }
 
         if (!(res_read = mysql_store_result(&mysql_read))) {
-            fprintf(stderr, "vsql_getpw: store result failed 5\n");
+            fprintf(stderr, "vmysql: store result failed 5\n");
             return(0);
         }
     } else if ( more == 0 ) {
@@ -1145,8 +1116,6 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
             return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     return(0);
 }
@@ -1162,8 +1131,6 @@ void vcreate_dir_control(char *domain)
         fprintf(stderr, "vmysql: sql error[c]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     snprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
 domain, cur_users, \
@@ -1185,8 +1152,6 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
         fprintf(stderr, "vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 }
 
 int vdel_dir_control(char *domain)
@@ -1205,8 +1170,6 @@ int vdel_dir_control(char *domain)
                 return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 
     return(0);
 }
@@ -1227,8 +1190,6 @@ remote_ip=\"%s\", timestamp=%lu", user, domain, remoteip, time(NULL));
             fprintf(stderr, "vmysql: sql error[f]: %s\n", mysql_error(&mysql_update));
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1293,8 +1254,6 @@ void vcreate_lastauth_table()
         fprintf(stderr, "vmysql: sql error[i]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return;
 }
 #endif
@@ -1350,8 +1309,6 @@ int valias_insert( char *alias, char *domain, char *alias_line)
             return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1372,8 +1329,6 @@ and domain = \"%s\"", alias, domain );
             return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1394,8 +1349,6 @@ int valias_delete_domain( char *domain)
             return(-1);
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1409,8 +1362,6 @@ void vcreate_valias_table()
         fprintf(stderr, "vmysql: sql error[n]: %s\n", mysql_error(&mysql_update));
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return;
 }
 
@@ -1468,8 +1419,6 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
                 fprintf(stderr, "error inserting into vlog table\n");
         }
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return(0);
 }
 
@@ -1485,8 +1434,6 @@ void vcreate_vlog_table()
         fprintf(stderr, "could not create vlog table %s\n", SqlBufCreate);
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return;
 }
 #endif
@@ -1516,8 +1463,6 @@ void vcreate_limits_table()
         fprintf(stderr, "could not create limits table %s\n", SqlBufCreate);
         return;
     }
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
 }
 
 int vget_limits(const char *domain, struct vlimits *limits)
@@ -1652,8 +1597,6 @@ int vdel_limits(const char *domain)
 
     if (mysql_query(&mysql_update,SqlBufUpdate))
         return(-1);
-    res_update = mysql_store_result(&mysql_update);
-    mysql_free_result(res_update);
     return 0;
 }
 
