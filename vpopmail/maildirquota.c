@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.3 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.4 2003-11-20 22:56:29 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -614,7 +614,7 @@ struct dirent *de;
 		quota_type, percentage));
 }
 
-int	maildir_addquota(const char *dir, int maildirsize_fd,
+static int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
 	if (!quota_type || !*quota_type)	return (0);
@@ -679,16 +679,16 @@ int	n;
 
 	if (isnew)
 	{
-		(char *)iov[0].iov_base=(char *)quota_type;
+		iov[0].iov_base=(void *)quota_type;
 		iov[0].iov_len=strlen(quota_type);
-		(char *)iov[1].iov_base="\n";
+		iov[1].iov_base="\n";
 		iov[1].iov_len=1;
 		niov=2;
 	}
 
 
 	sprintf(u.buf, "%ld %d\n", maildirsize_size, maildirsize_cnt);
-	(char *)iov[niov].iov_base=u.buf;
+	iov[niov].iov_base=u.buf;
 	iov[niov].iov_len=strlen(u.buf);
 
 	p=iov;
@@ -700,7 +700,7 @@ int	n;
 		{
 			if (n < p->iov_len)
 			{
-				(char *)p->iov_base=
+				p->iov_base=
 					((char *)p->iov_base + n);
 				p->iov_len -= n;
 			}
@@ -912,7 +912,7 @@ unsigned long	s;
 	return (0);
 }
 
-int maildir_safeopen(const char *path, int mode, int perm)
+static int maildir_safeopen(const char *path, int mode, int perm)
 {
 struct  stat    stat1, stat2;
 
@@ -942,7 +942,7 @@ int     fd=open(path, mode
         return (fd);
 }
 
-char *str_pid_t(pid_t t, char *arg)
+static char *str_pid_t(pid_t t, char *arg)
 {
 char    buf[NUMBUFSIZE];
 char    *p=buf+sizeof(buf)-1;
@@ -956,7 +956,7 @@ char    *p=buf+sizeof(buf)-1;
         return (strcpy(arg, p));
 }
 
-char *str_time_t(time_t t, char *arg)
+static char *str_time_t(time_t t, char *arg)
 {
 char    buf[NUMBUFSIZE];
 char    *p=buf+sizeof(buf)-1;
@@ -970,7 +970,7 @@ char    *p=buf+sizeof(buf)-1;
         return (strcpy(arg, p));
 }
 
-int maildir_parsequota(const char *n, unsigned long *s)
+static int maildir_parsequota(const char *n, unsigned long *s)
 {
 const char *o;
 int     yes;
