@@ -20,7 +20,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Look for MySQL in /usr/local/mysql/{include,lib} during configure.
 	- Added pw_flags to vqpasswd struct, still need to update code.
 	- Return error if link fails at end of deliver_mail().
-	- Fix vdeldomain() to delete things in the correct order.
+	- Fix vdeldomain() to delete things in the correct order. [805703]
+	- Update Makefile.am to create bin/doc/etc/include/lib with
+	  correct owner/permissions if not already present.
 
 	Kazuho Oku
 	- Fix qmail_inject_open() in vdelivermail to work with addresses 
