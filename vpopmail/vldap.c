@@ -914,10 +914,6 @@ int vdel_dir_control(char *domain)
     strncpy(dir_control_file,"/.dir-control", MAX_DIR_NAME);
     return(unlink(dir_control_file));
 }
-int vset_lastauth(char *user, char *domain, char *remoteip )
-{
-  return(vset_lastauth_time(user, domain, remoteip, time(NULL) ));
-}
 
 int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time )
 {
@@ -945,9 +941,13 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
         vget_assign(domain,NULL,0,&uid,&gid);
         chown(tmpbuf,uid,gid);
 	safe_free((void **) &tmpbuf);
-#else
-	return(0);
 #endif
+	return(0);
+}
+
+int vset_lastauth(char *user, char *domain, char *remoteip )
+{
+  return(vset_lastauth_time(user, domain, remoteip, time(NULL) ));
 }
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)
