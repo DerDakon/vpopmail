@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.8 2003-10-07 00:46:45 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.9 2003-10-07 21:38:18 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -570,10 +570,12 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 {
  char *tmpstr;
  char salt[12];
- time_t tm;
+ static int seeded = 0;
 
-  time(&tm);
-  srandom (tm % 65536);
+ if (!seeded) {
+   seeded = 1;
+   srandom (time(NULL)^(getpid()<<15));
+ }
 
 #ifdef MD5_PASSWORDS
   salt[0] = '$';
@@ -2813,12 +2815,16 @@ char *vrandom_pass(char *buffer, int len)
 {
   int gen_char_len; 
   int i, k; 
+  static int seeded = 0;
 
   if (buffer == NULL) return buffer;
 
   gen_char_len = strlen(gen_chars);
 
-  srand(rand() % time(NULL) ^ getpid());
+  if (!seeded) {
+    seeded = 1;
+    srand(time(NULL)^(getpid()<<15));
+  }
 
   for (i = 0; i < len; i++) {
     k = rand()%gen_char_len;
