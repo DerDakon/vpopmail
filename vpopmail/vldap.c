@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.13 2003-12-22 20:16:24 mbowe Exp $
+ * $Id: vldap.c,v 1.14 2003-12-26 09:02:12 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -925,18 +925,49 @@ void vclose(void) {
 
 /***************************************************************************/
 
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid) {
-    FILE *fs;
-    char dir_control_file[MAX_DIR_NAME];
+char *dc_filename(char *domain, uid_t uid, gid_t gid)
+{
+ static char dir_control_file[MAX_DIR_NAME];
+ struct passwd *pw;
 
-    vget_assign(domain, dir_control_file, 156, NULL,NULL);
-    strncpy(dir_control_file,"/.dir-control", MAX_DIR_NAME);
+    /* if we are lucky the domain is in the assign file */
+    if ( vget_assign(domain,dir_control_file,MAX_DIR_NAME,NULL,NULL)!=NULL ) {
+        strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME);
+
+    /* it isn't in the assign file so we have to get it from /etc/passwd */
+    } else {
+
+        /* save some time if this is the vpopmail user */
+        if ( uid == VPOPMAILUID ) {
+            strncpy(dir_control_file, VPOPMAILDIR, MAX_DIR_NAME);
+
+        /* for other users, look them up in /etc/passwd */
+        } else if ( (pw=getpwuid(uid))!=NULL ) {
+            strncpy(dir_control_file, pw->pw_dir, MAX_DIR_NAME);
+
+        /* all else fails return a blank string */
+        } else {
+            return("");
+        }
+
+        /* stick on the rest of the path */
+        strncat(dir_control_file, "/" DOMAINS_DIR "/.dir-control", MAX_DIR_NAME);
+    }
+    return(dir_control_file);
+}
+
+int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+{
+ FILE *fs;
+ char dir_control_file[MAX_DIR_NAME];
+ int i;
+
+    strncpy(dir_control_file,dc_filename(domain, uid, gid),MAX_DIR_NAME);
+
 
     if ( (fs = fopen(dir_control_file, "r")) == NULL ) {
-        int i;
-
         vdir->cur_users = 0;
-        for(i=0;i<MAX_DIR_LEVELS;++i) {
+        for(i=0;i<MAX_DIR_LEVELS;++i){
             vdir->level_start[i] = 0;
             vdir->level_end[i] = MAX_DIR_LIST-1;
             vdir->level_index[i] = 0;
@@ -950,44 +981,72 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid) {
         return(-1);
     }
 
-    fscanf(fs, "%lu\n", &vdir->cur_users);
-    fscanf(fs, "%d\n", &vdir->level_cur);
-    fscanf(fs, "%d\n", &vdir->level_max);
-    fscanf(fs, "%d %d %d\n",
-           &vdir->level_start[0],
-           &vdir->level_start[1],
-           &vdir->level_start[2]);
-    fscanf(fs, "%d %d %d\n",
-           &vdir->level_end[0],
-           &vdir->level_end[1],
-           &vdir->level_end[2]);
-    fscanf(fs, "%d %d %d\n",
-           &vdir->level_mod[0],
-           &vdir->level_mod[1],
-           &vdir->level_mod[2]);
-    fscanf(fs, "%d %d %d\n",
-           &vdir->level_index[0],
-           &vdir->level_index[1],
-           &vdir->level_index[2]);
-    fscanf(fs, "%s\n", vdir->the_dir);
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->cur_users = atol(dir_control_file);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_cur = atoi(dir_control_file);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_max = atoi(dir_control_file);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_start[0] = atoi(dir_control_file);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_start[1] = atoi(&dir_control_file[i]);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_start[2] = atoi(&dir_control_file[i]);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_end[0] = atoi(dir_control_file);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_end[1] = atoi(&dir_control_file[i]);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_end[2] = atoi(&dir_control_file[i]);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_mod[0] = atoi(dir_control_file);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_mod[1] = atoi(&dir_control_file[i]);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_mod[2] = atoi(&dir_control_file[i]);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    vdir->level_index[0] = atoi(dir_control_file);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_index[1] = atoi(&dir_control_file[i]);
+    for(i=0;dir_control_file[i]!=' ';++i); ++i;
+    vdir->level_index[2] = atoi(&dir_control_file[i]);
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    for(i=0;dir_control_file[i]!=0;++i) {
+        if (dir_control_file[i] == '\n') {
+            dir_control_file[i] = 0;
+        }
+    }
+
+    fgets(dir_control_file, MAX_DIR_NAME, fs );
+    for(i=0;dir_control_file[i]!=0;++i) {
+        if (dir_control_file[i] == '\n') {
+            dir_control_file[i] = 0;
+        }
+    }
+    strncpy(vdir->the_dir, dir_control_file, MAX_DIR_NAME);
 
     fclose(fs);
 
     return(0);
 }
 
-/***************************************************************************/
+int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+{
+ FILE *fs;
+ char dir_control_file[MAX_DIR_NAME];
+ char dir_control_tmp_file[MAX_DIR_NAME];
 
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid) {
-    FILE *fs;
-    char dir_control_file[MAX_DIR_NAME];
-    char dir_control_tmp_file[MAX_DIR_NAME];
-
-    vget_assign(domain, dir_control_file, 156, NULL,NULL);
-
-    strncpy(dir_control_file,"/.dir-control", MAX_DIR_NAME);
-    sprintf(dir_control_tmp_file,"%s/.dir-control.%d",
-            dir_control_file, getpid());
+    strncpy(dir_control_file,dc_filename(domain, uid, gid),MAX_DIR_NAME);
+    snprintf(dir_control_tmp_file, MAX_DIR_NAME,
+        "%s.%d", dir_control_file, getpid());
 
     if ( (fs = fopen(dir_control_tmp_file, "w+")) == NULL ) {
         return(-1);
@@ -997,21 +1056,21 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid) {
     fprintf(fs, "%d\n", vdir->level_cur);
     fprintf(fs, "%d\n", vdir->level_max);
     fprintf(fs, "%d %d %d\n",
-            vdir->level_start[0],
-            vdir->level_start[1],
-            vdir->level_start[2]);
+        vdir->level_start[0],
+        vdir->level_start[1],
+        vdir->level_start[2]);
     fprintf(fs, "%d %d %d\n",
-            vdir->level_end[0],
-            vdir->level_end[1],
-            vdir->level_end[2]);
+        vdir->level_end[0],
+        vdir->level_end[1],
+        vdir->level_end[2]);
     fprintf(fs, "%d %d %d\n",
-            vdir->level_mod[0],
-            vdir->level_mod[1],
-            vdir->level_mod[2]);
+        vdir->level_mod[0],
+        vdir->level_mod[1],
+        vdir->level_mod[2]);
     fprintf(fs, "%d %d %d\n",
-            vdir->level_index[0],
-            vdir->level_index[1],
-            vdir->level_index[2]);
+        vdir->level_index[0],
+        vdir->level_index[1],
+        vdir->level_index[2]);
     fprintf(fs, "%s\n", vdir->the_dir);
 
     fclose(fs);
@@ -1023,13 +1082,12 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid) {
     return(0);
 }
 
-/***************************************************************************/
-
-int vdel_dir_control(char *domain) {
-    char dir_control_file[MAX_DIR_NAME];
+int vdel_dir_control(char *domain)
+{
+ char dir_control_file[MAX_DIR_NAME];
 
     vget_assign(domain, dir_control_file, 156, NULL,NULL);
-    strncpy(dir_control_file,"/.dir-control", MAX_DIR_NAME);
+    strncat(dir_control_file,"/.dir-control", MAX_DIR_NAME);
     return(unlink(dir_control_file));
 }
 
