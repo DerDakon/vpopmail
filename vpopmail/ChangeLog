@@ -17,6 +17,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  a dir allocated yet) [816942]
 	- clearopensmtp was using USE_MYSQL rather than USE_SQL to 
 	  determine where the roaming IPs were being stored [876016]
+	- Update INSTALL and other guides to mention that vchkpw group
+	  does not need to be gid 89. [877154]
 
 	Ken Nonaka
 	- Fixes to vpgsql.c to clear compile errors when 
@@ -48,6 +50,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix configure.in to update cdb/conf-cc and cdb/conf-ld. [877166]
 	- Add /usr/local/mysql/include/mysql to search list for incdir,
 	  and /usr/local/mysql/lib/mysql for libdir. [877168]
+	- Remove cdb/compile, cdb/load, cdb/conf-cc and cdb/conf-ld as
+	  they are automatically generated during configure/make.
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
@@ -60,10 +64,6 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Anders Brander
 	- Allow optional length for random passwords in vadduser and
 	  vadddomain. [848228]
-
-	Andrea Cerrito
-	- Update INSTALL and other guides to mention that vchkpw group
-	  does not need to be gid 89 [877154]
 
 5.4.0-rc1 - released 1-Jan-04
 
