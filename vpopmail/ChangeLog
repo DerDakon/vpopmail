@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.0-pre3 - unreleased
+5.4.0-rc1 - unreleased
 
 	Michael Bowe
 	- Minor code fixes and major documentation work for LDAP module. 
@@ -11,6 +11,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- Remove unused var (cp), change random/srandom to rand/srand in
 	  vpopmail.c to remove compiler warnings.
+	- Fix Makefile to use correct owner/group/permissions for 
+	  install-strip.
  
 5.4.0-pre2 - released 21-Dec-03
 
