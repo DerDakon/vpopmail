@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.3 - unreleased
 
+	Tom Collins
+	- Add missing link libs (m, nsl, socket) on Solaris installs.
+
 5.4.2 - released 22-Feb-04
 
 	Tom Collins

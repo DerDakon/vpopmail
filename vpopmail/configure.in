@@ -199,7 +199,7 @@ AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
 
 case "$host" in
   *-*-solaris*)
-    extralibflags="-R$libdir"
+    extralibflags="-R$libdir -lm -lnsl -lsocket"
     AC_MSG_WARN(Solaris install detected.  Using extralibflags for linking: $extralibflags)
     ;;
   *)
