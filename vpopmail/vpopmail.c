@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.25 2003-12-19 05:27:41 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.26 2003-12-22 16:11:03 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -557,7 +557,7 @@ char randltr(void)
   static const char saltchar[] =
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  return saltchar[(random() % 64)];
+  return saltchar[(rand() % 64)];
 }
 
 /************************************************************************/
@@ -585,7 +585,7 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 
  if (!seeded) {
    seeded = 1;
-   srandom (time(NULL)^(getpid()<<15));
+   srand (time(NULL)^(getpid()<<15));
  }
 
 #ifdef MD5_PASSWORDS
@@ -2451,7 +2451,6 @@ int open_smtp_relay()
  time_t mytime;
  int rebuild_cdb = 1;
  char open_smtp_tmp_filename[MAX_BUFF];
- char *cp;
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
 
