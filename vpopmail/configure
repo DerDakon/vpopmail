@@ -781,7 +781,7 @@ fi
 
 PACKAGE=vpopmail
 
-VERSION=5.3.29
+VERSION=5.3.30
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
