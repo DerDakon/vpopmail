@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.12 2004-11-10 01:26:29 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.13 2004-11-11 18:56:25 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3102,47 +3102,70 @@ char *get_remote_ip()
   return ipaddr;  
 }
 
-
-char *maildir_to_email(const char *maildir)
+char *maildir_to_email (const char *maildir)
 {
- static char email[256];
- int i, j=0;
- char *pnt, *last;
+	static char email[256];
+	int i;
+	char *pnt, *last;
+	char *mdcopy;
+	char *user;
+	int sawdot;
+	
+	mdcopy = malloc (strlen (maildir) + 1);
+	if (mdcopy == NULL) return "";
+	strcpy (mdcopy, maildir);
+	
+	/* find the last occurrence of /Maildir/ */
+	pnt = mdcopy;
+	do {
+		last = pnt;
+		pnt = strstr (pnt + 1, "/Maildir/");
+	} while (pnt != NULL);
 
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=(char *)maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    pnt = last + strlen(DOMAINS_DIR) + 2;
-    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
+	if (last == pnt) {
+		/* no occurrences of "/Maildir/" in path */
+		free (mdcopy);
+		return "";
+	}
+	
+	/* last points to /Maildir/ after username, so null terminate
+	 * username by changing the '/' to a NUL
+	 */
+	*last = '\0';
+ 
+ 	/* find start of username */
+ 	i = (int) (last - mdcopy);
+ 	while (i > 0 && mdcopy[i] != '/') { i--; }
+ 	
+ 	if (i == 0) {
+ 		/* invalid maildir path */
+ 		free (mdcopy);
+ 		return "";
+	}
+	
+	user = &mdcopy[i+1];
+	
+	/* look for first directory name that contains a '.', that's the domain */
+	sawdot = 0;
+	do {
+		mdcopy[i] = '\0';	/* change '/' to NUL to NUL-terminate domain */
+		/* search backwards for '/' */
+		while (i > 0 && (mdcopy[i] != '/')) {
+			if (mdcopy[i] == '.') sawdot = 1;
+			i--;
+		}
+	} while ((i > 0) && !sawdot);
+	
+	if (i == 0) {
+		/* couldn't find domain name */
+		free (mdcopy);
+		return "";
+	}
+		
+	snprintf (email, sizeof(email), "%s@%s", user, &mdcopy[i+1]);
+	free (mdcopy);
+	
+	return email;
 }
 
 /* escape these characters out of strings: ', \, " */
