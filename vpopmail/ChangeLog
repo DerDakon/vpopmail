@@ -4,6 +4,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.5.1 - unreleased
 
 	Ken Jones
+        - beta version of vpopmaild for php applications.
 	- Add SpamAssassin support for vdelivermail.
         - Increase max domain name size from 64 to 96. 
           The actual maximum length of a host name is 256.
