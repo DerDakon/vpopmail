@@ -10,6 +10,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix bug when autocreating a user dir for a user who exists
 	  in the auth backend, but does not yet have a user dir 
 	  allocated. [873007] 
+	- Fix bug introduced in vpopmail-5.4.0-pre2 that was preventing
+	  ~vpopmail/etc/vpopmail.mysql from being installed [874776]
 
 	Ken Nonaka
 	- Fixes to vpgsql.c to clear compile errors when 
