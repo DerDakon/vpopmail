@@ -2,7 +2,15 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
-        Rick Widmer - 
+        Rick Widmer - 21 June 2004
+        vpopmail
+        - vmysql.c now sends error messages unless showerrors is set to 0.
+
+        vpopmaild
+        - Fix bug found by Rick Macdougall in auth checks of mod_user.
+
+
+        Rick Widmer -  ? June 2004
         vpopmail
 
         WARNING:  vopen_smtp_relay() return has changed.  It used to return
