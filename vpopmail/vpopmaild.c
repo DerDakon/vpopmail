@@ -41,6 +41,9 @@
 #define PARAM_SPACE_TOKENS "=:\n\r"
 #define LIST_DOMAIN_TOKENS " :\t\n\r"
 
+
+#define INVALID_DIRECTORY RET_ERR "XXX invaild directory" RET_CRLF
+
 char ReadBuf[MAX_TMP_BUFF];
 char WriteBuf[MAX_TMP_BUFF];
 char SystemBuf[MAX_TMP_BUFF];
@@ -53,6 +56,8 @@ char TheUser[AUTH_SIZE];
 char ThePass[AUTH_SIZE];        /* for C/R this is 'TheResponse' */
 char TheDomain[AUTH_SIZE];
 char TheDomainDir[256];
+char TheUserDir[256];
+char TheVpopmailDomains[256];
 
 char TmpUser[AUTH_SIZE];
 char TmpPass[AUTH_SIZE];        /* for C/R this is 'TheResponse' */
@@ -91,6 +96,8 @@ int del_list();
 int mod_list();
 int quit();
 int help();
+
+char *validate_path(char *path);
 
 /* utility functions */
 void send_user_info(struct vqpasswd *tmpvpw);
@@ -173,7 +180,7 @@ int wait_write()
   FD_SET(1,&wfds);
 
   if (select(2,(fd_set*)0, &wfds,(fd_set *)0,&tv)>=1) {
-    if ( (write_size = fputs(WriteBuf,stdout) <= 0) ) exit(-1);
+    if ( (write_size = fputs(WriteBuf,stdout) < 0) ) exit(-1);
     if ( fflush(stdout)!=0) exit(-2);
     return(write_size);
   }
@@ -193,7 +200,7 @@ int main(int argc, char **argv)
 
   read_size = wait_read();
   if ( read_size < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX read timeout%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX read timeout" RET_CRLF,sizeof(WriteBuf));
     wait_write();
     exit(-1);
   } 
@@ -210,13 +217,13 @@ int main(int argc, char **argv)
   while(1) {
     read_size = wait_read();
     if ( read_size < 0 ) {
-      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX read timeout%s", RET_CRLF);
+      strncpy(WriteBuf,RET_ERR "XXX read timeout" RET_CRLF,sizeof(WriteBuf));
       wait_write();
       vclose();
       exit(-1);
     } 
     if ((command=strtok(ReadBuf,TOKENS))==NULL) {
-      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX Invalid command\r%s", RET_CRLF);
+      strncpy(WriteBuf,RET_ERR "XXX Invalid command" RET_CRLF,sizeof(WriteBuf));
       wait_write();
       continue;
     }
@@ -268,49 +275,37 @@ int login()
 
   if ( parse_email( email, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
     strncpy(WriteBuf, RET_ERR "XXX invalid login" RET_CRLF, sizeof(WriteBuf));
-    /*strncpy(WriteBuf, RET_ERR "XXX invalid email address" RET_CRLF, sizeof(WriteBuf));*/
     return(-1); 
   }
 
   if ((tmpvpw = vauth_getpw(TheUser, TheDomain))==NULL) {
     strncpy(WriteBuf, RET_ERR "XXX invalid login" RET_CRLF, sizeof(WriteBuf));
-    /*strncpy(WriteBuf, RET_ERR "XXX user does not exist" RET_CRLF, sizeof(WriteBuf));*/
     return(-1);
   }
 
   if ( vauth_crypt(TheUser, TheDomain, pass, tmpvpw) != 0 ) {
     strncpy(WriteBuf, RET_ERR "XXX invalid login" RET_CRLF, sizeof(WriteBuf));
-    /*strncpy(WriteBuf, RET_ERR "XXX invalid password" RET_CRLF, sizeof(WriteBuf));*/
     return(-1);
   } 
   strncpy(WriteBuf,RET_OK_MORE,sizeof(WriteBuf));
   wait_write();
 
 
-  AuthVpw.pw_name = calloc(strlen(tmpvpw->pw_name),sizeof(char));
-  memcpy(AuthVpw.pw_name, tmpvpw->pw_name,strlen(tmpvpw->pw_name));
-
-  AuthVpw.pw_passwd = calloc(strlen(tmpvpw->pw_passwd),sizeof(char));
-  memcpy(AuthVpw.pw_passwd, tmpvpw->pw_passwd,strlen(tmpvpw->pw_passwd));
-  
+  AuthVpw.pw_name = strdup(tmpvpw->pw_name);
+  AuthVpw.pw_passwd = strdup(tmpvpw->pw_passwd);
   AuthVpw.pw_uid = tmpvpw->pw_uid;
   AuthVpw.pw_gid = tmpvpw->pw_gid;
   AuthVpw.pw_flags = tmpvpw->pw_flags;
+  AuthVpw.pw_gecos = strdup(tmpvpw->pw_gecos);
+  AuthVpw.pw_dir = strdup(tmpvpw->pw_dir);
+  AuthVpw.pw_shell = strdup(tmpvpw->pw_shell);
+  AuthVpw.pw_clear_passwd = strdup(tmpvpw->pw_clear_passwd);
 
-  AuthVpw.pw_gecos = calloc(strlen(tmpvpw->pw_gecos),sizeof(char));
-  memcpy(AuthVpw.pw_gecos, tmpvpw->pw_gecos,strlen(tmpvpw->pw_gecos));
-
-  AuthVpw.pw_dir = calloc(strlen(tmpvpw->pw_dir),sizeof(char));
-  memcpy(AuthVpw.pw_dir, tmpvpw->pw_dir,strlen(tmpvpw->pw_dir));
-
-  AuthVpw.pw_shell = calloc(strlen(tmpvpw->pw_shell),sizeof(char));
-  memcpy(AuthVpw.pw_shell, tmpvpw->pw_shell,strlen(tmpvpw->pw_shell));
-
-  AuthVpw.pw_clear_passwd=calloc(strlen(tmpvpw->pw_clear_passwd),sizeof(char));
-  memcpy(AuthVpw.pw_clear_passwd, tmpvpw->pw_clear_passwd,
-         strlen(tmpvpw->pw_clear_passwd));
-
-  strcpy( TheDomainDir, vget_assign(TheDomain,NULL,0,&uid,&gid));
+  strncpy( TheUserDir, AuthVpw.pw_dir, sizeof(TheUserDir));
+  strncpy( TheDomainDir, vget_assign(TheDomain,NULL,0,&uid,&gid),
+    sizeof(TheDomainDir));
+  snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
+    VPOPMAILDIR);
 
   if ( (AuthVpw.pw_gid & QA_ADMIN) || 
               (strcmp("postmaster", AuthVpw.pw_name)==0) ) {
@@ -361,17 +356,17 @@ int add_user()
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized for domain" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((password=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX password required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX password required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((gecos=strtok(NULL,PARAM_SPACE_TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX gecos required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX gecos required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -389,23 +384,23 @@ int del_user()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invaild email addrress%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX invaild email addrress" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized for domain" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -426,30 +421,29 @@ int mod_user()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invaild email addrress%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX invaild email addrress" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),
-      RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,
+      RET_ERR "XXX not authorized for domain" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),
-      RET_ERR "XXX user does not exist%s", RET_CRLF);
+    strncpy(WriteBuf, RET_ERR "XXX user does not exist" RET_CRLF,sizeof(WriteBuf));
     while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL);
     return(-1);
   }
@@ -620,29 +614,28 @@ int user_info()
  char *email_address;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invaild email addrress%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX invaild email addrress" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),
-      RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf, RET_ERR "XXX not authorized for domain" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX user does not exist%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX user does not exist" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   } 
 
@@ -796,17 +789,17 @@ int add_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX domain required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((password=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX password required" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX password required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -830,12 +823,12 @@ int del_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX domain required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -853,51 +846,150 @@ int dom_info()
   return(0);
 }
 
+char *validate_path(char *path)
+{
+ static char newpath[256];
+ static char theemail[256];
+ static char theuser[256];
+ static char thedomain[256];
+ static char thedir[256];
+ struct vqpasswd *myvpw;
+ int   i;
+ char *slash;
+ char *atsign;
+
+  memset(newpath,0,256);
+  memset(theemail,0,256);
+  memset(theuser,0,256);
+  memset(thedomain,0,256);
+  memset(thedir,0,256);
+
+  /* check for fake out path */
+  if ( strstr(path,"..") != NULL ) {
+    strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+    return(NULL);
+  }
+
+  /* check for fake out path */
+  if ( strstr(path,"%") != NULL ) {
+    strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+    return(NULL);
+  }
+
+  /* expand the path */
+  if ( path[0] == '/' ) {
+    strncpy(newpath,path,sizeof(newpath));
+  } else { 
+    slash = strchr( path, '/');
+    if ( slash == NULL ) {
+      strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+      return(NULL);
+    }
+    atsign = strchr(path,'@');
+
+    /* possible email address */
+    if ( atsign != NULL ) {
+      if ( atsign > slash ) {
+        strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+        return(NULL);
+      }
+      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
+        theemail[i] = path[i];
+      }
+      theemail[i] = 0;
+
+      if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
+        strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+        return(NULL);
+      } 
+
+      if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
+        strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+        return(NULL);
+      }
+
+
+      /* limit domain admins to their domains */
+      if ( AuthVpw.pw_gid & QA_ADMIN ) {
+        if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
+          strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+          return(NULL);
+        }
+
+      /* limit users to their accounts */
+      } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
+        if ( strcmp(TheUser, theuser) != 0 || 
+             strcmp(TheDomain, thedomain) != 0 ) {
+          strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+          return(NULL);
+        }
+      }
+      strncpy(newpath, myvpw->pw_dir, sizeof(newpath));
+      strncat(newpath,&path[i],sizeof(newpath));
+    } else {
+      for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
+        thedomain[i] = path[i];
+      }
+      thedomain[i] = 0;
+      if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
+        strncpy(WriteBuf,INVALID_DIRECTORY,sizeof(WriteBuf));
+        return(NULL);
+      } 
+      strncpy(newpath,thedir,sizeof(newpath));
+      strncat(newpath,&path[i],sizeof(newpath));
+    }
+  }
+
+  if ( AuthVpw.pw_gid & SA_ADMIN ) { 
+    if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
+      strncpy(WriteBuf,RET_ERR "XXX unauthorized directory" RET_CRLF,
+        sizeof(WriteBuf));
+      return(NULL);
+    }
+  } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
+    if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
+      strncpy(WriteBuf,RET_ERR "XXX unauthorized directory" RET_CRLF,
+        sizeof(WriteBuf));
+      return(NULL);
+    }
+  } else {
+    if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
+      strncpy(WriteBuf,RET_ERR "XXX unauthorized directory" RET_CRLF,
+        sizeof(WriteBuf));
+      return(NULL);
+    }
+  }
+  return(newpath);
+}
+
 int mk_dir()
 {
  char *dir;
 
-  /* Only QA_ADMIN and SA_ADMIN users */
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized" RET_CRLF);
-    return(-1);
-  }
-
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX directory required" RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX directory required" RET_CRLF,
+      sizeof(WriteBuf));
     return(-1);
   }
 
-  /* check for fake out path */
-  if ( strstr(dir,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory" RET_CRLF);
-    return(-1);
-  }
+  if ( (dir=validate_path(dir)) == NULL ) return(-1);
 
-  /* check for fake out path */
-  if ( strstr(dir,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory" RET_CRLF);
-    return(-1);
-  }
-
-  /* validate directory for domain admin */
-  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
-       strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory" RET_CRLF);
-    return(-1);
-
-  /* validate directory for system admins */
-  } else if (strncmp(VPOPMAILDIR,dir,strlen(VPOPMAILDIR))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory" RET_CRLF);
-    return(-1);
-  }
  
   /* make directory, return error */  
-  if ( mkdir(dir,0) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
+  if ( mkdir(dir,0700) < 0 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
     return(-1);
   }
+
+  /* Change ownership */
+  if ( chown(dir,VPOPMAILUID,VPOPMAILGID) == -1 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
+    return(-1);
+  }
+
   strncpy(WriteBuf,RET_OK,sizeof(WriteBuf));
   return(0);
 }
@@ -906,42 +998,15 @@ int rm_dir()
 {
  char *dir;
 
-  /* Only QA_ADMIN and SA_ADMIN users */
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF, sizeof(WriteBuf));
-    return(-1);
-  }
-
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX directory required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX directory required" RET_CRLF,
+      sizeof(WriteBuf));
     return(-1);
   }
 
-  /* check for fake out path */
-  if ( strstr(dir,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory%s", RET_CRLF);
-    return(-1);
-  }
+  if ( (dir=validate_path(dir)) == NULL ) return(-1);
 
-  /* check for fake out path */
-  if ( strstr(dir,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* validate directory for domain admin */
-  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
-       strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
-    return(-1);
-
-  /* validate directory for system admins */
-  } else if (strncmp(VPOPMAILDIR,dir,strlen(VPOPMAILDIR))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
-    return(-1);
-  }
- 
   /* recursive directory delete */ 
   if ( vdelfiles(dir) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
@@ -956,50 +1021,26 @@ int list_dir()
  char *dir;
  DIR *mydir;
  struct dirent *mydirent;
-
-  /* Only QA_ADMIN and SA_ADMIN users */
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
-    return(-1);
-  }
+ struct stat statbuf;
 
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX directory required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX directory required" RET_CRLF,
+      sizeof(WriteBuf));
     return(-1);
   }
 
-  /* check for fake out path */
-  if ( strstr(dir,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* check for fake out path */
-  if ( strstr(dir,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid directory%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* validate directory for domain admin */
-  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
-       strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
-    return(-1);
-
-  /* validate directory for system admins */
-  } else if (strncmp(VPOPMAILDIR,dir,strlen(VPOPMAILDIR))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
-    return(-1);
-  }
+  if ( (dir=validate_path(dir)) == NULL ) return(-1);
 
   if ( chdir(dir) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
     return(-1);
   }
 
   if ( (mydir = opendir(".")) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
     return(-1);
   }
 
@@ -1012,7 +1053,29 @@ int list_dir()
     if ( strncmp(mydirent->d_name,".", 2) ==0 || 
          strncmp(mydirent->d_name,"..", 3)==0 ) continue;
    
-    snprintf(WriteBuf,sizeof(WriteBuf),"%s" RET_CRLF, mydirent->d_name);
+    if ( lstat(mydirent->d_name,&statbuf) < 0 ) {
+      printf("error on stat of %s\n", mydirent->d_name);
+      exit(-1);
+    }
+    strncpy( WriteBuf, mydirent->d_name,sizeof(WriteBuf));
+    if ( S_ISREG(statbuf.st_mode ) ) {
+      strncat(WriteBuf," file", sizeof(WriteBuf));
+    } else if ( S_ISDIR(statbuf.st_mode ) ) {
+      strncat(WriteBuf," dir", sizeof(WriteBuf));
+    } else if ( S_ISCHR(statbuf.st_mode ) ) {
+      strncat(WriteBuf," chardev", sizeof(WriteBuf));
+    } else if ( S_ISBLK(statbuf.st_mode ) ) {
+      strncat(WriteBuf," blkdev", sizeof(WriteBuf));
+    } else if ( S_ISFIFO(statbuf.st_mode ) ) {
+      strncat(WriteBuf," fifo", sizeof(WriteBuf));
+    } else if ( S_ISLNK(statbuf.st_mode ) ) {
+      strncat(WriteBuf," link", sizeof(WriteBuf));
+    } else if ( S_ISSOCK(statbuf.st_mode ) ) {
+      strncat(WriteBuf," sock", sizeof(WriteBuf));
+    } else {
+      strncat(WriteBuf," unknown", sizeof(WriteBuf));
+    }
+    strncat(WriteBuf,RET_CRLF, sizeof(WriteBuf));
     wait_write();
   }
   if ( closedir(mydir) < 0 ) {
@@ -1027,45 +1090,19 @@ int rm_file()
 {
  char *filename;
 
-  /* Only QA_ADMIN and SA_ADMIN users */
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
-    return(-1);
-  }
 
   /* must supply directory parameter */
   if ((filename=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX filename required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX filename required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
-  /* check for fake out path */
-  if ( strstr(filename,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid filename%s", RET_CRLF);
-    return(-1);
-  }
+  if ( (filename=validate_path(filename)) == NULL ) return(-1);
 
-  /* check for fake out path */
-  if ( strstr(filename,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid filename%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* validate filename for domain admin */
-  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
-       strncmp(TheDomainDir,filename,strlen(TheDomainDir))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
-    return(-1);
-
-  /* validate filename for system admins */
-  } else if (strncmp(VPOPMAILDIR,filename,strlen(VPOPMAILDIR))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
-    return(-1);
-  }
- 
   /* unlink filename */ 
   if ( unlink(filename) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
     return(-1);
   }
 
@@ -1085,44 +1122,17 @@ int read_file()
  char tmpbuf[1024];
  FILE *fs;
 
-  /* Only QA_ADMIN and SA_ADMIN users */
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
-    return(-1);
-  }
-
   /* must supply directory parameter */
   if ((filename=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX filename required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX filename required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
-  /* check for fake out path */
-  if ( strstr(filename,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid filename%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* check for fake out path */
-  if ( strstr(filename,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invalid filename%s", RET_CRLF);
-    return(-1);
-  }
-
-  /* validate filename for domain admin */
-  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
-       strncmp(TheDomainDir,filename,strlen(TheDomainDir))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
-    return(-1);
-
-  /* validate filename for system admins */
-  } else if (strncmp(VPOPMAILDIR,filename,strlen(VPOPMAILDIR))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
-    return(-1);
-  }
+  if ( (filename=validate_path(filename)) == NULL ) return(-1);
 
   if ( (fs=fopen(filename,"r"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, strerror(errno));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+      strerror(errno));
     return(-1);
   }
 
@@ -1130,7 +1140,8 @@ int read_file()
   wait_write();
 
   while(fgets(tmpbuf,sizeof(tmpbuf),fs)!=NULL){
-    if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || strcmp(tmpbuf,".\r" RET_CRLF) == 0 ) {
+    if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || 
+         strcmp(tmpbuf,".\r" RET_CRLF) == 0 ) {
       strncpy(WriteBuf, ".", sizeof(WriteBuf));
       strncat(WriteBuf, tmpbuf, sizeof(WriteBuf));
     } else {
@@ -1158,7 +1169,7 @@ int list_domains()
  int end;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -1182,15 +1193,14 @@ int list_domains()
   snprintf(tmpbuf,sizeof(tmpbuf), "%s/users/assign", QMAILDIR);
   
   if ( (fs=fopen(tmpbuf,"r")) == NULL ) {
-    snprintf(WriteBuf, sizeof(WriteBuf),
-      RET_ERR "XXX could not open assign file%s", RET_CRLF);
+    strncpy(WriteBuf, RET_ERR "XXX could not open assign file" RET_CRLF,
+      sizeof(WriteBuf));
     return(-1);
   }
 
   strncpy(WriteBuf,RET_OK_MORE,sizeof(WriteBuf));
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf),"OK%s", RET_CRLF);
   count = 0;
   while(fgets(tmpbuf,sizeof(tmpbuf),fs) != NULL ) {
     if ( (domain = strtok(tmpbuf,LIST_DOMAIN_TOKENS))==NULL ) continue;
@@ -1204,19 +1214,21 @@ int list_domains()
 
     if ( end>0 ) {
       if ( count>=start && count<end ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, domain, alias_domain);
+        snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, 
+          domain, alias_domain);
         wait_write();
       } else if ( count>=end ) {
         break;
       }
     } else { 
-      snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, domain, alias_domain);
+      snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, 
+        domain, alias_domain);
       wait_write();
     }
     ++count;
   }
   fclose(fs);
-  snprintf(WriteBuf,sizeof(WriteBuf),".%s", RET_CRLF);
+  strncpy(WriteBuf,"." RET_CRLF,sizeof(WriteBuf));
   return(0);
 }
 
@@ -1232,12 +1244,12 @@ int list_users()
  int end;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -1259,11 +1271,11 @@ int list_users()
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized for domain" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf),"OK%s", RET_CRLF);
+  strncpy(WriteBuf, RET_OK_MORE, sizeof(WriteBuf));
   wait_write();
 
   first=1;
@@ -1281,7 +1293,7 @@ int list_users()
     }
     ++count;
   }
-  snprintf(WriteBuf,sizeof(WriteBuf),".%s", RET_CRLF);
+  strncpy(WriteBuf,"." RET_CRLF,sizeof(WriteBuf));
   return(0);
 }
 
@@ -1322,17 +1334,17 @@ int get_limits()
  struct vlimits mylimits;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX domain required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX could not get limits%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX could not get limits" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -1426,18 +1438,18 @@ int set_limits()
  char *value;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((param=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX domain required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
   strncpy(domain,param,sizeof(domain));
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX could not get limits%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX could not get limits" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -1505,7 +1517,7 @@ int set_limits()
   }
 
   if ( vset_limits(domain,&mylimits) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX could not set limits%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX could not set limits" RET_CRLF,sizeof(WriteBuf));
   } else {
     strncpy(WriteBuf,RET_OK,sizeof(WriteBuf));
   }
@@ -1518,12 +1530,12 @@ int del_limits()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX domain required" RET_CRLF,sizeof(WriteBuf));
     return(-1);
   }
 
@@ -1542,28 +1554,28 @@ int get_lastauth()
  time_t last_auth_time;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invaild email addrress%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX invaild email addrress" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized for domain" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX user does not exist%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX user does not exist" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   } 
 
@@ -1572,7 +1584,7 @@ int get_lastauth()
   strncpy(WriteBuf,RET_OK_MORE,sizeof(WriteBuf));
   wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "%ld" RET_CRLF, (long int) last_auth_time);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%ld" RET_CRLF,(long int)last_auth_time);
   return(0);
 }
 
@@ -1582,28 +1594,28 @@ int get_lastauthip()
  char *last_auth_ip;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX email_address required%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX email_address required" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX invaild email addrress%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX invaild email addrress%s" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   } 
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,TmpDomain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX not authorized for domain" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX user does not exist%s", RET_CRLF);
+    strncpy(WriteBuf,RET_ERR "XXX user does not exist" RET_CRLF, sizeof(WriteBuf));
     return(-1);
   } 
 
