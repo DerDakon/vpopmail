@@ -567,7 +567,7 @@ char randltr(void)
 int mkpasswd3( char *clearpass, char *crypted, int ssize )
 {
  char *tmpstr;
- char salt[9];
+ char salt[12];
  time_t tm;
 
   time(&tm);
@@ -582,7 +582,10 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
   salt[5] = randltr();
   salt[6] = randltr();
   salt[7] = randltr();
-  salt[8] = 0;
+  salt[8] = randltr();
+  salt[9] = randltr();
+  salt[10] = randltr();
+  salt[11] = 0;
 #else
   salt[0] = randltr();
   salt[1] = randltr();
