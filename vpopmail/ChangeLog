@@ -23,6 +23,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  to 127.0.0.1) as webmail and check NO_WEBMAIL user flag instead
 	  of NO_POP and NO_IMAP.
 	- Update qmail-smtpd-auth patch in contrib to latest (0.5.6).
+	- Update README.quotas with note about domain quotas not working.
 
 	Gentoo Port
 	- Integrate vuserinfo patch to fix the -a option and to display 
