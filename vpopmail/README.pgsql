@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.7 2004-01-11 10:30:17 mbowe Exp $
+   $Id: README.pgsql,v 1.8 2004-01-16 11:22:13 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -86,6 +86,11 @@ Make the user accounts
 
 	groupadd -g 89 vchkpw
 	useradd -g vchkpw -u 89 vpopmail
+
+	# We recommend you use the user and group id's of 89. The FreeBSD folks
+	# have reserved 89 for the group and 89 for the user for vpopmail.  Feel
+	# free to have the OS assign the group/user id (for example, Solaris won't 
+	# allow gid 89).
 
 Download and unpack the source
 

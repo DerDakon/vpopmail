@@ -102,6 +102,11 @@ Make the user accounts
 	groupadd -g 89 vchkpw
 	useradd -g vchkpw -u 89 vpopmail
 
+	# We recommend you use the user and group id's of 89. The FreeBSD folks
+	# have reserved 89 for the group and 89 for the user for vpopmail.  Feel
+	# free to have the OS assign the group/user id (for example, Solaris won't 
+	# allow gid 89).
+
 Download and unpack the source
 
 	cd /usr/local/src

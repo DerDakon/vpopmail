@@ -61,6 +61,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Allow optional length for random passwords in vadduser and
 	  vadddomain. [848228]
 
+	Andrea Cerrito
+	- Update INSTALL and other guides to mention that vchkpw group
+	  does not need to be gid 89 [877154]
+
 5.4.0-rc1 - released 1-Jan-04
 
 	Michael Bowe

@@ -16,9 +16,9 @@ For information on upgrading please see the UPGRADE files
 Note: If you are using any of the BSD distro's you should probably use gmake
       and not make.
 
-VPopMail Upgrade Instructions are in the UPGRADE File
+VPopMail Upgrade Instructions are in the UPGRADE File.
 Hints on converting an old system to a new vpopmail system
-are also in the UPGRADE file
+are also in the UPGRADE file.
 
 1. check for diskspace
 	# df
@@ -40,12 +40,11 @@ If you want to place the vpopmail home dir in a different disk partition
 than the default home dir location try:
 
 	# useradd -g vchkpw -u 89 -d /path/to/where/you/want vpopmail
-		
 
 	RedHat and other linux systems place useradd and groupadd in
 	the /usr/sbin directory.
 
-NOTE: the home directory of vpopmail must exist before you contiue with
+NOTE: the home directory of vpopmail must exist before you continue with
 the installation.
 
 3.  FAST default install
