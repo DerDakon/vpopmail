@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vadduser.c,v 1.2 2003-09-30 00:30:49 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -176,7 +177,7 @@ void get_options(int argc,char **argv)
             break;
           case 'r':
             RandomPw = 1;
-            snprintf(Passwd, sizeof(Passwd), "%s", vgen_pass(8));
+            vrandom_pass (Passwd, 8);
             break;
           default:
             errflag = 1;
