@@ -1,6 +1,6 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.3 2004-11-03 18:00:49 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpopmail.h,v 1.7.2.4 2004-11-23 06:37:36 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,15 @@
 #define VA_INVALID_EMAIL_CHAR           -34
 #define VA_PARSE_ERROR                  -35
 #define VA_CANNOT_READ_LIMITS           -36
+#define VA_CANNOT_READ_ASSIGN           -37
+#define VA_CANNOT_OPEN_DATABASE         -38
+#define VA_INVALID_IP_ADDRESS           -39
+#define VA_QUERY_FAILED                 -40
+#define VA_STORE_RESULT_FAILED          -41
+#define VA_INVALID_OPEN_MODE            -42
+#define VA_CANNOT_CREATE_DATABASE       -43
+#define VA_CANNOT_CREATE_TABLE          -44
+
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01
@@ -98,6 +107,11 @@
 #define NO_SMTP       0x800
 #define QA_ADMIN     0x1000
 #define V_OVERRIDE   0x2000
+#define NO_SPAMASSASSIN 0x4000
+#define DELETE_SPAM  0x8000
+#define SA_ADMIN     0x10000
+#define SA_EXPERT    0x20000
+
 
 extern int OptimizeAddDomain;
 extern int NoMakeIndex;
