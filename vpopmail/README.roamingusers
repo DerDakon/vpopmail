@@ -1,0 +1,83 @@
+VPOPMAIL ROAMING USERS
+----------------------
+
+With qmail, the typical way to control mail relaying is to put a list of 
+rules into a file called tcp.smtp. The tcprules program is then used to 
+compile this file into cdb database format with the output being stored 
+in a file called tcp.smtp.cdb. The tcpserver program is configured (using 
+the -x parameter) to read this file and thus know which SMTP clients are 
+permitted to relay mail.
+
+This type of configuration works well if there is a known range of IP 
+addresses that are permitted to relay mail. eg the IP's on the qmail 
+server's local LAN. However if the qmail server needs to provide outbound 
+SMTP services for clients who may be connecting from any IP, you are going 
+to run into problems. What is needed is some way to automate the process 
+of granting users the ability to relay mail, without opening up access 
+to all and sundry on the Internet.
+
+vpopmail includes a solution for this problem. The solution is known as 
+"roaming users" and is implemented with a technique known as 
+"POP-before-SMTP". Once a client has successfully authenticated via POP3, 
+vpopmail will add the client's IP to a list. vpopmail then merges this 
+list with the contents of the tcp.smtp file and runs the tcprules 
+program to compile a new version of the tcp.smtp.cdb file. Thus the client 
+can now relay mail. 
+
+In addition to storing the client's IP address, vpopmail will also store 
+the time of authentication. The postmaster uses a cronjob on the qmail 
+server to periodically (eg once per hour) run the clearopensmtp program. 
+This program scans through the list of roaming clients and removes any 
+entries that exceed the nominated age (eg 3 hours). This ensures that 
+the list of IPs does not grow out of bounds, and that the roaming IPs 
+are closed within a reasonable timeframe after being opened.
+
+Configuration options for vpopmail that relate to roaming users :
+
+  ./configure \
+  --enable-roaming-users=y \            <- enable roaming users functionality
+  --enable-tcprules-prog=path \         <- defaults to /usr/local/bin/tcprules
+  --enable-tcpserver-file=path \        <- defaults to /home/vpopmail/etc/tcp.smtp
+  --enable-relay-clear-minutes=minutes  <- defaults to 180
+
+Notes :
+
+qmail servers are typically built with the tcp.smtp files being located in 
+the /etc directory. This is not usually suitable for vpopmail roaming 
+users, since the /etc directory will (should) not have write permissions 
+for the vpopmail user. Therefore it is not going to be possible for vpopmail 
+to write out updated versions of the tcp.smtp.cdb file. For use with roaming 
+users, it is recommended that the tcp.smtp files are stored in ~vpopmail/etc
+
+If a POP user auths, and their IP already exists in the roaming IP list, 
+the timestamp for the entry is updated, but the tcprules program is not run. 
+There is no need to rebuild the tcp.smtp.cdb file as the IP address is 
+already permitted to relay. Rebuilding the file will only waste disk and CPU 
+time.
+
+If the vpopmail server is using the default cdb authentication backend, 
+then the list of roaming IPs will be stored in a file called 
+~vpopmail/etc/open-smtp. If the vpopmail server is using the MySQL backend, 
+the roaming IPs will be stored in a database table called relay. The SQL 
+backend will give better performance on a busy server. Either way though, 
+you be cautious about enabling roaming user functionality on a very busy 
+server, as a large amount of disk and CPU will be used with the continual 
+rebuilding of the tcp.smtp.cdb file. If the server is busy enough you could 
+run into nasty file locking issues which will cause vpopmail password 
+authentication to intermittently fail. If you absolutely must have 
+POP-before-SMTP functionality on your busy server, then the only real 
+solution is to use vpopmail's MySQL auth backend, plus use Matt Simerson's 
+tcpserver patch that allows all of the tcp.smtp files to be stored in MySQL
+( http://matt.simerson.net/computing/mail/qmail/ucspi-tcp-0.88-mysql.patch )
+
+Over time POP-before-SMTP seems to slowly becoming a less favored way of 
+allowing roaming users to relay mail. SMTP-Auth appears to becoming the more 
+preferred option, as it scales much more easily on a busy server. However for 
+a small to medium sized server, POP-before-SMTP is still quite a workable 
+option. ( http://www.shupp.org/toaster/ )
+
+----------------------------------------------------------------------------
+
+This document was contributed by Michael Bowe (November 2003)
+Latest version available from :
+http://www.pipeline.com.au/staff/mbowe/isp/webmail-server.htm
