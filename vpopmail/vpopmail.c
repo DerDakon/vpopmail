@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.5 2004-07-01 05:29:45 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.6 2004-07-03 20:23:24 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1560,6 +1560,9 @@ int vsetuserquota( char *username, char *domain, char *quota )
   lowerit(username);
   lowerit(domain);
 
+  mypw = vauth_getpw( username, domain );
+  if (mypw == NULL) return VA_USER_DOES_NOT_EXIST;
+
   /* correctly format the quota string,
    * and then store the quota into the auth backend
    */
@@ -1567,7 +1570,6 @@ int vsetuserquota( char *username, char *domain, char *quota )
   ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
-  mypw = vauth_getpw( username, domain );
   remove_maildirsize(mypw->pw_dir);
   if (strcmp (quota, "NOQUOTA") != 0) {
    uid_t uid;
