@@ -1,6 +1,6 @@
 /*
- * $Id: vsetuserquota.c,v 1.4 2004-03-01 15:32:45 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vsetuserquota.c,v 1.5 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

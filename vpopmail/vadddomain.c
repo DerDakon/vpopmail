@@ -1,6 +1,6 @@
 /*
- * $Id: vadddomain.c,v 1.3 2004-01-13 06:05:27 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vadddomain.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 /*
- * $Id: vpgsql.h,v 1.4 2004-02-11 15:40:17 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpgsql.h,v 1.5 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

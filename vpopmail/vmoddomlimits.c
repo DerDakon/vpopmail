@@ -1,6 +1,6 @@
 /*
- * $Id: vmoddomlimits.c,v 1.8 2004-01-23 15:45:33 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vmoddomlimits.c,v 1.9 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -153,6 +153,14 @@ int main(int argc, char *argv[])
                 printf("  NO_DIALUP\n");
                 strncat(OptionString, "u", sizeof(OptionString)-strlen(OptionString)-1);
             }
+            if (limits.disable_spamassassin != 0) {
+                printf("  NO_SPAMASSASSIN\n");
+                strncat(OptionString, "c", sizeof(OptionString)-strlen(OptionString)-1);
+            }
+            if (limits.delete_spam != 0) {
+                printf("  DEL_SPAM\n");
+                strncat(OptionString, "x", sizeof(OptionString)-strlen(OptionString)-1);
+            }
             printf("Flags (for commandline): %s\n", OptionString);
             printf("Flags for non postmaster accounts:");
             printf("\n  pop account:            ");
@@ -239,6 +247,8 @@ int main(int argc, char *argv[])
             limits.disable_webmail = 0;
             limits.disable_imap = 0;
             limits.disable_relay = 0;
+            limits.disable_spamassassin = 0;
+            limits.delete_spam = 0;
             for (i=0; i<strlen(GidFlagString); i++) {
                 switch(GidFlagString[i]) {
                     case 'u': limits.disable_dialup = 1; break;
@@ -248,6 +258,8 @@ int main(int argc, char *argv[])
                     case 'w': limits.disable_webmail = 1; break;
                     case 'i': limits.disable_imap = 1; break;
                     case 'r': limits.disable_relay = 1; break;
+                    case 'c': limits.disable_spamassassin = 1; break;
+                    case 'x': limits.delete_spam = 1; break;
                 }
             }
         }
@@ -395,6 +407,9 @@ void usage()
     printf("            w ( set no web mail access flag )\n");
     printf("            i ( set no imap access flag )\n");
     printf("            r ( set no external relay flag )\n");
+    printf("            c ( set no spamassasssin flag )\n");
+    printf("            x ( set delete spam flag )\n");
+
     
     printf("the following options are bit flags for non postmaster admins\n");
     printf("         -p \"flags\"  (set pop account flags)\n");

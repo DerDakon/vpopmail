@@ -1,6 +1,6 @@
 /*
- * $Id: vpopmail.h,v 1.8 2004-02-22 22:50:48 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpopmail.h,v 1.9 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,6 +98,9 @@
 #define NO_SMTP       0x800
 #define QA_ADMIN     0x1000
 #define V_OVERRIDE   0x2000
+#define NO_SPAMASSASSIN 0x4000
+#define DELETE_SPAM  0x8000
+
 
 extern int OptimizeAddDomain;
 extern int NoMakeIndex;

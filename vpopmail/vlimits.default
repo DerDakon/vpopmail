@@ -25,6 +25,9 @@ maxmailinglists		-1
 #disable_external_relay
 #disable_smtp
 #disable_webmail
+#disable_spamassassin
+#delete_spam
+
 
 # Set bitflags on account management for non-postmaster admins.
 # To disable certain features, add the following bits:

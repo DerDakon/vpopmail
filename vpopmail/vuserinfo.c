@@ -1,6 +1,6 @@
 /*
- * $Id: vuserinfo.c,v 1.4 2003-12-03 16:25:01 tomcollins Exp $
- * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vuserinfo.c,v 1.5 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

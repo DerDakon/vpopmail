@@ -1,7 +1,7 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.6 2004-01-14 23:55:21 tomcollins Exp $
- * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpalias.c,v 1.7 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

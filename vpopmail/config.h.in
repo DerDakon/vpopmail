@@ -259,6 +259,12 @@
 #undef RETSIGTYPE
 
 /* "" */
+#undef SPAMASSASSIN
+
+/* "" */
+#undef SPAMC_PROG
+
+/* "" */
 #undef SQWEBMAIL_PASS
 
 /* Define to 1 if you have the ANSI C header files. */

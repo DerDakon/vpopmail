@@ -1,6 +1,6 @@
 /*
- * $Id: vdominfo.c,v 1.3 2004-03-10 15:26:04 tomcollins Exp $
- * Copyright (C) 2001,2002 Inter7 Internet Technologies, Inc.
+ * $Id: vdominfo.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

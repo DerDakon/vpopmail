@@ -1,6 +1,6 @@
 /*
- * $Id: file_lock.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: file_lock.c,v 1.3 2004-03-14 18:00:39 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

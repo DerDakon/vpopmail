@@ -1,6 +1,6 @@
 /*
- * $Id: vqmaillocal.c,v 1.3 2003-12-17 03:39:50 tomcollins Exp $
- * Copyright (C) 2002 Inter7 Internet Technologies, Inc.
+ * $Id: vqmaillocal.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 2002-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

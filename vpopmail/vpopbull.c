@@ -1,6 +1,6 @@
 /*
- * $Id: vpopbull.c,v 1.6 2004-01-11 09:16:53 mbowe Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vpopbull.c,v 1.7 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 /*
- * $Id: vdelivermail.c,v 1.11 2004-02-16 06:28:44 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vdelivermail.c,v 1.12 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,10 @@
 #ifdef MAKE_SEEKABLE
 #include "seek.h"
 #endif
+#ifdef SPAMASSASSIN
+#include "vlimits.h"
+#endif
+
 
 /* Globals */
 #define AUTH_SIZE 300
@@ -62,6 +66,11 @@ char TheUserExt[AUTH_SIZE];
 #define FILE_SIZE 156
 char hostname[FILE_SIZE];
 char loop_buf[FILE_SIZE];
+
+#ifdef SPAMASSASSIN
+int  InHeaders = 1;
+int is_spam();
+#endif
 
 #define MSG_BUF_SIZE 5000
 char msgbuf[MSG_BUF_SIZE];
@@ -443,6 +452,12 @@ int deliver_mail(char *address, char *quota)
  int inject = 0;
  FILE *fs;
  char tmp_file[256];
+#ifdef SPAMASSASSIN
+ int  pim[2];
+ int  local = 0;
+ struct vlimits limits;
+#endif
+
 
     /* This is a comment, ignore it */
     if ( *address == '#' ) return(0);
@@ -532,6 +547,10 @@ int deliver_mail(char *address, char *quota)
             deliver_quota_warning(address, format_maildirquota(quota));
             return(-1);
         }
+#endif
+
+#ifdef SPAMASSASSIN
+        local = 1;
 #endif
 
         /* Format the email file name */
@@ -631,9 +650,65 @@ int deliver_mail(char *address, char *quota)
         }
     }
 
+#ifdef SPAMASSASSIN
+    InHeaders=1;
+    /* fork the SpamAssassin client - based on work by Alex Dupre */
+    if ( local==1 ) {
+      vget_limits(TheDomain, &limits);
+      if ( vpw==NULL ) {
+        parse_email(maildir_to_email(address), TheUser, TheDomain, AUTH_SIZE);
+        vpw=vauth_getpw(TheUser, TheDomain);
+      }
+      if ( limits.disable_spamassassin==0 && vpw!=NULL &&
+           !(vpw->pw_gid & NO_SPAMASSASSIN) ) {
+
+        if (!pipe(pim)) {
+          pid = vfork();
+          switch (pid) {
+           case -1:
+            close(pim[0]);
+            close(pim[1]);
+            break;
+           case 0:
+            close(pim[0]);
+            dup2(pim[1], 1);
+            close(pim[1]);
+            if (execl(SPAMC_PROG, SPAMC_PROG,
+                 "-U", "/tmp/spamd.sock", "-f", "-u",
+                 maildir_to_email(address), 0) == -1) {
+              while ((file_count = read(0, msgbuf, MSG_BUF_SIZE)) > 0) {
+                write(1, msgbuf, file_count);
+              }
+              _exit(0);
+            }
+          }
+          close(pim[1]);
+          dup2(pim[0], 0);
+          close(pim[0]);
+        }
+      }
+    }
+#endif
+
+
 
     /* read it in chunks and write it to the new file */
     while((file_count=read(0,msgbuf,MSG_BUF_SIZE))>0) {
+#ifdef SPAMASSASSIN
+        if ( local==1 && InHeaders==1 &&
+             (limits.delete_spam==1 || vpw->pw_gid & DELETE_SPAM) ) {
+          printf("check is_spam\n");
+          if (is_spam(msgbuf) == 1) {
+            close(write_fd);
+            if (unlink(local_file) != 0) {
+              printf("unlink failed %s errno = %d\n", local_file, errno);
+              return(errno);
+            }
+            return(0);
+          }
+        }
+#endif
+
         if ( write(write_fd,msgbuf,file_count) == -1 ) {
             close(write_fd);
 
@@ -1298,4 +1373,59 @@ int is_loop_match( char *dt, char *address)
    /* we have a match */
    return(1);
 }
+
+#ifdef SPAMASSASSIN
+/* Check for a spam message
+ * This is done by checking for a matching line
+ * in the email headers for X-Spam-Level: which
+ * we put in each spam email
+ *
+ * Return 1 if spam
+ * Return 0 if not spam
+ * Return -1 on error
+ */
+int is_spam(char *spambuf)
+{
+ int i,j,k;
+ int found;
+
+    for(i=0,j=0;spambuf[i]!=0;++i) {
+
+       /* found a line */
+       if (spambuf[i]=='\n' || spambuf[i]=='\r' ) {
+
+         /* check for blank line, end of headers */
+         for(k=j,found=0;k<i;++k) {
+           switch(spambuf[k]) {
+             /* skip blank spaces and new lines */
+             case ' ':
+             case '\n':
+             case '\t':
+             case '\r':
+               break;
+
+             /* found a non blank, so we are still
+              * in the headers
+              */
+             default:
+               /* set the found non blank char flag */
+               found = 1;
+               break;
+           }
+         }
+         if ( found == 0 ) {
+           InHeaders=0;
+           return(0);
+         }
+
+         /* still in the headers check for spam header */
+         if ( strncmp(&spambuf[j], "X-Spam-Flag: YES", 16 ) == 0 ) return(1);
+
+         if (spambuf[i+1]!=0) j=i+1;
+       }
+     }
+     return(0);
+}
+#endif
+
 

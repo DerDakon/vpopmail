@@ -1,6 +1,6 @@
 /*
- * $Id: vldap.h,v 1.3 2003-12-22 12:08:10 mbowe Exp $
- * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vldap.h,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License  

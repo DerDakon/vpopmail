@@ -1,4 +1,4 @@
-# Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+# Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
 
