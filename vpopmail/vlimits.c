@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.5 2003-10-21 18:21:43 tomcollins Exp $
+ * $Id: vlimits.c,v 1.6 2003-10-21 21:24:37 jheesemann Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -191,6 +191,49 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
     return 0;
 }
 
+/* Take the limits struct, and write it out as a .qmailadmin-limits
+ * in the nominated dir
+ */
+int vlimits_write_limits_file(const char *dir, const struct vlimits *limits)
+{
+    FILE * fs;
+
+    /* open the limits file (overwrite if it already exists) */
+    if ((fs = fopen(dir, "w+")) != NULL) {
+        /* write out limits into the file */
+        fprintf(fs, "maxpopaccounts: %d\n", limits->maxpopaccounts);
+        fprintf(fs, "maxaliases: %d\n", limits->maxaliases);
+        fprintf(fs, "maxforwards: %d\n", limits->maxforwards);
+        fprintf(fs, "maxautoresponders: %d\n", limits->maxautoresponders);
+        fprintf(fs, "maxmailinglists: %d\n", limits->maxmailinglists);
+        fprintf(fs, "quota: %d\n", limits->diskquota);
+        fprintf(fs, "maxmsgcount: %d\n", limits->maxmsgcount);
+        fprintf(fs, "default_quota: %d\n", limits->defaultquota);
+        fprintf(fs, "default_maxmsgcount: %d\n", limits->defaultmaxmsgcount);
+        if (limits->disable_pop) fprintf(fs, "disable_pop\n");
+        if (limits->disable_imap) fprintf(fs, "disable_imap\n");
+        if (limits->disable_dialup) fprintf(fs, "disable_dialup\n");
+        if (limits->disable_passwordchanging) fprintf(fs, "disable_password_changing\n");
+        if (limits->disable_webmail) fprintf(fs, "disable_webmail\n");
+        if (limits->disable_relay) fprintf(fs, "disable_external_relay\n");
+        if (limits->disable_smtp) fprintf(fs, "disable_smtp\n");
+        fprintf(fs, "perm_account: %d\n", limits->perm_account);
+        fprintf(fs, "perm_alias: %d\n", limits->perm_alias);
+        fprintf(fs, "perm_forward: %d\n", limits->perm_forward);
+        fprintf(fs, "perm_autoresponder: %d\n", limits->perm_autoresponder);
+        fprintf(fs, "perm_maillist: %d\n", limits->perm_maillist);
+        fprintf(fs, "perm_quota: %d\n",
+          (limits->perm_quota)|(limits->perm_maillist_users<<VLIMIT_DISABLE_BITS)|(limits->perm_maillist_moderators<<(VLIMIT_DISABLE_BITS*2)));
+        fprintf(fs, "perm_defaultquota: %d\n", limits->perm_defaultquota);
+        fclose(fs);
+    } else {
+        fprintf(stderr, "vlimits: failed to open limits file (%d):  %s\n", errno, dir);
+        return -1;
+    }
+
+    return 0;
+}
+
 int vlimits_get_flag_mask(struct vlimits *limits)
  {
     int mask = 0;
@@ -295,38 +338,9 @@ int vset_limits(const char *domain, const struct vlimits *limits)
     }
 
     strncat(dir, "/.qmailadmin-limits", sizeof(dir)-strlen(dir)-1);  
-
-    /* open the limits file (overwrite if it already exists) */
-    if ((fs = fopen(dir, "w+")) != NULL) {
-        /* write out limits into the file */
-        fprintf(fs, "maxpopaccounts: %d\n", limits->maxpopaccounts);
-        fprintf(fs, "maxaliases: %d\n", limits->maxaliases);
-        fprintf(fs, "maxforwards: %d\n", limits->maxforwards);
-        fprintf(fs, "maxautoresponders: %d\n", limits->maxautoresponders);
-        fprintf(fs, "maxmailinglists: %d\n", limits->maxmailinglists);
-        fprintf(fs, "quota: %d\n", limits->diskquota);
-        fprintf(fs, "maxmsgcount: %d\n", limits->maxmsgcount);
-        fprintf(fs, "default_quota: %d\n", limits->defaultquota);
-        fprintf(fs, "default_maxmsgcount: %d\n", limits->defaultmaxmsgcount);
-        if (limits->disable_pop) fprintf(fs, "disable_pop\n");
-        if (limits->disable_imap) fprintf(fs, "disable_imap\n");
-        if (limits->disable_dialup) fprintf(fs, "disable_dialup\n");
-        if (limits->disable_passwordchanging) fprintf(fs, "disable_password_changing\n");
-        if (limits->disable_webmail) fprintf(fs, "disable_webmail\n");
-        if (limits->disable_relay) fprintf(fs, "disable_external_relay\n");
-        if (limits->disable_smtp) fprintf(fs, "disable_smtp\n");
-        fprintf(fs, "perm_account: %d\n", limits->perm_account);
-        fprintf(fs, "perm_alias: %d\n", limits->perm_alias);
-        fprintf(fs, "perm_forward: %d\n", limits->perm_forward);
-        fprintf(fs, "perm_autoresponder: %d\n", limits->perm_autoresponder);
-        fprintf(fs, "perm_maillist: %d\n", limits->perm_maillist);
-        fprintf(fs, "perm_quota: %d\n",
-          (limits->perm_quota)|(limits->perm_maillist_users<<VLIMIT_DISABLE_BITS)|(limits->perm_maillist_moderators<<(VLIMIT_DISABLE_BITS*2)));
-        fprintf(fs, "perm_defaultquota: %d\n", limits->perm_defaultquota);
-        fclose(fs);
-    } else {
-        fprintf(stderr, "vlimits: failed to open limits file (%d):  %s\n", errno, dir);
-        return -1;
+    
+    if (vlimits_write_limits_file (dir, limits) != 0) {
+    	return -1;
     }
 
     return 0;
