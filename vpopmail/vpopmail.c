@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.10 2004-11-03 18:00:49 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.11 2004-11-03 18:03:02 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1583,19 +1583,7 @@ int vsetuserquota( char *username, char *domain, char *quota )
   ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
-  remove_maildirsize(mypw->pw_dir);
-  if (strcmp (quota, "NOQUOTA") != 0) {
-   uid_t uid;
-   gid_t gid;
-   char maildir[MAX_BUFF];
-    snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
-    umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, formattedquota);
-    if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
-      strcat(maildir, "maildirsize");
-      chown(maildir,uid,gid);
-    }
-  }
+  update_maildirsize(domain, mypw->pw_dir, formattedquota);
   return(0);
 }
 
