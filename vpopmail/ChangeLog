@@ -39,6 +39,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Add new valias_remove() command to remove a single line from
 	  valias table.
 	- Fix incorrect buffer use in PQexec() calls.
+	- Convert '.' to ':' when building filename in valias_select()
+	  in vpalias.c.
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]

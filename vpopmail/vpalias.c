@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.4 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vpalias.c,v 1.5 2004-01-14 05:39:41 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,6 +46,8 @@ char *valias_select( char *alias, char *domain )
  char tmpbuf[156];
  uid_t uid;
  gid_t gid;
+ int i;
+ char *p;
 
     if ( alias == NULL )  { 
       verrori=VA_NULL_POINTER;  
@@ -73,7 +75,11 @@ char *valias_select( char *alias, char *domain )
 	printf("invalid domain, not in qmail assign file\n");
 	return(NULL);
     }
-    snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-%s", tmpstr, alias);
+    /* need to convert '.' to ':' */
+    i = snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-", tmpstr);
+    for (p = alias; (i < sizeof(tmpbuf) - 1) && (*p != '\0'); p++)
+      tmpbuf[i++] = (*p == '.' ? ':' : *p);
+    tmpbuf[i] = '\0';
     if ( (alias_fs = fopen(tmpbuf, "r")) == NULL ) {
     	return(NULL);
     }
