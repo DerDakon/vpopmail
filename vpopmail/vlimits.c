@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.6 2003-10-21 21:24:37 jheesemann Exp $
+ * $Id: vlimits.c,v 1.7 2003-11-02 11:53:28 jheesemann Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -256,7 +256,7 @@ int vlimits_get_flag_mask(struct vlimits *limits)
         mask |= NO_PASSWD_CHNG;
     }
     if (limits->disable_dialup != 0) {
-        mask |= NO_POP;
+        mask |= NO_DIALUP;
     }
     return mask;
     /* this feature has been temporarily disabled until we can figure
