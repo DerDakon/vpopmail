@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.4 2003-12-10 04:55:32 tomcollins Exp $
+ * $Id: vpopbull.c,v 1.5 2003-12-22 01:47:06 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -191,7 +191,7 @@ int process_domain(domain, fsi, fsx )
 		(long unsigned)pid,hostname);
 
 	first = 1;
-	while( (pwent = vauth_getall(domain, first, 0)) != NULL )  {
+	while( (pwent = vauth_getall(domain, first, 1)) != NULL )  {
 		first = 0;
 
 		if ( !in_exclude_list( fsx, domain, pwent->pw_name) ) {

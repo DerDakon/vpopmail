@@ -38,7 +38,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  and a more accurate result can be achieved by using
 	  ./config.status --recheck [860271]
 	- Update the vldap/qmailUser.schema so that it contains the 
-	  required definition for 'clearPassword'
+	  required definition for 'clearPassword' [810999]
+	- Modify vpopbull, so that within each domain, the users are
+	  processed alphabetically. The idea behind this is to give the
+	  operator some idea of "how far through" the mailout we are.
 
 5.4.0-pre1 - released 10-Dec-03
 	
