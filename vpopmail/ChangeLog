@@ -37,10 +37,14 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  thought to be alias for user 'dmin-limits'.
 	- Sort by alias in valias_select_all (needed for QmailAdmin).
 	- Add new valias_remove() command to remove a single line from
-	  valias table.
+	  valias table.  (not implemented for cdb backend yet)
 	- Fix incorrect buffer use in PQexec() calls.
 	- Convert '.' to ':' when building filename in valias_select()
 	  in vpalias.c.
+	- Remove length check for 'alias' parameter in vpalias.c's
+	  valias_select_all() and valias_select_all_next() since it's a 
+	  return value buffer.
+	- Remove duplicate code in valias_select_all_next() in vpalias.c.
 
 	Bill Shupp
 	- Add -o option to vmoduser to set V_OVERRIDE flag. [875505]
