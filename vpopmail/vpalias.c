@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vpalias.c,v 1.3 2004-01-13 23:06:39 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -232,7 +232,7 @@ char *valias_select_all_next(char *alias)
     }
 
     while((mydirent=readdir(mydir))!=NULL){
-        if ( strncmp(mydirent->d_name,".qmail-", 6) == 0 &&
+        if ( strncmp(mydirent->d_name,".qmail-", 7) == 0 &&
              strcmp(mydirent->d_name, ".qmail-default") != 0 ) {
 		snprintf(FileName, sizeof(FileName), "%s/%s", Dir, mydirent->d_name);
     		if ( (alias_fs = fopen(FileName, "r")) == NULL ) {
