@@ -142,18 +142,18 @@ Setup the MySQL support in the vpopmail sources
 Now, build the program with options something like this : 
 
 	./configure \
-	  --enable-roaming-users=n \
+	  --disable-roaming-users \
 	  --enable-logging=p \
-	  --enable-ip-alias-domains=n \
-	  --enable-passwd=n \
-	  --enable-clear-passwd=y \
-	  --enable-domain-quotas=n \
+	  --disable-ip-alias-domains \
+	  --disable-passwd \
+	  --enable-clear-passwd \
+	  --disable-domain-quotas \
 	  --enable-auth-module=mysql \
-	  --enable-many-domains=n \
-	  --enable-auth-logging=y \
-	  --enable-mysql-logging=y \
-	  --enable-valias=y \
-	  --enable-mysql-limits=n 
+	  --disable-many-domains \
+	  --enable-auth-logging \
+	  --enable-mysql-logging \
+	  --enable-valias \
+	  --disable-mysql-limits 
    
 	make
 	make install-strip

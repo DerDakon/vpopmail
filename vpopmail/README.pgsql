@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.6 2004-01-10 18:17:02 tomcollins Exp $
+   $Id: README.pgsql,v 1.7 2004-01-11 10:30:17 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -102,17 +102,17 @@ Create the a vpopmail database in PostgreSQL
 Now, build the program with a configure something like this :
 
 	./configure \
-	  --enable-roaming-users=n \
+	  --disable-roaming-users \
 	  --enable-logging=p \
-	  --enable-ip-alias-domains=n \
-	  --enable-passwd=n \
-	  --enable-clear-passwd=y \
-	  --enable-domain-quotas=n \
+	  --disable-ip-alias-domains \
+	  --disable-passwd \
+	  --enable-clear-passwd \
+	  --disable-domain-quotas \
 	  --enable-auth-module=pgsql \
-	  --enable-many-domains=n \
-	  --enable-auth-logging=y \
-	  --enable-pgsql-logging=y \
-	  --enable-valias=y
+	  --disable-many-domains \
+	  --enable-auth-logging \
+	  --enable-pgsql-logging \
+	  --enable-valias
  
 	make
 	make install-strip

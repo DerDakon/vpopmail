@@ -14,11 +14,14 @@ It should really be a case of following these basic steps
 
   tar xzf vpopmail-5.4.0.tar.gz
   cd vpopmail-5.4.0
+
   ./configure --help    
   # (review the available options)
+
   ./configure [plus your options go here]
   # (make sure that you enable the same auth module that you
   #  have been previously using.. eg --enable-auth-module=mysql)                 
+
   make
   make install-strip
 

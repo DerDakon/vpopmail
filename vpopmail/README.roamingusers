@@ -40,7 +40,7 @@ are closed within a reasonable timeframe after being opened.
 Configuration options for vpopmail that relate to roaming users :
 
   ./configure \
-  --enable-roaming-users=y \            <- enable roaming users functionality
+  --enable-roaming-users \              <- enable roaming users functionality
   --enable-tcprules-prog=path \         <- defaults to /usr/local/bin/tcprules
   --enable-tcpserver-file=path \        <- defaults to /home/vpopmail/etc/tcp.smtp
   --enable-relay-clear-minutes=minutes  <- defaults to 180
