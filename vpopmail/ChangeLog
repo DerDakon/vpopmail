@@ -1,6 +1,16 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.0-pre2 - unreleased
+
+	Casey Zacek
+	- Keep vlimits_setflags() in vlimits.c when mysql-limits is
+	  enabled. [858109]
+
+	Tom Collins
+	- open_smtp_relay(): fix address conversion of '::ffff:127.0.0.1'
+	  ip format. [858586]
+
 5.4.0-pre1 - released 10-Dec-03
 	
 	Michael Bowe
