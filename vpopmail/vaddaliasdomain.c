@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vaddaliasdomain.c,v 1.2 2003-09-29 23:59:15 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,30 +32,56 @@
 
 #define MAX_BUFF 256
 
-char Domain_real[MAX_BUFF];
-char Domain_alias[MAX_BUFF];
+char Domain_a[MAX_BUFF];
+char Domain_b[MAX_BUFF];
 
 void usage();
 void get_options(int argc,char **argv);
 
 int main(int argc, char *argv[])
 {
- int err;
+    int err;
+    char *doma;
+    char *domb;
 
     get_options(argc,argv);
 
-    err = vaddaliasdomain( Domain_alias, Domain_real);
+    /* see if Domain_a or Domain_b exist */
+    /* Also, if domain is an alias, convert it to the real domain */ 
+    doma = vget_assign(Domain_a, NULL, 0, NULL, NULL);
+    domb = vget_assign(Domain_b, NULL, 0, NULL, NULL);
+
+    /* Check if both domains exists */
+    if ((doma != NULL) && (domb != NULL))
+    {
+        printf("Error: Both domains already exist, unable to create alias.\n");
+        vexit(-1);
+    }
+    
+    /* Check if none of the domains exists */
+    if ((doma == NULL) && (domb == NULL))
+    {
+        printf("Error: Neither '%s' or '%s'  exist, unable to create alias.\n", Domain_a, Domain_b);
+        vexit(-1);
+    }
+    
+    if (doma != NULL)  /* alias Domain_b to real Domain_a */
+        err = vaddaliasdomain(Domain_b, Domain_a);
+    else               /* alias Domain_a to real Domain_b */
+        err = vaddaliasdomain(Domain_a, Domain_b);
+    
     if ( err != VA_SUCCESS ) {
         printf("Error: %s\n", verror(err));
-	vexit(err);
+        vexit(err);
     }
     return(vexit(0));
 }
 
 void usage()
 {
-    printf("vaddaliasdomain: usage: [options] alias_domain real_domain\n");
+    printf("vaddaliasdomain: usage: [options] real_domain alias_domain\n");
     printf("options: -v (print version number)\n");
+    printf("note: for backward compatability, you can swap real_domain and alias_domain.\n");
 }
 
 void get_options(int argc,char **argv)
@@ -62,8 +89,8 @@ void get_options(int argc,char **argv)
  int c;
  int errflag;
 
-    memset(Domain_real, 0, sizeof(Domain_real));
-    memset(Domain_alias, 0, sizeof(Domain_alias));
+    memset(Domain_a, 0, sizeof(Domain_a));
+    memset(Domain_b, 0, sizeof(Domain_b));
 
     errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
@@ -78,22 +105,22 @@ void get_options(int argc,char **argv)
     }
 
     if ( optind < argc ) { 
-	snprintf(Domain_alias, sizeof(Domain_alias), "%s", argv[optind]);
+    snprintf(Domain_a, sizeof(Domain_a), "%s", argv[optind]);
         ++optind;
     }
 
     if ( optind < argc ) {
-	snprintf(Domain_real, sizeof(Domain_real), "%s", argv[optind]);
+    snprintf(Domain_b, sizeof(Domain_b), "%s", argv[optind]);
         ++optind;
     }
 
-    if ( Domain_alias[0] == 0 || Domain_real[0] == 0 ) { 
+    if ( Domain_b[0] == 0 || Domain_a[0] == 0 ) { 
         usage();
         vexit(-1);
     }
 
-    if ( strcmp( Domain_real, Domain_alias ) == 0 ) {
-        printf("new domain and old domain are the same!\n");
+    if ( strcmp( Domain_a, Domain_b ) == 0 ) {
+        printf("Error: real domain and alias domain are the same!\n");
         usage();
         vexit(-1);
     }
