@@ -54,8 +54,6 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table."
 ac_help="$ac_help
-  --enable-defaultquota=#    Where # is the quota as defined in README.quotas."
-ac_help="$ac_help
   --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info."
 ac_help="$ac_help
   --enable-domains-dir=TEXT  Set domains directory name for ~vpopmail/[domains]/user/."
@@ -85,6 +83,8 @@ ac_help="$ac_help
   --enable-valias            Store email aliases in MySQL."
 ac_help="$ac_help
   --disable-many-domains     Creates a table for each virtual domain instead of storing all users in a single table. Only valid for MySQL and PostgreSQL"
+ac_help="$ac_help
+"
 ac_help="$ac_help
 "
 ac_help="$ac_help
@@ -613,7 +613,7 @@ fi
 
 
 PACKAGE="vpopmail"
-VERSION="5.4.0-rc1"
+VERSION="5.4.0-rc2"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -3402,48 +3402,8 @@ esac
 
 #----------------------------------------------------------------------
 
-#AC_ARG_ENABLE(hardquota,
-#        [  --enable-hardquota],
-#                [
-#    AC_MSG_ERROR(use --enable-defaultquota instead of --enable-hardquota)
-#                ]
-#)
-
-echo $ac_n "checking whether a defaultquota has been nominated""... $ac_c" 1>&6
-echo "configure:3414: checking whether a defaultquota has been nominated" >&5
-# Check whether --enable-defaultquota or --disable-defaultquota was given.
-if test "${enable_defaultquota+set}" = set; then
-  enableval="$enable_defaultquota"
-  ENABLE_HARD_QUOTA=$enableval
-else
-  
-                        ENABLE_HARD_QUOTA=0
-                
-
-fi
-
-
-case $ENABLE_HARD_QUOTA in
-  0*|n*|N*)
-      echo "$ac_t""no" 1>&6
-      ;;
-  y*|Y*)
-      echo "$ac_t""yes, but incorrectly" 1>&6
-      { echo "configure: error: --enable-defaultquota=X or n. Where X must either be the quota" 1>&2; exit 1; }
-      ;;
-  *)
-      echo "$ac_t""yes" 1>&6
-      cat >> confdefs.h <<EOF
-#define HARD_QUOTA "$ENABLE_HARD_QUOTA"
-EOF
-
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
 echo $ac_n "checking whether domainquotas is enabled""... $ac_c" 1>&6
-echo "configure:3447: checking whether domainquotas is enabled" >&5
+echo "configure:3407: checking whether domainquotas is enabled" >&5
 # Check whether --enable-domainquotas or --disable-domainquotas was given.
 if test "${enable_domainquotas+set}" = set; then
   enableval="$enable_domainquotas"
@@ -3536,7 +3496,7 @@ fi
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether an auth module has been specified""... $ac_c" 1>&6
-echo "configure:3540: checking whether an auth module has been specified" >&5
+echo "configure:3500: checking whether an auth module has been specified" >&5
 
 #default to use CDB authentication
 AUTH_MODULE="cdb"
@@ -3742,7 +3702,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether system accounts have been enabled""... $ac_c" 1>&6
-echo "configure:3746: checking whether system accounts have been enabled" >&5
+echo "configure:3706: checking whether system accounts have been enabled" >&5
 # Check whether --enable-passwd or --disable-passwd was given.
 if test "${enable_passwd+set}" = set; then
   enableval="$enable_passwd"
@@ -3764,17 +3724,17 @@ case $ENABLE_PASSWD in
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:3768: checking for $ac_hdr" >&5
+echo "configure:3728: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3773 "configure"
+#line 3733 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3778: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3738: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3803,17 +3763,17 @@ done
         HAS_SHADOW_H=0
         ac_safe=`echo "shadow.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for shadow.h""... $ac_c" 1>&6
-echo "configure:3807: checking for shadow.h" >&5
+echo "configure:3767: checking for shadow.h" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3812 "configure"
+#line 3772 "configure"
 #include "confdefs.h"
 #include <shadow.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3817: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3777: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3854,7 +3814,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether /etc/shadow exists""... $ac_c" 1>&6
-echo "configure:3858: checking whether /etc/shadow exists" >&5
+echo "configure:3818: checking whether /etc/shadow exists" >&5
 if test -f /etc/shadow
 then
         echo "$ac_t""yes" 1>&6
@@ -3870,7 +3830,7 @@ fi
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether logging is enabled""... $ac_c" 1>&6
-echo "configure:3874: checking whether logging is enabled" >&5
+echo "configure:3834: checking whether logging is enabled" >&5
 # Check whether --enable-logging or --disable-logging was given.
 if test "${enable_logging+set}" = set; then
   enableval="$enable_logging"
@@ -3944,7 +3904,7 @@ EOF
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether auth-logging is enabled""... $ac_c" 1>&6
-echo "configure:3948: checking whether auth-logging is enabled" >&5
+echo "configure:3908: checking whether auth-logging is enabled" >&5
 # Check whether --enable-auth-logging or --disable-auth-logging was given.
 if test "${enable_auth_logging+set}" = set; then
   enableval="$enable_auth_logging"
@@ -3974,7 +3934,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether mysql-logging is enabled""... $ac_c" 1>&6
-echo "configure:3978: checking whether mysql-logging is enabled" >&5
+echo "configure:3938: checking whether mysql-logging is enabled" >&5
 # Check whether --enable-mysql-logging or --disable-mysql-logging was given.
 if test "${enable_mysql_logging+set}" = set; then
   enableval="$enable_mysql_logging"
@@ -4009,7 +3969,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether pgsql-logging is enabled""... $ac_c" 1>&6
-echo "configure:4013: checking whether pgsql-logging is enabled" >&5
+echo "configure:3973: checking whether pgsql-logging is enabled" >&5
 # Check whether --enable-pgsql-logging or --disable-pgsql-logging was given.
 if test "${enable_pgsql_logging+set}" = set; then
   enableval="$enable_pgsql_logging"
@@ -4044,7 +4004,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether mysql-limits is enabled""... $ac_c" 1>&6
-echo "configure:4048: checking whether mysql-limits is enabled" >&5
+echo "configure:4008: checking whether mysql-limits is enabled" >&5
 # Check whether --enable-mysql-limits or --disable-mysql-limits was given.
 if test "${enable_mysql_limits+set}" = set; then
   enableval="$enable_mysql_limits"
@@ -4079,7 +4039,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether mysql-replication is enabled""... $ac_c" 1>&6
-echo "configure:4083: checking whether mysql-replication is enabled" >&5
+echo "configure:4043: checking whether mysql-replication is enabled" >&5
 # Check whether --enable-mysql-replication or --disable-mysql-replication was given.
 if test "${enable_mysql_replication+set}" = set; then
   enableval="$enable_mysql_replication"
@@ -4114,7 +4074,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether valias is enabled""... $ac_c" 1>&6
-echo "configure:4118: checking whether valias is enabled" >&5
+echo "configure:4078: checking whether valias is enabled" >&5
 # Check whether --enable-valias or --disable-valias was given.
 if test "${enable_valias+set}" = set; then
   enableval="$enable_valias"
@@ -4149,7 +4109,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether many-domains is enabled""... $ac_c" 1>&6
-echo "configure:4153: checking whether many-domains is enabled" >&5
+echo "configure:4113: checking whether many-domains is enabled" >&5
 # Check whether --enable-many-domains or --disable-many-domains was given.
 if test "${enable_many_domains+set}" = set; then
   enableval="$enable_many_domains"
@@ -4185,7 +4145,7 @@ esac
 #----------------------------------------------------------------------
 
 echo $ac_n "checking whether any discontinued --enable commands have been used""... $ac_c" 1>&6
-echo "configure:4189: checking whether any discontinued --enable commands have been used" >&5
+echo "configure:4149: checking whether any discontinued --enable commands have been used" >&5
 
 # Check whether --enable-mysql or --disable-mysql was given.
 if test "${enable_mysql+set}" = set; then
@@ -4258,7 +4218,17 @@ if test "${enable_hardquota+set}" = set; then
   enableval="$enable_hardquota"
   
         echo "$ac_t""yes" 1>&6
-        { echo "configure: error: --enable-hardquota has been superceded. Please use --enable-defaultquota instead" 1>&2; exit 1; }
+        { echo "configure: error: --enable-hardquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." 1>&2; exit 1; }
+    
+
+fi
+
+# Check whether --enable-hardquota or --disable-hardquota was given.
+if test "${enable_hardquota+set}" = set; then
+  enableval="$enable_hardquota"
+  
+        echo "$ac_t""yes" 1>&6
+        { echo "configure: error: --enable-defaultquota has been superceded. Please use the ~vpopmail/vlimits.default file instead." 1>&2; exit 1; }
     
 
 fi
@@ -4786,16 +4756,6 @@ case $IPALIAS in
     ;;
   *)
     echo "          ip alias = OFF --disable-ip-alias-domains (default)"
-    ;;
-esac
-
-
-case $ENABLE_HARD_QUOTA in
-  0*|n*|N*)
-    echo "        user quota = OFF --enable-defaultquota=NOQUOTA (default)"
-    ;;
-  *)
-    echo "        user quota = $ENABLE_HARD_QUOTA --enable-hardquota=$ENABLE_HARD_QUOTA"
     ;;
 esac
 

@@ -817,38 +817,6 @@ esac
 
 #----------------------------------------------------------------------
 
-#AC_ARG_ENABLE(hardquota,
-#        [  --enable-hardquota],
-#                [
-#    AC_MSG_ERROR(use --enable-defaultquota instead of --enable-hardquota)
-#                ]
-#)
-
-AC_MSG_CHECKING(whether a defaultquota has been nominated)
-AC_ARG_ENABLE(defaultquota,
-        [  --enable-defaultquota=#    Where # is the quota as defined in README.quotas.],
-        ENABLE_HARD_QUOTA=$enableval,
-                [
-                        ENABLE_HARD_QUOTA=0
-                ]
-)
-
-case $ENABLE_HARD_QUOTA in
-  0*|n*|N*)
-      AC_MSG_RESULT(no)
-      ;;
-  y*|Y*)
-      AC_MSG_RESULT([yes, but incorrectly])
-      AC_MSG_ERROR(--enable-defaultquota=X or n. Where X must either be the quota, or n to signify no quota)
-      ;;
-  *)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE_UNQUOTED(HARD_QUOTA,"$ENABLE_HARD_QUOTA","")
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
 AC_MSG_CHECKING(whether domainquotas is enabled)
 AC_ARG_ENABLE(domainquotas,
         [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
@@ -1419,7 +1387,13 @@ AC_ARG_ENABLE(active-directory, [],
 AC_ARG_ENABLE(hardquota, [],
     [
         AC_MSG_RESULT(yes)
-        AC_MSG_ERROR(--enable-hardquota has been superceded. Please use --enable-defaultquota instead)
+        AC_MSG_ERROR(--enable-hardquota has been superceded. Please use the ~vpopmail/vlimits.default file instead.)
+    ]
+)
+AC_ARG_ENABLE(hardquota, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-defaultquota has been superceded. Please use the ~vpopmail/vlimits.default file instead.)
     ]
 )
 
@@ -1560,16 +1534,6 @@ case $IPALIAS in
     ;;
   *)
     echo "          ip alias = OFF --disable-ip-alias-domains (default)"
-    ;;
-esac
-
-
-case $ENABLE_HARD_QUOTA in
-  0*|n*|N*)
-    echo "        user quota = OFF --enable-defaultquota=NOQUOTA (default)"
-    ;;
-  *)
-    echo "        user quota = $ENABLE_HARD_QUOTA --enable-hardquota=$ENABLE_HARD_QUOTA"
     ;;
 esac
 
