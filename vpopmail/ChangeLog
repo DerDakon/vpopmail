@@ -11,6 +11,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix method used to open database in vauth_open_update of
 	  vmysql.c. [967994, 946983]
 
+	Pit Palme
+	- Show 'delete' as valid option to vdelivermail in docs. [951245]
+
 	Tom Collins
 	- Fix `vuserinfo -l` output, based on Bill Shupp's patch
 	  (moved code to a single function call). [961742]
