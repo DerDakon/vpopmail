@@ -21,6 +21,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Contributed README.ipaliasdomains file that provices some
 	  explanation of the how the vpopmail IP Alias Domains system
 	  works
+        - Modified vdeldomain() so that it emits a warning rather than
+	  aborting should any of the steps in the delete process fail.
+	  The idea is to allow a partially installed domain to be 
+	  cleanly and easily removed from the vpopmail system [821972]
 
 	Tom Collins
 	- Update more files involved in the build process.
