@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.2 2003-09-30 00:30:49 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.3 2003-10-13 22:26:45 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,7 +80,8 @@
 #define VA_ALIAS_LINE_TOO_LONG          -32
 #define VA_NULL_POINTER                 -33
 #define VA_INVALID_EMAIL_CHAR           -34
-#define VA_PARSE_ERROR			-35
+#define VA_PARSE_ERROR                  -35
+#define VA_CANNOT_READ_LIMITS           -36
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01

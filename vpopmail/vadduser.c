@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.4 2003-10-12 23:54:49 jheesemann Exp $
+ * $Id: vadduser.c,v 1.5 2003-10-13 22:26:45 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-#include "vlimits.h"
 
 #define MAX_BUFF 256
 
@@ -52,7 +51,6 @@ int main(int argc,char **argv)
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
  struct vqpasswd *vpw;
- struct vlimits limits;
 
     get_options(argc,argv);
 
@@ -70,11 +68,6 @@ int main(int argc,char **argv)
     if ( Domain[0] == 0 ) {
       printf("You did not use a full email address for the user name\n");
       printf("Only full email addresses should be used\n");
-      vexit(-1);
-    }
-
-    if (vget_limits(Domain,&limits) != 0) {
-      printf ("Failed to vget_limits\n");
       vexit(-1);
     }
 
@@ -104,9 +97,7 @@ int main(int argc,char **argv)
     }
     
     /* set the users quota if set on the command line */
-    if ( limits.defaultquota > 0 || Quota[0] != 0 ) {
-      if (Quota[0] == 0)
-        snprintf(Quota, MAX_BUFF, "%d", limits.defaultquota);
+    if ( Quota[0] != 0) {
       if (vsetuserquota( User, Domain, Quota ) != 0) {
         printf ("Error in vsetuserquota()\n");
         vexit(-1);
