@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vdominfo.c,v 1.2.2.1 2004-03-10 15:06:54 tomcollins Exp $
  * Copyright (C) 2001,2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -184,13 +184,19 @@ void display_all_domains()
         /* skip over any lines that do not contain tokens */
 	if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
 
+	/* ignore lines that don't start with "+" */
+	if (*tmpstr != '+') continue;
+
 	/* suck out the "alias name" of the domain 
          * (we have to drop the leading '+' and the trailing "-") 
          */
 	snprintf(Domain, sizeof(Domain), "%s", tmpstr+1);
         Domain[strlen(Domain)-1] = 0;
 
-        /* jump over the tken between the alias and real domain */
+	/* ignore domains without '.' in them (non-vpopmail entries */
+	if (strchr (Domain, '.') == NULL) continue;
+
+        /* jump over the token between the alias and real domain */
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
 
         /* suck out the "real name" of the domain */
