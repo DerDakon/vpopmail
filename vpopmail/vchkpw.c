@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vchkpw.c,v 1.3 2003-10-07 00:56:53 tomcollins Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -309,7 +310,7 @@ void read_user_pass()
 
     /* on error exit out */
     if ( j == -1 ) {     
-      printf("%s: vchkpw is only for talking with qmail-popup and qmail-pop3d. \
+      fprintf(stderr, "%s: vchkpw is only for talking with qmail-popup and qmail-pop3d. \
 It is not for runnning on the command line.\n", VchkpwLogName);
       vchkpw_exit(11);
     } else if ( j == 0 ) {
@@ -389,7 +390,7 @@ void login_virtual_user()
 #ifdef CLEAR_PASS 
   /* Check CRAM-MD5 auth */
   if(ConnType == SMTP_CONN) {
-	  printf("vchkpw: smtp auth\n");
+	  /* printf("vchkpw: smtp auth\n"); */
     cramaccepted = authcram(ThePass,TheResponse,vpw->pw_clear_passwd);
     if(cramaccepted == 0) strcpy(AuthType, "CRAM-MD5");
   }
@@ -672,7 +673,7 @@ int authcram(unsigned char *challenge, unsigned char *response, unsigned char *p
      h=digest[j] & 0x0f;
      digascii[(2*j)+1]=hextab[h];
    }   
-    printf("digascii: %s, response: %s", digascii, response);
+   /* printf("digascii: %s, response: %s", digascii, response); */
    return(strcmp(digascii,response));
 }
 
