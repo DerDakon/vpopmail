@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.3 2003-09-30 04:53:39 tomcollins Exp $
+# $Id: Makefile.am,v 1.4 2003-10-21 18:24:20 tomcollins Exp $
 # Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
@@ -14,6 +14,7 @@ CONFIG_CLEAN_FILES=vauth.c
 AM_INSTALL_PROGRAM_FLAGS= -o @vpopuser@ -m 711 -g @vpopgroup@ 
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
+VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
 
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
 libvpopmail_a_LIBADD =  cdb/*.o
@@ -107,6 +108,10 @@ install-data-local:
 	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
 	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > @vpopmaildir@/etc/lib_deps
 
+	if test ! -r $(VLIMITS); then \
+	  $(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \
+	    vlimits.default $(VLIMITS); \
+	fi
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
 	    echo "# MySQL settings, line 1 is config for read-only," > $(MYSQLCONF); \
