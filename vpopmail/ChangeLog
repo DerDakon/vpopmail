@@ -15,6 +15,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  1024706, 1033801]
 	- Fix bug in vmoddomlimits that wiped out the Domain Quota 
 	  when editing default limits.
+	- Change columns in Postgres valias table to varchar from char.
+	  See README.pgsql for instructions on fixing existing tables.
 
 	Gentoo Port
 	- Integrate vuserinfo patch to fix the -a option and to display 

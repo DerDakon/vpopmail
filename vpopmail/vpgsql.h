@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.h,v 1.4 2004-02-11 15:40:17 tomcollins Exp $
+ * $Id: vpgsql.h,v 1.4.2.1 2004-10-20 23:25:41 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -218,9 +218,9 @@ level_end0, level_end1, level_end2, \
 level_mod0, level_mod1, level_mod2, \
 level_index0, level_index1, level_index2, the_dir"
 
-#define VALIAS_TABLE_LAYOUT "alias char(32) NOT NULL, \
-domain char(64) NOT NULL, \
-valias_line char(160) NOT NULL"
+#define VALIAS_TABLE_LAYOUT "alias varchar(32) NOT NULL, \
+domain varchar(64) NOT NULL, \
+valias_line varchar(160) NOT NULL"
 #define VALIAS_INDEX_LAYOUT "(alias, domain)"
 #endif
 
