@@ -15,6 +15,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  memory in docheckquota(). [1101316]
 	- contrib/qmail-maildir++.patch: same fix as for maildirquota.c.
 
+	Tom Collins
+	- vlimits.c: print errors to stderr.
+
 5.4.9 - released 26-Dec-04
 
 	Jeremy Kister

@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.10 2003-12-12 16:10:58 tomcollins Exp $
+ * $Id: vlimits.c,v 1.10.2.1 2005-01-23 17:05:04 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -288,7 +288,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
 
     /* extract the dir, uid, gid of the domain */
     if (vget_assign(mydomain, dir, sizeof(dir), &uid, &gid) == NULL) {
-      printf ("Error. Domain %s was not found in the assign file\n", mydomain);
+      fprintf (stderr, "Error. Domain %s was not found in the assign file\n", mydomain);
       return (-1);
     }
 
@@ -332,7 +332,7 @@ int vset_limits(const char *domain, const struct vlimits *limits)
 
     /* get the dir, uid and gid of the nominated domain */
     if (vget_assign(mydomain, dir, sizeof(dir), &uid, &gid) == NULL) {
-      printf ("Error. Domain %s was not found in the assign file\n",mydomain);
+      fprintf (stderr, "Error. Domain %s was not found in the assign file\n",mydomain);
       return(-1);
     }
 
