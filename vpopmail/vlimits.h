@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.h,v 1.4 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vlimits.h,v 1.5 2003-10-21 21:24:37 jheesemann Exp $
  * handle domain limits in both file and mysql tables
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -55,5 +55,6 @@ int vget_limits(const char * domain, struct vlimits * limits);
 int vset_limits(const char * domain, const struct vlimits * limits);
 int vdel_limits(const char * domain);
 int vlimits_read_limits_file(const char * dir, struct vlimits * limits);
+int vlimits_write_limits_file(const char * dir, const struct vlimits * limits);
 int vlimits_get_flag_mask(struct vlimits *limits);
 #endif

@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.5 2003-10-21 21:00:13 tomcollins Exp $
+ * $Id: vmoddomlimits.c,v 1.6 2003-10-21 21:24:37 jheesemann Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -69,6 +69,8 @@ int PermDefaultQuotaFlag = 0;
 int QuotaFlag = 0;
 int ShowLimits = 0;
 int DeleteLimits = 0;
+int EditDefaultLimits = 0;
+
 struct vlimits limits;
 
 void usage();
@@ -82,24 +84,40 @@ int main(int argc, char *argv[])
 
     get_options(argc,argv);
     
-    if ( vget_assign(Domain, NULL, 0, NULL, NULL ) != NULL ) {    
-    
-        if (vget_limits(Domain,&limits) != 0) {
-          printf ("Failed to vget_limits\n");
-          vexit(-1);
-        }
-        if (DeleteLimits) {
-            if (vdel_limits(Domain)==0) {
-                printf ("Limits deleted\n");
-                vexit(0);
-            } else {
-                printf ("Failed to delete limits\n");
+    if (EditDefaultLimits || vget_assign(Domain, NULL, 0, NULL, NULL ) != NULL) {    
+        if (EditDefaultLimits) {
+            if (vlimits_read_limits_file(VLIMITS_DEFAULT_FILE, &limits) != 0) {
+                printf ("Failed to read the vlimits.default file.\n");
                 vexit(-1);
+            }
+            if (DeleteLimits) {
+          	printf ("Default limits must not be deleted. If you really want to do this,\n");
+          	printf ("remove the vlimits.default file.\n");
+          	printf ("But be warned: this might stop vpopmail from working!!\n");
+          	vexit(-1);
+            }
+        } else {
+            if (vget_limits(Domain,&limits) != 0) {
+                printf ("Failed to vget_limits\n");
+                vexit(-1);
+            }
+            if (DeleteLimits) {
+                if (vdel_limits(Domain)==0) {
+                    printf ("Limits deleted\n");
+                    vexit(0);
+                } else {
+                    printf ("Failed to delete limits\n");
+                    vexit(-1);
+                }
             }
         }
         if (ShowLimits) {
             memset (OptionString, 0, sizeof(OptionString));
-            printf("Domain: %s\n", Domain);
+            if (EditDefaultLimits)
+                printf("Default limits: %s\n", VLIMITS_DEFAULT_FILE);
+            else
+                printf("Domain: %s\n", Domain);
+
             printf("--\n");
             printf("Max Pop Accounts: %d\n", limits.maxpopaccounts);
             printf("Max Aliases: %d\n", limits.maxaliases);
@@ -332,9 +350,16 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        if (vset_limits(Domain,&limits) != 0) {
-          printf ("Failed to vset_limits\n");
-          return (vexit(-1));
+        if (EditDefaultLimits) {
+            if (vlimits_write_limits_file(VLIMITS_DEFAULT_FILE, &limits)) {
+            	printf ("Failed to write vlimits.default file");
+            	return (vexit(-1));
+            }
+        } else {
+            if (vset_limits(Domain,&limits) != 0) {
+                printf ("Failed to vset_limits\n");
+                return (vexit(-1));
+            }
         }
     }
     
@@ -346,6 +371,7 @@ void usage()
 {
     printf( "vmoddomlimits: usage: [options] domain \n");
     printf("options: -v ( display the vpopmail version number )\n");
+    printf("         -V ( use the vlimits.default file, instead of domain )\n");
     printf("         -S ( show current settings )\n");
     printf("         -D ( delete limits for this domain, i.e. switch to default limits)\n");
     printf("         -Q quota-in-megabytes ( set domain disk quota, '100' = 100 MB )\n");
@@ -431,8 +457,9 @@ void get_options(int argc,char **argv)
     //NoMakeIndex = 0;
     ShowLimits = 0;
     DeleteLimits = 0;
+    EditDefaultLimits = 0;
     errflag = 0;
-    while( (c=getopt(argc,argv,"vSDQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
+    while( (c=getopt(argc,argv,"vSDVQ:q:M:m:P:A:F:R:L:g:p:a:f:r:l:u:o:x:z:h")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -443,6 +470,9 @@ void get_options(int argc,char **argv)
             case 'D':
                 DeleteLimits = 1;
                 break;
+            case 'V':
+                EditDefaultLimits = 1;
+                snprintf(Domain, sizeof(Domain), "Default limits: %s", VLIMITS_DEFAULT_FILE);
             case 'Q':
                 snprintf(DomainQuota, sizeof(DomainQuota), "%s", optarg);
                 break;
@@ -519,12 +549,12 @@ void get_options(int argc,char **argv)
         }
     }
 
-    if ( optind < argc ) {
+    if ( optind < argc && EditDefaultLimits == 0) {
         snprintf(Domain, sizeof(Domain), "%s", argv[optind]);
         ++optind;
     }
 
-    if ( Domain[0] == 0 ) { 
+    if ( Domain[0] == 0 && EditDefaultLimits == 0) { 
         usage();
         vexit(-1);
     }
