@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.1 2004-06-11 15:52:28 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -203,41 +203,36 @@ int vauth_open_update()
     mysql_init(&mysql_update);
     mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
-    /* Try to connect to the mysql update server with the specified database. */
+    /* Try to connect to the mysql update server */
     if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
-            MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD,
-            MYSQL_UPDATE_DATABASE, MYSQL_UPDATE_PORT, NULL, 0))) {
-
-        /* Could not connect to the update mysql server with the database
-         * so try to connect with no database specified
-         */
-        if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
-                MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
-                NULL, 0))) {
-
-            /* if we can not connect, report a error and return */
-            verrori = VA_NO_AUTH_CONNECTION;
-            return(VA_NO_AUTH_CONNECTION);
-        }
-
-        /* we were able to connect, so create the database */ 
-        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-            "create database %s", MYSQL_UPDATE_DATABASE );
-        if (mysql_query(&mysql_update,SqlBufUpdate)) {
-
-            /* we could not create the database
-             * so report the error and return 
-             */
-            fprintf(stderr, "vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
-            return(-1);
-        } 
-
-        /* set the database */ 
-        if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
-            fprintf(stderr, "could not enter %s database\n", MYSQL_UPDATE_DATABASE);
-            return(-1);
-        }    
+			     MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
+			     NULL, 0))) {
+      
+      /* if we can not connect, report a error and return */
+      verrori = VA_NO_AUTH_CONNECTION;
+      return(VA_NO_AUTH_CONNECTION);
     }
+
+    /* set the database we use */
+    if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
+      /* we were able to connect, so create the database */ 
+      snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+		"create database %s", MYSQL_UPDATE_DATABASE );
+      if (mysql_query(&mysql_update,SqlBufUpdate)) {
+	
+	/* we could not create the database
+	 * so report the error and return 
+	 */
+	fprintf(stderr, "vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
+	return(-1);
+      } 
+      /* set the database (we just created)*/ 
+      if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
+	fprintf(stderr, "could not enter (just created) %s database\n", MYSQL_UPDATE_DATABASE);
+	return(-1);
+      }    
+    }
+
     return(0);
 }
 
