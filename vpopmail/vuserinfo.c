@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vuserinfo.c,v 1.2 2003-10-09 00:43:16 tomcollins Exp $
+ * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -261,6 +262,8 @@ void display_user(struct vqpasswd *mypw, char *domain)
             printf("        user flag 3 is set\n");
 	if ( mypw->pw_gid & NO_SMTP ) 
             printf("        smtp access is closed\n");
+	if ( mypw->pw_gid & V_OVERRIDE )
+	    printf("        User is not subject to domain limits.\n");
 
         printf("dir:       %s\n", mypw->pw_dir);
         printf("quota:     %s\n", mypw->pw_shell);
