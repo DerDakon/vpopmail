@@ -922,7 +922,7 @@ case $AUTH_MODULE in
     USE_MYSQL=1
     rm -rf vauth.c
     ln -sf vmysql.c vauth.c
-    #AC_SUBST(USE_MYSQL)
+    AC_SUBST(USE_MYSQL)
     AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
     AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL,"")
     #AC_CHECK_LIB(m,floor)
