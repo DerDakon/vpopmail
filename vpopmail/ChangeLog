@@ -18,6 +18,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- vlimits.c: print errors to stderr.
 
+	Michael Bowe
+	- configure.in: fix typo of where the configure script says it
+	  is checking for qmail-inject when in fact it was checking for
+	  qmail-newmrh 
+
 5.4.9 - released 26-Dec-04
 
 	Jeremy Kister
