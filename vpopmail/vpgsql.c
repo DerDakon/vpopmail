@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.22 2004-02-23 00:16:37 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.23 2004-02-23 00:39:35 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ void vcreate_relay_table();
 #endif
 
 #ifdef VALIAS
-PGresult *pgvalias;
+PGresult *pgvalias = NULL;
 void vcreate_valias_table();
 #endif
 
