@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.5 2003-12-22 01:47:06 mbowe Exp $
+ * $Id: vpopbull.c,v 1.6 2004-01-11 09:16:53 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -210,9 +210,9 @@ int process_domain(domain, fsi, fsx )
 	return(0);
 }
 
-int copy_email( fs_file, name, domain, pwent)
+int copy_email( fs_file, filename, domain, pwent)
  FILE *fs_file;
- char *name;
+ char *filename;
  char *domain;
  struct vqpasswd *pwent;
 {
@@ -221,16 +221,62 @@ int copy_email( fs_file, name, domain, pwent)
  FILE *fs;
  int count;
  struct stat mystatbuf;
+ uid_t uid;
+ gid_t gid;
 
-    /* check if the directory exists and create if needed */
+    /* At this point, we know that the user exists in the auth backend.
+     * Now we need to run some other checks before we can copy the
+     * bulletin into their maildir...
+     */
+
+    /* test to see if the user has been allocated a userdir yet.
+     * Some of the auth backends (eg MySQL) allow users to be inserted
+     * into authsystem while leaving their dir blank. The idea here is
+     * that this information will get allocated/updated the first time
+     * the user does an AUTH or receives a msg.
+     */
+
+    if ( pwent->pw_dir == NULL || pwent->pw_dir[0]==0 ) {
+
+       /* A dir hasnt been allocated to this user yet.
+        * Try and allocate one now
+        */
+
+       /* retrieve the domain's uid/gid
+        * (required for the call to make_user_dir()
+        */
+        if (vget_assign(domain, NULL, 0, &uid, &gid) == NULL) {
+            fprintf(stderr, "Failed to vget_assign() for %s\n", domain);
+            return (-1);
+        }
+
+        if ( make_user_dir(pwent->pw_name, domain, uid, gid) == NULL) {
+            fprintf(stderr, "Auto creation of maildir failed for %s@%s\n", pwent->pw_name, domain);
+            return(-1);
+        }
+
+        /* Re-read pwent, because we need to lookup the newly created
+         * pw_dir entry
+         */
+        if ((pwent=vauth_getpw(pwent->pw_name, domain)) == NULL ) {
+           fprintf(stderr, "Failed to vauth_getpw() for %s@%s\n", pwent->pw_name, domain);
+           return(-1);
+        }
+    }
+
+    /* At this point, a dir must have been allocated to the user
+     * in the auth backend. So the next thing to do is test to see
+     * if the dir exists on the filesystem or not. If the dir doesnt
+     * exist, then we will try and create it
+     */ 
     if ( stat(pwent->pw_dir, &mystatbuf ) == -1 ) {
         if ( vmake_maildir(domain, pwent->pw_dir )!= VA_SUCCESS ) {
-            fprintf(stderr, "Auto creation of maildir failed. vpopmail (#5.9.9)\n");
+            fprintf(stderr, "Auto creation of maildir failed for %s@%s\n", pwent->pw_name, domain);
             return(-1);
         }
     }
 
-	snprintf(tmpbuf, sizeof(tmpbuf), "%s/Maildir/new/%s", pwent->pw_dir, name );
+	snprintf(tmpbuf, sizeof(tmpbuf), "%s/Maildir/new/%s", pwent->pw_dir, filename );
 	
 	if ( DeliveryMethod == COPY_IT ) {
 		rewind(fs_file);

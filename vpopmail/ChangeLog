@@ -12,6 +12,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  allocated. [873007] 
 	- Fix bug introduced in vpopmail-5.4.0-pre2 that was preventing
 	  ~vpopmail/etc/vpopmail.mysql from being installed [874776]
+	- vpopbull was failing to create userdirs in some cases
+	  (when the user exists in the auth backend, but did not have
+	  a dir allocated yet) [816942]
 
 	Ken Nonaka
 	- Fixes to vpgsql.c to clear compile errors when 
