@@ -1,11 +1,153 @@
 --------------------------------------------------------------------------
 
 Using vpopmail with LDAP is not very common.
-The LDAP modules are understood to be functional, but because it not
-as popular as using CDB or MySQL auth systems, you should be wary of
-implementing the LDAP system on a production server.
+The LDAP modules are functional, but because it not as popular as using 
+CDB or MySQL auth systems, you should be wary of implementing the LDAP 
+system on a production server.
 
 --------------------------------------------------------------------------
+
+USING VPOPMAIL WITH LDAP
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+OpenLDAP can operate with a number of database filesystems. For this example
+we are going to use the bdb database system.
+
+Download/compile BDB
+
+  cd /usr/local/src
+  wget http://www.sleepycat.com/update/snapshot/db-4.2.52.tar.gz
+  tar xzf db-4.2.52.tar.gz
+  cd db-4.2.52
+  cd build_unix
+  ../dist/configure
+  make
+  make install
+  cd ..
+
+Download/compile OpenLDAP
+
+  http://www.openldap.org/software/download/
+  wget http://www.planetmirror.com/pub/openldap/openldap-release/openldap-2.1.23.tgz
+  tar xzf openldap-2.1.23.tgz 
+  cd openldap-2.1.23
+
+  env CPPFLAGS=-I/usr/local/BerkeleyDB.4.2/include \
+    LDFLAGS=-L/usr/local/BerkeleyDB.4.2/lib \
+    ./configure
+
+  make depend
+  make
+  make install
+  cd..
+
+Download/configure/compile vpopmail
+
+  Make the user accounts
+
+    # If you are using RH8.0, you will probably need to run this following command,
+    # because RH8.0 comes preconfigured with UID/GID 89 allocated to postfix
+    #
+    # userdel postfix
+
+    groupadd -g 89 vchkpw
+    useradd -g vchkpw -u 89 vpopmail
+
+  Download and unpack the source
+
+    cd /usr/local/src
+    wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4-pre2.tar.gz
+    tar xzf vpopmail-5.4-pre2.tar.gz
+    chown -R root.root vpopmail-5.4-pre2
+    cd vpopmail-5.4-pre2
+
+  Setup the LDAP support in the vpopmail sources
+
+    vi vldap.h
+      #define VLDAP_SERVER "localhost"
+      #define VLDAP_PORT LDAP_PORT
+      #define VLDAP_USER "cn=vpopmailuser, o=vpopmail"
+      #define VLDAP_PASSWORD "vpoppasswd"
+      #define VLDAP_BASEDN "o=vpopmail"
+
+  Compile vpopmail
+
+    ./configure --enable-auth-module=ldap
+    make
+    make install-strip
+ 
+Configure/start the OpenLDAP server
+
+  Copy the vpopmail ldap schema into the OpenLDAP schema directory
+
+    cd ldap
+    cp qmailUser.schema /usr/local/etc/openldap/schema
+
+  Configure OpenLDAP to host the vpopmail database
+  
+    cp slapd.conf /usr/local/etc/openldap
+    chmod 600 /usr/local/etc/openldap/slapd.conf
+    chown root.root /usr/local/etc/openldap/slapd.conf
+  
+  Start the OpenLDP server
+
+    /usr/local/libexec/slapd
+   
+  If all goes well, 'ps axf' should give something like this :
+
+    18415 ?        S      0:00 /usr/local/libexec/slapd
+    18416 ?        S      0:00  \_ /usr/local/libexec/slapd
+    18417 ?        S      0:00      \_ /usr/local/libexec/slapd
+  
+  Now create the vpopmail database in the LDAP system
+
+    ldapadd -f vpopmail.ldif -x -w vpoppasswd -D'cn=vpopmailuser,o=vpopmail'
+
+  If all goes well you will see something like :
+
+    adding new entry "o=vpopmail"
+
+  Get the ldap server to confirm that the vpopmail database exists 
+
+    ldapsearch -x -b 'o=vpopmail'
+
+Now you should be right to go!
+
+As you start adding domains and users, the ldap directory tree will eventually look like this :
+
+  vpopmail (o)
+    somedomain1.com (ou)
+      someuser1 
+      someuser2 
+      someuser3 
+   somedomain2.com (ou)
+      someuser1
+      someuser2
+      someuser3
+
+This guide was contributed by Michael Bowe 22nd Dec 2003.
+
+Latest version of this guide is available from
+http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-ldap.htm
+
+Note that I am not an LDAP expert, so some of the terminology used within 
+this guide may not be 100% correct. I wrote this guide because many people
+on the vchkpw mailing list had questions about how to get vpopmail/ldap
+running. The docs we had so far (below) were a little difficult to understand
+and follow for an LDAP beginner, so I decided to put together this doc
+in the hope of presenting an easy-to-follow installation guide.
+
+Other useful references I found on the net :
+
+  http://marc.theaimsgroup.com/?l=vchkpw&m=105781736114278&w=2
+  http://www.tiski.de/linux/patches/vpopmail/LDAP-VPOPMAIL.html
+
+
+
+
+**************************************************************************
+
+PREVIOUS VPOPMAIL/LDAP DOCUMENTATION :
 
 See the ldap directory for the
 qmailUser.schema and slapd.conf files

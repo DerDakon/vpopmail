@@ -1,0 +1,22 @@
+# This file should be run after you have configured your slapd.conf
+#
+# use this file like this :
+#   ldapadd -f vpopmail.ldif -x -w vpoppasswd -D'cn=vpopmailuser,o=vpopmail'
+#
+# What this does is connects to the vldap server, and creates the vpopmail database
+#
+# So the ldap directory tree will eventually look like this :
+#
+# vpopmail
+#   somedomain1.com
+#     someuser1
+#     someuser2
+#     someuser3
+#   somedomain2.com
+#     someuser1
+#     someuser2
+#     someuser3
+
+dn: o=vpopmail
+objectClass: Organization
+o: vpopmail
