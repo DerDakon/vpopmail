@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.5.0 - unreleased
+5.5.0 - released 11-Mar-04
 
 	Tom Collins
 	- Consolidate table creation code in vmysql.c and vpgsql.c.
@@ -13,7 +13,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Multiple fixes to vpgsql.c related to freeing PGresults and
 	  attempting to access NULL PGresults when reporting errors.
 
-5.4.3 - unreleased
+5.4.3 - released 11-Mar-04
 
 	Tom Collins
 	- Add missing link libs (m, nsl, socket) on Solaris installs.
