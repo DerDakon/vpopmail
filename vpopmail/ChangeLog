@@ -23,6 +23,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix domain quota checks to work with hashed directories. [859098]
 	- Fix bug when calling format_maildirquota() with NOQUOTA.
 	- Document use of NOQUOTA in vadduser. [862315]
+	- Fix Makefile so `make install` works from checked out CVS. [863862]
 
 	Michael Bowe
 	- Revise configure script so choice of auth module is now "OR" 
