@@ -891,7 +891,7 @@ Optional Features:
   --enable-passwd   Enable /etc/passwd (or shadow) authentication
   --enable-logging=n|y|e|p|v   Select level of syslog logging : n) all logging disabled,  y) success and failure without including passwords,  e) failures only without including password, p) failures only including passwords, v) verbose success and errors with passwords included
   --enable-log-name=name   set syslog name (default vpopmail)
-  --enable-auth-logging   Record time and ip of last auth attempt. Valid only for CDB, MySQL, LDAP.
+  --enable-auth-logging   Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.
   --enable-mysql-logging   Enable authentication logging to MySQL. Mimics verbosity from the --enable-auth-logging setting
   --enable-pgsql-logging   Enable authentication logging to PostGreSQL. Mimics verbosity from the --enable-auth-logging setting
   --enable-mysql-limits   Enable handling of .qmailadmin-limits
