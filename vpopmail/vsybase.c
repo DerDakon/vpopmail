@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vsybase.c,v 1.11 2004-02-23 00:16:38 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ static int is_open = 0;
 static LOGINREC *login;
 static DBPROCESS *dbproc;
 
-#define SQL_BUF_SIZE 600
+#define SQL_BUF_SIZE 2048
 static char SqlBuf[SQL_BUF_SIZE];
 static char SqlBuf1[SQL_BUF_SIZE];
 
@@ -189,11 +189,11 @@ int vauth_adduser_size(char *user, char *domain, char *pass, char *gecos,
 	}
 
 	if ( site_size == LARGE_SITE ) {
-		sprintf( SqlBuf, LARGE_INSERT, domstr,  
+		qnprintf( SqlBuf, sizeof(SqlBuf), LARGE_INSERT, domstr,  
 		user, pass, pop, gecos, dirbuf, quota);
 	} else {
-		sprintf( SqlBuf, SMALL_INSERT,
-		SYBASE_DEFAULT_TABLE,  user, domain, pass, pop, gecos, dirbuf, quota);
+		qnprintf( SqlBuf, sizeof(SqlBuf), SMALL_INSERT, SYBASE_DEFAULT_TABLE,
+		user, domain, pass, pop, gecos, dirbuf, quota);
 	}
 
 	dbcmd(dbproc, SqlBuf);
@@ -232,7 +232,7 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	lowerit(user);
 	lowerit(domain);
 
-	sprintf(in_domain, "%s", domain, sizeof(in_domain));
+	snprintf(in_domain, sizeof(in_domain), "%s", domain);
 
 	vauth_open();
 	vset_default_domain( in_domain );
@@ -243,9 +243,9 @@ struct vqpasswd *vauth_getpw_size(char *user, char *domain, int site_size)
 	}
 
 	if ( site_size == LARGE_SITE ) {
-		sprintf(SqlBuf, LARGE_SELECT, domstr, user);
+		qnprintf( SqlBuf, sizeof(SqlBuf), LARGE_SELECT, domstr, user);
 	} else {
-		sprintf(SqlBuf, SMALL_SELECT,  SYBASE_DEFAULT_TABLE, user, in_domain);
+		qnprintf( SqlBuf, sizeof(SqlBuf), SMALL_SELECT, SYBASE_DEFAULT_TABLE, user, in_domain);
 	}
 
 	dbcmd(dbproc, SqlBuf);
@@ -296,7 +296,7 @@ int vauth_deldomain_size( char *domain, int site_size )
 	if ( site_size == LARGE_SITE ) {
 		sprintf( SqlBuf, "drop table %s", tmpstr);
 	} else {
-		sprintf( SqlBuf, "delete from %s where pw_domain = '%s'",
+		qnprintf( SqlBuf, sizeof(SqlBuf), "delete from %s where pw_domain = '%s'",
 			SYBASE_DEFAULT_TABLE, domain );
 	}
 
@@ -326,10 +326,10 @@ int vauth_deluser_size( char *user, char *domain, int site_size )
 		} else {
 			tmpstr = vauth_munch_domain( domain );
 		}
-		sprintf( SqlBuf, "delete from %s where pw_name = '%s'", 
+		qnprintf( SqlBuf, sizeof(SqlBuf), "delete from %s where pw_name = '%s'", 
 			tmpstr, user );
 	} else {
-		sprintf( SqlBuf, 
+		qnprintf( SqlBuf, sizeof(SqlBuf), 
 		"delete from %s where pw_name = '%s' and pw_domain = '%s'", 
 			SYBASE_DEFAULT_TABLE, user, domain );
 	}
@@ -356,12 +356,12 @@ int vauth_setquota_size( char *user, char *domain, char *quota, int site_size)
 
 	if ( site_size == LARGE_SITE ) {
 		tmpstr = vauth_munch_domain( domain );
-		sprintf( SqlBuf, 
+		qnprintf( SqlBuf, sizeof(SqlBuf), 
 			"update %s set pw_shell = '%s' where pw_name = '%s'", 
 			tmpstr, quota, user );
 	} else {
-		sprintf( SqlBuf, 
-"update %s set pw_shell = '%s' where pw_name = '%s' and pw_domain = '%s'", 
+		qnprintf( SqlBuf, sizeof(SqlBuf), 
+			"update %s set pw_shell = '%s' where pw_name = '%s' and pw_domain = '%s'", 
 			SYBASE_DEFAULT_TABLE, quota, user, domain );
 	}
 	dbcmd(dbproc, SqlBuf);
@@ -397,12 +397,12 @@ int vauth_vpasswd_size( char *user, char *domain, char *pass,
 
 	if ( site_size == LARGE_SITE ) {
 		tmpstr = vauth_munch_domain( domain );
-		sprintf( SqlBuf, 
+		qnprintf( SqlBuf, sizeof(SqlBuf), 
 			"update %s set pw_passwd = '%s' where pw_name = '%s'", 
 			tmpstr, pass, user );
 	} else {
-		sprintf( SqlBuf, 
-"update %s set pw_passwd = '%s' where pw_name = '%s' and pw_domain = '%s'", 
+		qnprintf( SqlBuf, sizeof(SqlBuf), 
+			"update %s set pw_passwd = '%s' where pw_name = '%s' and pw_domain = '%s'", 
 			SYBASE_DEFAULT_TABLE, pass, user, domain );
 	}
 	dbcmd(dbproc, SqlBuf);
@@ -439,9 +439,9 @@ struct vqpasswd *vauth_getall_size(char *domain, int first, int sortit, int site
 		vauth_open();
 
 		if ( site_size == LARGE_SITE ) {
-			sprintf(SqlBuf, LARGE_GETALL, domstr);
+			qnprintf( SqlBuf, sizeof(SqlBuf), LARGE_GETALL, domstr);
 		} else {
-			sprintf(SqlBuf, SMALL_GETALL, SYBASE_DEFAULT_TABLE, domain);
+			qnprintf( SqlBuf, sizeof(SqlBuf), SMALL_GETALL, SYBASE_DEFAULT_TABLE, domain);
 		}
 		if ( sortit == 1 ) {
 			strcat( SqlBuf, " order by pw_name");
@@ -514,7 +514,7 @@ int vauth_setpw_size( struct vqpasswd *inpw, char *domain, int site_size)
 
 	if ( site_size == LARGE_SITE ) {
 		tmpstr = vauth_munch_domain( domain );
-		sprintf( SqlBuf, LARGE_SETPW,
+		qnprintf( SqlBuf, sizeof(SqlBuf), LARGE_SETPW,
 			tmpstr, 
 			inpw->pw_passwd, 
 			inpw->pw_uid,
@@ -524,7 +524,7 @@ int vauth_setpw_size( struct vqpasswd *inpw, char *domain, int site_size)
 			inpw->pw_shell, 
 			inpw->pw_name );
 	} else {
-		sprintf( SqlBuf, SMALL_SETPW,
+		qnprintf( SqlBuf, sizeof(SqlBuf), SMALL_SETPW,
 			SYBASE_DEFAULT_TABLE, 
 			inpw->pw_passwd, 
 			inpw->pw_uid, 
@@ -560,7 +560,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 	if ( (err=vauth_open()) != 0 ) exit(0);
 	delete_time = mytime - clear_minutes;
 
-	sprintf( SqlBuf, "delete from relay where timestamp <= %d", 
+	snprintf( SqlBuf, sizeof(SqlBuf), "delete from relay where timestamp <= %d", 
 		(int)delete_time);
 	if (mysql_query(&mysql,SqlBuf)) {
 		vcreate_relay_table();

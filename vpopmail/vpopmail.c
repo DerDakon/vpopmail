@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28 2004-01-13 15:59:42 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.30 2004-03-01 15:33:32 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1543,6 +1543,7 @@ int update_file(char *filename, char *update_line)
 int vsetuserquota( char *username, char *domain, char *quota )
 {
  struct vqpasswd *mypw;
+ char *formattedquota;
  int ret;
 
   if ( strlen(username) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
@@ -1558,7 +1559,8 @@ int vsetuserquota( char *username, char *domain, char *quota )
   /* correctly format the quota string,
    * and then store the quota into the auth backend
    */
-  ret = vauth_setquota( username, domain, format_maildirquota(quota));
+  formattedquota = format_maildirquota(quota);
+  ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
   mypw = vauth_getpw( username, domain );
@@ -1569,7 +1571,7 @@ int vsetuserquota( char *username, char *domain, char *quota )
    char maildir[MAX_BUFF];
     snprintf(maildir, sizeof(maildir), "%s/Maildir/", mypw->pw_dir);
     umask(VPOPMAIL_UMASK);
-    (void)vmaildir_readquota(maildir, quota);
+    (void)vmaildir_readquota(maildir, formattedquota);
     if ( vget_assign(domain, NULL, 0, &uid, &gid)!=NULL) {
       strcat(maildir, "maildirsize");
       chown(maildir,uid,gid);
@@ -3120,5 +3122,117 @@ char *maildir_to_email(const char *maildir)
     email[j] = 0;
 
     return( email );
+}
+
+/* escape these characters out of strings: ', \, " */
+#define ESCAPE_CHARS "'\"\\"
+
+/* qnprintf - Custom version of snprintf for creating SQL queries with escaped
+ *            strings.
+ *
+ * int qnprintf (char *buffer, size_t size, const char *format, ...)
+ *
+ *   buffer - buffer to print string to
+ *   size   - size of buffer
+ *   format - a printf-style format string*
+ *   ...    - variable arguments for the format string
+ *
+ *  NOTE: Currently supported formats: %%, %s, %d/%i, %u, %ld/%li, %lu
+ *  Since this function was designed to build SQL queries with escaped data,
+ *  the formats don't support any extended options.
+ *
+ * Returns the number of characters that would have been printed to buffer
+ * if it was big enough.  (i.e., if return value is larger than (size-1),
+ * buffer received an incomplete copy of the formatted string).
+ *
+ * It is possible to call qnprintf with a NULL buffer of 0 bytes to determine
+ * how large the buffer needs to be.  This is inefficient, as qnprintf has
+ * to run twice.
+ *
+ * qnprintf written February 2004 by Tom Collins <tom@tomlogic.com>
+ */
+int qnprintf (char *buffer, size_t size, const char *format, ...)
+{
+	va_list ap;
+	int printed;   /* number of characters printed */
+	const char *f; /* current position in format string */
+	char *b;       /* current position in output buffer */
+	char n[20];    /* buffer to hold string representation of number */
+	
+	char *s;       /* pointer to string to insert */
+
+	if (buffer == NULL && size > 0) return -1;
+
+	va_start (ap, format);
+
+	printed = 0;
+	b = buffer;
+	for (f = format; *f != '\0'; f++) {
+		if (*f != '%') {
+			if (++printed < size) *b++ = *f;
+		} else {
+			f++;
+			s = n;
+			switch (*f) {
+				case '%':
+					strcpy (n, "%");
+					break;
+					
+				case 'd':
+				case 'i':
+					snprintf (n, sizeof(n), "%d", va_arg (ap, int));
+					break;
+					
+				case 'u':
+					snprintf (n, sizeof(n), "%u", va_arg (ap, unsigned int));
+					break;
+					
+				case 'l':
+					f++;
+					switch (*f) {
+						case 'd':
+						case 'i':
+							snprintf (n, sizeof(n), "%ld", va_arg (ap, long));
+							break;
+					
+						case 'u':
+							snprintf (n, sizeof(n), "%lu", va_arg (ap, unsigned long));
+							break;
+
+						default:
+							strcpy (n, "*");
+					}
+					break;
+										
+				case 's':
+					s = va_arg (ap, char *);
+					break;
+					
+				default:
+					strcpy (n, "*");
+			}
+			while (*s != '\0') {
+				if (strchr (ESCAPE_CHARS, *s) != NULL) {
+					if (++printed < size) *b++ = '\\';
+				}
+				if (++printed < size) *b++ = *s;
+				s++;
+			}
+		}
+	}
+
+	va_end (ap);
+
+	*b = '\0';
+
+	/* If the query doesn't fit in the buffer, zero out the buffer.  An
+	 * incomplete query could be very dangerous (say if a WHERE clause
+	 * got dropped from a DELETE).
+	 */
+	if (printed >= size) {
+		memset (buffer, '\0', size);
+	}
+	
+	return printed;
 }
 

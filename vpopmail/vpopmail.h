@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7 2003-12-17 04:21:10 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.8 2004-02-22 22:50:48 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -168,6 +168,7 @@ char *format_maildirquota(const char *q);
 char *date_header();
 char *get_remote_ip();
 char *maildir_to_email(const char *maildir);
+int qnprintf (char *buffer, size_t size, const char *format, ...);
 
 #ifdef APOP
 char *dec2hex(unsigned char *);

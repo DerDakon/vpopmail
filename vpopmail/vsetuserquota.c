@@ -1,5 +1,5 @@
 /*
- * $Id: vsetuserquota.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vsetuserquota.c,v 1.4 2004-03-01 15:32:45 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
