@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.0-rc2 - unreleased
 
+	Michael Bowe
+	- Added some basic 5.4 upgrade notes to the UGPRADE file
+
 	Tom Collins
 	- Check for comments earlier in deliver_mail().
 
