@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.6 2003-09-29 23:24:46 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.7 2003-09-30 00:30:49 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2805,34 +2805,37 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
 
 /************************************************************************/
 
-/* Michael Bowe 15th Aug 2003
- * isnt this malloc going to cause a memory leak?
- * How can we get around this?
- * perhaps it should be int vgen_pass(char *generatedpass, int len)
- */
-char *vgen_pass(int len)
+char *vrandom_pass(char *buffer, int len)
+/* write a random password of 'len' characters to buffer and return it */
 {
-  int gen_char_len = 0; 
-  int i = 0; 
-  int k = 0; 
-  char *p = NULL;
+  int gen_char_len; 
+  int i, k; 
+
+  if (buffer == NULL) return buffer;
 
   gen_char_len = strlen(gen_chars);
 
-  p = malloc(len + 1);
-  if (p == NULL) return NULL;
-
   srand(rand() % time(NULL) ^ getpid());
-
-  memset((char *)p, len, 0);
 
   for (i = 0; i < len; i++) {
     k = rand()%gen_char_len;
-    p[i] = gen_chars[k];
+    buffer[i] = gen_chars[k];
   }
-  return p;
+  buffer[len] = '\0';  /* NULL terminator */
 
+  return buffer;
 }
+
+char *vgen_pass(int len)
+/* old function to generate a random password (replaced by vrandom_pass) */
+{
+  char *p;
+
+  p = malloc(len + 1);
+  if (p == NULL) return NULL;
+  return (vrandom_pass (p, len));
+}
+
 
 /************************************************************************/
 

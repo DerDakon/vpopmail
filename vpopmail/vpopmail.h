@@ -1,4 +1,5 @@
 /*
+ * $Id: vpopmail.h,v 1.2 2003-09-30 00:30:49 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -157,6 +158,7 @@ char *vversion(char *);
 void remove_maildirsize(char *dir);
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain);
 char *vgen_pass(int len);
+char *vrandom_pass (char *buffer, int len);
 int vvalidchar( char inchar );
 int is_username_valid( char *user );
 int is_domain_valid( char *domain );
