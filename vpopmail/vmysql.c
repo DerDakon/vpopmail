@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.3 2004-10-07 19:40:24 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.4 2004-12-16 15:57:34 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1381,8 +1381,8 @@ char *valias_select_all_next(char *alias)
 }
 #endif
 
-#ifdef ENABLE_MYSQL_LOGGING
-int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
+#ifdef ENABLE_SQL_LOGGING
+int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
 {
  int err;

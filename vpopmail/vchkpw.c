@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.2 2004-11-27 16:44:51 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11.2.3 2004-12-16 15:57:34 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -672,29 +672,29 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
     syslog(LOG_NOTICE, sysc(LogLine));
   }
 
-#ifdef ENABLE_MYSQL_LOGGING
+#ifdef ENABLE_SQL_LOGGING
   /* always log to mysql if mysql logging is enabled and it 
    * is not internal error 
    */
 
   if ( (verror == VLOG_ERROR_PASSWD) && ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || ENABLE_LOGGING==4 ) ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
           syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
       }
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
         syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
       }
   } else if ( verror == VLOG_ERROR_LOGON ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
         syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
       }
   } else if ( verror == VLOG_ERROR_ACCESS ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
         syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
       }
   } else if ( verror == VLOG_AUTH && ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
-      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
         syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
       }
   }

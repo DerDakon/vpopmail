@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.4 2004-10-07 19:40:24 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.5 2004-12-16 15:57:34 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1459,8 +1459,8 @@ char *valias_select_all_next(char *alias)
 }
 #endif
 
-#ifdef ENABLE_PGSQL_LOGGING
-int logpgsql(	int verror, char *TheUser, char *TheDomain, char *ThePass, 
+#ifdef ENABLE_SQL_LOGGING
+int logsql(	int verror, char *TheUser, char *TheDomain, char *ThePass, 
 		char *TheName, char *IpAddr, char *LogLine) 
 {
   PGresult *pgres;
@@ -1479,7 +1479,7 @@ int logpgsql(	int verror, char *TheUser, char *TheDomain, char *ThePass,
   */
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp values('%s','%s','%s','%s','%s','%s',%i,%d", 
+  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp) values('%s','%s','%s','%s','%s','%s',%i,%d)", 
 	    TheUser, ThePass, TheDomain, TheName, 
 	    IpAddr, LogLine, verror, (int)mytime);
 
@@ -1488,7 +1488,7 @@ int logpgsql(	int verror, char *TheUser, char *TheDomain, char *ThePass,
     if( pgres ) PQclear(pgres);
     vcreate_vlog_table();
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp values('%s','%s','%s','%s','%s','%s',%i,%d", 
+  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp) values('%s','%s','%s','%s','%s','%s',%i,%d)", 
 	    TheUser, ThePass, TheDomain, TheName, 
 	    IpAddr, LogLine, verror, (int)mytime);
 
