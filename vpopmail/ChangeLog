@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.4 - unreleased
+5.4.4 - released 26-May-04
 
 	Tom Collins
 	- Link math lib when compiling for MySQL.
