@@ -17,7 +17,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.4 2003-09-29 19:43:52 tomcollins Exp $
+** $Id: vcdb.c,v 1.5 2003-09-29 22:21:14 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -75,6 +75,7 @@ int make_vpasswd_cdb(char *domain)
  uid_t uid;
  gid_t gid;
  char *tmpstr;
+ mode_t oldmask;
 
     /* If we don't optimize the index this time, just return */
     if ( NoMakeIndex == 1 ) return(0);
@@ -84,7 +85,13 @@ int make_vpasswd_cdb(char *domain)
     }
 
     cdbmake_init(&cdbm);
-    if ((tmfile = fopen(vpasswd_cdb_tmp_file,"w")) == NULL) {
+
+    /* temporarily set umask (no group/other access) and open temp file */
+    oldmask = umask(VPOPMAIL_UMASK);
+    tmfile = fopen(vpasswd_cdb_tmp_file,"w");
+    umask(oldmask);
+
+    if (tmfile == NULL) {
         fprintf(stderr,"Error: could not create/open temporary file\n");
         return(-1);
     }
