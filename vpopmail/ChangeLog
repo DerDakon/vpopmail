@@ -3,9 +3,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.10 - unreleased
 
-	Rick Widmer
-	- install Bill Shupp's patch to vuserinfo to display spamassassin
-	  info.
+	Bill Shupp
+	- vuserinfo: display spamassassin info.
 
 	Anonymous
 	- vpopmail.c: Add missing ifdef that preventing modification of
