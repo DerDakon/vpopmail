@@ -6,7 +6,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- Fix problems with valias code in vmysql.c and vpgsql.c.  Storing
 	  aliases in Postgres should work now, and it should fix problems
-	  with processing Maildir valias entries in vdelivermail.
+	  with processing Maildir valias entries in vdelivermail. [985011,
+	  1024706, 1033801]
 
 5.4.7 - released 23-Sep-04
 
