@@ -243,9 +243,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 }
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
-  char *in_domain;
+  char in_domain[156];
   char *domstr;
-  int mem_size;
   static struct vqpasswd vpw;
   int err;
   PGresult *pgres;
@@ -259,9 +258,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   lowerit(user);
   lowerit(domain);
 
-  mem_size = 100; 
-  in_domain = calloc(mem_size, sizeof(char));
-  strncpy(in_domain, domain, mem_size);
+  snprintf (in_domain, sizeof(in_domain), "%s", domain);
 
   vset_default_domain( in_domain );
 
@@ -280,7 +277,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 	   ,in_domain
 #endif	
 	   );
-  if( in_domain ) free(in_domain);
   pgres=PQexec(pgc, SqlBufRead);
   if ( ! pgres || PQresultStatus(pgres)!=PGRES_TUPLES_OK) {
     if( pgres ) PQclear(pgres);	
