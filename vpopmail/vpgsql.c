@@ -320,10 +320,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
 #endif
 
-  if ((! pwent.pw_gid && V_OVERRIDE)
-    && (vget_limits (in_domain, &limits) == 0) {
-      pwent.pw_flags = pwent.pw_gid | vlimits_get_gid_mask (&limits);
-  } else pwent.pw_flags = pwent.pw_gid;
+  if ((! vpw.pw_gid && V_OVERRIDE)
+    && (vget_limits (in_domain, &limits) == 0)) {
+      vpw.pw_flags = vpw.pw_gid | vlimits_get_gid_mask (&limits);
+  } else vpw.pw_flags = vpw.pw_gid;
 
   return(&vpw);
 }
