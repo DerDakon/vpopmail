@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.1 2004-11-03 22:33:05 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11.2.2 2004-11-27 16:44:51 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -173,6 +173,7 @@ int main( int argc, char **argv)
     int i;
     for (i = 0; i < (sizeof(webmailips)/sizeof(webmailips[0])); i++) {
       if (strcmp (IpAddr, webmailips[i]) == 0) {
+        strcpy(VchkpwLogName, "vchkpw-webmail");
         ConnType = WEBMAIL_CONN;
         break;
       }
