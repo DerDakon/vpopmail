@@ -1,0 +1,16 @@
+To run as daemon:
+tcpserver -vHRD 0 89 ./vpopmaild
+
+Then as client
+telnet localhost 89
+
+Or to run on the command line for testing
+./vpopmaild
+
+First login. example:
+login postmaster@example.com password
+
+Then for list of commands:
+help
+
+
