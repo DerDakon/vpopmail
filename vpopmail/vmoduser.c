@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.2 2004-12-15 07:11:34 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.3.2.3 2005-02-04 15:45:46 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -132,21 +132,24 @@ void usage()
     printf("         -e encrypted_passwd (set the password field )\n");
     printf("         -C clear_text_passwd (set the password field )\n");
     printf("the following options are bit flags in the gid int field\n");
-    printf("         -u ( set no dialup flag )\n");
-    printf("         -d ( set no password changing flag )\n");
-    printf("         -p ( set no pop access flag )\n");
-    printf("         -s ( set no smtp access flag )\n");
-    printf("         -w ( set no web mail access flag )\n");
-    printf("         -i ( set no imap access flag )\n");
-    printf("         -b ( set bounce mail flag )\n");
-    printf("         -o ( set override domain limits flag )\n");
-    printf("         -r ( set no external relay flag )\n");
+    printf("         -x ( clear all flags )\n");
+    printf("         -d ( don't allow user to change password )\n");
+    printf("         -p ( disable POP access )\n");
+    printf("         -s ( disable SMTP AUTH access )\n");
+    printf("         -w ( disable webmail [IMAP from localhost*] access )\n");
+    printf("            ( * full list of webmail server IPs in vchkpw.c )\n");
+    printf("         -i ( disable non-webmail IMAP access )\n");
+    printf("         -b ( bounce all mail )\n");
+    printf("         -o ( user is not subject to domain limits )\n");
+    printf("         -r ( disable roaming user/pop-before-smtp )\n");
     printf("         -a ( grant qmailadmin administrator privileges)\n");
+    printf("  [The following flags aren't used directly by vpopmail, but are]\n");
+    printf("  [included for other programs that share the user database.]\n");
+    printf("         -u ( set no dialup flag )\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
     printf("         -1 ( set V_USER1 flag )\n"); 
     printf("         -2 ( set V_USER2 flag )\n"); 
     printf("         -3 ( set V_USER3 flag )\n"); 
-    printf("         -x ( clear all flags )\n");
 
 }
 
