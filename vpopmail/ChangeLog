@@ -3,6 +3,26 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
 
+        Rick WIdmer - 3 June 2004
+        vpopmail
+        - In vadddomain program check for existing domain before prompting
+          for password.
+        - vget_assign clears the cache when called with a NULL domain.
+        - Add MIN_LOGIN_INTERVAL to vchkpw.c.  If set users must wait this
+          number of seconds between login attempts.  If not the attempt will
+          fail, and start the time interval again.  It may be nasty, but it
+          keeps coming up on the list...  Should this be a ./configure option?
+          Lastauth logging must be enabled.
+        - Add new error fields to vcdb.c so it does not fail to compile. oops.
+          Still need to store error information in the fields as needed.
+        - Clear sqlerr when defined.
+        - More work on SHOW_TRACE, SHOW_QUERY, DUMP_DATA.  MySQL should be
+          done now.   
+
+        vpopmaild
+        - Vpopmaild clears the vget_assign cache after delete of domain.
+          This fixes a bug reported by Rick Macdougall.
+
 	Tom Collins - 26 May 2004 - patches from 5.4.4
 	- Link math lib when compiling for MySQL.
 	- Create ~vpopmail and ~vpopmail/etc in configure script. [930939]

@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.18 2004-06-04 02:17:02 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,14 @@
  */
 #ifndef VPOPMAIL_VPOPMAIL_H
 #define VPOPMAIL_VPOPMAIL_H
+
+/*  Enable expanded debug information.  Consider these for ./configure options  */
+//  Show entry and parms when hitting vpopmail library functions
+//#define SHOW_TRACE
+//  Show database queries
+//#define SHOW_QUERY
+//  Dump returnd data
+//#define DUMP_DATA
 
 #define DEFAULT_DOMAIN default_domain()
 
