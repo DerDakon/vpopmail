@@ -69,11 +69,17 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 INSTALL_PROGRAM = ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ $(AM_INSTALL_PROGRAM_FLAGS)
 OBJEXT = o
 AMTAR = @AMTAR@
+AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
 INSTALL_STRIP_PROGRAM = ${INSTALL_PROGRAM} -s
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 STRIP = @STRIP@
@@ -306,8 +312,11 @@ depcomp =
 am__depfiles_maybe =
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
+	$(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) \
@@ -335,7 +344,7 @@ all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj
+.SUFFIXES: .c .lo .o .obj
 
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno
@@ -385,10 +394,11 @@ install-vpopmailbinPROGRAMS: $(vpopmailbin_PROGRAMS)
 	@list='$(vpopmailbin_PROGRAMS)'; for p in $$list; do \
 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
 	  if test -f $$p \
+	     || test -f $$p1 \
 	  ; then \
 	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(vpopmailbinPROGRAMS_INSTALL) $$p $(DESTDIR)$(vpopmailbindir)/$$f"; \
-	   $(INSTALL_PROGRAM_ENV) $(vpopmailbinPROGRAMS_INSTALL) $$p $(DESTDIR)$(vpopmailbindir)/$$f; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(vpopmailbinPROGRAMS_INSTALL) $$p $(DESTDIR)$(vpopmailbindir)/$$f"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(vpopmailbinPROGRAMS_INSTALL) $$p $(DESTDIR)$(vpopmailbindir)/$$f; \
 	  else :; fi; \
 	done
 
@@ -401,7 +411,11 @@ uninstall-vpopmailbinPROGRAMS:
 	done
 
 clean-vpopmailbinPROGRAMS:
-	-test -z "$(vpopmailbin_PROGRAMS)" || rm -f $(vpopmailbin_PROGRAMS)
+	@list='$(vpopmailbin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
 clearopensmtp$(EXEEXT): $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES) 
 	@rm -f clearopensmtp$(EXEEXT)
 	$(LINK) $(clearopensmtp_LDFLAGS) $(clearopensmtp_OBJECTS) $(clearopensmtp_LDADD) $(LIBS)
@@ -483,6 +497,18 @@ distclean-compile:
 
 .c.obj:
 	$(COMPILE) -c `cygpath -w $<`
+
+.c.lo:
+	$(LTCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+	-rm -f libtool
 uninstall-info-am:
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -714,13 +740,13 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic clean-noinstLIBRARIES clean-vpopmailbinPROGRAMS \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+	clean-vpopmailbinPROGRAMS mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 distclean-am: clean-am distclean-compile distclean-generic distclean-hdr \
-	distclean-tags
+	distclean-libtool distclean-tags
 
 dvi: dvi-recursive
 
@@ -747,16 +773,18 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 uninstall-am: uninstall-info-am uninstall-vpopmailbinPROGRAMS
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-am clean \
-	clean-generic clean-noinstLIBRARIES clean-recursive \
-	clean-vpopmailbinPROGRAMS dist dist-all dist-gzip distcheck \
-	distclean distclean-compile distclean-generic distclean-hdr \
+	clean-generic clean-libtool clean-noinstLIBRARIES \
+	clean-recursive clean-vpopmailbinPROGRAMS dist dist-all \
+	dist-gzip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
 	distclean-recursive distclean-tags distcleancheck distdir dvi \
 	dvi-am dvi-recursive info info-am info-recursive install \
 	install-am install-data install-data-am install-data-local \
@@ -767,8 +795,8 @@ uninstall-info: uninstall-info-recursive
 	installcheck-am installdirs installdirs-am \
 	installdirs-recursive maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-recursive tags tags-recursive \
-	uninstall uninstall-am uninstall-info-am \
+	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
+	tags tags-recursive uninstall uninstall-am uninstall-info-am \
 	uninstall-info-recursive uninstall-recursive \
 	uninstall-vpopmailbinPROGRAMS
 
