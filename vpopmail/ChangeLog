@@ -5,6 +5,13 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- Consolidate table creation code in vmysql.c.
+	- Increase SQL_BUF_SIZE from 600 to 2048 for Oracle, Postgres
+	  and Sybase.
+	- Add qnprintf() to vpopmail.c for escaping strings in SQL queries.
+	- Use qnprintf() when building queries in vmysql.c, vpgsql.c,
+	  voracle.pc, and vsybase.c.
+	- Multiple fixes to vpgsql.c related to freeing PGresults and
+	  attempting to access NULL PGresults when reporting errors.
 
 5.4.2 - released 22-Feb-04
 
