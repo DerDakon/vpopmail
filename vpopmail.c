@@ -1439,7 +1439,7 @@ struct vqpasswd *vgetent(FILE *pw)
 
 #ifdef CLEAR_PASS
     pwent.pw_clear_passwd  = tmpstr; 
-    while (*tmpstr!=0 && *tmpstr!=':' && *tmpstr!='\n') ++tmpstr;
+    while (*tmpstr!=0 && *tmpstr!='\n') ++tmpstr;
     if (*tmpstr) { *tmpstr = 0; ++tmpstr; }
 #endif
 
