@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.1 - unreleased
 
+	Ken Jones
+	- Add SpamAssassin support for vdelivermail.
+
 5.5.0 - released 11-Mar-04
 
 	Tom Collins
