@@ -3,9 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.10 - unreleased
 
-	Rick Widmer 27-Dec-2004
+	Rick Widmer
 	- install Bill Shupp's patch to vuserinfo to display spamassassin
-	info.
+	  info.
 
 5.4.9 - released 26-Dec-04
 
