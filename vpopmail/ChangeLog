@@ -1,6 +1,12 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.3.30 - unreleased
+
+	Tom Collins
+	- Install a vlimits.default file if none exists.
+	- Allow for comments in vlimits.default and .qmailadmin-limits.
+
 5.3.29 - 20-Oct-03
 
 	Michael Bowe
