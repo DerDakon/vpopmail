@@ -318,7 +318,7 @@ int login()
     strcpy( TheDomainDir, vget_assign(TheDomain,NULL,0,NULL,NULL));
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir%s" RET_CRLF, VPOPMAILDIR);
+  snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir %s" RET_CRLF, VPOPMAILDIR);
   wait_write();
 
   snprintf(WriteBuf,sizeof(WriteBuf), "domain_dir %s" RET_CRLF, TheDomainDir);
@@ -359,7 +359,8 @@ int add_user()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+       (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
   }
@@ -402,7 +403,8 @@ int del_user()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+       (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
   }
@@ -438,7 +440,8 @@ int mod_user()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+       (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),
       RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
@@ -631,7 +634,8 @@ int user_info()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+       (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),
       RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
@@ -878,7 +882,7 @@ int mk_dir()
   }
 
   /* validate directory for domain admin */
-  if ( AuthVpw.pw_gid & QA_ADMIN && 
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
        strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory" RET_CRLF);
     return(-1);
@@ -927,7 +931,7 @@ int rm_dir()
   }
 
   /* validate directory for domain admin */
-  if ( AuthVpw.pw_gid & QA_ADMIN && 
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
        strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
     return(-1);
@@ -978,7 +982,7 @@ int list_dir()
   }
 
   /* validate directory for domain admin */
-  if ( AuthVpw.pw_gid & QA_ADMIN && 
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
        strncmp(TheDomainDir,dir,strlen(TheDomainDir))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized directory%s", RET_CRLF);
     return(-1);
@@ -1048,7 +1052,7 @@ int rm_file()
   }
 
   /* validate filename for domain admin */
-  if ( AuthVpw.pw_gid & QA_ADMIN && 
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
        strncmp(TheDomainDir,filename,strlen(TheDomainDir))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
     return(-1);
@@ -1106,7 +1110,7 @@ int read_file()
   }
 
   /* validate filename for domain admin */
-  if ( AuthVpw.pw_gid & QA_ADMIN && 
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && AuthVpw.pw_gid & QA_ADMIN && 
        strncmp(TheDomainDir,filename,strlen(TheDomainDir))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX unauthorized filename%s", RET_CRLF);
     return(-1);
@@ -1146,11 +1150,34 @@ int list_domains()
  char tmpbuf[1024];
  char *domain;
  char *alias_domain;
+ char *tmpstr;
+ int page = 0;
+ int lines_per_page = 0;
+ int count;
+ int start;
+ int end;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
     return(-1);
   }
+
+  if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
+    page = atoi(tmpstr);
+    if ( page < 0 ) page = 0;
+    if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
+      lines_per_page = atoi(tmpstr);
+      if ( lines_per_page < 0 ) lines_per_page = 0;
+    }
+  }
+  if ( page > 0 && lines_per_page > 0 ) {
+    start = (page-1) * lines_per_page;
+    end   = page * lines_per_page;
+  } else {
+    start = 0;
+    end = 0;
+  }
+
 
   snprintf(tmpbuf,sizeof(tmpbuf), "%s/users/assign", QMAILDIR);
   
@@ -1164,6 +1191,7 @@ int list_domains()
   wait_write();
 
   snprintf(WriteBuf,sizeof(WriteBuf),"OK%s", RET_CRLF);
+  count = 0;
   while(fgets(tmpbuf,sizeof(tmpbuf),fs) != NULL ) {
     if ( (domain = strtok(tmpbuf,LIST_DOMAIN_TOKENS))==NULL ) continue;
     if ( (alias_domain = strtok(NULL,LIST_DOMAIN_TOKENS))==NULL ) continue;
@@ -1174,8 +1202,18 @@ int list_domains()
     /* skip the last - character */
     domain[strlen(domain)-1] = 0;
 
-    snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, domain, alias_domain);
-    wait_write();
+    if ( end>0 ) {
+      if ( count>=start && count<end ) {
+        snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, domain, alias_domain);
+        wait_write();
+      } else if ( count>=end ) {
+        break;
+      }
+    } else { 
+      snprintf(WriteBuf,sizeof(WriteBuf), "%s %s" RET_CRLF, domain, alias_domain);
+      wait_write();
+    }
+    ++count;
   }
   fclose(fs);
   snprintf(WriteBuf,sizeof(WriteBuf),".%s", RET_CRLF);
@@ -1185,7 +1223,13 @@ int list_domains()
 int list_users()
 {
  char *domain;
+ char *tmpstr;
  int first;
+ int page = 0;
+ int lines_per_page = 0;
+ int count;
+ int start;
+ int end;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized%s", RET_CRLF);
@@ -1197,7 +1241,24 @@ int list_users()
     return(-1);
   }
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,domain))!=0 ) {
+  if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
+    page = atoi(tmpstr);
+    if ( page < 0 ) page = 0;
+    if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
+      lines_per_page = atoi(tmpstr);
+      if ( lines_per_page < 0 ) lines_per_page = 0;
+    }
+  }
+  if ( page > 0 && lines_per_page > 0 ) {
+    start = (page-1) * lines_per_page;
+    end   = page * lines_per_page;
+  } else {
+    start = 0;
+    end = 0;
+  }
+
+  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+        (strcmp(TheDomain,domain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
   }
@@ -1206,9 +1267,19 @@ int list_users()
   wait_write();
 
   first=1;
+  count = 0;
   while((tmpvpw=vauth_getall(domain, first, 1))!=NULL) {
     first = 0;
-    send_user_info(tmpvpw);
+    if ( end>0 ) {
+      if ( count>=start && count<end ) {
+        send_user_info(tmpvpw);
+      } else if ( count>=end ) {
+        break;
+      }
+    } else { 
+      send_user_info(tmpvpw);
+    }
+    ++count;
   }
   snprintf(WriteBuf,sizeof(WriteBuf),".%s", RET_CRLF);
   return(0);
@@ -1485,7 +1556,8 @@ int get_lastauth()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+       (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
   }
@@ -1524,7 +1596,8 @@ int get_lastauthip()
     return(-1);
   } 
 
-  if ( (AuthVpw.pw_gid&QA_ADMIN) && (strcmp(TheDomain,TmpDomain))!=0 ) {
+  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+        (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX not authorized for domain%s", RET_CRLF);
     return(-1);
   }
