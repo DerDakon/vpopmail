@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.4 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vlimits.c,v 1.5 2003-10-21 18:21:43 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -49,6 +49,9 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
 
     /* suck in each line of the file */
     while (fgets(buf, sizeof(buf), fs) != NULL) {
+
+            /* skip comments */
+            if (*buf == '#') continue;
 
             /* if the line contains no tokens, skip on to next line */
             if ((s1 = strtok(buf, TOKENS)) == NULL)
@@ -257,7 +260,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
         chown(dir,uid,gid);
         chmod(dir, S_IRUSR|S_IWUSR);
     } else if (vlimits_read_limits_file (VLIMITS_DEFAULT_FILE, limits) == 0) {
-        /* We couldnt find a .qmail-admin limits in the domain's dir.
+        /* We couldn't find a .qmailadmin-limits in the domain's dir.
          * but we did find a global file at ~vpopmail/etc/vlimits.default file
          * so we have used that instead
          */
