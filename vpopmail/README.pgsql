@@ -1,6 +1,15 @@
 /* 
-   $Id: README.pgsql,v 1.2 2003-11-02 11:42:57 mbowe Exp $
+   $Id: README.pgsql,v 1.3 2003-11-21 12:10:08 mbowe Exp $
 */
+--------------------------------------------------------------------------
+
+Using vpopmail with PostgreSQL is not very common.
+The PostgreSQL modules are understood to be functional, but because it not
+as popular as using CDB or MySQL auth systems, you should be wary of 
+implementing the PostgreSQL system on a production server. 
+
+--------------------------------------------------------------------------
+
 ------------------------------------------------------------------------------
 2003/Nov/02 : Michael Bowe <mbowe@pipeline.com.au>
 
@@ -81,10 +90,10 @@ Make the user accounts
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.3.29.tar.gz
-	tar xzf vpopmail-5.3.29.tar.gz
-	chown -R root.root vpopmail-5.3.29
-	cd vpopmail-5.3.29
+	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.3.30.tar.gz
+	tar xzf vpopmail-5.3.30.tar.gz
+	chown -R root.root vpopmail-5.3.30
+	cd vpopmail-5.3.30
 
 Create the a vpopmail database in PostgreSQL
 
