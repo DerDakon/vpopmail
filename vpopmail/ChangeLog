@@ -15,6 +15,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Contributed the README.roamingusers file that provides some
 	  explanation of how the vpopmail roaming users system works.
 
+	Tom Collins
+	- Update more files involved in the build process.
+	- Remove unused variable (fs) from vset_limits() in vlimits.c.
+	  [846509]
+	- Change permissions on vpopmail.mysql to 0640. [848605]
+
 5.3.30 - 20-Nov-03
 
 	Michael Bowe
