@@ -1,3 +1,5 @@
+/* $Id: hmac_md5.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $ */
+
 #include "global.h"
 #include "md5.h"
 
