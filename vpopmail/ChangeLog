@@ -22,8 +22,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  --enable-auth-logging=n [842393]
 
 	Tom Collins
-	- Install a vlimits.default file if none exists.
+	- Install a vlimits.default file if none exists (fixes "can't
+	  read domain limits" errors).
 	- Allow for comments in vlimits.default and .qmailadmin-limits.
+	- Ignore K/KB/M/MB modifiers on vmoddomlimits -Q. [821892]
+	- Update help for vmoddomlimits to indicate that -Q is MB.
 
 	Justin Heesemann
 	- Add -d option to vmoddomlimits to work with vlimits.default.
