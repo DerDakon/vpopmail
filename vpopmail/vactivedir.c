@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.9 2003-12-03 16:41:14 tomcollins Exp $
+ * $Id: vactivedir.c,v 1.10 2004-01-07 16:06:16 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -277,11 +277,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   }
 
   memcpy( adir.pw_dir, tmpbuf, strlen(tmpbuf));
-#ifdef HARD_QUOTA
-  memcpy( adir.pw_shell, HARD_QUOTA, strlen(HARD_QUOTA));
-#else
   memcpy( adir.pw_shell, "NOQUOTA", 7);
-#endif
 
 
   /*ad_print_packet(&adir);*/

@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.12 2003-12-17 03:13:40 tomcollins Exp $
+ * $Id: vmysql.c,v 1.13 2004-01-07 16:06:16 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -346,11 +346,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
-#ifdef HARD_QUOTA
-    snprintf( quota, 30, "%s", HARD_QUOTA );
-#else
     strncpy( quota, "NOQUOTA", 30 );
-#endif
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( domain );
