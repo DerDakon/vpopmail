@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.4 2003-12-19 11:04:46 mbowe Exp $
+   $Id: README.pgsql,v 1.5 2003-12-29 11:19:20 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ implementing the PostgreSQL system on a production server.
 --------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
-2003/Nov/02 : Michael Bowe <mbowe@pipeline.com.au>
+2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
 
 A QUICK GUIDE TO VPOPMAIL WITH POSTGRESQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,10 +90,10 @@ Make the user accounts
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.3.30.tar.gz
-	tar xzf vpopmail-5.3.30.tar.gz
-	chown -R root.root vpopmail-5.3.30
-	cd vpopmail-5.3.30
+	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.0.tar.gz
+	tar xzf vpopmail-5.4.0.tar.gz
+	chown -R root.root vpopmail-5.4.0
+	cd vpopmail-5.4.0
 
 Create the a vpopmail database in PostgreSQL
 
@@ -119,6 +119,8 @@ Now, build the program with a configure something like this :
 	make install-strip
 
 ------------------------------------------------------------------------------
+PREVIOUS VPOPMAIL / PGSQL DOCUMENTATION :
+
 2002/02/22 : N.Fung <nfung@classY.jp>
 
 Notes on translating vmysql.c to vpgsql.c
