@@ -9,6 +9,14 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  Note that any code creating files in ~vpopmail should probably
 	  be moved from configure and into Makefile (under make install).
 
+        Michael Bowe
+        - Minor documentation tweaks
+        - Fix for : If roaming users were enabled, and auth module was not
+          SQL based, and user's IP address was not available (eg being
+          called from Courier-IMAP with authdaemon enabled), then
+          open_smtp.tmp.pid files would be created for each auth 
+          but never removed.
+
 5.4.3 - released 11-Mar-04
 
 	Tom Collins
