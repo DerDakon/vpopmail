@@ -2,7 +2,13 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
-        Rick Widmer - 21 June 2004
+        Rick Widmer - 17 June 2004
+        vpopmaild
+        - fix a bug reported by Rick Macdougall where list_alias fails when
+        passed an email address rather than a domain.
+
+
+        Rick Widmer - 16 June 2004
         vpopmail
         - vmysql.c now sends error messages unless showerrors is set to 0.
 

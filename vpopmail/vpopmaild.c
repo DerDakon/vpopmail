@@ -1620,20 +1620,13 @@ int list_alias()
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
-    return(-1);
-  }
-
-  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
-        (strcmp(TheDomain,domain))!=0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "XXX Domain required" RET_CRLF);
     return(-1);
   }
 
   if ( (vget_assign(domain,thedir,sizeof(thedir),NULL,NULL)) == NULL ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "XXX Invalid domain" RET_CRLF);
     return(-1);
   }
 
