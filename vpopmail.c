@@ -111,7 +111,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if ( strlen(domain)<3) return(VA_INVALID_DOMAIN_NAME);
 
   /* after the name is okay, check if it already exists */
-  if ( vget_assign(domain, NULL, 156, NULL, NULL ) != NULL ) {
+  if ( vget_assign(domain, NULL, 0, NULL, NULL ) != NULL ) {
     chdir(TmpBuf1);
     return(VA_DOMAIN_ALREADY_EXISTS);
   }
@@ -1892,8 +1892,14 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
   }
 
   /* this is a new lookup, free memory from last lookup if necc. */
-  if ( in_domain != NULL ) free(in_domain);
-  if ( in_dir != NULL ) free(in_dir);
+  if ( in_domain != NULL ) {
+    free(in_domain);
+    in_domain = NULL;
+  }
+  if ( in_dir != NULL ) {
+    free(in_dir);
+    in_dir = NULL;
+  }
 
   in_domain_size = 156;
   in_domain = malloc(in_domain_size);
@@ -1941,17 +1947,15 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
     in_dir = malloc(in_dir_size);
     strncpy( in_dir, ptr, in_dir_size);
 
-    free(tmpstr);
     free(tmpbuf);
-    fclose(fs);
-    return(in_dir);
   } else {
     free(in_domain);
+    in_domain = NULL;
     in_domain_size = 0;
   }
   fclose(fs);
   free(tmpstr);
-  return(NULL);
+  return(in_dir);
 }
 
 int vget_real_domain(char *domain, int len )

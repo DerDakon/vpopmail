@@ -1,3 +1,36 @@
+5.3.24 - released 6-Aug-03
+
+	Tom Collins
+	- Removed all references to timezone to be POSIX compliant.  Now
+	  uses gmtime() with +0000 for date header.
+	- Fixed bug in my updated vget_assign that caused segfaults
+	  in many cases (including running vadddomain and vdeldomain).
+
+	Michael Bowe
+	- Update vget_assign calls with NULL directory pointer to use 
+	  0 for buffer size.
+	- Add missing backslashes (\) to vpgsql.h (see 5.3.21 vmysql.h).
+	- Check for NULL return when calling vauth_getpw() in vldap.c.
+
+	Charles Boening
+	- Update configure.in to work for pgsql compiles.
+	- Add --enable-pgsql-logging configure option.
+	- Add vauth_crypt() to vpgsql.c.
+
+	Yann St. Arnaud
+	- Remove #ifdef FOOB from vchkpw.c to re-enable 
+	  ENABLE_LEARN_PASSWORDS feature.
+
+	Jens Jahr
+	- Support for clear text passwords when using LDAP.
+
+	Oden Eriksson
+	- Remove unnecessary errno declaration in cdb/cdb_seek.c.
+
+	Evren Yurtesen
+	- Added contrib/sendmail2vpopmail.pl for converting from sendmail
+	  aliases and virtusertable entries to vpopmail domains.
+
 5.3.23 - released 25-Jul-03
 
 	Tom Collins

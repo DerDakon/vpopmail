@@ -326,7 +326,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t uid;
  gid_t gid;
 
-    vget_assign(domain,NULL,156,&uid,&gid);
+    vget_assign(domain,NULL,0,&uid,&gid);
     myuid = geteuid();
     if ( myuid != 0 && myuid != uid ) return(NULL);
 
@@ -646,7 +646,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     err = vcheck_vqpw(inpw, domain);
     if ( err != 0 ) return(err);
 
-    vget_assign(domain,NULL,156,&uid,&gid);
+    vget_assign(domain,NULL,0,&uid,&gid);
     myuid = geteuid();
     if ( myuid != 0 && myuid != uid ) {
         return(VA_BAD_UID);

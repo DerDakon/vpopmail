@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
-AM_INIT_AUTOMAKE(vpopmail,5.3.23)
+AM_INIT_AUTOMAKE(vpopmail,5.3.24)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
@@ -404,6 +404,24 @@ case $ENABLE_MYSQL_LIMITS in
           ;;
 esac
 
+AC_ARG_ENABLE(pgsql-logging,
+        [  --enable-pgsql-logging=y|n   Turn on (y) or off (n, default) logging detailed authentication attempts, only valid for PostgreSQL],
+        ENABLE_PGSQL_LOGGING=$enableval,
+                [
+                        ENABLE_PGSQL_LOGGING=n
+                ])
+
+case $ENABLE_PGSQL_LOGGING in
+1*|y*|Y*)
+      ENABLE_PGSQL_LOGGING=1
+          AC_DEFINE_UNQUOTED(ENABLE_PGSQL_LOGGING,$ENABLE_PGSQL_LOGGING)
+      ;;
+*)
+          ;;
+esac
+
+
+
 AC_ARG_ENABLE(clear-passwd,
         [  --enable-clear-passwd=n|y  Turn on (y) or off (y, default) storing clear text passwords],
         CLEAR_PASS=$enableval,
@@ -741,11 +759,11 @@ case $USE_POSTGRES in
 		USE_SQL=1
 		USE_POSTGRES=1
 		rm -rf vauth.c
-		ln -sf voracle.c vauth.c 
+		ln -sf vpgsql.c vauth.c 
 		AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES)
-		auth_libs="-L$libdir -lpq" 
+		auth_libs="-L`pg_config --libdir` -lpq " 
 		AC_SUBST(auth_libs)
-		auth_inc="-I$incdir"
+		auth_inc="-I`pg_config --includedir`"
 		AC_SUBST(auth_inc)
         ;;
 *)

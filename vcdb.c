@@ -227,7 +227,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     lowerit(user);
     lowerit(domain);
 
-    vget_assign(domain,NULL,156,&tuid,&tgid);
+    vget_assign(domain,NULL,0,&tuid,&tgid);
     myuid = geteuid();
     if ( myuid != 0 && myuid != tuid ) {
 	return(NULL);
@@ -548,7 +548,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     if ( ret != 0 ) return(ret);
 
 	/* get the owner of the domain */
-	vget_assign(domain,NULL,156,&uid,&gid);
+	vget_assign(domain,NULL,0,&uid,&gid);
 
 	/* get the current effective user */
     myuid = geteuid();
@@ -627,7 +627,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 #endif
 
 #ifdef SQWEBMAIL_PASS
-	tmpstr = vget_assign(domain, NULL, 156, &uid, &gid );
+	tmpstr = vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
 

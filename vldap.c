@@ -34,7 +34,13 @@
 LDAP *ld = NULL;
 LDAPMessage *glm = NULL;
 
-char *ldap_fields[8] = {
+#ifdef CLEAR_PASS
+#  define NUM_LDAP_FIELDS  9
+#else
+#  define NUM_LDAP_FIELDS  8
+#endif
+
+char *ldap_fields[NUM_LDAP_FIELDS] = {
   "uid",			/* 0 pw_name   */ 
   "userPassword",		/* 1 pw_passwd */
   "qmailUID",			/* 2 pw_uid    */
@@ -42,7 +48,12 @@ char *ldap_fields[8] = {
   "qmaildomain",		/* 4 pw_gecos  */
   "mailMessageStore",		/* 5 pw_dir    */
   "mailQuota",			/* 6 pw_shell  */
-  "objectclass"			/* 7 ldap      */
+#ifndef CLEAR_PASS
+  "objectclass"            /* 7 ldap      */
+#else
+  "clearPassword",     /* 7 pw_clear_passwd */
+  "objectclass"            /* 8 ldap      */
+#endif
 };
 
 struct vqpasswd *vauth_getpw(char *user, char *domain)
@@ -62,7 +73,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   lowerit(user);
   lowerit(domain);
 
-  vget_assign(domain,NULL,156,&uid,&gid);
+  vget_assign(domain,NULL,0,&uid,&gid);
   
   myuid = geteuid();
   if ( myuid != 0 && myuid != uid ) {
@@ -262,6 +273,17 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 	else 
   		ldap_perror(ld,"Error");
 
+#ifdef CLEAR_PASS
+  /* for pw_clear_passwd */
+  vals = ldap_get_values(ld, msg, "clearPassword");
+  if ( vals ) {
+   vpw->pw_clear_passwd = (char *)safe_malloc((strlen(*vals) + 1));
+   memset((char *)vpw->pw_clear_passwd, 0, (strlen(*vals) + 1));
+   memcpy((char *)vpw->pw_clear_passwd, (char *)(*vals), strlen(*vals));
+   ldap_value_free(vals);
+  } 
+#endif
+
  return vpw;
 
 }
@@ -410,10 +432,10 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
   		return -99;
 	}
 
-  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * 9);
-
-  for(i=0;i<8;++i) {
-    lm[i] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
+  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * (NUM_LDAP_FIELDS +1));
+  
+  for(i=0;i<NUM_LDAP_FIELDS;++i) {
+	lm[i] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
     
 	memset((LDAPMod *)lm[i], 0, sizeof(LDAPMod));
     lm[i]->mod_op = LDAP_MOD_ADD; 
@@ -421,8 +443,8 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
     lm[i]->mod_values = (char **)safe_malloc(sizeof(char *) * 2);
     lm[i]->mod_values[1] = NULL;
   }
-  lm[8] = NULL;
 
+  lm[NUM_LDAP_FIELDS] = NULL;
   lm[0]->mod_values[0] = safe_strdup(user);
 
   memset((char *)crypted, 0, 100);
@@ -453,8 +475,10 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
 #else
   lm[6]->mod_values[0] = safe_strdup("NOQUOTA");
 #endif
-  lm[7]->mod_values[0] = safe_strdup("qmailUser");
-
+  lm[NUM_LDAP_FIELDS-1]->mod_values[0] = safe_strdup("qmailUser");
+#ifdef CLEAR_PASS
+  lm[7]->mod_values[0] = strdup(password);
+#endif
 
   
   if (compose_dn(&dn_tmp,domain) != 0) {
@@ -479,7 +503,7 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
   ret = ldap_add_s(ld, dn, lm);
   safe_free((void **) &dn);
 
-  for(i=0;i<8;++i) {
+  for(i=0;i<NUM_LDAP_FIELDS;++i) {
   	safe_free((void **) &lm[i]->mod_type);
   	safe_free((void **) &lm[i]->mod_values[0]);
   }
@@ -698,9 +722,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
   		return -99;
 	}
 
-  lm = (LDAPMod **)safe_malloc(sizeof(LDAPMod *) * 9);
-
-  for(i=0;i<8;++i) {
+  lm = (LDAPMod **)malloc(sizeof(LDAPMod *) * NUM_LDAP_FIELDS + 1);
+  for(i=0;i<NUM_LDAP_FIELDS;++i) {
   	lm[i] = (LDAPMod *)safe_malloc(sizeof(LDAPMod)); 
   	memset((LDAPMod *)lm[i], 0, sizeof(LDAPMod));
     lm[i]->mod_op = LDAP_MOD_REPLACE; 
@@ -708,13 +731,16 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     lm[i]->mod_values[1] = NULL;
     lm[i]->mod_type = safe_strdup(ldap_fields[i]);
   }
-  lm[8] = NULL;
+  lm[NUM_LDAP_FIELDS] = NULL;
 
   lm[0]->mod_values[0] = safe_strdup(inpw->pw_name);  
 
   lm[1]->mod_values[0] = safe_malloc(strlen(inpw->pw_passwd) + 7 + 1);
-  snprintf(lm[1]->mod_values[0], strlen(inpw->pw_passwd) + 7 + 1, 
-	"{crypt}%s", inpw->pw_passwd);
+#ifdef MD5_PASSWORDS
+  snprintf(lm[1]->mod_values[0], strlen(inpw->pw_passwd) + 7 + 1, "{MD5}%s", inpw->pw_passwd);
+#else
+  snprintf(lm[1]->mod_values[0], strlen(inpw->pw_passwd) + 7 + 1, "{crypt}%s", inpw->pw_passwd);
+#endif
 
   lm[2]->mod_values[0] = (char *)safe_malloc(10);
   sprintf(lm[2]->mod_values[0], "%d", inpw->pw_uid);
@@ -729,7 +755,10 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
   }
   lm[5]->mod_values[0] = safe_strdup(inpw->pw_dir);
   lm[6]->mod_values[0] = safe_strdup(inpw->pw_shell);  
-  lm[7]->mod_values[0] = safe_strdup("qmailUser");
+#ifdef CLEAR_PASS
+  lm[7]->mod_values[0] = safe_strdup(inpw->pw_clear_passwd);
+#endif
+  lm[NUM_LDAP_FIELDS-1]->mod_values[0] = strdup("qmailUser");
 
   if (compose_dn(&dn_tmp,domain) != 0 ) {
      safe_free((void **) &lm);
@@ -745,7 +774,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
   ret = ldap_modify_s(ld, dn, lm);
   safe_free((void **) &dn);
   
-  for(i=0;i<8;++i) free(lm[i]);
+  for(i=0;i<NUM_LDAP_FIELDS;++i) 
   	safe_free((void **) &lm);
 
   if (ret != LDAP_SUCCESS) {
@@ -754,7 +783,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 	}
 /* MARK */
 #ifdef SQWEBMAIL_PASS
-    vget_assign(domain, NULL, 156, &uid, &gid );
+    vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
 
@@ -890,7 +919,7 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
  uid_t uid;
  gid_t gid;
 
-	vpw = vauth_getpw( user, domain );
+	if ((vpw = vauth_getpw( user, domain )) == NULL) return (0);
 
 	tmpbuf = (char *) safe_malloc(MAX_BUFF);
 	sprintf(tmpbuf, "%s/lastauth", vpw->pw_dir);
