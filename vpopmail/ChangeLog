@@ -2,6 +2,12 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.2 - unreleased
+
+        Michael Bowe - 9th September 2004
+        - Mention in README.mysql that is is possible to create mailboxes 
+	by inserting entries directly into the MySQL table.
+
+
         Rick Widmer - 17 June 2004
         vpopmaild
         - fix a bug reported by Rick Macdougall where mod_user fails to
