@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.11 2004-11-03 18:03:02 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.12 2004-11-10 01:26:29 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,9 +25,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#ifdef HAVE_SYS_VARARGS_H
-#include <sys/varargs.h>
-#endif
 #include <signal.h>
 #include <ctype.h>
 #include <fcntl.h>

@@ -24,6 +24,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  of NO_POP and NO_IMAP.
 	- Update qmail-smtpd-auth patch in contrib to latest (0.5.6).
 	- Update README.quotas with note about domain quotas not working.
+	- vpopmail.c: remove unused sys/varargs.h include.
 
 	Gentoo Port
 	- Integrate vuserinfo patch to fix the -a option and to display 
