@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.7 - unreleased
 
+	Michael Bowe
+	- Mention in README.mysql that is is possible to create mailboxes 
+	  by inserting entries directly into the MySQL table.
+
 	Tom Collins
 	- Don't try to delete dir-control for domain unless users-big-dir
 	  is enabled.
