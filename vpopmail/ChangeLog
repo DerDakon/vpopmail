@@ -16,6 +16,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  buffer overflow.
 	- Improve seeding for rand() and random() in vpopmail.c
 	- Add -r (random password) option to vpasswd.
+	- Better detection of connection type in vchkpw.c. [818943]
+	- Remove extraneous calls to mysql_store_result(). [809472]
+	- Minor cleanup of make_user_dir() in vpopmail.c.
 
 	Justin Heeseman
 	- Set pw_flags field based on pw_gid and domain limits. [795688]
