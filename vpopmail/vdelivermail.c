@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.10 2004-01-11 03:53:40 mbowe Exp $
+ * $Id: vdelivermail.c,v 1.11 2004-02-16 06:28:44 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -467,10 +467,13 @@ int deliver_mail(char *address, char *quota)
         return(0);
       }
 
-    /* Contains /Maildir/ ? Then it must be a full or relative
-     * path to a Maildir 
-     */ 
-    else if ( strstr(address, "/Maildir/") != NULL ) {
+    /* Starts with '.' or '/', then it's an mbox or maildir delivery */
+    else if ((*address == '.') || (*address == '/')) {
+        /* check for mbox delivery and exit accordingly */
+        if (address[strlen(address)-1] != '/') {
+            printf ("can't handle mbox delivery for %s", address);
+            vexit(111);
+        }
 
         /* if the user has a quota set */
         if ( strncmp(quota, "NOQUOTA", 2) != 0 ) {
