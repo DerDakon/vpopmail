@@ -15,10 +15,10 @@ get it running.
 There are some things you need to edit by hand to get it to work.
 
 1) Create a ~vpopmail/etc/vpopmail.mysql file and put these fields in 
-the file:
+the file (replacing them with the actual information):
 
-read server|read port|read user|read password|read database
-update server|update port|update user|update password|update database
+read_server|read port|read_user|read_password|database_name
+update_server|update port|update_user|update_password|database_name
 
 For example:
 
@@ -35,6 +35,11 @@ these sets to be your primary mysql server information.
 If you ARE using mysql replication then set the UPDATE
 set to be your master mysql server and set the READ
 set to be your local mysql server.
+
+After changing the file, make sure it has the correct permissions:
+
+chown vpopmail.vchkpw vpopmail.mysql
+chmod 0644 vpopmail.mysql
 
 2) configure options for mysql support.
 
