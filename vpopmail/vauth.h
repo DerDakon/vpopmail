@@ -1,5 +1,5 @@
 /*
- * $Id: vauth.h,v 1.3.2.2 2005-03-01 01:04:05 tomcollins Exp $
+ * $Id: vauth.h,v 1.3.2.3 2005-03-10 05:22:38 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ struct vqpasswd {
   gid_t pw_flags;		/* permissions/limits (gid | domain limits) */
   char *pw_gecos;		/* Real name.  */
   char *pw_dir;			/* Home directory.  */
-  char *pw_shell;		/* Shell program.  */
+  char *pw_shell;		/* User Quota (or NOQUOTA)  */
   char *pw_clear_passwd;	/* Clear password.  */
 };
 
