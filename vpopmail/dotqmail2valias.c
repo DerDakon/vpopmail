@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.1 2004-02-10 05:40:11 tomcollins Exp $
+ * $Id: dotqmail2valias.c,v 1.1.2.1 2004-03-10 15:18:51 tomcollins Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
@@ -108,8 +108,11 @@ int do_all_domains()
        vexit(-1);
     }
     while ( fgets(tmpbuf, sizeof(tmpbuf),fs) != NULL ) {
+        if (*tmpbuf != '+') continue;  /* ignore non-domain entries */
         for(i=1;tmpbuf[i]!=':';++i);
         tmpbuf[i-1] = 0;
+        /* ignore non-domain entries */
+        if (strchr (tmpbuf, '.') == NULL) continue;
 	if ( tmpbuf[1] != '\n' ) {
             printf("converting %s\n", &tmpbuf[1] );
             if ( conv_domain( &tmpbuf[1] ) != 0 ) {

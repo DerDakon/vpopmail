@@ -1,5 +1,5 @@
 /*
- * $Id: vconvert.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vconvert.c,v 1.2.2.1 2004-03-10 15:18:50 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -115,8 +115,11 @@ int do_all_domains()
        vexit(-1);
     }
     while ( fgets(tmpbuf, sizeof(tmpbuf),fs) != NULL ) {
+        if (*tmpbuf != '+') continue;  /* ignore non-domain entries */
         for(i=1;tmpbuf[i]!=':';++i);
         tmpbuf[i-1] = 0;
+        /* ignore non-domain entries */
+        if (strchr (tmpbuf, '.') == NULL) continue;
 	if ( tmpbuf[1] != '\n' ) {
             printf("converting %s ...", &tmpbuf[1] );
             if ( conv_domain( &tmpbuf[1] ) != 0 ) {
