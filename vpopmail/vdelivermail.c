@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.6 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.7 2003-12-17 03:39:50 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -68,7 +68,6 @@ char msgbuf[MSG_BUF_SIZE];
 
 #define BUFF_SIZE 300
 int fdm;
-char *maildir_to_email(char *maildir);
 
 #define QUOTA_WARN_PERCENT 90
 
@@ -957,49 +956,6 @@ off_t get_message_size()
     }
     return(message_size);
 }
-
-char *maildir_to_email(char *maildir)
-{
- static char email[256];
- int i, j=0;
- char *pnt, *last;
-
-    memset(email, 0, sizeof(email));
-    for(last=NULL, pnt=maildir; (pnt=strstr(pnt,"/Maildir/"))!=NULL; pnt+=9 ){
-        last = pnt;
-    }
-    if(!last) return "";
-
-    /* so now pnt at begin of last Maildir occurence
-     * going toward start of maildir we can get username
-     */
-    pnt = last;
-
-    for( i=(pnt-maildir); (i > 1 && *(pnt-1) != '/'); --pnt, --i);
-
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt) {
-        email[j++] = *pnt;
-    }
-
-    email[j++] = '@';
-
-    for (last=NULL, pnt=maildir; (pnt=strstr(pnt, "/" DOMAINS_DIR "/")); pnt+=strlen("/" DOMAINS_DIR "/")) {
-        last = pnt;
-    }
-
-    if(!last) return "";
-
-    pnt = last + strlen(DOMAINS_DIR) + 2;
-    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
-    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
-      email[j] = *pnt;
-    }
-
-    email[j] = 0;
-
-    return( email );
-}
-
 
 /*
  * check for locked account
