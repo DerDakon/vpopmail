@@ -30,6 +30,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Justin Heesemann
 	- Add -d option to vmoddomlimits to work with vlimits.default.
+	- Fix bitwise AND when setting pw_gid.
+	- Fix bug when setting NO_DIALUP. [833926]
 
 	Bill Shupp
 	- Set uid/gid when creating maildirsize in vuserinfo. [832588,832592]
