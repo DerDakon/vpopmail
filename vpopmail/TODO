@@ -1,3 +1,0 @@
-* Welcome message when adding new user
-* Remove old apop code, and update the API
-* Audit maildirquota.c for proper recalculation
