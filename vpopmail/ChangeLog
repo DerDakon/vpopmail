@@ -12,6 +12,20 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- open_smtp_relay(): fix address conversion of '::ffff:127.0.0.1'
 	  ip format. [858586]
 
+	Michael Bowe
+	- Revise configure script so choice of auth module is now "OR" 
+	  rather than "AND". 
+          Auth module selection now uses the format :
+            --enable-auth-module=cdb|mysql|pgsql|ldap|sybase|oracle|activedir
+	  Rather than :
+	    --enable-mysql --enable-pgsql --enable-ldap etc
+	  If the old style is used, then the configure script will output
+	  and error and will advise the user of the updated syntax. [855691]
+	- Removed the code that created a vpopmail.config.sh file each
+	  time the configure script is run. This file is never used,
+	  and a more accurate result can be achieved by using
+	  ./config.status --recheck [860271]
+
 5.4.0-pre1 - released 10-Dec-03
 	
 	Michael Bowe

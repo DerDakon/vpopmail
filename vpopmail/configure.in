@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
 
 PACKAGE="vpopmail"
-VERSION="5.4.0-pre1"
+VERSION="5.4.0-pre2"
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_CONFIG_HEADER(config.h)
@@ -63,11 +63,6 @@ AC_TYPE_SIGNAL
 #AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime])
-
-#----------------------------------------------------------------------
-
-#default to use CDB authentication
-USE_CDB=1
 
 #----------------------------------------------------------------------
 
@@ -554,6 +549,7 @@ case $POPRELAY in
         AC_MSG_ERROR([Unable to find your tcp.smtp file, specify --enable-tcpserver-path=/full/path/to/tcp.smtp])
     fi
 
+    AC_MSG_RESULT(yes)
     AC_DEFINE_UNQUOTED(TCP_FILE,"$tcpserver_file","")
 
 
@@ -842,7 +838,7 @@ case $ENABLE_HARD_QUOTA in
       AC_MSG_RESULT(no)
       ;;
   y*|Y*)
-      AC_MSG_RESULT(yes, but incorrectly)
+      AC_MSG_RESULT([yes, but incorrectly])
       AC_MSG_ERROR(--enable-defaultquota=X or n. Where X must either be the quota, or n to signify no quota)
       ;;
   *)
@@ -892,14 +888,8 @@ AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir","")
 AC_SUBST(domains_dir)
 
 #----------------------------------------------------------------------
-#
-#defaultdomain=""
-#AC_ARG_ENABLE(default-domain, [], defaultdomain="$enableval", [])
-#
-#----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether MySQL authentication has been enabled rather than CDB)
-
+# cant contain this following block in the mysql section, as it is also used by oracle
 incdir=""
 for f in /usr/local/mysql/include /usr/local/include/mysql /usr/include/mysql
 do
@@ -911,7 +901,7 @@ do
 done
 
 AC_ARG_ENABLE(incdir,
-    [  --enable-incdir=DIR        Your MySQL 'include' directory.],
+    [  --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.],
     incdir="$enableval",
 )
 
@@ -926,262 +916,177 @@ do
 done
 
 AC_ARG_ENABLE(libdir,
-    [  --enable-libdir=DIR        Your MySQL 'lib' directory.],
+    [  --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.],
     libdir="$enableval",
 )
 
-#
-#
-#libs="mysqlclient"
-#AC_ARG_ENABLE(libs, [  --enable-libs=mysqlclient libraries for sql linking.],
-#    libs="$enableval",
-#        [])
-#
-
-AC_ARG_ENABLE(mysql,
-        [  --enable-mysql             Use MySQL for authentication instead of cdb.],
-        USE_MYSQL=$enableval,
-                [
-                        USE_MYSQL=no
-                ]
-)
-
-case $USE_MYSQL in
-  1*|y*|Y*)
-        AC_MSG_RESULT(yes)
-        USE_CDB=0
-        USE_SQL=1
-        USE_MYSQL=1
-        rm -rf vauth.c
-        ln -sf vmysql.c vauth.c
-        AC_SUBST(USE_MYSQL)
-        AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
-        AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL,"")
-        #AC_CHECK_LIB(m,floor)
-        #AC_CHECK_LIB(z,compress)
-
-        if test "$incdir" = ""
-        then
-            AC_MSG_ERROR([Unable to find your MySQL inc dir, specify --enable-incdir.])
-        fi
-
-        if test ! -d "$incdir"
-        then
-           AC_MSG_ERROR([Unable to find your MySQL inc dir, specify --enable-incdir.])
-        fi
-
-        auth_inc="-I$incdir"
-        AC_SUBST(auth_inc)
-
-        if test "$libdir" = ""
-        then
-            AC_MSG_ERROR([Unable to find your MySQL lib dir, specify --enable-libdir.])
-        fi
-
-        if test ! -d "$libdir"
-        then
-            AC_MSG_ERROR([Unable to find your MySQL lib dir, specify --enable-libdir.])
-        fi
-
-        auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
-        AC_SUBST(auth_libs)
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        USE_MYSQL=0
-        ;;
-esac
-
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether PostgreSQL authentication has been enabled rather than CDB)
+AC_MSG_CHECKING(whether an auth module has been specified)
 
-pgconfig=""
-for f in /usr/local/pgsql/bin/pg_config /usr/local/bin/pg_config /usr/bin/pg_config
-do
+#default to use CDB authentication
+AUTH_MODULE="cdb"
+
+AC_ARG_ENABLE(auth-module,
+    [  --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir        Nominate how to store the vpopmail account information. (default cdb)],
+    AUTH_MODULE="$enableval",
+)
+
+case $AUTH_MODULE in
+
+  cd*|Cd*|CD*)
+    AC_MSG_RESULT([no, so default to cdb])
+    USE_CDB=1
+    USE_SQL=0
+    rm -rf vauth.c
+    ln -sf vcdb.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB,"")
+    authlib=""
+    AC_SUBST(authlib)
+    auth_inc="-Icdb"
+    AC_SUBST(auth_inc)
+    ;;
+
+  my*|My*|MY*)
+    AC_MSG_RESULT(mysql)
+    USE_CDB=0
+    USE_SQL=1
+    USE_MYSQL=1
+    rm -rf vauth.c
+    ln -sf vmysql.c vauth.c
+    #AC_SUBST(USE_MYSQL)
+    AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+    AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL,"")
+    #AC_CHECK_LIB(m,floor)
+    #AC_CHECK_LIB(z,compress)
+
+    if test "$incdir" = ""
+    then
+        AC_MSG_ERROR([Unable to find your MySQL inc dir, specify --enable-incdir.])
+    fi
+
+    if test ! -d "$incdir"
+    then
+       AC_MSG_ERROR([Unable to find your MySQL inc dir, specify --enable-incdir.])
+    fi
+
+    auth_inc="-I$incdir"
+    AC_SUBST(auth_inc)
+
+    if test "$libdir" = ""
+    then
+        AC_MSG_ERROR([Unable to find your MySQL lib dir, specify --enable-libdir.])
+    fi
+
+    if test ! -d "$libdir"
+    then
+        AC_MSG_ERROR([Unable to find your MySQL lib dir, specify --enable-libdir.])
+    fi
+
+    auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
+    AC_SUBST(auth_libs)
+    ;;
+
+  pg*|Pg*|PG*)
+    AC_MSG_RESULT(pgsql)
+
+    pgconfig=""
+    for f in /usr/local/pgsql/bin/pg_config /usr/local/bin/pg_config /usr/bin/pg_config
+    do
         if test -f $f
         then
-                pgconfig=$f
-                break
+            pgconfig=$f
+            break
         fi
-done
+    done
 
-AC_ARG_ENABLE(postgres,
-        [  --enable-postgres          Use PostgreSQL for authentication instead of cdb.],
-        USE_POSTGRES=$enableval,
-                [
-                        USE_POSTGRES=no
-                ]
-)
+    if test "$pgconfig" = ""
+    then
+        AC_MSG_ERROR([Unable to locate the pg_config program.])
+    fi
 
-case $USE_POSTGRES in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_CDB=0
-                USE_SQL=1
-                USE_POSTGRES=1
-                rm -rf vauth.c
-                ln -sf vpgsql.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES,"")
+    if test ! -f "$pgconfig"
+    then
+        AC_MSG_ERROR([Unable to locate the pg_config program.])
+    fi
 
-                if test "$pgconfig" = ""
-                then
-                        AC_MSG_ERROR([Unable to locate the pg_config program.])
-                fi
+    USE_CDB=0
+    USE_SQL=1
+    USE_POSTGRES=1
+    rm -rf vauth.c
+    ln -sf vpgsql.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+    AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES,"")
 
-                if test ! -f "$pgconfig"
-                then
-                        AC_MSG_ERROR([Unable to locate the pg_config program.])
-                fi
+    auth_libs="-L`$pgconfig --libdir` -lpq "
+    AC_SUBST(auth_libs)
+    auth_inc="-I`$pgconfig --includedir`"
+    AC_SUBST(auth_inc)
+    ;;
 
-                auth_libs="-L`$pgconfig --libdir` -lpq "
-                AC_SUBST(auth_libs)
-                auth_inc="-I`$pgconfig --includedir`"
-                AC_SUBST(auth_inc)
-        ;;
+  ld*|Ld*|LD*)
+    AC_MSG_RESULT(ldap)
+    USE_CDB=0
+    USE_SQL=0
+    USE_LDAP=1
+    rm -rf vauth.c
+    ln -sf vldap.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_LDAP,$USE_LDAP,"")
+    auth_libs="-L/usr/local/lib -lldap -llber -lresolv"
+    AC_SUBST(auth_libs)
+    auth_inc="-I/usr/local/include"
+    AC_SUBST(auth_inc)
+    ;;
+
+  or*|Or*|OR*)
+    AC_MSG_RESULT(oracle)
+    USE_CDB=0
+    USE_SQL=1
+    USE_ORACLE=1
+    rm -rf vauth.c
+    ln -sf voracle.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+    AC_DEFINE_UNQUOTED(USE_ORACLE,$USE_ORACLE,"")
+    auth_libs="-L$libdir -lclntsh -lclient8"
+    AC_SUBST(auth_libs)
+    auth_inc="-I$incdir"
+    AC_SUBST(auth_inc)
+    ;;
+
+  sy*|Sy*|SY*)
+    AC_MSG_RESULT(sybase)
+    USE_CDB=0
+    USE_SQL=1
+    USE_SYBASE=1
+    rm -rf vauth.c
+    ln -sf vsybase.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+    AC_DEFINE_UNQUOTED(USE_SYBASE,$USE_SYBASE,"")
+    auth_libs="-L/opt/sybase/lib -lsybdb -lm"
+    AC_SUBST(auth_libs)
+    auth_inc="-I/opt/sybase/include"
+    AC_SUBST(auth_inc)
+    ;;
+
+  ac*|Ac*|AC*)
+    AC_MSG_RESULT(activedir)
+    USE_CDB=0
+    USE_SQL=0
+    USE_ACTIVE_DIR=1
+    rm -rf vauth.c
+    ln -sf vactivedir.c vauth.c
+    AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR,"")
+    authlib=""
+    AC_SUBST(authlib)
+    auth_inc=""
+    AC_SUBST(auth_inc)
+    ;;
+
   *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir)
+    ;;
 
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether LDAP authentication has been enabled rather than CDB)
-AC_ARG_ENABLE(ldap,
-        [  --enable-ldap              Use LDAP for authentication instead of cdb.],
-        USE_LDAP=$enableval,
-                [
-                        USE_LDAP=no
-                ]
-)
-
-case $USE_LDAP in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_CDB=0
-                USE_SQL=0
-                USE_LDAP=1
-                rm -rf vauth.c
-                ln -sf vldap.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_LDAP,$USE_LDAP,"")
-                auth_libs="-L/usr/local/lib -lldap -llber -lresolv"
-                AC_SUBST(auth_libs)
-                auth_inc="-I/usr/local/include"
-                AC_SUBST(auth_inc)
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether Oracle authentication has been enabled rather than CDB)
-AC_ARG_ENABLE(oracle,
-        [  --enable-oracle            Use Oracle for authentication instead of cdb.],
-        USE_ORACLE=$enableval,
-                [
-                        USE_ORACLE=no
-                ]
-)
-
-case $USE_ORACLE in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_CDB=0
-                USE_SQL=1
-                USE_ORACLE=1
-                rm -rf vauth.c
-                ln -sf voracle.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_ORACLE,$USE_ORACLE,"")
-                auth_libs="-L$libdir -lclntsh -lclient8"
-                AC_SUBST(auth_libs)
-                auth_inc="-I$incdir"
-                AC_SUBST(auth_inc)
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether Sybase authentication has been enabled rather than CDB)
-AC_ARG_ENABLE(sybase,
-        [  --enable-sybase            Use Sybase for authentication instead of cdb.],
-        USE_SYBASE=$enableval,
-                [
-                        USE_SYBASE=no
-                ]
-)
-
-case $USE_SYBASE in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_CDB=0
-                USE_SQL=1
-                USE_SYBASE=1
-                rm -rf vauth.c
-                ln -sf vsybase.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_SYBASE,$USE_SYBASE,"")
-                auth_libs="-L/opt/sybase/lib -lsybdb -lm"
-                AC_SUBST(auth_libs)
-                auth_inc="-I/opt/sybase/include"
-                AC_SUBST(auth_inc)
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether Active Directory authentication has been enabled rather than CDB)
-AC_ARG_ENABLE(active-directory,
-        [  --enable-active-directory  Use Active Directory for authentication instead of cdb.],
-        USE_ACTIVE_DIR=$enableval,
-                [
-                        USE_ACTIVE_DIR=no
-                ]
-)
-
-case $USE_ACTIVE_DIR in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_CDB=0
-                USE_SQL=0
-                USE_ACTIVE_DIR=1
-                rm -rf vauth.c
-                ln -sf vactivedir.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR,"")
-                authlib=""
-                AC_SUBST(authlib)
-                auth_inc=""
-                AC_SUBST(auth_inc)
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether CDB authentication has been enabled)
-case $USE_CDB in
-  1*|y*|Y*)
-                AC_MSG_RESULT(yes)
-                USE_SQL=0
-                rm -rf vauth.c
-                ln -sf vcdb.c vauth.c
-                AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB,"")
-                authlib=""
-                AC_SUBST(authlib)
-                auth_inc="-Icdb"
-                AC_SUBST(auth_inc)
-        ;;
-  *)
-                AC_MSG_RESULT(no)
-        ;;
 esac
 
 
@@ -1254,12 +1159,12 @@ case $ENABLE_LOGGING in
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
   p*|P*)
-      AC_MSG_RESULT(errors, with password)
+      AC_MSG_RESULT([errors, with password])
       ENABLE_LOGGING=3
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
   v*|V*)
-      AC_MSG_RESULT(verbose, all with password)
+      AC_MSG_RESULT([verbose, all with password])
        ENABLE_LOGGING=4
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
@@ -1465,6 +1370,67 @@ case $MANY_DOMAINS in
         ;;
 esac
 
+#----------------------------------------------------------------------
+
+AC_MSG_CHECKING(whether any discontinued --enable commands have been used)
+
+AC_ARG_ENABLE(mysql, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=mysql instead)
+    ]
+)
+
+AC_ARG_ENABLE(pgsql, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=pgsql instead)
+    ]
+)
+
+AC_ARG_ENABLE(ldap, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=ldap instead)
+    ]
+)
+
+AC_ARG_ENABLE(oracle, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=oracle instead)
+    ]
+)
+
+AC_ARG_ENABLE(sybase, [],
+    [
+        AC_MSG_RESULT(yes)
+	AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=sybase instead)
+    ]
+)
+
+AC_ARG_ENABLE(active-directory, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-mysql has been superceded. Please use --enable-auth-module=activedir instead)
+    ]
+) 
+
+AC_ARG_ENABLE(hardquota, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-hardquota has been superceded. Please use --enable-defaultquota instead)
+    ]
+)
+
+AC_ARG_ENABLE(default-domain, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-default-domain has been superceded. The default domain should be put into the file ~vpopmail/etc/defaultdomain instead)
+    ]
+)
+
+AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
 
@@ -1472,7 +1438,6 @@ AC_OUTPUT(Makefile)
 
 #----------------------------------------------------------------------
 
-echo "./configure \\" > vpopmail.config.sh
 
 echo ""
 echo "           $PACKAGE $VERSION           "
@@ -1486,7 +1451,6 @@ echo "               gid = "$vpopmailgid""
 case $POPRELAY in
   1*|y*|Y*)
     echo "     roaming users = ON  --enable-roaming-users"
-    echo " --enable-roaming-users \\" >> vpopmail.config.sh
 
     echo "    tcpserver file = $tcpserver_file"
     echo "    open_smtp file = $open_smtp_cur"
@@ -1497,7 +1461,6 @@ case $POPRELAY in
         ;;
       *)
         echo "rebuild tcpserver file = OFF --disable-rebuild-tcpserver-file"
-        echo " --disable-rebuild-tcpserver-file \\" >> vpopmail.config.sh
         ;;
     esac
 
@@ -1511,7 +1474,6 @@ esac
 case $ENABLE_LEARN_PASSWORDS in
   1*|y*|Y*)
     echo " password learning = ON  --enable-learn-passwords"
-    echo " --enable-learn-passwords \\" >> vpopmail.config.sh
     ;;
   *)
     echo " password learning = OFF --disable-learn-passwords (default)"
@@ -1525,7 +1487,6 @@ case $ENABLE_MD5_PASSWORDS in
     ;;
   *)
     echo "     md5 passwords = OFF --disable-md5-passwords"
-    echo " --disable-learn-passwords \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1536,7 +1497,6 @@ case $FILE_LOCKING in
     ;;
   *)
     echo "      file locking = OFF --disable-file-locking"
-    echo " --disable-file-locking \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1544,7 +1504,6 @@ esac
 case $FILE_SYNC in
   1*|y*|Y*)
     echo "vdelivermail fsync = ON  --enable-file-sync"
-    echo " --enable-file-sync \\" >> vpopmail.config.sh
     ;;
   *)
     echo "vdelivermail fsync = OFF --disable-file-sync (default)"
@@ -1558,7 +1517,6 @@ case $MAKE_SEEKABLE in
     ;;
   *)
     echo "     make seekable = OFF --disable-make-seekable"
-    echo " --disable-make-seekable \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1569,7 +1527,6 @@ case $CLEAR_PASS in
     ;;
   *)
     echo "      clear passwd = OFF --disable-clear-passwd"
-    echo " --disable-clear-passwd \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1580,7 +1537,6 @@ case $USERS_BIG_DIR in
     ;;
   *)
     echo " user dir hashing  = OFF --disable-users-big-dir"
-    echo " --disable-users-big-dir \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1590,11 +1546,10 @@ esac
 
 case $QMAIL_EXT in
   1*|y*|Y*)
-    echo "address extentions = ON  --enable-qmail-ext"
-    echo " --enable-qmail-ext \\" >> vpopmail.config.sh
+    echo "address extensions = ON  --enable-qmail-ext"
     ;;
   *)
-    echo "address extentions = OFF --disable-qmail-ext (default)"
+    echo "address extensions = OFF --disable-qmail-ext (default)"
     ;;
 esac
 
@@ -1602,7 +1557,6 @@ esac
 case $IPALIAS in
   1*|y*|Y*)
     echo "          ip alias = ON  --enable-ip-alias-domains"
-    echo " --enable-ip-alias-domains \\" >> vpopmail.config.sh
     ;;
   *)
     echo "          ip alias = OFF --disable-ip-alias-domains (default)"
@@ -1616,7 +1570,6 @@ case $ENABLE_HARD_QUOTA in
     ;;
   *)
     echo "        user quota = $ENABLE_HARD_QUOTA --enable-hardquota=$ENABLE_HARD_QUOTA"
-    echo " --enable-defaultquota=$ENABLE_HARD_QUOTA \\" >> vpopmail.config.sh
     ;;
 esac
 
@@ -1624,7 +1577,6 @@ esac
 case $ENABLE_DOMAIN_QUOTAS in
   1*|y*|Y*)
     echo "     domain quotas = ON  --enable-domainquotas"
-    echo " --enable-domainquotas \\" >> vpopmail.config.sh
     ;;
   *)
     echo "     domain quotas = OFF --disable-domainquotas (default)"
@@ -1632,109 +1584,89 @@ case $ENABLE_DOMAIN_QUOTAS in
 esac
 
 
-if test $USE_MYSQL = 1
-then
-  echo "       auth module = mysql --enable-mysql"
-  echo " --enable-mysql \\" >> vpopmail.config.sh
+case $AUTH_MODULE in
+  cd*|Cd*|CD*)
+    echo "       auth module = cdb  --enable-auth-module=cdb (default)"
+    ;;
 
-  case $MYSQL_REPLICATION in
-    1*|y*|Y*)
-      echo " mysql replication = ON  --enable-mysql-replication"
-      echo " --enable-mysql-replication \\" >> vpopmail.config.sh
+  my*|My*|MY*)
+    echo "       auth module = mysql --enable-auth-module=mysql"
+
+    case $MYSQL_REPLICATION in
+      1*|y*|Y*)
+        echo " mysql replication = ON  --enable-mysql-replication"
+        ;;
+      *)
+        echo " mysql replication = OFF --disable-mysql-replication (default)"
+        ;;
+    esac
+
+    case $ENABLE_MYSQL_LOGGING in
+      1*|y*|Y*)
+        echo "     mysql logging = ON  --enable-mysql-logging"
+        ;;
+      *)
+        echo "     mysql logging = OFF --disable-mysql-logging (default)"
+        ;;
+    esac
+
+    case $ENABLE_MYSQL_LIMITS in
+      1*|y*|Y*)
+        echo "      mysql limits = ON  --enable-mysql-limits"
+        ;;
+      *)
+        echo "      mysql limits = OFF --disable-mysql-limits (default)"
+        ;;
+    esac
+
+    case $VALIAS in
+      1*|y*|Y*)
+        echo "      MySQL valias = ON  --enable-valias"
+        ;;
+      *)
+        echo "      MySQL valias = OFF --disable-valias (default)"
+        ;;
+    esac
+    ;;
+
+  pg*|Pg*|PG*)
+    echo "       auth module = postgres --enable-auth-module=postgres"
+
+    case $ENABLE_PGSQL_LOGGING in
+      1*|y*|Y*)
+        echo "     pgsql logging = ON  --enable-pgsql-logging"
+        ;;
+      *)
+        echo "     pgsql logging = OFF --disable-pgsql-logging (default)"
       ;;
-    *)
-      echo " mysql replication = OFF --disable-mysql-replication (default)"
-      ;;
-  esac
+    esac
+    ;;
 
-  case $ENABLE_MYSQL_LOGGING in
-    1*|y*|Y*)
-      echo "     mysql logging = ON  --enable-mysql-logging"
-      echo " --enable-mysql-logging \\" >> vpopmail.config.sh
-      ;;
-    *)
-      echo "     mysql logging = OFF --disable-mysql-logging (default)"
-      ;;
-  esac
+  ld*|Ld*|LD*)
+    echo "       auth module = ldap --enable-auth-module=ldap"
+    ;;
 
-  case $ENABLE_MYSQL_LIMITS in
-    1*|y*|Y*)
-      echo "      mysql limits = ON  --enable-mysql-limits"
-      echo " --enable-mysql-limits \\" >> vpopmail.config.sh
-      ;;
-    *)
-      echo "      mysql limits = OFF --disable-mysql-limits (default)"
-      ;;
-  esac
+  or*|Or*|OR*)
+    echo "       auth module = oracle --enable-auth-module=oracle"
+    ;;
 
-  case $VALIAS in
-    1*|y*|Y*)
-      echo "      MySQL valias = ON  --enable-valias"
-      echo " --enable-valias \\" >> vpopmail.config.sh
-      ;;
-    *)
-      echo "      MySQL valias = OFF --disable-valias (default)"
-      ;;
-  esac
-fi
+  sy*|Sy*|SY*)
+    echo "       auth module = sybase --enable-auth-module=sybase"
+    ;;
+
+  ac*|Ac*|AC*)
+    echo "       auth module = active directory --enable-auth-module=activedir"
+    ;;
+esac
 
 
-if test $USE_ORACLE = 1
-then
-  echo "       auth module = oracle --enable-oracle"
-  echo " --enable-oracle \\" >> vpopmail.config.sh
-fi
-
-
-if test $USE_POSTGRES = 1
-then
-  echo "       auth module = postgres --enable-postgres"
-  echo " --enable-postgres \\" >> vpopmail.config.sh
-
-  case $ENABLE_PGSQL_LOGGING in
-    1*|y*|Y*)
-      echo "     pgsql logging = ON  --enable-pgsql-logging"
-      echo " --enable-pgsql-logging \\" >> vpopmail.config.sh
-      ;;
-    *)
-      echo "     pgsql logging = OFF --disable-pgsql-logging (default)"
-      ;;
-  esac
-
-fi
-
-
-if test $USE_SYBASE = 1
-then
-  echo "       auth module = sybase --enable-sybase"
-  echo " --enable-sybase \\" >> vpopmail.config.sh
-fi
-
-
-if test $USE_LDAP = 1
-then
-  echo "       auth module = ldap --enable-ldap"
-  echo " --enable-ldap \\" >> vpopmail.config.sh
-fi
-
-
-if test $USE_ACTIVE_DIR = 1
-then
-  echo "       auth module = active directory --enable-active-directory"
-  echo " --enable-active-directory \\" >> vpopmail.config.sh
-fi
-
-
-if test $USE_CDB = 1
-then
-  echo "       auth module = cdb (default)"
-fi
+echo "          auth inc = $auth_inc"
+echo "          auth lib = $auth_libs"
 
 
 case $ENABLE_PASSWD in
   1*|y*|Y*)
     echo "  system passwords = ON  --enable-passwd"
-    echo " --enable-passwd \\" >> vpopmail.config.sh
     ;;
   *)
     echo "  system passwords = OFF --disable-passwd (default)"
@@ -1746,7 +1678,6 @@ case $ENABLE_LOGGING in
   1*|y*|Y*)
     echo "        pop syslog = show successful and failed login attempts"
     echo "                     --enable-logging=y"
-    echo " --enable-logging=y \\" >> vpopmail.config.sh
     ;;
   2*|e*|E*)
     echo "        pop syslog = show only failed attempts"
@@ -1755,12 +1686,10 @@ case $ENABLE_LOGGING in
   3*|p*|P*)
     echo "        pop syslog = show failed attempts with clear text password"
     echo "                     --enable-logging=p"
-    echo " --enable-logging=p \\" >> vpopmail.config.sh
     ;;
   4*|v*|V*)
     echo "        pop syslog = log success and errors including passwords"
     echo "                     --enable-logging=v"
-    echo " --enable-logging=v \\" >> vpopmail.config.sh
     ;;
   *)
     echo "        pop syslog = OFF"
@@ -1771,7 +1700,6 @@ esac
 case $ENABLE_AUTH_LOGGING in
   1*|y*|Y*)
     echo "      auth logging = ON  --enable-auth-logging"
-    echo " --enable-auth-logging \\" >> vpopmail.config.sh
     ;;
   *)
     echo "      auth logging = OFF --disable-auth-logging (default)"
@@ -1786,25 +1714,10 @@ then
     echo "all domains in one SQL table = --enable-many-domains (default)"
   else
     echo "one domain per SQL table     = --disable-many-domains"
-    echo " --enable-many-domains \\" >> vpopmail.config.sh
   fi
 fi
 
-echo "          auth inc = $auth_inc"
-echo "          auth lib = $auth_libs"
-
-
-if test "$defaultdomain" = ""
-then
-  echo ""
-else
-  echo "** --enable-default-domain has been deprecated.  Please set"
-  echo "   ~vpopmail/etc/defaultdomain to your default domain. **"
-fi
-
 
 echo ""
 echo ""
-echo "" >> vpopmail.config.sh
-
 
