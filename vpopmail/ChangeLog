@@ -7,6 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Minor code fixes and major documentation work for LDAP module. 
 	  Incl updated README.ldap, vldap.c, vldap.h, ldap/slapd.conf, 
 	  ldap/vpopmail.ldif. [863881] [811000]
+
+	Tom Collins
+	- Remove unused var (cp), change random/srandom to rand/srand in
+	  vpopmail.c to remove compiler warnings.
  
 5.4.0-pre2 - released 21-Dec-03
 
