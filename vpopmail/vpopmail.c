@@ -289,6 +289,7 @@ int vdeldomain( char *domain )
  struct stat statbuf;
  char Dir[MAX_BUFF];
  char domain_to_del[MAX_BUFF];
+ char dircontrol[MAX_BUFF];
  uid_t uid;
  gid_t gid;
 
@@ -358,6 +359,30 @@ int vdeldomain( char *domain )
       return (VA_NO_AUTH_CONNECTION);
     }
 
+    /* vdel_limits does the following :
+     * If we have mysql_limits enabled,
+     *  it will delete the domain's entries from the limits table
+     * Or if we arent using mysql_limits,
+     *  it will delete the .qmail-admin file from the domain's dir
+     *
+     * Note there are inconsistencies in the auth backends.  Some
+     * will run vdel_limits() in vauth_deldomain(), others don't.
+     * For now, we always run it to be safe.  Ultimately, the auth
+     * backends should to be updated to do this.
+     */  
+    vdel_limits(domain);
+
+    /* delete the dir control info for this domain */
+    if (vdel_dir_control(domain) != 0) {
+      printf ("Failed to delete dir_control for %s\n", domain);
+      /* Michael Bowe 23rd August 2003  
+       * should we return now? or continue and clean up as much  
+       * of the domain as possible
+       * If we dont exit now, how can we signal failure to the  
+       * calling function?  
+       */  
+    }
+
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
     if ( S_ISLNK(statbuf.st_mode) ) {
@@ -374,7 +399,7 @@ int vdeldomain( char *domain )
       /* Not a symlink.. so we have to del some files structure now */
       /* zap the domain's directory tree */
       if ( vdelfiles(Dir) != 0 ) {
-        printf("Failed while attempting to del dir tree : %s\n", domain);
+        printf("Failed to delete directory tree: %s\n", domain);
         /* Michael Bowe 23rd August 2003
          * should we return now? or continue and clean up as much
          * of the domain as possible (eg assign file, dir_control)
@@ -383,11 +408,28 @@ int vdeldomain( char *domain )
          */
       }
     }
+
+    /* decrement the master domain control info */
+    snprintf(dircontrol, sizeof(dircontrol), "dom_%lu", (long unsigned)uid);
+    dec_dir_control(dircontrol, uid, gid);
+  }
+
+  /* The following things need to happen for real and aliased domains */
+
+  /* delete the email domain from the qmail control files */
+  if (del_control(domain_to_del) != 0) {
+    printf ("Failed to delete domain from qmail's control files\n");
+    /* Michael Bowe 23rd August 2003
+     * should we return now? or continue and clean up as much
+     * of the domain as possible
+     * If we dont exit now, how can we signal failure to the
+     * calling function?
+     */
   }
 
   /* delete the assign file line */
   if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
-    printf ("Failed while attempting to del domain from assign file\n");
+    printf ("Failed to delete domain from assign file\n");
     /* Michael Bowe 23rd August 2003
      * should we return now? or continue and clean up as much
      * of the domain as possible
@@ -395,43 +437,9 @@ int vdeldomain( char *domain )
      * calling function?
      */
   }
-
-  /* delete the email domain from the qmail control files */
-  if (del_control(domain_to_del) != 0) {
-    printf ("Failed while attempting to del domain from qmail's control files\n");
-    /* Michael Bowe 23rd August 2003
-     * should we return now? or continue and clean up as much
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the
-     * calling function?
-     */
-  }
-
-  /* delete the dir control info for this domain */
-  if (vdel_dir_control(domain_to_del) != 0) {
-    printf ("Failed while attempting to delete domain from dir_control\n");
-    /* Michael Bowe 23rd August 2003  
-     * should we return now? or continue and clean up as much  
-     * of the domain as possible
-     * If we dont exit now, how can we signal failure to the  
-     * calling function?  
-     */  
-  }
-
-  /* decrement the master domain control info */
-  snprintf(Dir, sizeof(Dir), "dom_%lu", (long unsigned)uid);
-  dec_dir_control(Dir, uid, gid);
 
   /* send a HUP signal to qmail-send process to reread control files */
   signal_process("qmail-send", SIGHUP);
-
-  /* vdel_limits does the following :
-   * If we have mysql_limits enabled,
-   *  it will delete the domain's entries from the limits table
-   * Or if we arent using mysql_limits,
-   *  it will delete the .qmail-admin file from the domain's dir
-   */  
-  vdel_limits(domain);
 
   return(VA_SUCCESS);
 
