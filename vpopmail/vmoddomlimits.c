@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         
         /* quota & message count limits */
         if (DomainQuota[0] != 0) {
-            limits.diskquota = atoi(DomainQuota);
+            limits.diskquota = atoi(format_maildirquota(DomainQuota));
         }
         if (DomainMaxMsgCount[0] != 0) {
             limits.maxmsgcount = atoi(DomainMaxMsgCount);
