@@ -10,6 +10,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Add support for port 587 (submission) to vchkpw.
 	- Increase size of VchkpwLogName in vchkpw.c to eliminate a
 	  buffer overflow.
+	- Improve seeding for rand() and random() in vpopmail.c
+	- Add -r (random password) option to vpasswd.
 
 5.3.28 - released 3-Oct-03
 
