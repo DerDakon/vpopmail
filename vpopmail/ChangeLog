@@ -12,6 +12,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Review the assorted text files included in the source dir.
 	  Remove out-of-date content / files as appropriate. Updated
 	  some minor typos in the documentation [793659]
+	- Contributed the README.roamingusers file that provides some
+	  explanation of how the vpopmail roaming users system works.
 
 5.3.30 - 20-Nov-03
 
