@@ -10,6 +10,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Remove "id" column in PostgeSQL's vpopmail table.
 	  This column appears to serve no purpose, and causes errors
 	  when you try to insert your first domain [822181]
+	- Added installation instructions for PostgreSQL to the
+	  README.pgsql file [824088] 
 
 	Tom Collins
 	- Install a vlimits.default file if none exists.
