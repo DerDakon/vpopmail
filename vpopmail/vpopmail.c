@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.20 2003-12-12 17:54:23 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.21 2003-12-12 18:23:09 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include "file_lock.h"
 #include "vauth.h"
 #include "vlimits.h"
+#include "maildirquota.h"
 
 #define MAX_BUFF 256
 
@@ -513,6 +514,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
       strcpy (quota, "NOQUOTA");
   }
   vsetuserquota (username, domain, quota);
+  if (strcmp (quota, "NOQUOTA") != 0) {
+    /* create maildirsize file by checking the quota */
+    chdir(Dir);
+    if (strlen(user_hash)>0) chdir(user_hash);
+    chdir(username);
+    (void)vmaildir_readquota("./Maildir/", quota);
+    chdir(Dir);
+  }
 
 #ifdef SQWEBMAIL_PASS
   {
