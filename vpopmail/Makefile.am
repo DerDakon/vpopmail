@@ -89,11 +89,18 @@ vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
 
 DEFS=-I. @auth_inc@ 
 
+install-exec-am:
+	for d in bin doc etc include lib ; do \
+	  if test ! -d $(DESTDIR)@vpopmaildir@/$$d; then \
+	    $(INSTALL) -d -g @vpopgroup@ -m 0755 -o @vpopuser@ \
+	      $(DESTDIR)@vpopmaildir@/$$d ; \
+	  fi ; \
+	done
+
 install-data-local:
 	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/etc
 	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
 	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@" > @vpopmaildir@/etc/lib_deps
 
@@ -109,15 +116,13 @@ install-data-local:
 	  chmod 0600        $(MYSQLCONF) ; \
 	fi
 
-	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/lib
 	$(INSTALL) -o root -m 0644 \
 	  libvpopmail.a $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
 
-	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/include
-	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
+	$(INSTALL) -o root -m 0444 \
 	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 
-	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
+	$(INSTALL) -o root -m 0444 \
 	  vpopmail.h config.h vauth.h vlimits.h \
 	  $(DESTDIR)@vpopmaildir@/include/
 
