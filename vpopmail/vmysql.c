@@ -176,10 +176,10 @@ int load_connection_info() {
     }
 
 /* useful debugging info
-    printf ("read settings: server:%s port:%d user:%s pw:%s db:%s\n",
+    fprintf(stderr, "read settings: server:%s port:%d user:%s pw:%s db:%s\n",
         MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
         MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
-    printf ("update settings: server:%s port:%d user:%s pw:%s db:%s\n",
+    fprintf(stderr, "update settings: server:%s port:%d user:%s pw:%s db:%s\n",
         MYSQL_UPDATE_SERVER, MYSQL_UPDATE_PORT, MYSQL_UPDATE_USER,
 	MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE);    
 */
@@ -403,7 +403,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        printf("vmysql: sql error[2]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[2]: %s\n", mysql_error(&mysql_update));
         return(-1);
     } 
     res_update = mysql_store_result(&mysql_update);
@@ -456,12 +456,12 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #endif
 );
     if (mysql_query(&mysql_read,SqlBufRead)) {
-        printf("vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
+        fprintf(stderr, "vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
         return(NULL);
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vmysql: store result failed 1\n");
+        fprintf(stderr, "vmysql: store result failed 1\n");
         return(NULL);
     }
     
@@ -627,7 +627,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
 );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        printf("vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
         return(-1);
     } 
     res_update = mysql_store_result(&mysql_update);
@@ -667,12 +667,12 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         res_read = NULL;
 
         if (mysql_query(&mysql_read_getall,SqlBufRead)) {
-            printf("vmysql: sql error[5]: %s\n", mysql_error(&mysql_read_getall));
+            fprintf(stderr, "vmysql: sql error[5]: %s\n", mysql_error(&mysql_read_getall));
             return(NULL);
         }
 
         if (!(res_read_getall=mysql_store_result(&mysql_read_getall))) {
-            printf("vsql_getpw: store result failed 2\n");
+            fprintf(stderr, "vsql_getpw: store result failed 2\n");
             return(NULL);
         }
     } else if ( more == 0 ) {
@@ -793,7 +793,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
             );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        printf("vmysql: sql error[6]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[6]: %s\n", mysql_error(&mysql_update));
         return(-1);
     } 
 
@@ -835,7 +835,7 @@ int vopen_smtp_relay()
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error[7]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[7]: %s\n", mysql_error(&mysql_update));
         }
     }
     rows = mysql_affected_rows(&mysql_update);
@@ -855,12 +855,12 @@ void vupdate_rules(int fdm)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[8]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[8]: %s\n", mysql_error(&mysql_read));
             return;
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vsql_getpw: store result failed 3\n");
+        fprintf(stderr, "vsql_getpw: store result failed 3\n");
         return;
     }
     while((row = mysql_fetch_row(res_read))) {
@@ -893,7 +893,7 @@ void vcreate_relay_table()
 
     snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table relay ( %s )",RELAY_TABLE_LAYOUT);
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        printf("vmysql: sql error[9]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[9]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -931,7 +931,7 @@ void vcreate_ip_map_table()
     snprintf(SqlBufCreate, SQL_BUF_SIZE, "create table ip_alias_map ( %s )", 
       IP_ALIAS_TABLE_LAYOUT);
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        printf("vmysql: sql error[a]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[a]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -954,7 +954,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vget_ip_map: store result failed 4\n");
+        fprintf(stderr, "vget_ip_map: store result failed 4\n");
         return(-4);
     }
     while((row = mysql_fetch_row(res_read))) {
@@ -1027,7 +1027,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
         }
 
         if (!(res_read = mysql_store_result(&mysql_read))) {
-            printf("vsql_getpw: store result failed 5\n");
+            fprintf(stderr, "vsql_getpw: store result failed 5\n");
             return(0);
         }
     } else if ( more == 0 ) {
@@ -1065,7 +1065,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        printf("vread_dir_control: store result failed 6\n");
+        fprintf(stderr, "vread_dir_control: store result failed 6\n");
         return(0);
     }
 
@@ -1141,7 +1141,7 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error[b]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[b]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1159,7 +1159,7 @@ void vcreate_dir_control(char *domain)
         DIR_CONTROL_TABLE_LAYOUT);
 
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        printf("vmysql: sql error[c]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[c]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1182,7 +1182,7 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     domain, MAX_DIR_LEVELS, MAX_DIR_LIST-1, MAX_DIR_LIST-1, MAX_DIR_LIST-1);
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        printf("vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1201,7 +1201,7 @@ int vdel_dir_control(char *domain)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
             if (mysql_query(&mysql_update,SqlBufUpdate)) {
-                printf("vmysql: sql error[e]: %s\n", mysql_error(&mysql_update));
+                fprintf(stderr, "vmysql: sql error[e]: %s\n", mysql_error(&mysql_update));
                 return(-1);
         }
     }
@@ -1224,7 +1224,7 @@ remote_ip=\"%s\", timestamp=%lu", user, domain, remoteip, time(NULL));
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error[f]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[f]: %s\n", mysql_error(&mysql_update));
         }
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1245,7 +1245,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[g]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[g]: %s\n", mysql_error(&mysql_read));
             return(0);
         }
     }
@@ -1270,7 +1270,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[h]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[h]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1290,7 +1290,7 @@ void vcreate_lastauth_table()
     snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table lastauth ( %s )", 
         LASTAUTH_TABLE_LAYOUT);
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        printf("vmysql: sql error[i]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[i]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1315,7 +1315,7 @@ where alias = \"%s\" and domain = \"%s\"", alias, domain );
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1346,7 +1346,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1368,7 +1368,7 @@ and domain = \"%s\"", alias, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1390,7 +1390,7 @@ int valias_delete_domain( char *domain)
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            printf("vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
             return(-1);
         }
     }
@@ -1406,7 +1406,7 @@ void vcreate_valias_table()
     snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table valias ( %s )", 
         VALIAS_TABLE_LAYOUT );
     if (mysql_query(&mysql_update,SqlBufCreate)) {
-        printf("vmysql: sql error[n]: %s\n", mysql_error(&mysql_update));
+        fprintf(stderr, "vmysql: sql error[n]: %s\n", mysql_error(&mysql_update));
         return;
     }
     res_update = mysql_store_result(&mysql_update);
@@ -1426,7 +1426,7 @@ char *valias_select_all( char *alias, char *domain )
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
+            fprintf(stderr, "vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1465,8 +1465,7 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_vlog_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-                fprintf(stderr,
-                  "error inserting into vlog table\n");
+                fprintf(stderr, "error inserting into vlog table\n");
         }
     }
     res_update = mysql_store_result(&mysql_update);
