@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.5 2004-01-14 05:39:41 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6 2004-01-14 23:55:21 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -183,11 +183,6 @@ char *valias_select_all( char *alias, char *domain )
       return( NULL );
     }
   
-    if ( strlen(alias) >= MAX_PW_NAME ) {
-      verrori = VA_USER_NAME_TOO_LONG;
-      return( NULL );
-    }
-
     if ( strlen(domain) >= MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
@@ -220,12 +215,6 @@ char *valias_select_all_next(char *alias)
       return( NULL );
     }
   
-    if ( strlen(alias) >= MAX_PW_NAME ) {
-      verrori = VA_USER_NAME_TOO_LONG;
-      return( NULL );
-    }
-
-
     if ( alias_fs != NULL ) {
     	if ( fgets(alias_line, sizeof(alias_line),alias_fs)==NULL){
 		fclose(alias_fs); alias_fs = NULL;
@@ -243,27 +232,12 @@ char *valias_select_all_next(char *alias)
 	}
     }
 
-    while((mydirent=readdir(mydir))!=NULL){
+    while ((mydirent=readdir(mydir))!=NULL) {
         if ( strncmp(mydirent->d_name,".qmail-", 7) == 0 &&
              strcmp(mydirent->d_name, ".qmail-default") != 0 ) {
 		snprintf(FileName, sizeof(FileName), "%s/%s", Dir, mydirent->d_name);
-    		if ( (alias_fs = fopen(FileName, "r")) == NULL ) {
-    			return(NULL);
-    		}
-    		if ( fgets(alias_line, sizeof(alias_line),alias_fs)==NULL){
-			fclose(alias_fs); alias_fs = NULL;
-			continue;
-    		}
-    		for(tmpstr=alias_line;*tmpstr!=0;++tmpstr) {
-			if ( *tmpstr == '\n') *tmpstr = 0;
-    		}
-                /* Michael Bowe 21st Aug 2003
-                 * Chance of buffer overflow here,
-                 * because we dont know the size of alias
-                 */
-		strcpy(alias, &mydirent->d_name[7]);
-                for(i=0;alias[i]!=0;++i) if (alias[i]==':') alias[i]='.';
-    		return(alias_line);
+		alias_fs = fopen(FileName, "r");
+		return (valias_select_all_next(alias));
 	}
     }
     closedir(mydir); mydir=NULL;
