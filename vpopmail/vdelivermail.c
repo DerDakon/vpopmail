@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.12 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vdelivermail.c,v 1.13 2004-04-02 18:33:35 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -448,8 +448,9 @@ int deliver_mail(char *address, char *quota)
  time_t tm;
  off_t file_count;
  long unsigned pid;
+ long unsigned inject_pid = 0;
+ int child;
  int write_fd;
- int inject = 0;
  FILE *fs;
  char tmp_file[256];
 #ifdef SPAMASSASSIN
@@ -589,9 +590,8 @@ int deliver_mail(char *address, char *quota)
       char *atpos;
       int dtlen;
 
-      qmail_inject_open(address);
+      inject_pid = qmail_inject_open(address);
       write_fd = fdm;
-      inject = 1;
 
       /* use the DTLINE variable, but skip past the dash in 
        * domain-user@domain 
@@ -729,9 +729,10 @@ int deliver_mail(char *address, char *quota)
             }
         }
     }
-    if ( inject == 1 ) {
+    if ( inject_pid != 0 ) {
         close(write_fd);
-        return(0);
+        waitpid(inject_pid,&child,0);
+        return(wait_exitcode(child));
     }
 
     /* if we are writing to a Maildir, move it

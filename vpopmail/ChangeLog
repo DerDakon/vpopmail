@@ -13,6 +13,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
           instead of FILE *;
         - vpopmail.c: for locks, use open/close instead of fopen/fclose
         - vcdb.c: for locks, use open/close instead of fopen/fclose
+        - vdelivermail.c: wait on pid for qmail-inject to finish
+          before continuing in deliver_mail function.
 
 	Michael Bowe
 	- Minor documentation tweaks
