@@ -1,3 +1,6 @@
+# $Id: Makefile.am,v 1.3 2003-09-30 04:53:39 tomcollins Exp $
+# Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+
 @SET_MAKE@
 
 SUBDIRS=cdb
@@ -102,7 +105,7 @@ install-data-local:
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
 	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
-	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@" > @vpopmaildir@/etc/lib_deps
+	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > @vpopmaildir@/etc/lib_deps
 
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
