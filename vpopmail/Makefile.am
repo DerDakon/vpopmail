@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2003-10-21 18:24:20 tomcollins Exp $
+# $Id: Makefile.am,v 1.5 2003-11-04 01:57:25 mbowe Exp $
 # Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
@@ -114,10 +114,23 @@ install-data-local:
 	fi
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
-	    echo "# MySQL settings, line 1 is config for read-only," > $(MYSQLCONF); \
-	    echo "# line 2 is config for update.  Settings for each" >> $(MYSQLCONF); \
-	    echo "# line: server|port|user|password|database" >> $(MYSQLCONF); \
+	    echo "# MYSQL CONNECTION SETTINGS FOR VPOPMAIL" >> $(MYSQLCONF); \
+	    echo "#" >> $(MYSQLCONF); \
+	    echo "# Line 1 defines the connection to use for database reads," >> $(MYSQLCONF); \
+	    echo "# Line 2 defines the connection to use for database updates/writes." >> $(MYSQLCONF); \
+	    echo "#" >> $(MYSQLCONF); \
+	    echo "# If you omit line 2, then the same settings will be" >> $(MYSQLCONF); \
+	    echo "# used for both read and write." >> $(MYSQLCONF); \
+	    echo "#" >> $(MYSQLCONF); \
+	    echo "# settings for each line:" >> $(MYSQLCONF); \
+	    echo "# host|port|user|password|database" >> $(MYSQLCONF); \
+	    echo "#" >> $(MYSQLCONF); \
 	    echo "localhost|0|root|secret|vpopmail" >> $(MYSQLCONF); \
+	    echo "#" >> $(MYSQLCONF); \
+	    echo "# Note:" >> $(MYSQLCONF); \
+	    echo "#   The value of host may be either a hostname or an IP address." >> $(MYSQLCONF); \
+	    echo "#   If host is 'localhost', then sockets (Unix) or named pipes (Windows)" >> $(MYSQLCONF); \
+	    echo "#   will be used instead of TCP/IP to connect to the server."   >> $(MYSQLCONF); \
 	  fi ; \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
 	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
