@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.11 - unreleased
+5.4.11 - released 20-Mar-05
 
 	Tom Collins
 	- vdelivermail: code cleanup (fix exit codes, improve reliability,
