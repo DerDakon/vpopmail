@@ -151,9 +151,10 @@ install-data-local:
 	$(INSTALL) -o root -m 0444 \
 	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 
-	$(INSTALL) -o root -m 0444 \
-	  vpopmail.h config.h vauth.h vlimits.h \
-	  $(DESTDIR)@vpopmaildir@/include/
+	for include in vpopmail.h config.h vauth.h vlimits.h ; do \
+	    $(INSTALL) -o root -m 0444 $$include \
+		$(DESTDIR)@vpopmaildir@/include/ ; \
+	done
 
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html

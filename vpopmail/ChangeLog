@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.9 - unreleased
 
+	Jeremy Kister
+	- Makefile.am: fix install problem on Solaris.  Some .h files
+	  weren't being installed correctly.
+
 	Charles Boening
 	- Fix logging in PostgreSQL.
 	- Change ENABLE_{MY|PG}SQL_LOGGING to ENABLE_SQL_LOGGING.
