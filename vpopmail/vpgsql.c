@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.18 2004-01-14 00:03:02 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.19 2004-02-11 14:59:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -719,7 +719,6 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 	    "DELETE FROM relay WHERE timestamp <= %d", 
 	    (int)delete_time);
   pgres=PQexec(pgc, SqlBufUpdate);
-  free(SqlBufUpdate);
   if( !pgres || PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     vcreate_relay_table();
   }
@@ -733,7 +732,6 @@ void vcreate_relay_table()
   snprintf( SqlBufCreate, SQL_BUF_SIZE, 
 	    "CREATE TABLE relay ( %s )", RELAY_TABLE_LAYOUT);
   pgres=PQexec(pgc, SqlBufCreate);
-  free(SqlBufCreate);
   if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK) {
     fprintf(stderr, "vcreate_relay_table: create failed[9]: %s \n", 
 	    PQresultErrorMessage(pgres));
@@ -766,7 +764,6 @@ void vcreate_ip_map_table()
   snprintf(SqlBufCreate, SQL_BUF_SIZE, "create table ip_alias_map ( %s )", 
       IP_ALIAS_TABLE_LAYOUT);
   pgres=PQexec(pgc, SqlBufCreate);
-  free(SqlBufCreate);
   if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK)
     fprintf(stderr,"vcreate_ip_map_table[a]:%s\n",PQresultErrorMessage(pgres));
   if( pgres ) PQclear(pgres);
@@ -788,7 +785,6 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 	   "select domain from ip_alias_map where ip_addr = '%s'",
 	   ip);
   pgres=PQexec(pgc, SqlBufRead);
-  free(SqlBufRead);
   if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
     fprintf( stderr, "vget_ip_map: pgsql query: %s\n", PQerrorMessage(pgc));
       if( pgres ) PQclear(pgres);
@@ -819,7 +815,6 @@ int vadd_ip_map( char *ip, char *domain)
   if ( (err=vauth_open()) != 0 ) return(err);
 
   if( ( err=pg_begin() )!= 0 ) {     /* begin transaction */
-    free(SqlBufUpdate);
     return(err);
   }
   snprintf(SqlBufUpdate,SQL_BUF_SIZE,  
@@ -846,7 +841,6 @@ int vadd_ip_map( char *ip, char *domain)
     if ( !pgres || PQresultStatus(pgres) != PGRES_COMMAND_OK ) {
       fprintf( stderr, "vadd_ip_map: insert: %s\n", PQerrorMessage(pgc));
       if( pgres ) PQclear(pgres);
-      free(SqlBufUpdate);
       return -1;
     }
   }

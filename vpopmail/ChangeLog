@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.2 - unreleased
 
+	Tom Collins
+	- Remove attempts to free() static buffers in vpgsql.c.
+
 5.4.1 - released 10-Feb-04
 
 	Tom Collins
