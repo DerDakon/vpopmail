@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15 2004-01-13 23:56:41 tomcollins Exp $
+ * $Id: vmysql.c,v 1.16 2004-02-22 22:25:57 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -71,7 +71,6 @@ static MYSQL_ROW row_getall;
 #define SQL_BUF_SIZE 2048
 static char SqlBufRead[SQL_BUF_SIZE];
 static char SqlBufUpdate[SQL_BUF_SIZE];
-static char SqlBufCreate[SQL_BUF_SIZE];
 
 #define SMALL_BUFF 200
 char IUser[SMALL_BUFF];
@@ -228,7 +227,8 @@ int vauth_open_update()
             /* we could not create the database
              * so report the error and return 
              */
-            fprintf(stderr, "vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: couldn't create database '%s': %s\n", MYSQL_UPDATE_DATABASE,
+              mysql_error(&mysql_update));
             return(-1);
         } 
 
@@ -305,30 +305,41 @@ int vauth_open_read_getall()
     return(0);
 }
 
+int vauth_create_table (char *table, char *layout, int showerror)
+{
+ int err;
+ char SqlBufCreate[SQL_BUF_SIZE];
+
+  if ((err = vauth_open_update()) != 0) return (err);
+  snprintf (SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE %s ( %s )", table, layout);
+  if (mysql_query (&mysql_update, SqlBufCreate)) {
+    if (showerror)
+      fprintf (stderr, "vmysql: error creating table '%s': %s\n", table, 
+        mysql_error(&mysql_update));
+    return -1;
+  } else {
+    return 0;
+  }
+}
+ 
 int vauth_adddomain( char *domain )
 {
  char *tmpstr = NULL;
- int err;
-    
-    if ( (err=vauth_open_update()) != 0 ) return(err);
 
-    vset_default_domain( domain );
+  vset_default_domain( domain );
 #ifndef MANY_DOMAINS
         tmpstr = vauth_munch_domain( domain );
 #else
         tmpstr = MYSQL_DEFAULT_TABLE;
 #endif
 
-   snprintf(SqlBufUpdate,SQL_BUF_SIZE, 
-       "create table %s ( %s )",tmpstr,TABLE_LAYOUT);
-
-   if (mysql_query(&mysql_update,SqlBufUpdate) ) {
+  if (vauth_create_table (tmpstr, TABLE_LAYOUT, 0)) {
 #ifndef MANY_DOMAINS
-        return(-1);
+    return -1;
 #endif
-    }
-
-    return(0);
+  }
+  
+  return(0);
 }
 
 int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
@@ -855,14 +866,8 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 
 void vcreate_relay_table()
 {
-    if (vauth_open_update() != 0) return;
-
-    snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table relay ( %s )",RELAY_TABLE_LAYOUT);
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "vmysql: sql error[9]: %s\n", mysql_error(&mysql_update));
-        return;
-    }
-    return;
+  vauth_create_table ("relay", RELAY_TABLE_LAYOUT, 1);
+  return;
 }
 #endif
 
@@ -890,15 +895,8 @@ void vclose()
 #ifdef IP_ALIAS_DOMAINS
 void vcreate_ip_map_table()
 {
-    if ( vauth_open_update() != 0 ) return;
-
-    snprintf(SqlBufCreate, SQL_BUF_SIZE, "create table ip_alias_map ( %s )", 
-      IP_ALIAS_TABLE_LAYOUT);
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "vmysql: sql error[a]: %s\n", mysql_error(&mysql_update));
-        return;
-    }
-    return;
+  vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT, 1);
+  return;
 }
 
 int vget_ip_map( char *ip, char *domain, int domain_size)
@@ -1108,16 +1106,9 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
 
 void vcreate_dir_control(char *domain)
 {
-    if ( vauth_open_update() != 0 ) return;
+  if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1)) return;
 
-    snprintf(SqlBufCreate, SQL_BUF_SIZE, "create table dir_control ( %s )", 
-        DIR_CONTROL_TABLE_LAYOUT);
-
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "vmysql: sql error[c]: %s\n", mysql_error(&mysql_update));
-        return;
-    }
-
+    /* this next bit should be replaced with a call to vwrite_dir_control */
     snprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
 domain, cur_users, \
 level_cur, level_max, \
@@ -1231,16 +1222,8 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 
 void vcreate_lastauth_table()
 {
-
-    if ( vauth_open_update() != 0 ) return;
-
-    snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table lastauth ( %s )", 
-        LASTAUTH_TABLE_LAYOUT);
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "vmysql: sql error[i]: %s\n", mysql_error(&mysql_update));
-        return;
-    }
-    return;
+  vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT, 1);
+  return;
 }
 #endif /* ENABLE_AUTH_LOGGING */
 
@@ -1360,15 +1343,8 @@ int valias_delete_domain( char *domain)
 
 void vcreate_valias_table()
 {
-    if ( vauth_open_update() != 0 ) return;
-
-    snprintf( SqlBufCreate, SQL_BUF_SIZE, "create table valias ( %s )", 
-        VALIAS_TABLE_LAYOUT );
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "vmysql: sql error[n]: %s\n", mysql_error(&mysql_update));
-        return;
-    }
-    return;
+  vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);
+  return;
 }
 
 char *valias_select_all( char *alias, char *domain )
@@ -1431,16 +1407,8 @@ int logmysql(int verror, char *TheUser, char *TheDomain, char *ThePass,
 
 void vcreate_vlog_table()
 {
-
-    if ( vauth_open_update() != 0 ) return;
-
-    snprintf( SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE vlog ( %s )",
-        VLOG_TABLE_LAYOUT);
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "could not create vlog table %s\n", SqlBufCreate);
-        return;
-    }
-    return;
+  vauth_create_table ("vlog", VLOG_TABLE_LAYOUT, 1);
+  return;
 }
 #endif
 
@@ -1460,15 +1428,8 @@ void vmysql_escape( char *instr, char *outstr )
 #ifdef ENABLE_MYSQL_LIMITS
 void vcreate_limits_table()
 {
-    if (vauth_open_update() != 0)
-        return;
-
-    snprintf( SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE limits ( %s )",
-        LIMITS_TABLE_LAYOUT);
-    if (mysql_query(&mysql_update,SqlBufCreate)) {
-        fprintf(stderr, "could not create limits table %s\n", SqlBufCreate);
-        return;
-    }
+  vauth_create_table ("limits", LIMITS_TABLE_LAYOUT, 1);
+  return;
 }
 
 int vget_limits(const char *domain, struct vlimits *limits)

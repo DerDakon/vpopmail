@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.3 - unreleased
 
+	Tom Collins
+	- Consolidate table creation code in vmysql.c.
+
 5.4.2 - released 22-Feb-04
 
 	Tom Collins
