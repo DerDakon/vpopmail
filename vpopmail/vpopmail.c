@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.13 2003-10-11 21:21:10 mbowe Exp $
+ * $Id: vpopmail.c,v 1.14 2003-10-13 22:26:45 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -459,6 +459,8 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
  char calling_dir [MAX_BUFF];
  uid_t uid = VPOPMAILUID;
  gid_t gid = VPOPMAILGID;
+ struct vlimits limits;
+ char quota[50];
 
   /* check gecos for : characters - bad */
   if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
@@ -496,6 +498,11 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     return(VA_BAD_D_DIR);
   }
 
+  /* make sure we can load domain limits for default quota */
+  if (vget_limits(domain, &limits) != 0) {
+    return(VA_CANNOT_READ_LIMITS);
+  }
+
   /* create dir for the the user */ 
   if ( (user_hash=make_user_dir(username, domain, uid, gid)) == NULL ) {
     chdir(calling_dir);
@@ -511,6 +518,20 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     chdir(calling_dir);
     return(VA_NO_AUTH_CONNECTION);
   }
+
+  if (limits.defaultquota > 0) {
+    if (limits.defaultmaxmsgcount > 0)
+      snprintf (quota, sizeof(quota), "%dS,%dC", limits.defaultquota,
+        limits.defaultmaxmsgcount);
+    else
+      snprintf (quota, sizeof(quota), "%dS", limits.defaultquota);
+  } else {
+    if (limits.defaultmaxmsgcount > 0)
+      snprintf (quota, sizeof(quota), "%dC", limits.defaultmaxmsgcount);
+    else
+      strcpy (quota, "NOQUOTA");
+  }
+  vsetuserquota (username, domain, quota);
 
 #ifdef SQWEBMAIL_PASS
   {
@@ -2044,6 +2065,8 @@ char *verror(int va_err )
     return("invalid email character");
    case VA_PARSE_ERROR:
     return("error parsing data");
+   case VA_CANNOT_READ_LIMITS:
+    return("can't read domain limits");
    default:
     return("Unknown error");
   }
