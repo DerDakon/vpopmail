@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.19 2003-12-08 12:09:23 mbowe Exp $
+ * $Id: vpopmail.c,v 1.20 2003-12-12 17:54:23 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2477,24 +2477,23 @@ int open_smtp_relay()
     return(-1);
   }
 
-  /* grab the user's ip address */
+  /* grab the user's ip address (12.34.56.78 or ::ffff:12.34.56.78) */
   ipaddr = getenv("TCPREMOTEIP");
 
-  if ( ipaddr != NULL ) { 
-    
+  if ( ipaddr != NULL ) {     
+    /* Convert ::ffff:127.0.0.1 format to 127.0.0.1
+     * While avoiding buffer overflow.
+     */  
+    if (*ipaddr == ':') {
+      ipaddr++;
+      if (*ipaddr != '\0') ipaddr++;
+      while((*ipaddr != ':') && (*ipaddr != '\0')) ipaddr++;
+      if (*ipaddr != '\0') ipaddr++;
+    }
+
     /* As a security precaution, remove all but good chars */  
     for (cp = ipaddr; *(cp += strspn(cp, ok_env_chars)); ) {*cp='_';}  
     
-    /* Michael Bowe 14th August 2003  
-     * Mmmm Yuk below. What if TCPLOCALIP=":\0"  
-     * Buffer overflow.  
-     * Need to perhaps at least check strlen of ipaddr  
-     */  
-    if ( ipaddr[0] == ':') {
-      ipaddr +=2;
-      while(*ipaddr!=':') ++ipaddr;
-      ++ipaddr;
-    }
   } else {
 #ifdef FILE_LOCKING
     unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
