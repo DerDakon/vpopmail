@@ -13,7 +13,6 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Multiple fixes to vpgsql.c related to freeing PGresults and
 	  attempting to access NULL PGresults when reporting errors.
 	- Add missing link libs (m, nsl, socket) on Solaris installs.
-	- Update vsetuserquota to properly format quota in maildirsize.
 
 5.4.2 - released 22-Feb-04
 
