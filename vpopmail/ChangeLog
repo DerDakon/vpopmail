@@ -6,6 +6,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Ken Jones
 	- Add SpamAssassin support for vdelivermail.
 
+	Michael Bowe
+	- Minor documentation tweaks for README.mysql and README.pgsql
+
 5.5.0 - released 11-Mar-04
 
 	Tom Collins

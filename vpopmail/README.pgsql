@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.9 2004-01-19 19:56:40 mbowe Exp $
+   $Id: README.pgsql,v 1.10 2004-03-30 22:50:19 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -105,10 +105,10 @@ Make the user accounts
 Download and unpack the source
 
 	cd /usr/local/src
-	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.0.tar.gz
-	tar xzf vpopmail-5.4.0.tar.gz
-	chown -R root.root vpopmail-5.4.0
-	cd vpopmail-5.4.0
+	wget http://osdn.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.3.tar.gz
+	tar xzf vpopmail-5.4.3.tar.gz
+	chown -R root.root vpopmail-5.4.3
+	cd vpopmail-5.4.3
 
 Create the a vpopmail database in PostgreSQL
 

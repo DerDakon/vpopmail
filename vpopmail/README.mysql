@@ -130,6 +130,8 @@ Setup the MySQL support in the vpopmail sources
 	#   * Use the database called vpopmail
 	#
 
+	mkdir ~vpopmail/etc
+	chown vpopmail.vchkpw ~vpopmail/etc
 	echo "localhost|0|vpopmailuser|vpoppasswd|vpopmail" > ~vpopmail/etc/vpopmail.mysql
 	chown vpopmail.vchkpw ~vpopmail/etc/vpopmail.mysql
 	chmod 640 ~vpopmail/etc/vpopmail.mysql
