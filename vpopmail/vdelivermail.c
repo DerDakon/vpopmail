@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.2 2005-03-20 17:01:43 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.3 2005-03-20 18:15:50 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -920,6 +920,9 @@ void checkuser()
  */
 void usernotfound() 
 {
+    /* read the full message to avoid SIGPIPE if maildrop is calling us */
+    if (message_size == 0) message_size = get_message_size();
+
     if ( strcmp(bounce, DELETE_ALL) == 0 ) {
       /* If they want to delete email for non existant users
        * then just exit 0. Qmail will delete the email for us
