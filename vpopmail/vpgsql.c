@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.9 2003-11-02 11:53:28 jheesemann Exp $
+ * $Id: vpgsql.c,v 1.10 2003-11-07 11:59:47 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -479,12 +479,16 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     }
     if ( pgres ) { /* reset state if we had previous result */
       PQclear(pgres);    // clear previous result	
+      pgres=NULL;
       ntuples=ctuple=0;	
     }	
     pgres = PQexec(pgc, SqlBufRead);
     if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
-      if( pgres ) PQclear(pgres);
       fprintf(stderr, "vauth_getall:query failed[5]: %s\n",PQresultErrorMessage(pgres));
+      if( pgres ) { 
+        PQclear(pgres);
+        pgres=NULL;
+      }
       return (NULL);
     }
     ntuples = PQntuples( pgres );
@@ -492,6 +496,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 
   if ( ctuple == ntuples ) {
     PQclear(pgres);
+    pgres=NULL;
     ctuple=ntuples=0;
     return NULL;
   }
@@ -509,19 +514,19 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
   vpw.pw_shell  = IShell;
   vpw.pw_clear_passwd  = IClearPass;
     
-  strncpy(vpw.pw_name, PQgetvalue( pgres, 0, 0 ),SMALL_BUFF );
-  strncpy(vpw.pw_passwd, PQgetvalue( pgres, 0, 1 ),SMALL_BUFF );
+  strncpy(vpw.pw_name, PQgetvalue( pgres, ctuple, 0 ),SMALL_BUFF );
+  strncpy(vpw.pw_passwd, PQgetvalue( pgres, ctuple, 1 ),SMALL_BUFF );
 
-  vpw.pw_uid    = atoi(PQgetvalue( pgres, 0, 2 ));
-  vpw.pw_gid    = atoi(PQgetvalue( pgres, 0, 3 ));
+  vpw.pw_uid    = atoi(PQgetvalue( pgres, ctuple, 2 ));
+  vpw.pw_gid    = atoi(PQgetvalue( pgres, ctuple, 3 ));
 
-  strncpy(vpw.pw_gecos, PQgetvalue( pgres, 0, 4 ),SMALL_BUFF);
-  strncpy(vpw.pw_dir, PQgetvalue( pgres, 0, 5 ),SMALL_BUFF);
-  strncpy(vpw.pw_shell, PQgetvalue( pgres, 0, 6 ),SMALL_BUFF);
+  strncpy(vpw.pw_gecos, PQgetvalue( pgres, ctuple, 4 ),SMALL_BUFF);
+  strncpy(vpw.pw_dir, PQgetvalue( pgres, ctuple, 5 ),SMALL_BUFF);
+  strncpy(vpw.pw_shell, PQgetvalue( pgres, ctuple, 6 ),SMALL_BUFF);
 
 #ifdef CLEAR_PASS
-    if (PQgetvalue( pgres, 0, 7 )!= 0 ) {
-      strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
+    if (PQgetvalue( pgres, ctuple, 7)!= 0 ) {
+      strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, ctuple, 7 ),SMALL_BUFF);
     }
 #endif
     ctuple++;

@@ -14,6 +14,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  README.pgsql file [824088] 
 	- Made the default ~vpopmail/etc/vpopmail.mysql file more
 	  verbose/descriptive
+	- Cleared two bugs in the vauth_getall() funcion of vpgsql.c
+	  These bugs were in particular causing qmailadmin not to be
+	  able to display a list of users for a domain [837139]
 
 	Tom Collins
 	- Install a vlimits.default file if none exists.
