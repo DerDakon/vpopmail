@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.4 - unreleased
 
+	Tom Collins
+	- Link math lib when compiling for MySQL.
+
 5.4.3 - released 11-Mar-04
 
 	Tom Collins
