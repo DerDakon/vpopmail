@@ -836,6 +836,14 @@ int add_domain()
   return(0);
 }
 
+/*
+ *
+ *  Consider adding code from vaddaliasdomain program so it doesn't 
+ *  matter which way you enter the parameters, it always does the
+ *  right thing.
+ *
+ */
+
 int add_alias_domain()
 {
  char *domain;

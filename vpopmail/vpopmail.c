@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.37 2004-04-27 06:53:42 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.38 2004-04-28 05:42:52 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,6 +72,12 @@ static char gen_chars[] = "abcdefghijklmnopqrstuvwxyz" \
 static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
                             "1234567890_-.@";
+
+ typedef struct defsortrec {
+   char *key;
+   char *value;
+ } sortrec;
+
 
 /************************************************************************/
 
@@ -1644,7 +1650,25 @@ return 0;
 
 /************************************************************************/
 
-int update_file(char *filename, char *update_line, int file_type )
+int sort_check(const void *a, const void *b )
+//int sort_check(const sortrec *a, const sortrec *b )
+{
+   
+return( strncmp( ((sortrec *)(a))->key, ((sortrec *)(b))->key, MAX_BUFF));
+//return( strncmp( a->key, b->key, MAX_BUFF));
+
+}
+
+/************************************************************************/
+
+/*
+ *
+ * Note:  sortdata needs to be dynamically allocated based on the
+ * number of entries specified in file_lines.
+ *
+ */
+
+int sort_file(char *filename, int file_lines, int file_type )
 {
  FILE *fs = NULL;
  FILE *fs1 = NULL;
@@ -1653,15 +1677,15 @@ int update_file(char *filename, char *update_line, int file_type )
 #endif
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
- int i, x=0;
- char new_domain[MAX_BUFF];
+ int i, count=0;
  char cur_domain[MAX_BUFF];
- int hit = 0;
+
+ sortrec sortdata[2000];
+
+//  sortdata = malloc(  file_lines * sizeof( sortrec ));
 
 //  fprintf( stderr, "\n***************************************\n" 
-//                   "update_file - line: %s\n", update_line );
-
-  extract_domain( new_domain, update_line, file_type );
+//                   "sort_file: %s\n", filename );
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
@@ -1712,6 +1736,116 @@ int update_file(char *filename, char *update_line, int file_type )
 //    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
 
     extract_domain( cur_domain, tmpbuf1, file_type );
+
+    sortdata[count].key = strdup( cur_domain );
+    sortdata[count++].value = strdup( tmpbuf1 );
+  }
+
+//  fprintf( stderr, "\nSorting...\n\n" );
+  qsort(sortdata, count, sizeof( sortrec ), sort_check);
+//  fprintf( stderr, "\nSort done.\n\n" );
+
+  for(i=0;i<count;i++) {
+//    fprintf( stderr, "   Entry: %s\n", sortdata[i].value );
+    fprintf(fs1, "%s\n", sortdata[i].value);
+  }   
+
+  //  Now we print the period line to users/assign, if needed
+  if( 1 == file_type ) {
+    fprintf(fs1, ".\n");
+  }
+
+  fclose(fs);
+  fclose(fs1);
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  snprintf(tmpbuf2, sizeof(tmpbuf2), "%s.%lu", filename, (long unsigned)getpid());
+
+  rename(tmpbuf2, tmpbuf1);
+
+#ifdef FILE_LOCKING
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
+#endif
+
+//  free( sortrec );
+
+  return(0);
+}
+
+/************************************************************************/
+
+int update_file(char *filename, char *update_line, int file_type )
+{
+ FILE *fs = NULL;
+ FILE *fs1 = NULL;
+#ifdef FILE_LOCKING
+ int fd3 = 0;
+#endif
+ char tmpbuf1[MAX_BUFF];
+ char tmpbuf2[MAX_BUFF];
+ int i, x=0;
+ char new_domain[MAX_BUFF];
+ char cur_domain[MAX_BUFF];
+ char prv_domain[MAX_BUFF];
+ int hit=0, count=0, needsort = 0;
+
+//  fprintf( stderr, "\n***************************************\n" 
+//                   "update_file - line: %s\n", update_line );
+
+  extract_domain( new_domain, update_line, file_type );
+  strcpy(prv_domain, "");
+
+#ifdef FILE_LOCKING
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
+    fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
+    return(VA_COULD_NOT_UPDATE_FILE);
+  }
+
+  if ( get_write_lock(fd3) < 0 ) return(-1);
+#endif
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf1, "w+");
+  if ( fs1 == NULL ) {
+#ifdef FILE_LOCKING
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
+    return(VA_COULD_NOT_UPDATE_FILE);
+#endif
+  }
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  if ( (fs = fopen(tmpbuf1, "r+")) == NULL ) {
+    if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
+      fclose(fs1);
+#ifdef FILE_LOCKING
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
+#endif
+      return(VA_COULD_NOT_UPDATE_FILE);
+    }
+  }
+
+  while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
+    count++;
+
+    //  Trim \n off end of line.
+    for(i=0;tmpbuf1[i]!=0;++i) {
+      if (tmpbuf1[i]=='\n') {
+        tmpbuf1[i]=0;
+      }
+    }
+
+    //  Don't paint the last line of users/assign from the file
+    if ( 1 == file_type && strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
+      continue;
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    extract_domain( cur_domain, tmpbuf1, file_type );
    
     if( 0 == hit && ( x=strncmp(cur_domain, new_domain, MAX_BUFF)) > 0  ) {
 //      fprintf( stderr, "HIT!\n" );
@@ -1721,6 +1855,16 @@ int update_file(char *filename, char *update_line, int file_type )
 
 //    fprintf( stderr, "UpdateUsers - cur_domain: %s new_domain: %s x: %i\n", 
 //             cur_domain, new_domain, x );
+
+    if( ( x=strncmp(prv_domain, cur_domain, MAX_BUFF)) > 0  ) {
+      fprintf( stderr, "Entry is out of order: %s\n", cur_domain );
+      needsort=1;
+    }
+
+//    fprintf( stderr, "Chk order - prv: %s cur: %s x: %i\n", 
+//             prv_domain, cur_domain, x );
+
+    strcpy(prv_domain, cur_domain);
 
     fprintf(fs1, "%s\n", tmpbuf1);
   }
@@ -1747,6 +1891,9 @@ int update_file(char *filename, char *update_line, int file_type )
   unlock_lock(fd3, 0, SEEK_SET, 0);
   close(fd3);
 #endif
+
+  count ++;   //  increment count because of the entry we added.
+  if( needsort ) sort_file(filename, count, file_type);
 
   return(0);
 }
