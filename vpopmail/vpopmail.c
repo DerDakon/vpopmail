@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.7 2004-08-19 05:42:35 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.8 2004-08-27 17:57:45 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -605,6 +605,19 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 
   tmpstr = crypt(clearpass,salt);
   if ( tmpstr == NULL ) return(VA_CRYPT_FAILED);
+
+#ifdef MD5_PASSWORDS
+  /* Make sure this host's crypt supports MD5 passwords.  If not,
+   * fall back on old-style crypt
+   */
+  if (tmpstr[2] != '$') {
+    salt[0] = randltr();
+    salt[1] = randltr();
+    salt[2] = 0;
+    tmpstr = crypt(clearpass,salt);
+    if ( tmpstr == NULL ) return(VA_CRYPT_FAILED);
+  }
+#endif
 
   strncpy(crypted,tmpstr, ssize);
   return(VA_SUCCESS);
