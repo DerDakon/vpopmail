@@ -106,8 +106,7 @@ vpopmailbindir = @vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill vmoddomlimits vchangepw \
- dotqmail2valias
+ vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias
 
 
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
@@ -128,9 +127,9 @@ dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
 
-vqmaillocal_SOURCES = vqmaillocal.c 
-vqmaillocal_LDADD = libvpopmail.a @auth_libs@
 
+# vqmaillocal_SOURCES = vqmaillocal.c 
+# vqmaillocal_LDADD = libvpopmail.a @auth_libs@
 vkill_SOURCES = vkill.c 
 vkill_LDADD = libvpopmail.a @auth_libs@
 
@@ -205,8 +204,8 @@ vpopmailbin_PROGRAMS = vchkpw$(EXEEXT) vdelivermail$(EXEEXT) \
 	vpopbull$(EXEEXT) vdeloldusers$(EXEEXT) vmoduser$(EXEEXT) \
 	valias$(EXEEXT) vuserinfo$(EXEEXT) vmkpasswd$(EXEEXT) \
 	vipmap$(EXEEXT) vdominfo$(EXEEXT) vconvert$(EXEEXT) \
-	vqmaillocal$(EXEEXT) vkill$(EXEEXT) vmoddomlimits$(EXEEXT) \
-	vchangepw$(EXEEXT) dotqmail2valias$(EXEEXT)
+	vkill$(EXEEXT) vmoddomlimits$(EXEEXT) vchangepw$(EXEEXT) \
+	dotqmail2valias$(EXEEXT)
 PROGRAMS = $(vpopmailbin_PROGRAMS)
 
 am_clearopensmtp_OBJECTS = clearopensmtp.$(OBJEXT)
@@ -293,10 +292,6 @@ am_vpopbull_OBJECTS = vpopbull.$(OBJEXT)
 vpopbull_OBJECTS = $(am_vpopbull_OBJECTS)
 vpopbull_DEPENDENCIES = libvpopmail.a
 vpopbull_LDFLAGS =
-am_vqmaillocal_OBJECTS = vqmaillocal.$(OBJEXT)
-vqmaillocal_OBJECTS = $(am_vqmaillocal_OBJECTS)
-vqmaillocal_DEPENDENCIES = libvpopmail.a
-vqmaillocal_LDFLAGS =
 am_vsetuserquota_OBJECTS = vsetuserquota.$(OBJEXT)
 vsetuserquota_OBJECTS = $(am_vsetuserquota_OBJECTS)
 vsetuserquota_DEPENDENCIES = libvpopmail.a
@@ -324,8 +319,8 @@ DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) \
 	$(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) \
 	$(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) \
-	$(vpopbull_SOURCES) $(vqmaillocal_SOURCES) \
-	$(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
+	$(vpopbull_SOURCES) $(vsetuserquota_SOURCES) \
+	$(vuserinfo_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-info-recursive all-recursive install-data-recursive \
@@ -336,7 +331,7 @@ DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	configure configure.in install-sh ltmain.sh missing \
 	mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vqmaillocal_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
+SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -472,9 +467,6 @@ vpasswd$(EXEEXT): $(vpasswd_OBJECTS) $(vpasswd_DEPENDENCIES)
 vpopbull$(EXEEXT): $(vpopbull_OBJECTS) $(vpopbull_DEPENDENCIES) 
 	@rm -f vpopbull$(EXEEXT)
 	$(LINK) $(vpopbull_LDFLAGS) $(vpopbull_OBJECTS) $(vpopbull_LDADD) $(LIBS)
-vqmaillocal$(EXEEXT): $(vqmaillocal_OBJECTS) $(vqmaillocal_DEPENDENCIES) 
-	@rm -f vqmaillocal$(EXEEXT)
-	$(LINK) $(vqmaillocal_LDFLAGS) $(vqmaillocal_OBJECTS) $(vqmaillocal_LDADD) $(LIBS)
 vsetuserquota$(EXEEXT): $(vsetuserquota_OBJECTS) $(vsetuserquota_DEPENDENCIES) 
 	@rm -f vsetuserquota$(EXEEXT)
 	$(LINK) $(vsetuserquota_LDFLAGS) $(vsetuserquota_OBJECTS) $(vsetuserquota_LDADD) $(LIBS)
