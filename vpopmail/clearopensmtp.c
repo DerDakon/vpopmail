@@ -1,5 +1,5 @@
 /*
- * $Id: clearopensmtp.c,v 1.4 2004-03-14 18:00:39 kbo Exp $
+ * $Id: clearopensmtp.c,v 1.5 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 #ifdef POP_AUTH_OPEN_RELAY
 
 #ifndef USE_SQL
-#define MAX_BUFF 256
 static char TmpBuf1[MAX_BUFF];
 static char TmpBuf2[MAX_BUFF];
 #endif /* ndef USE_SQL */

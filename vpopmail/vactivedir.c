@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.11 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vactivedir.c,v 1.12 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,6 @@
 #include "file_lock.h"
 #include "vactivedir.h"
 
-#define MAX_BUFF 300
 #define PACKET_SIZE 388
 
 #define SMALL_BUFF 200

@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.3 2004-03-14 18:00:39 kbo Exp $
+ * $Id: dotqmail2valias.c,v 1.4 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
@@ -29,8 +29,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
-#define MAX_BUFF 256
 
 /* Default behavior is to do nothing if there are already valias table 
  * entries for a dotqmail file to be processed.  Define one of the 

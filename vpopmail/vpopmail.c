@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.36 2004-04-26 10:21:26 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.37 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,6 @@
 #include "vlimits.h"
 #include "maildirquota.h"
 
-#define MAX_BUFF 256
 
 #ifdef POP_AUTH_OPEN_RELAY
 /* keep a output pipe to tcp.smtp file */
@@ -471,7 +470,9 @@ domain_entry *get_domain_entries (const char *match_real)
                 if (fs != NULL) fclose (fs);
                 snprintf (linebuf, sizeof (linebuf), "%s/users/assign", QMAILDIR);
                 fs = fopen (linebuf, "r");
+
                 snprintf (match_buffer, sizeof (match_buffer), match_real);
+		vget_assign(match_buffer,NULL,0,NULL,NULL);
         }
         
         if (fs == NULL) {
@@ -510,6 +511,7 @@ domain_entry *get_domain_entries (const char *match_real)
         
         /* reached end of file, so we're done */
         fclose (fs);
+        fs=NULL;
         return NULL;
 }
 

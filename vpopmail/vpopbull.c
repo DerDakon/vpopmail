@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.8 2004-04-26 08:04:16 rwidmer Exp $
+ * $Id: vpopbull.c,v 1.9 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,6 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
 #define MSG_BUF_SIZE  32768
 #define TOKENS ":\r\n"
 

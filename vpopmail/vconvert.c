@@ -1,5 +1,5 @@
 /*
- * $Id: vconvert.c,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vconvert.c,v 1.5 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,8 +38,6 @@
 #endif
 
 int do_all_domains();
-
-#define MAX_BUFF 256
 
 char User[MAX_BUFF];
 char Passwd[MAX_BUFF];

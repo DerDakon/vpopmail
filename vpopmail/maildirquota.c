@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.8 2004-03-14 18:00:40 kbo Exp $
+ * $Id: maildirquota.c,v 1.9 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -407,7 +407,7 @@ int	npercentage=0;
 			break;
 		case 'C':
 
-			if (i < n)
+			if (i < (int)n)
 			{
 				*percentage=100;
 				return (-1);
@@ -698,7 +698,7 @@ int	n;
 	{
 		if (n)
 		{
-			if (n < p->iov_len)
+			if (n < (int)p->iov_len)
 			{
 				p->iov_base=
 					((char *)p->iov_base + n);

@@ -1,5 +1,5 @@
 /*
- * $Id: valias.c,v 1.5 2004-04-20 02:28:37 rwidmer Exp $
+ * $Id: valias.c,v 1.6 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,9 +29,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
-
-#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char Alias[MAX_BUFF];

@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.6 2004-04-07 14:30:40 kbo Exp $
+ * $Id: vuserinfo.c,v 1.7 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,6 @@
 #include "vauth.h"
 #include "maildirquota.h"
 
-
-#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char Domain[MAX_BUFF];

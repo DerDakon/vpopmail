@@ -1,5 +1,5 @@
 /*
- * $Id: vdeloldusers.c,v 1.5 2004-04-26 08:04:16 rwidmer Exp $
+ * $Id: vdeloldusers.c,v 1.6 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,6 @@
 
 #ifdef ENABLE_AUTH_LOGGING
 
-#define MAX_BUFF     256
 #define DEFAULT_AGE  180
 #define TOKENS ":\n"
 

@@ -860,6 +860,74 @@ int del_domain()
 
 int dom_info()
 {
+ char *domain;
+ domain_entry *entry;
+ char *aliases[MAX_DOM_ALIAS];
+ int  i, aliascount=0;
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((domain=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    return(-1);
+  }
+
+  entry = get_domain_entries( domain );
+
+  if (entry==NULL) {   //  something went wrong
+    if( verrori ) {    //  could not open file
+      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "100 %s" RET_CRLF, 
+               verror(verrori));
+      return(0);
+    } else {           //  domain does not exist
+      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "101 %s" RET_CRLF, 
+               verror(VA_DOMAIN_DOES_NOT_EXIST));
+      return(0);
+    }
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  while( entry ) {
+    if (strcmp(entry->domain, entry->realdomain) != 0) {
+      aliases[aliascount++] = strdup(entry->domain);
+
+    } else {
+      snprintf(WriteBuf,sizeof(WriteBuf),"domain %s" RET_CRLF, 
+               entry->domain);
+      wait_write();
+ 
+      snprintf(WriteBuf,sizeof(WriteBuf),"path %s" RET_CRLF, 
+               entry->path);
+      wait_write();
+
+      snprintf(WriteBuf,sizeof(WriteBuf),"uid %i" RET_CRLF, 
+               entry->uid);
+      wait_write();
+
+      snprintf(WriteBuf,sizeof(WriteBuf),"gid %i" RET_CRLF, 
+               entry->gid);
+      wait_write();
+
+    }
+
+    entry = get_domain_entries(NULL);
+  }
+
+  for(i=0;i<aliascount;i++) {
+    snprintf(WriteBuf,sizeof(WriteBuf),"alias %s" RET_CRLF, 
+             aliases[i]);
+    wait_write();
+    free( aliases[i] );
+  } 
+
+
+
+  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
 

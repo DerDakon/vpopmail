@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.5 2004-04-26 08:04:16 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.6 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,6 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
 char Domain[MAX_BUFF];
 char RealDomain[MAX_BUFF];
 char Dir[MAX_BUFF];
@@ -39,7 +38,6 @@ int DisplayGid;
 int DisplayDir;
 int DisplayAll;
 int DisplayTotalUsers;
-int DisplayRealDomain;
 
 void usage();
 void get_options(int argc, char **argv);
@@ -55,21 +53,12 @@ int main(int argc, char *argv[])
     get_options(argc,argv);
 
     /* did we want to view a single domain domain? */
-//    if (Domain[0] != 0 ) {
+    if (Domain[0] != 0 ) {
         /* yes, just lookup a single domain */
-//        if ( vget_assign(Domain, Dir, sizeof(Dir), &Uid, &Gid ) == NULL ) {
-//            printf("domain %s does not exist\n", Domain );
-//            vexit(-1);
-//        }
-//        display_domain(Domain, Dir, Uid, Gid, RealDomain);
-//	if (strcmp(entry->domain, entry->realdomain) != 0) {
-// 		printf ("Note:   %s is an alias for %s\n",
- //                        entry->domain, entry->realdomain);
-//	}
-//     
-//    } else {
-        display_all_domains( Domain );
-//    }
+        display_one_domain( Domain );
+    } else {
+        display_all_domains();
+    }
     return(vexit(0));
 }
 
@@ -97,7 +86,6 @@ void get_options(int argc, char **argv)
     DisplayGid = 0;
     DisplayDir = 0;
     DisplayTotalUsers = 0;
-    DisplayRealDomain = 0;
     DisplayAll = 1;
 
     memset(Domain, 0, sizeof(Domain));
@@ -126,10 +114,6 @@ void get_options(int argc, char **argv)
                 break;
             case 't':
                 DisplayTotalUsers = 1;    
-                DisplayAll = 0;
-                break;
-            case 'r':
-                DisplayRealDomain = 1;    
                 DisplayAll = 0;
                 break;
             case 'a':
@@ -162,7 +146,6 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
         open_big_dir(realdomain, uid, gid);
         printf("users:  %lu\n",  vdir.cur_users);
         close_big_dir(realdomain,uid,gid);
-        printf("realdomain: %s\n", realdomain); 
     } else {
         if ( DisplayName ) printf("%s\n", domain); 
         if ( DisplayUid ) printf("%lu\n", (long unsigned)uid);
@@ -172,12 +155,11 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
             open_big_dir(realdomain, uid, gid);
             printf("%lu\n",  vdir.cur_users);
             close_big_dir(realdomain,uid,gid);
-        if ( DisplayRealDomain ) printf("%s\n",  realdomain);
         }
     }
 }
 
-void display_all_domains( char * Domain )
+void display_all_domains()
 {
  domain_entry *entry;
 
@@ -197,12 +179,48 @@ void display_all_domains( char * Domain )
                        entry->gid, entry->realdomain);
 
 	if (strcmp(entry->domain, entry->realdomain) != 0) {
- 		printf ("Note:   %s is an alias for %s\n",
-                         entry->domain, entry->realdomain);
+ 		printf ("alias of: %s\n", entry->realdomain);
 	}
      
 	printf ("\n");
         entry = get_domain_entries(NULL);
     }
+}
+
+void display_one_domain( char * Domain )
+{
+ domain_entry *entry;
+ char *aliases[MAX_DOM_ALIAS];
+ int  i, aliascount=0;
+
+    entry = get_domain_entries( Domain );
+    if (entry==NULL) {
+      if( verrori ) {
+        printf("Can't get domain entries - %s\n", verror( verrori ));
+        vexit(verrori);
+      } else {
+        printf("Invalid domain name\n");
+        vexit(VA_DOMAIN_DOES_NOT_EXIST);
+      }
+    }
+
+    while( entry ) {
+	if (strcmp(entry->domain, entry->realdomain) != 0) {
+// 		printf ("Note:   %s is an alias for %s\n",
+//                         entry->domain, entry->realdomain);
+                aliases[aliascount++] = strdup(entry->domain);
+
+        } else {
+		display_domain(entry->domain, entry->path, entry->uid, 
+        	               entry->gid, entry->realdomain);
+	}
+
+        entry = get_domain_entries(NULL);
+    }
+
+    for(i=0;i<aliascount;i++) {
+ 	printf ("alias: %s\n", aliases[i]);
+        free( aliases[i] );
+    } 
 }
 

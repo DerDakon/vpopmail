@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.15 2004-04-01 22:54:13 kbo Exp $
+ * $Id: vcdb.c,v 1.16 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.15 2004-04-01 22:54:13 kbo Exp $
+** $Id: vcdb.c,v 1.16 2004-04-27 06:53:42 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -49,7 +49,6 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
 
 extern int cdb_seek();
-#define MAX_BUFF 300
 
 static char vpasswd_file[MAX_BUFF];
 static char vpasswd_bak_file[MAX_BUFF];
@@ -97,7 +96,7 @@ int make_vpasswd_cdb(char *domain)
         return(-1);
     }
 
-    for (i=0; i < sizeof(cdbm.final); i++) {
+    for (i=0; i < (int)sizeof(cdbm.final); i++) {
         if (putc(' ',tmfile) == EOF) {
                 fprintf(stderr,"Error:error writing temp file\n");
             return(-1);
@@ -126,14 +125,14 @@ int make_vpasswd_cdb(char *domain)
         }
 
         h = CDBMAKE_HASHSTART;
-        for (i=0; i < keylen; i++) {
+        for (i=0; i < (int)keylen; i++) {
             h = cdbmake_hashadd(h,key[i]);
             if (putc(key[i],tmfile) == EOF) {
                 fprintf (stderr,"Error: error temp file\n");
                 return(-1);
             }
         }
-        for (i=0; i < datalen; i++) {
+        for (i=0; i < (int)datalen; i++) {
             if (putc(data[i],tmfile) == EOF) {
                 fprintf (stderr,"Error: write error temp file");
                 return(-1);
@@ -277,7 +276,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
             close(pwf);
             return NULL;
     }
-    if (read(pwf, ptr,dlen) != dlen) {
+    if (read(pwf, ptr,dlen) != (int)dlen) {
         return NULL;
     }
     close(pwf);

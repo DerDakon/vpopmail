@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.h,v 1.4 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vldap.h,v 1.5 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
@@ -33,8 +33,6 @@ int compose_dn (char **dn, char *domain);
 #define VLDAP_USER "cn=vpopmailuser, o=vpopmail"
 #define VLDAP_PASSWORD "vpoppasswd"
 #define VLDAP_BASEDN "o=vpopmail"
-
-#define MAX_BUFF 500
 
 static char *vldap_attrs[] = {
   "name",

@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.1 2003-11-20 22:58:03 tomcollins Exp $
+ * $Id: vchangepw.c,v 1.2 2004-04-27 06:53:42 rwidmer Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
@@ -44,8 +44,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
-#define MAX_BUFF 256
 
 int main(int argc, char *argv[])
 {

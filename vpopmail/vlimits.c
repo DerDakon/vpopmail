@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.11 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vlimits.c,v 1.12 2004-04-27 06:53:42 rwidmer Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -17,8 +17,6 @@
 #include "vlimits.h"
 
 #define TOKENS " :\t\n\r"
-
-#define MAX_BUFF 256
 
 void vdefault_limits (struct vlimits *limits)
 {

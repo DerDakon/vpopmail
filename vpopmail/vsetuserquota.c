@@ -1,5 +1,5 @@
 /*
- * $Id: vsetuserquota.c,v 1.5 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vsetuserquota.c,v 1.6 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,8 +31,6 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-
-#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char Quota[MAX_BUFF];

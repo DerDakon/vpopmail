@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.12 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vchkpw.c,v 1.13 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -712,7 +712,7 @@ int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *c
   MD5Update(&context, clearpass, strlen(clearpass));
   MD5Final(digest, &context);
   s = encrypted;
-  for (i = 0; i < sizeof(digest); ++i) {
+  for (i = 0; i < (int)sizeof(digest); ++i) {
     *s = hextab[digest[i]/16]; ++s;
     *s = hextab[digest[i]%16]; ++s;
   }

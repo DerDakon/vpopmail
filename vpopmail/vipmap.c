@@ -1,5 +1,5 @@
 /*
- * $Id: vipmap.c,v 1.3 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vipmap.c,v 1.4 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,8 +28,6 @@
 
 void usage();
 void get_options(int argc,char **argv);
-
-#define MAX_BUFF 256
 
 int Action;
 char Ip[MAX_BUFF];

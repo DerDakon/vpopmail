@@ -1,6 +1,6 @@
 #ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.8 2004-04-20 02:28:37 rwidmer Exp $
+ * $Id: vpalias.c,v 1.9 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,7 +81,7 @@ char *valias_select( char *alias, char *domain )
     }
     /* need to convert '.' to ':' */
     i = snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-", tmpstr);
-    for (p = alias; (i < sizeof(tmpbuf) - 1) && (*p != '\0'); p++)
+    for (p = alias; (i < (int)sizeof(tmpbuf) - 1) && (*p != '\0'); p++)
       tmpbuf[i++] = (*p == '.' ? ':' : *p);
     tmpbuf[i] = '\0';
 

@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.13 2004-04-02 18:33:35 kbo Exp $
+ * $Id: vdelivermail.c,v 1.14 2004-04-27 06:53:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -638,7 +638,7 @@ int deliver_mail(char *address, char *quota)
 
     /* write the Return-Path: and Delivered-To: headers */
     if (write(write_fd,DeliveredTo,strlen(DeliveredTo))!= 
-              strlen(DeliveredTo)) {
+              (int)strlen(DeliveredTo)) {
 
         close(write_fd);
         /* Check if the user is over quota */
@@ -1258,7 +1258,7 @@ int deliver_quota_warning(const char *dir, const char *q)
 
 
     /* write the Return-Path: and Delivered-To: headers */
-    if (write(write_fd,DeliveredTo,strlen(DeliveredTo)) != strlen(DeliveredTo)) {
+    if (write(write_fd,DeliveredTo,strlen(DeliveredTo)) != (int)strlen(DeliveredTo)) {
         close(write_fd);
         /* Check if the user is over quota */
         if ( errno == EDQUOT ) {

@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.9 2004-03-14 18:00:40 kbo Exp $
+ * $Id: vadduser.c,v 1.10 2004-04-27 06:53:41 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,8 +29,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
-#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char Passwd[MAX_BUFF];
