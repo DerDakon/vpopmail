@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.10 2004-01-13 06:09:18 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11 2004-01-13 15:59:42 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -105,7 +105,7 @@ int main( int argc, char **argv)
 {
  char *tmpstr;
 
-  if ( (IpAddr = getenv("TCPREMOTEIP"))  == NULL) IpAddr="";
+  if ( (IpAddr = get_remote_ip())  == NULL) IpAddr="";
   if ( (tmpstr = getenv("TCPLOCALPORT")) == NULL) LocalPort = 110;
   else LocalPort = atoi(tmpstr);
 
