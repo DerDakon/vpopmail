@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.7 2003-10-09 22:00:24 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.8 2003-10-09 23:59:04 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -154,7 +154,7 @@ int main( int argc, char **argv)
        */
       if (strstr (argv[1], "true") != NULL)  /* used as STMP AUTH */
         ConnType = SMTP_CONN;
-      if (strstr (argv[1], "imap") != NULL)  /* used with IMAP */
+      else if (strstr (argv[1], "imap") != NULL)  /* used with IMAP */
         ConnType = IMAP_CONN;
       else  /* default to POP */
         ConnType = POP_CONN;
@@ -592,7 +592,7 @@ void login_system_user()
    }
 
 #ifdef POP_AUTH_OPEN_RELAY
-   if ( LocalPort != 25 && LocalPort != 465 ) {
+   if ( ConnType != SMTP_CONN ) {
         open_smtp_relay();    
     }
 #endif
