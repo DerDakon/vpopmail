@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
 
 PACKAGE="vpopmail"
-VERSION="5.3.31"
+VERSION="5.4.0-pre1"
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 AM_CONFIG_HEADER(config.h)
@@ -46,21 +46,21 @@ AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_CHECK_MEMBERS([struct stat.st_blksize])
+# AC_CHECK_MEMBERS([struct stat.st_blksize])
 AC_STRUCT_TM
 
 #----------------------------------------------------------------------
 
 # Checks for library functions.
-AC_FUNC_CHOWN
+#AC_FUNC_CHOWN
 AC_FUNC_CLOSEDIR_VOID
-AC_FUNC_FORK
-AC_FUNC_LSTAT
-AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
+#AC_FUNC_FORK
+#AC_FUNC_LSTAT
+#AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+#AC_FUNC_MALLOC
+#AC_FUNC_REALLOC
 AC_TYPE_SIGNAL
-AC_FUNC_STAT
+#AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime])
 
@@ -71,7 +71,8 @@ USE_CDB=1
 
 #----------------------------------------------------------------------
 
-AC_MSG_NOTICE(Now checking vpopmail configure options...)
+AC_MSG_CHECKING(vpopmail configure options)
+AC_MSG_RESULT(ok)
 
 #----------------------------------------------------------------------
 
@@ -205,7 +206,7 @@ AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
 case "$host" in
   *-*-solaris*)
     extralibflags="-R$libdir"
-    AC_MSG_NOTICE(Solaris install detected.  Using extralibflags for linking: $extralibflags)
+    AC_MSG_WARN(Solaris install detected.  Using extralibflags for linking: $extralibflags)
     ;;
   *)
     extralibflags=""
@@ -237,7 +238,7 @@ do
 done
 
 AC_ARG_ENABLE(qmaildir,
-    [  --enable-qmaildir=dir    Directory where qmail is installed (default /var/qmail)],
+    [  --enable-qmaildir=DIR      Directory where qmail control and user directories are installed [/var/qmail].],
     qmaildir="$enableval",
     [
         if test "$qmaildir" = ""
@@ -265,7 +266,7 @@ do
 done
 
 AC_ARG_ENABLE(qmail-newu,
-    [  --enable-qmail-newu=path    Full path to qmail-newu program],
+    [  --enable-qmail-newu=PATH   Full path to qmail-newu program.],
     qmailnewu="$enableval",
     [
         if test "$qmailnewu" = ""
@@ -299,7 +300,7 @@ do
 done
 
 AC_ARG_ENABLE(qmail-inject,
-    [  --enable-qmail-inject=path    Full path to qmail-inject program],
+    [  --enable-qmail-inject=PATH Full path to qmail-inject program.],
     qmailinject="$enableval",
     [
         if test "$qmailinject" = ""
@@ -333,7 +334,7 @@ do
 done
 
 AC_ARG_ENABLE(qmail-newmrh,
-    [  --enable-qmail-newmrh=path Full path to qmail-newmrh program],
+    [  --enable-qmail-newmrh=PATH Full path to qmail-newmrh program.],
     qmailnewmrh="$enableval",
     [
         if test "$qmailnewmrh" = ""
@@ -355,11 +356,11 @@ AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh","")
 
 #----------------------------------------------------------------------
 
-AC_MSG_NOTICE(Checking for valid vpopmail user, group and home directory)
+AC_MSG_CHECKING(for valid vpopmail user and group)
 
 vpopuser="vpopmail"
 AC_ARG_ENABLE(vpopuser,
-    [  --enable-vpopuser=user   user allocated to vpopmail (default vpopmail)],
+    [  --enable-vpopuser=USER     User name allocated to vpopmail [vpopmail].],
     vpopuser="$enableval",
     [
         if test "$vpopuser" = ""
@@ -376,7 +377,7 @@ echo $vpopuser > vpopusername
 
 vpopgroup="vchkpw"
 AC_ARG_ENABLE(vpopgroup,
-    [  --enable-vpopgroup=group   group allocated to vpopmail (default vchkpw)],
+    [  --enable-vpopgroup=GROUP   Group name allocated to vpopmail [vchkpw].],
     vpopgroup="$enableval",
     [
         if test "$vpopgroup" = ""
@@ -389,6 +390,7 @@ AC_ARG_ENABLE(vpopgroup,
 AC_DEFINE_UNQUOTED(VPOPGROUP,"$vpopgroup","")
 AC_SUBST(vpopgroup)
 
+AC_MSG_RESULT(yes)
 
 AC_MSG_CHECKING(whether password file entry for the vpopmail user exists)
 AC_TRY_RUN( [
@@ -476,7 +478,7 @@ rm -f vpopusername
 
 AC_MSG_CHECKING(whether roaming-users has been enabled)
 AC_ARG_ENABLE(roaming-users,
-    [  --enable-roaming-users   Enable POP-before-SMTP functionality. (default disabled)],
+    [  --enable-roaming-users     Enable POP-before-SMTP functionality.],
     POPRELAY=$enableval,
         [
             POPRELAY=no
@@ -500,7 +502,7 @@ case $POPRELAY in
     done
 
     AC_ARG_ENABLE(tcprules-prog,
-        [  --enable-tcprules-prog=path    full path to the tcprules program.],
+        [  --enable-tcprules-prog=PATH    Full path to tcprules program [/usr/{local/}bin/tcprules].],
         tcprules_prog="$enableval",
         [
             if test "$tcprules_prog" = ""
@@ -521,7 +523,7 @@ case $POPRELAY in
     AC_DEFINE_UNQUOTED(TCPRULES_PROG,"$tcprules_prog","")
 
 
-    AC_MSG_NOTICE(Checking whether we can locate the tcp.smtp file)
+    AC_MSG_CHECKING(whether we can locate the tcp.smtp file)
     tcpserver_file=""
     for f in "$vpopmaildir"/etc/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
     do
@@ -533,7 +535,7 @@ case $POPRELAY in
     done
 
     AC_ARG_ENABLE(tcpserver_file,
-        [  --enable-tcpserver-file=path   Full path to the file where tcpserver -x relay information is stored],
+        [  --enable-tcpserver-file=PATH   File where tcpserver -x relay information is stored [/home/vpopmail/etc/tcp.smtp].],
         tcpserver_file="$enableval",
         [
             if test "$tcpserver_file" = ""
@@ -557,7 +559,7 @@ case $POPRELAY in
 
     AC_MSG_CHECKING(whether rebuild-tcpserver-file is been enabled)
     AC_ARG_ENABLE(rebuild-tcpserver-file,
-        [  --disable-rebuild-tcpserver-file   disable rebuilding of tcpserver relay control file. ],
+        [  --disable-rebuild-tcpserver-file  Disable rebuilding of tcpserver relay control file.],
         REBUILD_TCPSERVER=$enableval,
                 [
                         REBUILD_TCPSERVER=y
@@ -578,7 +580,7 @@ case $POPRELAY in
 
     relay_clear_minutes="180"
     AC_ARG_ENABLE(relay-clear-minutes,
-        [  --enable-relay-clear-minutes=minutes   expire time for roaming users after pop authentication (default 180)],
+        [  --enable-relay-clear-minutes=#    Expire time for roaming users after pop authentication [180].],
         relay_clear_minutes="$enableval",
     )
 
@@ -601,7 +603,7 @@ esac
 
 AC_MSG_CHECKING(whether learn-passwords is enabled)
 AC_ARG_ENABLE(learn-passwords,
-        [  --enable-learn-passwords   If no password is stored for a user, learn it the first time the user POP auths],
+        [  --enable-learn-passwords   If no password is stored for a user, learn it the first time they authenticate.],
         ENABLE_LEARN_PASSWORDS=$enableval,
                 [
                         ENABLE_LEARN_PASSWORDS=n
@@ -623,7 +625,7 @@ esac
 
 AC_MSG_CHECKING(whether md5-passwords is enabled)
 AC_ARG_ENABLE(md5-passwords,
-        [  --disable-md5-passwords   Disable the use of MD5 encryption of passwords],
+        [  --disable-md5-passwords    Use DES crypt() instead of MD5 encryption for passwords.],
         ENABLE_MD5_PASSWORDS=$enableval,
                 [
                         ENABLE_MD5_PASSWORDS=y
@@ -645,7 +647,7 @@ esac
 
 AC_MSG_CHECKING(whether file-locking is enabled)
 AC_ARG_ENABLE(file-locking,
-        [  --disable-file-locking   Disable file locking functions],
+        [  --disable-file-locking     Don't use file locking.],
         FILE_LOCKING=$enableval,
                 [
                         FILE_LOCKING=y
@@ -667,7 +669,7 @@ esac
 
 AC_MSG_CHECKING(whether file-sync is enabled)
 AC_ARG_ENABLE(file-sync,
-        [  --enable-file-sync     Enable file sync after each message is delivered],
+        [  --enable-file-sync         Enable file sync after each message is delivered.],
         FILE_SYNC=$enableval,
                 [
                         FILE_SYNC=n
@@ -689,7 +691,7 @@ esac
 
 AC_MSG_CHECKING(whether make-seekable is enabled)
 AC_ARG_ENABLE(make-seekable,
-        [  --disable-make-seekable  Disable the making of input to vdelivermail seekable],
+        [  --disable-make-seekable    Don't try to make input to vdelivermail seekable.],
         MAKE_SEEKABLE=$enableval,
                 [
                         MAKE_SEEKABLE=y
@@ -711,7 +713,7 @@ esac
 
 AC_MSG_CHECKING(whether clear-passwd is enabled)
 AC_ARG_ENABLE(clear-passwd,
-        [  --disable-clear-passwd   Prevent storing a cleartext version of the password in addition to the encrypted version],
+        [  --disable-clear-passwd     Don't store a cleartext version of the password in addition to the encrypted version.],
         CLEAR_PASS=$enableval,
                 [
                         CLEAR_PASS=y
@@ -733,7 +735,7 @@ esac
 
 AC_MSG_CHECKING(whether user-big-dir is enabled)
 AC_ARG_ENABLE(users-big-dir,
-        [  --disable-users-big-dir    Disable hashing of user directories],
+        [  --disable-users-big-dir    Disable hashing of user directories.],
         USERS_BIG_DIR=$enableval,
                 [
                         USERS_BIG_DIR=y
@@ -755,7 +757,7 @@ esac
 
 AC_MSG_CHECKING(whether sqwebmail-pass is enabled)
 AC_ARG_ENABLE(sqwebmail-pass,
-        [  --enable-sqwebmail-pass   Store a copy of the user's password in the the user's maildir for use by pre-v3 sqwebmail],
+        [  --enable-sqwebmail-pass    Store a copy of the user's password in the the user's maildir for use by pre-v3 sqwebmail.],
         ENABLE_SQWEBMAIL_PASS=$enableval,
                 [
                         ENABLE_SQWEBMAIL_PASS=n
@@ -777,7 +779,7 @@ esac
 
 AC_MSG_CHECKING(whether qmail-ext is enabled)
 AC_ARG_ENABLE(qmail-ext,
-        [  --enable-qmail-ext   enable qmail email address extension support],
+        [  --enable-qmail-ext         Enable qmail email address extension support.],
         QMAIL_EXT=$enableval,
                 [
                         QMAIL_EXT=n
@@ -799,7 +801,7 @@ esac
 
 AC_MSG_CHECKING(whether ip-alias-domains is enabled)
 AC_ARG_ENABLE(ip-alias-domains,
-        [  --enable-ip-alias-domains   enable mapping default domain via reverse ip lookup table],
+        [  --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table.],
         IPALIAS=$enableval,
                 [
                         IPALIAS=no
@@ -828,7 +830,7 @@ esac
 
 AC_MSG_CHECKING(whether a defaultquota has been nominated)
 AC_ARG_ENABLE(defaultquota,
-        [  --enable-defaultquota=# or n  where # is the quota as defined in README.quotas.],
+        [  --enable-defaultquota=#    Where # is the quota as defined in README.quotas.],
         ENABLE_HARD_QUOTA=$enableval,
                 [
                         ENABLE_HARD_QUOTA=0
@@ -853,7 +855,7 @@ esac
 
 AC_MSG_CHECKING(whether domainquotas is enabled)
 AC_ARG_ENABLE(domainquotas,
-        [  --enable-domainquotas   Enable non-system domain quotas. See README.quotas for more info],
+        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
         ENABLE_DOMAIN_QUOTAS=$enableval,
                 [
                         ENABLE_DOMAIN_QUOTAS=0
@@ -882,7 +884,7 @@ AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 domains_dir="domains"
 
 AC_ARG_ENABLE(domains-dir,
-    [  --enable-domains-dir=domains   set domains directory name for ~vpopmail/[domains]/user/.],
+    [  --enable-domains-dir=TEXT  Set domains directory name for ~vpopmail/[domains]/user/.],
     domains_dir="$enableval",
 )
 
@@ -909,7 +911,7 @@ do
 done
 
 AC_ARG_ENABLE(incdir,
-    [  --enable-incdir=dir   Your MySQL inc dir],
+    [  --enable-incdir=DIR        Your MySQL 'include' directory.],
     incdir="$enableval",
 )
 
@@ -924,7 +926,7 @@ do
 done
 
 AC_ARG_ENABLE(libdir,
-    [  --enable-libdir=dir    Your MySQL lib dir],
+    [  --enable-libdir=DIR        Your MySQL 'lib' directory.],
     libdir="$enableval",
 )
 
@@ -937,7 +939,7 @@ AC_ARG_ENABLE(libdir,
 #
 
 AC_ARG_ENABLE(mysql,
-        [  --enable-mysql   use mysql auth backend rather than the CDB],
+        [  --enable-mysql             Use MySQL for authentication instead of cdb.],
         USE_MYSQL=$enableval,
                 [
                         USE_MYSQL=no
@@ -992,7 +994,7 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether PostGreSQL authentication has been enabled rather than CDB)
+AC_MSG_CHECKING(whether PostgreSQL authentication has been enabled rather than CDB)
 
 pgconfig=""
 for f in /usr/local/pgsql/bin/pg_config /usr/local/bin/pg_config /usr/bin/pg_config
@@ -1005,7 +1007,7 @@ do
 done
 
 AC_ARG_ENABLE(postgres,
-        [  --enable-postgres   use PostGreSQL auth backend rather than CDB],
+        [  --enable-postgres          Use PostgreSQL for authentication instead of cdb.],
         USE_POSTGRES=$enableval,
                 [
                         USE_POSTGRES=no
@@ -1046,7 +1048,7 @@ esac
 
 AC_MSG_CHECKING(whether LDAP authentication has been enabled rather than CDB)
 AC_ARG_ENABLE(ldap,
-        [  --enable-ldap   use ldap auth backend rather than CDB],
+        [  --enable-ldap              Use LDAP for authentication instead of cdb.],
         USE_LDAP=$enableval,
                 [
                         USE_LDAP=no
@@ -1076,7 +1078,7 @@ esac
 
 AC_MSG_CHECKING(whether Oracle authentication has been enabled rather than CDB)
 AC_ARG_ENABLE(oracle,
-        [  --enable-oracle   use oracle auth backend rather than CDB],
+        [  --enable-oracle            Use Oracle for authentication instead of cdb.],
         USE_ORACLE=$enableval,
                 [
                         USE_ORACLE=no
@@ -1106,7 +1108,7 @@ esac
 
 AC_MSG_CHECKING(whether Sybase authentication has been enabled rather than CDB)
 AC_ARG_ENABLE(sybase,
-        [  --enable-sybase   use sybase auth backend rather than CDB],
+        [  --enable-sybase            Use Sybase for authentication instead of cdb.],
         USE_SYBASE=$enableval,
                 [
                         USE_SYBASE=no
@@ -1134,9 +1136,9 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether activedirectory authentication has been enabled rather than CDB)
+AC_MSG_CHECKING(whether Active Directory authentication has been enabled rather than CDB)
 AC_ARG_ENABLE(active-directory,
-        [  --enable-active-directory   use active directory auth backend rather than CDB],
+        [  --enable-active-directory  Use Active Directory for authentication instead of cdb.],
         USE_ACTIVE_DIR=$enableval,
                 [
                         USE_ACTIVE_DIR=no
@@ -1185,9 +1187,9 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether passwd has been enabled)
+AC_MSG_CHECKING(whether system accounts have been enabled)
 AC_ARG_ENABLE(passwd,
-        [  --enable-passwd   Enable /etc/passwd (or shadow) authentication],
+        [  --enable-passwd            Enable /etc/passwd (or shadow) accounts in addition to virtual domains.],
         ENABLE_PASSWD=$enableval,
                 [
                         ENABLE_PASSWD=no
@@ -1233,7 +1235,7 @@ fi
 
 AC_MSG_CHECKING(whether logging is enabled)
 AC_ARG_ENABLE(logging,
-        [  --enable-logging=n|y|e|p|v   Select level of syslog logging : n) all logging disabled,  y) success and failure without including passwords,  e) failures only without including password, p) failures only including passwords, v) verbose success and errors with passwords included],
+        [  --enable-logging=OPT       Log to syslog: n=nothing, e=errors only (default), y=all attempts, p=errors with passwords, v=verbose (all attempts, with passwords).],
         ENABLE_LOGGING=$enableval,
                 [
                         ENABLE_LOGGING=e
@@ -1242,22 +1244,22 @@ AC_ARG_ENABLE(logging,
 
 case $ENABLE_LOGGING in
   1*|y*|Y*)
-      AC_MSG_RESULT(yes)
+      AC_MSG_RESULT(all attempts)
       ENABLE_LOGGING=1
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
       ;;
   e*|E*)
-      AC_MSG_RESULT(yes)
+      AC_MSG_RESULT(errors only)
       ENABLE_LOGGING=2
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
   p*|P*)
-      AC_MSG_RESULT(yes)
+      AC_MSG_RESULT(errors, with password)
       ENABLE_LOGGING=3
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
   v*|V*)
-      AC_MSG_RESULT(yes)
+      AC_MSG_RESULT(verbose, all with password)
        ENABLE_LOGGING=4
           AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
           ;;
@@ -1272,7 +1274,7 @@ esac
 
 log_name="vpopmail"
 AC_ARG_ENABLE(log-name,
-    [  --enable-log-name=name   set syslog name (default vpopmail)],
+    [  --enable-log-name=TEXT     Set syslog name [vpopmail].],
     log_name="$enableval",
 )
 
@@ -1282,7 +1284,7 @@ AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
 
 AC_MSG_CHECKING(whether auth-logging is enabled)
 AC_ARG_ENABLE(auth-logging,
-        [  --enable-auth-logging   Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
+        [  --enable-auth-logging      Record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
         ENABLE_AUTH_LOGGING=$enableval,
                 [
                         ENABLE_AUTH_LOGGING=y
@@ -1304,7 +1306,7 @@ esac
 
 AC_MSG_CHECKING(whether mysql-logging is enabled)
 AC_ARG_ENABLE(mysql-logging,
-        [  --enable-mysql-logging   Enable authentication logging to MySQL. Mimics verbosity from the --enable-auth-logging setting],
+        [  --enable-mysql-logging     Enable authentication logging to MySQL.  Uses setting from --enable-auth-logging.],
         ENABLE_MYSQL_LOGGING=$enableval,
                 [
                         ENABLE_MYSQL_LOGGING=n
@@ -1331,7 +1333,7 @@ esac
 
 AC_MSG_CHECKING(whether pgsql-logging is enabled)
 AC_ARG_ENABLE(pgsql-logging,
-        [  --enable-pgsql-logging   Enable authentication logging to PostGreSQL. Mimics verbosity from the --enable-auth-logging setting],
+        [  --enable-pgsql-logging     Enable authentication logging to PostgreSQL.  Uses setting from --enable-auth-logging.],
         ENABLE_PGSQL_LOGGING=$enableval,
                 [
                         ENABLE_PGSQL_LOGGING=n
@@ -1358,7 +1360,7 @@ esac
 
 AC_MSG_CHECKING(whether mysql-limits is enabled)
 AC_ARG_ENABLE(mysql-limits,
-        [  --enable-mysql-limits   Enable handling of .qmailadmin-limits ],
+        [  --enable-mysql-limits      Use MySQL to store limits instead of .qmailadmin-limits files.],
         ENABLE_MYSQL_LIMITS=$enableval,
                 [
                         ENABLE_MYSQL_LIMITS=n
@@ -1385,7 +1387,7 @@ esac
 
 AC_MSG_CHECKING(whether mysql-replication is enabled)
 AC_ARG_ENABLE(mysql-replication,
-        [  --enable-mysql-replication  Enable support for replicated MySQL auth servers],
+        [  --enable-mysql-replication Enable support for replicated MySQL auth servers.],
         MYSQL_REPLICATION=$enableval,
                 [
                         MYSQL_REPLICATION=n
@@ -1412,7 +1414,7 @@ esac
 
 AC_MSG_CHECKING(whether valias is enabled)
 AC_ARG_ENABLE(valias,
-        [  --enable-valias  Enable storing aliases in MySQL],
+        [  --enable-valias            Store email aliases in MySQL.],
         VALIAS=$enableval,
                 [
                         VALIAS=n
@@ -1439,7 +1441,7 @@ esac
 
 AC_MSG_CHECKING(whether many-domains is enabled)
 AC_ARG_ENABLE(many-domains,
-        [  --disable-many-domains  Rather than storing all users in a single SQL table, put each domain into its own table. Only valid for MySQL and PostgreSQL],
+        [  --disable-many-domains     Creates a table for each virtual domain instead of storing all users in a single table. Only valid for MySQL and PostgreSQL],
         MANY_DOMAINS=$enableval,
                 [
                         MANY_DOMAINS=y
@@ -1742,16 +1744,16 @@ esac
 
 case $ENABLE_LOGGING in
   1*|y*|Y*)
-    echo "        pop syslog = show successful and failure login attempts"
+    echo "        pop syslog = show successful and failed login attempts"
     echo "                     --enable-logging=y"
     echo " --enable-logging=y \\" >> vpopmail.config.sh
     ;;
   2*|e*|E*)
-    echo "        pop syslog = show only failure attempts"
+    echo "        pop syslog = show only failed attempts"
     echo "                     --enable-logging=e (default)"
     ;;
   3*|p*|P*)
-    echo "        pop syslog = show failure attempts with clear text password"
+    echo "        pop syslog = show failed attempts with clear text password"
     echo "                     --enable-logging=p"
     echo " --enable-logging=p \\" >> vpopmail.config.sh
     ;;
