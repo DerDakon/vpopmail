@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.3 2005-03-20 18:15:50 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.4 2005-03-23 06:18:11 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -170,6 +170,9 @@ int main(int argc, char **argv)
  */
 void get_arguments(int argc, char **argv)
 {
+#ifdef QMAIL_EXT
+ int i;
+#endif
  char *tmpstr; 
 
     if (argc != 3) {
@@ -200,7 +203,10 @@ void get_arguments(int argc, char **argv)
 
     strncpy(TheUserFull, TheUser, sizeof(TheUserFull));
 
-#ifdef QMAIL_EXT 
+#ifdef QMAIL_EXT
+    /* !! Shouldn't this work its way backwards, and try all possibilities?
+     * e.g., a-b-c-d should try a-b-c then a-b then a, instead of just a?
+     */
     /* delete the '-' and following chars if any and store in TheUserExt */
     for(i = 0; (TheUser[i] != 0) && (TheUser[i] != '-' ); i++) {
         TheUserExt[i] = TheUser[i];
