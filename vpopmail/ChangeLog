@@ -8,6 +8,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  amd64. [964843, 958799]
 	- vpopmail.h: Add new error and flag defines from 5.5 series.
 	- vchkpw: log webmail connections as 'vchkpw-webmail'.
+	- vpopmail.c: fix problem related to sending SIGHUP to qmail-send.
+	  Could result in "Signal 1 caught by ps" error.
 
 5.4.8 - released 12-Nov-2004
 

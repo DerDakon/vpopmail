@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.13 2004-11-11 18:56:25 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.14 2004-12-15 07:15:05 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1232,7 +1232,7 @@ int signal_process(char *name, int sig_num)
         tmpstr = strtok(NULL, PS_TOKENS);
       } while ( tmpstr!=NULL );
       tmppid = atoi(pid);
-      if ( tmppid != mypid ) { 
+      if ( tmppid && (tmppid != mypid) ) { 
         kill(tmppid,sig_num);
       }
     }
