@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9.2.1 2004-06-26 02:20:56 tomcollins Exp $
+ * $Id: vsybase.c,v 1.9.2.2 2004-08-19 16:32:35 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -101,7 +101,7 @@ int vauth_open()
 	if ( dbuse(dbproc, SYBASE_DATABASE) == FAIL ) {
 		dbcancel(dbproc);
 
-		sprintf( SqlBuf, "create database %s", SYBASE_DATABASE );
+		snprintf( SqlBuf, sizeof(SqlBuf), "create database %s", SYBASE_DATABASE );
 		dbcmd(dbproc, SqlBuf);
 		dbsqlexec(dbproc);
 		while(dbresults(dbproc) != NO_MORE_RESULTS)
@@ -126,10 +126,10 @@ int vauth_adddomain_size( char *domain, int site_size )
 
 	if ( site_size == LARGE_SITE ) {
 		tmpstr = vauth_munch_domain( domain );
-		sprintf( SqlBuf1, "create table %s ( %s )",
+		snprintf( SqlBuf1, sizeof (SqlBuf1), "create table %s ( %s )",
 			 tmpstr, LARGE_TABLE_LAYOUT );
 	} else {
-		sprintf( SqlBuf1, "create table %s ( %s )",
+		snprintf( SqlBuf1, sizeof (SqlBuf1), "create table %s ( %s )",
 			SYBASE_DEFAULT_TABLE, SMALL_TABLE_LAYOUT);
 	}	
 
@@ -175,16 +175,16 @@ int vauth_adduser_size(char *user, char *domain, char *pass, char *gecos,
 
 	if ( strlen(domain) <= 0 ) {
 		if ( strlen(dir) > 0 ) {
-			sprintf(dirbuf, "%s/users/%s/%s", VPOPMAILDIR, dir, user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s/%s", VPOPMAILDIR, dir, user);
 		} else {
-			sprintf(dirbuf, "%s/users/%s", VPOPMAILDIR, user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
 		}
 	} else {
 		vget_assign(domain, dom_dir, 156, &uid, &gid );
 		if ( strlen(dir) > 0 ) {
-			sprintf(dirbuf,"%s/%s/%s", dom_dir,dir,user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/%s/%s", dom_dir, dir, user);
 		} else {
-			sprintf(dirbuf, "%s/%s", dom_dir, user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/%s", dom_dir, user);
 		}
 	}
 
@@ -294,7 +294,7 @@ int vauth_deldomain_size( char *domain, int site_size )
 	tmpstr = vauth_munch_domain( domain );
 
 	if ( site_size == LARGE_SITE ) {
-		sprintf( SqlBuf, "drop table %s", tmpstr);
+		snprintf( SqlBuf, sizeof(SqlBuf), "drop table %s", tmpstr);
 	} else {
 		qnprintf( SqlBuf, sizeof(SqlBuf), "delete from %s where pw_domain = '%s'",
 			SYBASE_DEFAULT_TABLE, domain );
