@@ -5905,7 +5905,7 @@ echo "$as_me: error: Unable to find your MySQL lib dir, specify --enable-libdir.
    { (exit 1); exit 1; }; }
     fi
 
-    auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
+    auth_libs="-L$libdir $extralibflags -lmysqlclient -lz -lm"
 
     ;;
 
