@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 		/* walk through the whole domain */
 		while( (mypw=vauth_getall(Domain, virgin, 1)) != NULL ) {
 			virgin = 0;
-			if ((ret = vauth_setquota( mypw->pw_name, Domain, Quota )) != VA_SUCCESS) {
+			if ((ret = vsetuserquota( mypw->pw_name, Domain, Quota )) != VA_SUCCESS) {
 			printf("Error: %s\n", verror(ret));
 			vexit(ret);
 			}
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
    			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}
 		/* Set the quota for the user */
-		if ((ret = vauth_setquota( User, Domain, Quota )) != VA_SUCCESS) {
+		if ((ret = vsetuserquota( User, Domain, Quota )) != VA_SUCCESS) {
 			printf("Error: %s\n", verror(ret));
 			vexit(ret);
 			}
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 void usage()
 {
-	printf("vsetuserquota: [options] email_address|domain_name quota_in_bytes\n"); 
+	printf("vsetuserquota: [options] email_address|domain_name quota\n"); 
 	printf("options:\n");
 	printf("-v (print version number)\n");
         printf("\nIf you specify a domain name rather than an email address,\n");

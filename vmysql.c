@@ -867,7 +867,7 @@ void vupdate_rules(int fdm)
         return;
     }
     while((row = mysql_fetch_row(res_read))) {
-        snprintf(SqlBufRead, SQL_BUF_SIZE, "%s:allow,RELAYCLIENT=\"\"\n", row[0]);
+        snprintf(SqlBufRead, SQL_BUF_SIZE, "%s:allow,RELAYCLIENT=\"\",RBLSMTPD=\"\"\n", row[0]);
         write(fdm,SqlBufRead, strlen(SqlBufRead));
     }
     mysql_free_result(res_read);

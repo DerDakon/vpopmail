@@ -90,7 +90,6 @@ void checkuser(void);
 void usernotfound(void);
 int is_loop_match( char *dt, char *address);
 int deliver_quota_warning(const char *dir, const char *q);
-char *date_header();
 
 static char local_file[156];
 static char local_file_new[156];
@@ -1326,32 +1325,5 @@ int is_loop_match( char *dt, char *address)
 
    /* we have a match */
    return(1);
-}
-
-/* prints a 39 character Date: header to buf with trailing
- newline and NULL */
-char *date_header()
-{
-  time_t now;
-  struct tm *tm;
-
-  static char *montab[12] = {
-  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
-  };
-  static char *wday[7] = {
-  "Sun","Mon","Tue","Wed","Thu","Fri","Sat"
-  };
-  static char dh[39];
-
-  /* look up current time and fill tm structure */
-  time(&now);
-  tm = gmtime(&now);
-
-  snprintf (dh, sizeof(dh),
-    "Date: %s, %02u %s %u %02u:%02u:%02u +0000\n",
-    wday[tm->tm_wday], tm->tm_mday, montab[tm->tm_mon], tm->tm_year + 1900,
-    tm->tm_hour, tm->tm_min, tm->tm_sec);
-
-  return dh;
 }
 

@@ -162,6 +162,7 @@ int is_username_valid( char *user );
 int is_domain_valid( char *domain );
 int vaddaliasdomain( char *alias_domain, char *real_domain);
 char *format_maildirquota(const char *q);
+char *date_header();
 
 #ifdef APOP
 char *dec2hex(unsigned char *);

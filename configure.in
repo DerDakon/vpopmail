@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
-AM_INIT_AUTOMAKE(vpopmail,5.3.26)
+AM_INIT_AUTOMAKE(vpopmail,5.3.27)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
@@ -590,8 +590,6 @@ case $USE_MYSQL in
             AC_MSG_ERROR([Unable to find your sql libraries dir, specify --enable-libdir.])
         fi
 		auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
-
-		echo "-L$vpopmaildir/lib -lvpopmail -L$libdir -lmysqlclient -lz" > $vpopmaildir/etc/lib_deps
 		AC_SUBST(auth_libs)
         ;;
 *)
@@ -723,7 +721,6 @@ case $USE_LDAP in
 		AC_SUBST(auth_libs)
 		auth_inc="-I/usr/local/include"
 		AC_SUBST(auth_inc)
-		echo "-L$vpopmaildir/lib -lvpopmail -L$libdir -lldap -llber -lresolv" > $vpopmaildir/etc/lib_deps
         ;;
 *)
         ;;
@@ -811,10 +808,9 @@ case $USE_ACTIVE_DIR in
 		rm -rf vauth.c
 		ln -sf vactivedir.c vauth.c 
 		AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR)
-		authlib=
+		authlib=""
 		AC_SUBST(authlib)
 		auth_inc=""
-		echo "-L$vpopmaildir/lib -lvpopmail" > $vpopmaildir/etc/lib_deps
 		AC_SUBST(auth_inc)
         ;;
 *)
@@ -826,17 +822,14 @@ case $USE_CDB in
 		rm -rf vauth.c
 		ln -sf vcdb.c vauth.c 
 		AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB)
-		authlib=
+		authlib=""
 		AC_SUBST(authlib)
 		auth_inc="-Icdb"
-		echo "-L$vpopmaildir/lib -lvpopmail" > $vpopmaildir/etc/lib_deps
 		AC_SUBST(auth_inc)
         ;;
 *)
         ;;
 esac
-
-echo "-I$vpopmaildir/include" > $vpopmaildir/etc/inc_deps
 
 AC_ARG_ENABLE(qmail-ext,
         [  --enable-qmail-ext=y|n   enable qmail email address extensions (default no). ],

@@ -1,6 +1,39 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.3.27 - released 4-Sep-03
+
+	Michael Bowe
+	- Now that MySQL prefs are stored in a separate file, set 
+	  permissions on libvpopmail.a to 644 to allow non-root users
+	  to compile apps like courier-imap. [795773]
+	- Include [RBLSMTPD=""] in tcp.smtp updates under MySQL and
+	  PostgreSQL for consistency with cdb. [795793]
+
+	Tom Collins
+	- Fix Makefile.am to use short options for better cross-platform
+	  compatability.
+	- Update privileges on vpopmail.mysql during install.
+	- Added 'make fix-priv' to update ownership of ~vpopmail/domains.
+	- Move creation of inc_deps and lib_deps to Makefile.am from 
+	  configure.in.
+	- Fix vgetent() in vpopmail.c. [799466]
+	- Move date_header() from vdelivermail.c to vpopmail.c for
+	  shared use with vpopbull.c.
+	- Print "Date: " header in messages sent with vpopbull. [790776]
+	- Make sure files created by vpopbull are owned by vpopmail.vchkpw
+	  and have 0600 permissions. [800030]
+	- In valias, don't allow user to create duplicate alias. [796527]
+	- Update quota parsing code and centralize to format_maildirquota()
+	  in vpopmail.c. [775757]
+	- Update vsetuserquota.c to use vsetuserquota() in vpopmail.c.
+	- Update vmoduser.c to use format_maildirquota() in vpopmail.c.
+	- Fix -r option in vadddomain. [800212]
+
+	Jorge Valdes (patch from 10-Apr-2003)
+	- Allow vpopbull to run without -f option if -n is used.  This
+	  allows `vpopbull -n -V` to display a list of users. [798034]
+
 5.3.26 - released 26-Aug-03
 
 	Michael Bowe

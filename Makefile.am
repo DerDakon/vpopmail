@@ -1,6 +1,7 @@
 @SET_MAKE@
 
 SUBDIRS=cdb
+OBJEXT=o
 
 noinst_LIBRARIES=libvpopmail.a
 
@@ -89,10 +90,12 @@ vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
 DEFS=-I. @auth_inc@ 
 
 install-data-local:
-	$(INSTALL) -d --group=@vpopgroup@ --mode=0700 --owner=@vpopuser@ \
+	$(INSTALL) -d -g @vpopgroup@ -m 0700 -o @vpopuser@ \
 	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/etc
+	echo "-I@vpopmaildir@/include" > @vpopmaildir@/etc/inc_deps
+	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@" > @vpopmaildir@/etc/lib_deps
 
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
@@ -106,25 +109,32 @@ install-data-local:
 	  chmod 0600        $(MYSQLCONF) ; \
 	fi
 
-	$(INSTALL) --owner=root --mode=0600 --group=root -D \
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/lib
+	$(INSTALL) -o root -m 0644 \
 	  libvpopmail.a $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
 
-	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ -D \
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/include
+	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 
-	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  vpopmail.h config.h vauth.h vlimits.h \
 	  $(DESTDIR)@vpopmaildir@/include/
 
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
 	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
-	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
 
-	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
 
 fix-priv:
+	if test -r $(MYSQLCONF); then \
+	  chown @vpopuser@  $(MYSQLCONF) ; \
+	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
+	  chmod 0600        $(MYSQLCONF) ; \
+	fi
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"
 	@echo "this is the last stage of the install and can be skipped" 

@@ -51,6 +51,7 @@ static int DoNothing;
 #define SYMBOLIC_LINK_IT 2
 
 static int DeliveryMethod = COPY_IT;
+int InsertDate = 1;
 int EmailFileFlag = 0;
 int ExcludeFileFlag = 0;
 
@@ -97,8 +98,19 @@ int main(int argc, char *argv[])
             printf("Error: %s is empty\n", EmailFile);
             vexit(-1);
         }
+        /* check for existing date header */
+        while (fgets (TmpBuf, sizeof(TmpBuf), fsi) != NULL) {
+            /* check for end of headers (blank line) */
+            if (*TmpBuf == '\n') break;
+
+            if (strncasecmp ("Date: ", TmpBuf, 6) == 0) {
+                InsertDate = 0;
+                break;
+            }
+        }
+        rewind(fsi);
     }
-  } else {
+  } else if (! DoNothing) {
     /* require -f [email_file] */
     printf("Error: email_file not specified\n");
     usage();
@@ -219,12 +231,16 @@ int copy_email( fs_file, name, domain, pwent)
 			return(-1);
 		}
 		fprintf(fs, "To: %s@%s\n", pwent->pw_name, domain); 
+		if (InsertDate) fprintf(fs, "%s", date_header());
 	
 		while((count=fread(MsgBuf,sizeof(char),MSG_BUF_SIZE,fs_file)) 
 				!= 0 ) {
 			fwrite( MsgBuf, sizeof(char), count, fs );
 		}
 		fclose(fs);
+		/* fix permissions */
+		chown(tmpbuf, VPOPMAILUID, VPOPMAILGID);
+		chmod(tmpbuf, 0600);
 	} else if ( DeliveryMethod == HARD_LINK_IT ) {
 		snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/%s", CurDir, EmailFile);
 		if ( link( tmpbuf1, tmpbuf) < 0 ) {
@@ -305,7 +321,6 @@ void get_options(int argc, char **argv)
                 break;
             case 'n':
                 DoNothing = 1;
-                break;
                 break;
             default:
                 errflag = 1;

@@ -154,8 +154,6 @@ void get_options(int argc,char **argv)
  int errflag;
  extern char *optarg;
  extern int optind;
- double q;
- int i;
 
     memset(Email, 0, sizeof(Email));
     memset(Gecos, 0, sizeof(Gecos));
@@ -194,33 +192,8 @@ void get_options(int argc,char **argv)
                 break;
             case 'q':
                 QuotaFlag = 1;
-		/* properly handle the following formats:
-		 * "1M", "1024K", "1048576" (set 1 MB quota)
-		 * "1MB", "1024KB" (set 1 MB quota)
-		 * "NOQUOTA" (no quota)
-		 * "1048576S,1000C" (1 MB size, 1000 message limit)
-		 */
-                /* Michael Bowe 15th Aug 2003
-                 * Mmmm rather than having code here, we would be better off using
-                 * the existing function format_maildirquota() from vpopmail.c
-                 * if possible. There is a sourceforge tracker open for this [775757]
-                 */
-		snprintf(Quota, sizeof(Quota), "%s", optarg);
-		i = strlen (Quota);
-		if ((Quota[i-1] == 'B') || (Quota[i-1] == 'b')) {
-		    Quota[--i] = 0;
-		}
-	        q = atof(Quota);
-		if ((Quota[i-1] == 'M') || (Quota[i-1] == 'm')) {
-		    snprintf (Quota, sizeof(Quota), "%.0fS", q * 1024 * 1024);
-		} else if ((Quota[i-1] == 'K') || (Quota[i-1] == 'k')) {
-		    snprintf (Quota, sizeof(Quota), "%.0fS", q * 1024);
-		} else if ((Quota[i-1] == 'S') || (Quota[i-1] == 's') ||
-		    (Quota[i-1] == 'C') || (Quota[i-1] == 'c')) {
-		    /* don't make any changes */
-		} else if (q > 0) {
-		    snprintf (Quota, sizeof(Quota), "%.0fS", q);
-		} /* else don't make any changes */
+                snprintf (Quota, sizeof(Quota), "%s",
+			format_maildirquota(optarg));
                 break;
             case 'd':
                 GidFlag |= NO_PASSWD_CHNG;
