@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.7 - unreleased
 
+	Tom Collins
+	- Don't try to delete dir-control for domain unless users-big-dir
+	  is enabled.
+
 5.4.6 - released 30-Jun-04
 
 	[backport from 5.5.0]
