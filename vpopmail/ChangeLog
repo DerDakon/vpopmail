@@ -12,6 +12,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  when you try to insert your first domain [822181]
 	- Added installation instructions for PostgreSQL to the
 	  README.pgsql file [824088] 
+	- Made the default ~vpopmail/etc/vpopmail.mysql file more
+	  verbose/descriptive
 
 	Tom Collins
 	- Install a vlimits.default file if none exists.
