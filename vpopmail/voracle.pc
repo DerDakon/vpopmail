@@ -324,11 +324,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
-#ifdef HARD_QUOTA
-    snprintf( quota, 30, "%s", HARD_QUOTA );
-#else
     strncpy( quota, "NOQUOTA", 30 );
-#endif
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( domain );

@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.11 2003-12-03 16:41:14 tomcollins Exp $
+ * $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.11 2003-12-03 16:41:14 tomcollins Exp $
+** $Id: vcdb.c,v 1.12 2004-01-07 16:06:16 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -689,11 +689,7 @@ int vauth_adduser_line( FILE *fs1,
             }
         }
 
-#ifdef HARD_QUOTA
-        fprintf(fs1, "%s", HARD_QUOTA);
-#else
         fprintf(fs1, "NOQUOTA");
-#endif
 
 #ifndef CLEAR_PASS
         fprintf(fs1, "\n");

@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.14 2003-12-26 09:02:12 mbowe Exp $
+ * $Id: vldap.c,v 1.15 2004-01-07 16:06:16 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -530,14 +530,7 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
     lm[5]->mod_values[0] = safe_strdup(dir);
 
     /* lm[6] will store : mailQuota / pw_shell */
-#ifdef HARD_QUOTA
-
-    lm[6]->mod_values[0] = (char *) safe_malloc(10);
-    sprintf(lm[6]->mod_values[0], "%s", HARD_QUOTA);
-#else
-
     lm[6]->mod_values[0] = safe_strdup("NOQUOTA");
-#endif
 
     /* When running with clearpasswords enabled,
      * lm[7] will store : clearPassword / pw_clear_password

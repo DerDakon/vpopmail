@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.8 2003-12-03 16:41:14 tomcollins Exp $
+ * $Id: vsybase.c,v 1.9 2004-01-07 16:06:16 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -161,11 +161,7 @@ int vauth_adduser_size(char *user, char *domain, char *pass, char *gecos,
 	vauth_open();
 	vset_default_domain( domain );
 
-#ifdef HARD_QUOTA
-	sprintf( quota, "%d", HARD_QUOTA );
-#else
 	strncpy( quota, "NOQUOTA", 30 );
-#endif
 
 	if ( apop == 0 ) {
 		pop = 1;
