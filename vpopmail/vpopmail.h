@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.21 2004-12-27 08:13:13 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.22 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -228,6 +228,8 @@ typedef struct domain_entry {
 } domain_entry;
 
 domain_entry *get_domain_entries( const char *match_real );
+
+void vsqlerror( FILE *f, char *comment );
 
 //  Error handling
 extern char sqlerr[MAX_BUFF];

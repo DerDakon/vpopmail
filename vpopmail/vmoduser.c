@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.9 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.10 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
 
-    if( vauth_open()) {
+    if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
     }
 
@@ -143,8 +143,9 @@ void usage()
     printf("         -b ( set bounce mail flag )\n");
     printf("         -o ( set override domain limits flag )\n");
     printf("         -r ( set no external relay flag )\n");
-    printf("         -a ( grant qmailadmin administrator privileges)\n");
-    printf("         -S ( system administrator privileges)\n");
+    printf("         -a ( grant qmailadmin administrator privileges )\n");
+    printf("         -S ( system administrator privileges - access all domains )\n");
+    printf("         -E ( expert privileges - edit .qmail files )\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
     printf("         -1 ( set V_USER1 flag )\n"); 
     printf("         -2 ( set V_USER2 flag )\n"); 

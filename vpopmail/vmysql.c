@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.24 2004-12-27 08:13:12 rwidmer Exp $
+ * $Id: vmysql.c,v 1.25 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -391,13 +391,19 @@ int vauth_open_read()
 //  Make vauth_open_read answer for vauth_open, so that function
 //  can be called to test the database.
 
-int vauth_open() {
+int vauth_open( int will_update ) {
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_open()\n");
 #endif 
 
+if( will_update ) {
+    return( vauth_open_update());
+    }
+
+else {
     return( vauth_open_read());
+    }
 
 }
 

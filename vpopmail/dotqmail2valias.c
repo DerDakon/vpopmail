@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.5 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: dotqmail2valias.c,v 1.6 2004-12-28 00:31:05 rwidmer Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	return -1;
 #endif
 
-	if( vauth_open()) {
+	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );
 	}
 

@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.12 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vmoddomlimits.c,v 1.13 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
  char OptionString[MAX_BUFF];
  
 
-    if( vauth_open()) {
+    if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
     }
 

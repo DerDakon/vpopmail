@@ -1,7 +1,16 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+
+
 5.5.1 - unreleased  (Some more stuff before release)
+
+	Rick Widmer 27-Dec-2004
+	-Add Bill Shupp's patch to vuserinfo to display spamassassin info.
+
+        -Add expert mode to vmoduser help list
+
+	-Add readonly/update hint to vauth_open
 
 =========================================================================
 	This a big batch of changes being ported from 5_4_stable

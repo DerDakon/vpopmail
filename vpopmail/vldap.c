@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.17 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vldap.c,v 1.18 2004-12-28 00:31:05 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -911,7 +911,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
 
 /*   Verify the connection to the authentication database   */
 
-int vauth_open() {
+int vauth_open( int will_update ) {
 
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_open()\n");

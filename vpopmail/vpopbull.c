@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.10 2004-05-22 12:28:21 rwidmer Exp $
+ * $Id: vpopbull.c,v 1.11 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     vexit(-1);
   }
 
-    if( vauth_open()) {
+    if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
     }
 

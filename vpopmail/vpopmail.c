@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.46 2004-12-27 08:13:13 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.47 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -74,8 +74,6 @@ static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
    char *value;
  } sortrec;
 
-
-void vsqlerror( FILE *f, char *comment );
 
 /************************************************************************/
 

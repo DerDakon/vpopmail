@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.30 2004-12-27 08:13:13 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.31 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -118,7 +118,7 @@ int pg_end(void)
 }                                                   
 
 /*** Open a connection to pgsql ***/
-int vauth_open()
+int vauth_open( int will_update )
 {
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_open()\n");

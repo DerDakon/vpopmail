@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.10 2004-12-27 08:13:12 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.11 2004-12-28 00:31:05 rwidmer Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ extern vdir_type vdir;
 
 int main(int argc, char *argv[])
 {
-    if( vauth_open()) {
+    if( vauth_open( 0 )) {
         vexiterror( stderr, "Initial open." );
     }
 

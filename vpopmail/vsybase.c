@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.14 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vsybase.c,v 1.15 2004-12-28 00:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,7 +80,7 @@ DBUSMALLINT     line;
 }
 
 
-int vauth_open()
+int vauth_open( int will_update )
 {
 #ifdef SHOW_TRACE
     fprintf( stderr, "vauth_open()\n");
