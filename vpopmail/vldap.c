@@ -1,5 +1,5 @@
 /* 
- * $Id: vldap.c,v 1.9 2003-11-02 11:53:28 jheesemann Exp $
+ * $Id: vldap.c,v 1.10 2003-11-15 06:55:44 mbowe Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -913,9 +913,9 @@ int vdel_dir_control(char *domain)
     return(unlink(dir_control_file));
 }
 
+#ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time )
 {
-#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  FILE *fs;
  struct vqpasswd *vpw;
@@ -939,7 +939,6 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
         vget_assign(domain,NULL,0,&uid,&gid);
         chown(tmpbuf,uid,gid);
 	safe_free((void **) &tmpbuf);
-#endif
 	return(0);
 }
 
@@ -950,7 +949,6 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
 
 time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 {
-#ifdef ENABLE_AUTH_LOGGING
  char *tmpbuf;
  struct stat mystatbuf;
 
@@ -962,14 +960,10 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 	}
 	safe_free((void **) &tmpbuf);
 	return(mystatbuf.st_mtime);
-#else
-	return(0);
-#endif
 }
 
 char *vget_lastauthip( struct vqpasswd *pw, char *domain)
 {
-#ifdef ENABLE_AUTH_LOGGING
  static char tmpbuf[MAX_BUFF];
  FILE *fs;
 
@@ -978,10 +972,8 @@ char *vget_lastauthip( struct vqpasswd *pw, char *domain)
         fgets(tmpbuf,MAX_BUFF,fs);
         fclose(fs);
         return(tmpbuf);
-#else
-   return(NULL);
-#endif
 }
+#endif /* ENABLE_AUTH_LOGGING */
 
 #ifdef IP_ALIAS_DOMAINS
 int vget_ip_map( char *ip, char *domain, int domain_size)
