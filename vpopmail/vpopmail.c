@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.14 2003-10-13 22:26:45 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.15 2003-10-13 22:37:24 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -492,15 +492,15 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
 
+  /* make sure we can load domain limits for default quota */
+  if (vget_limits(domain, &limits) != 0) {
+    return(VA_CANNOT_READ_LIMITS);
+  }
+
   /* go to the domain's home dir (ie test it exists) */
   /* would a stat be a better option here? */
   if ( chdir(Dir) != 0 ) {
     return(VA_BAD_D_DIR);
-  }
-
-  /* make sure we can load domain limits for default quota */
-  if (vget_limits(domain, &limits) != 0) {
-    return(VA_CANNOT_READ_LIMITS);
   }
 
   /* create dir for the the user */ 
