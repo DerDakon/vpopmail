@@ -7,8 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Added some basic 5.4 upgrade notes to the UGPRADE file
 	- Fix typo's in configure.in that relate to the errors generated
 	  when a discontinued configure option is used
-	- Fixes to vpgsql.c to clear compile errors (spotted by Ken Nonaka)
-	  when --enable-ip-alias-domains was enabled [874066] 
+
+	Ken Nonaka
+	- Fixes to vpgsql.c to clear compile errors when 
+	  --enable-ip-alias-domains is enabled. [874066] 
 
 	Tom Collins
 	- Check for comments earlier in deliver_mail().
