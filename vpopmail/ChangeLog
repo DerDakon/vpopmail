@@ -20,6 +20,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  added when converting from cdb to MySQL.
 	- If crypt() doesn't support MD5 passwords, fall back to using
 	  a valid, non-MD5 salt even if MD5 passwords are enabled.
+	- Fix format string vuln. in vactivedir.c (thanks D4rk Eagle).
 
 5.4.6 - released 30-Jun-04
 

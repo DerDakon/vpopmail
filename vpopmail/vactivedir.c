@@ -1,5 +1,5 @@
 /*
- * $Id: vactivedir.c,v 1.10 2004-01-07 16:06:16 tomcollins Exp $
+ * $Id: vactivedir.c,v 1.10.2.1 2004-09-18 15:10:46 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -488,7 +488,7 @@ int vdel_ip_map( char *ip, char *domain)
     if ( domain_f == NULL ) continue;
 
     if ( strcmp(ip, ip_f) == 0 && strcmp(domain,domain_f) == 0) continue;
-    fprintf(fs1, tmpbuf1);
+    fprintf(fs1, "%s", tmpbuf1);
 
   }
   fclose(fs);
