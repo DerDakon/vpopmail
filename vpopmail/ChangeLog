@@ -7,6 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vdelivermail: read full message, even on catchall delete/bounce
 	  to avoid SIGPIPE error if maildrop is calling vdelivermail.
 	- vdelivermail: missing declaration when QMAIL_EXT defined.
+	- vpopmail.h: remove declaration of crypt() -- unnecessary and causes
+	  problems when compiling some programs that link to libvpopmail.
 
 5.4.11 - released 20-Mar-05
 
