@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.4 2004-11-23 06:37:36 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.5 2005-04-27 23:01:31 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -143,7 +143,6 @@ int parse_email( char *, char *, char *, int);
 int add_user_assign( char *, char *);
 int del_user_assign( char *);
 void lowerit( char *);
-char *crypt();
 int update_file(char *, char *);
 int count_rcpthosts();
 int compile_morercpthosts();
