@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.5 2005-04-27 23:01:31 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.6 2005-05-20 03:38:19 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,8 @@
  */
 #ifndef VPOPMAIL_VPOPMAIL_H
 #define VPOPMAIL_VPOPMAIL_H
+
+#include <crypt.h>
 
 #define DEFAULT_DOMAIN default_domain()
 
