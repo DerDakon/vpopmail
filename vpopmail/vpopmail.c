@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.17 2005-03-01 01:17:37 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.18 2005-05-23 16:12:36 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,8 @@
 #include <time.h>
 #include <dirent.h>
 #include <pwd.h>
+#include <errno.h>
+#include <err.h>
 #include "config.h"
 #include "md5.h"
 #include "vpopmail.h"
@@ -1800,19 +1802,38 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 int r_mkdir(char *path, uid_t uid, gid_t gid )
 {
  char tmpbuf[MAX_BUFF];
+ int err;
  int i;
+ struct stat sb;
 
-  for(i=0;path[i]!=0;++i){
-    if ( (i > 0) && (path[i] == '/') ) {
+  if (*path == '\0') return 0;
+
+  for(i=0; ;++i){
+    if ( (i > 0) && ((path[i] == '/') || (path[i] == '\0')) ) {
       tmpbuf[i] = 0;
-      if (mkdir(tmpbuf,VPOPMAIL_DIR_MODE) == 0)
+      err = mkdir(tmpbuf,VPOPMAIL_DIR_MODE);
+      if (err == 0)
         chown(tmpbuf, uid, gid);
+      else if (errno != EEXIST) {
+        /* Note that if tmpbuf is a file, we'll catch the error on the
+         * next directory creation (ENOTDIR) or when we verify that the
+         * directory exists and is a directory at the end of the function.
+         */
+        warn ("Unable to create directory %s: ", tmpbuf);
+        return -1;
+      }
+      if (path[i] == '\0') break;
     }
     tmpbuf[i] = path[i];
   }
-  mkdir(path,VPOPMAIL_DIR_MODE);
-  chown(path, uid, gid);
-  return(0);
+  if (stat (path, &sb) != 0) {
+    warn ("Couldn't stat %s: ", path);
+    return -1;
+  } else if (! S_ISDIR(sb.st_mode)) {
+    fprintf (stderr, "Error: %s is not a directory.\n", path);
+    return -1;
+  }
+  return 0;
 }
 
 /************************************************************************/

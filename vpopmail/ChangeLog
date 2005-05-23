@@ -12,6 +12,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  quota code is fixed.
 	- maildirquota.c: fix bug from 5.4.11 that could accidentally
 	  close stdin.
+	- vpopmail.c: better error checking in r_mkdir().
 
 5.4.11 - released 20-Mar-05
 
