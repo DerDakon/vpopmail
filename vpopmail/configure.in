@@ -822,26 +822,26 @@ case $IPALIAS in
 esac
 
 #----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether domainquotas is enabled)
-AC_ARG_ENABLE(domainquotas,
-        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
-        ENABLE_DOMAIN_QUOTAS=$enableval,
-                [
-                        ENABLE_DOMAIN_QUOTAS=0
-                ]
-)
-
-case $ENABLE_DOMAIN_QUOTAS in
-  0*|n*|N*)
-      AC_MSG_RESULT(no)
-      ;;
-  *)
-      AC_MSG_RESULT(yes)
-      ENABLE_DOMAIN_QUOTAS=1
-      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
-      ;;
-esac
+#  -- domain quotas disabled until they actually work again --
+#AC_MSG_CHECKING(whether domainquotas is enabled)
+#AC_ARG_ENABLE(domainquotas,
+#        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
+#        ENABLE_DOMAIN_QUOTAS=$enableval,
+#                [
+#                        ENABLE_DOMAIN_QUOTAS=0
+#                ]
+#)
+#
+#case $ENABLE_DOMAIN_QUOTAS in
+#  0*|n*|N*)
+#      AC_MSG_RESULT(no)
+#      ;;
+#  *)
+#      AC_MSG_RESULT(yes)
+#      ENABLE_DOMAIN_QUOTAS=1
+#      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
+#      ;;
+#esac
 
 #----------------------------------------------------------------------
 
@@ -1377,6 +1377,13 @@ AC_ARG_ENABLE(active-directory, [],
     ]
 ) 
 
+AC_ARG_ENABLE(domainquotas, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-domainquotas has been temporarily disabled since the domain quota code is broken.)
+    ]
+)
+
 AC_ARG_ENABLE(hardquota, [],
     [
         AC_MSG_RESULT(yes)
@@ -1532,14 +1539,14 @@ case $IPALIAS in
 esac
 
 
-case $ENABLE_DOMAIN_QUOTAS in
-  1*|y*|Y*)
-    echo "     domain quotas = ON  --enable-domainquotas"
-    ;;
-  *)
-    echo "     domain quotas = OFF --disable-domainquotas (default)"
-    ;;
-esac
+#case $ENABLE_DOMAIN_QUOTAS in
+#  1*|y*|Y*)
+#    echo "     domain quotas = ON  --enable-domainquotas"
+#    ;;
+#  *)
+#    echo "     domain quotas = OFF --disable-domainquotas (default)"
+#    ;;
+#esac
 
 
 case $AUTH_MODULE in

@@ -10,9 +10,6 @@
 #undef DOMAINS_DIR
 
 /* "" */
-#undef DOMAIN_QUOTAS
-
-/* "" */
 #undef ENABLE_AUTH_LOGGING
 
 /* "" */
