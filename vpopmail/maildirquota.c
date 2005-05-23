@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7.2.2 2005-03-20 17:01:43 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.7.2.3 2005-05-23 15:52:29 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -255,7 +255,7 @@ int readuserquota(const char* dir, long *sizep, int *cntp)
 int user_over_maildirquota( const char *dir, const char *q)
 {
 struct  stat    stat_buf;
-int     quotafd = 0;
+int     quotafd = -1;
 int     ret_value = 0;
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
@@ -265,7 +265,7 @@ int     ret_value = 0;
                         && errno != EAGAIN);
         }
 
-        if (quotafd >= 0)       close(quotafd);
+        if (quotafd != -1)       close(quotafd);
         return(ret_value);
 }
 
@@ -434,7 +434,7 @@ static int docheckquota(const char *dir,
 char	*checkfolder=(char *)malloc(strlen(dir)+sizeof("/maildirfolder"));
 char	*newmaildirsizename;
 struct stat stat_buf;
-int	maildirsize_fd;
+int	maildirsize_fd = -1;
 off_t	maildirsize_size;
 unsigned maildirsize_cnt;
 unsigned maildirsize_nlines;
