@@ -8,6 +8,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  to avoid SIGPIPE error if maildrop is calling vdelivermail.
 	- vdelivermail: missing declaration when QMAIL_EXT defined.
 	- vpopmail.h: replace declaration of crypt() with #include <crypt.h>.
+	- configure: remove enable-domainquotas option until the domain
+	  quota code is fixed.
 
 5.4.11 - released 20-Mar-05
 
