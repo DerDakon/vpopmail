@@ -7,7 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vdelivermail: read full message, even on catchall delete/bounce
 	  to avoid SIGPIPE error if maildrop is calling vdelivermail.
 	- vdelivermail: missing declaration when QMAIL_EXT defined.
-	- vpopmail.h: remove declaration of crypt() (it's in unistd.h).
+	- vpopmail.h: remove declaration of crypt() and #include crypt.h
+	  instead (if present).
 	- configure: remove enable-domainquotas option until the domain
 	  quota code is fixed.
 	- maildirquota.c: fix bug from 5.4.11 that could accidentally
