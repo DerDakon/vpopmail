@@ -1,7 +1,8 @@
-/* $Id: hmac_md5.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $ */
+/* $Id: hmac_md5.c,v 1.2.2.1 2005-07-12 14:57:03 tomcollins Exp $ */
 
 #include "global.h"
 #include "md5.h"
+#include <strings.h>
 
 /*
 ** Function: hmac_md5
