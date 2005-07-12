@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.13 - unreleased
 
+	Tom Collins
+	- hmac_md5.c: include <strings.h> for bzero and bcopy declarations.
+
 5.4.12 - released 4-Jul-05
 
 	Tom Collins
