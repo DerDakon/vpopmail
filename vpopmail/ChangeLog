@@ -5,6 +5,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- hmac_md5.c: include <strings.h> for bzero and bcopy declarations.
+	- configure.in: fix checks to limit enable-valias to MySQL only.
+	- INSTALL: make clear that valias only applies to MySQL backend.
 
 5.4.12 - released 4-Jul-05
 
