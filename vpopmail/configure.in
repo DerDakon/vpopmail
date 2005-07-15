@@ -1195,7 +1195,7 @@ AC_ARG_ENABLE(sql-logging,
 case $ENABLE_SQL_LOGGING in
   1*|y*|Y*)
       AC_MSG_RESULT(yes)
-      if test $USE_SQL != 1
+      if test "$USE_SQL" != 1
       then
           AC_MSG_ERROR(sql-logging is only supported in the MySQL/Postgres authentication modules)
       else
@@ -1222,7 +1222,7 @@ AC_ARG_ENABLE(mysql-limits,
 case $ENABLE_MYSQL_LIMITS in
   1*|y*|Y*)
       AC_MSG_RESULT(yes)
-      if test $USE_MYSQL != 1
+      if test "$USE_MYSQL" != 1
       then
           AC_MSG_ERROR(mysql-limits is only supported in the MySQL authentication module)
       else
@@ -1249,7 +1249,7 @@ AC_ARG_ENABLE(mysql-replication,
 case $MYSQL_REPLICATION in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
-        if test $USE_MYSQL != 1
+        if test "$USE_MYSQL" != 1
         then
                 AC_MSG_ERROR(mysql-replication is only supported in the MySQL authentication module)
         else
@@ -1276,7 +1276,7 @@ AC_ARG_ENABLE(valias,
 case $VALIAS in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
-        if test $USE_MYSQL != 1
+        if test "$USE_MYSQL" != 1
         then
                 AC_MSG_ERROR(valias is only supported in the MySQL authentication module)
         else
@@ -1672,9 +1672,9 @@ case $ENABLE_AUTH_LOGGING in
 esac
 
 
-if test $USE_SQL = 1
+if test "$USE_SQL" = 1
 then
-  if test $MANY_DOMAINS = 1
+  if test "$MANY_DOMAINS" = 1
   then
     echo "all domains in one SQL table = --enable-many-domains (default)"
   else

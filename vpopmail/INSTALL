@@ -76,7 +76,7 @@ helpful to be able to see the pasword the user should be using.
 
 --enable-valias (Turn on vpopmail alias processing)
 
-This is mainly for the mysql module. It allows aliases/forwards to
+This is for the mysql module. It allows aliases/forwards to
 be stored in the mysql database. It also turns on the valias
 command line program to maintain alias/forwards
 

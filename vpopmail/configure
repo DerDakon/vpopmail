@@ -6467,7 +6467,7 @@ case $ENABLE_SQL_LOGGING in
   1*|y*|Y*)
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-      if test $USE_SQL != 1
+      if test "$USE_SQL" != 1
       then
           { { echo "$as_me:$LINENO: error: sql-logging is only supported in the MySQL/Postgres authentication modules" >&5
 echo "$as_me: error: sql-logging is only supported in the MySQL/Postgres authentication modules" >&2;}
@@ -6506,7 +6506,7 @@ case $ENABLE_MYSQL_LIMITS in
   1*|y*|Y*)
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-      if test $USE_MYSQL != 1
+      if test "$USE_MYSQL" != 1
       then
           { { echo "$as_me:$LINENO: error: mysql-limits is only supported in the MySQL authentication module" >&5
 echo "$as_me: error: mysql-limits is only supported in the MySQL authentication module" >&2;}
@@ -6545,7 +6545,7 @@ case $MYSQL_REPLICATION in
   1*|y*|Y*)
         echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-        if test $USE_MYSQL != 1
+        if test "$USE_MYSQL" != 1
         then
                 { { echo "$as_me:$LINENO: error: mysql-replication is only supported in the MySQL authentication module" >&5
 echo "$as_me: error: mysql-replication is only supported in the MySQL authentication module" >&2;}
@@ -6584,7 +6584,7 @@ case $VALIAS in
   1*|y*|Y*)
         echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-        if test $USE_MYSQL != 1
+        if test "$USE_MYSQL" != 1
         then
                 { { echo "$as_me:$LINENO: error: valias is only supported in the MySQL authentication module" >&5
 echo "$as_me: error: valias is only supported in the MySQL authentication module" >&2;}
@@ -8289,9 +8289,9 @@ case $ENABLE_AUTH_LOGGING in
 esac
 
 
-if test $USE_SQL = 1
+if test "$USE_SQL" = 1
 then
-  if test $MANY_DOMAINS = 1
+  if test "$MANY_DOMAINS" = 1
   then
     echo "all domains in one SQL table = --enable-many-domains (default)"
   else
