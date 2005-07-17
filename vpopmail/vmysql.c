@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.26 2004-12-30 07:46:14 rwidmer Exp $
+ * $Id: vmysql.c,v 1.27 2005-07-17 11:56:18 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -249,7 +249,7 @@ int vauth_open_update()
         snprintf(sqlerr, MAX_BUFF,
                  "   Can not connect to update database - %s\n", 
                  mysql_error( &mysql_update ));
-
+#ifdef VPOPMAIL_DEBUG
         if( show_trace ) {
             snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
                      "   mysql_real_connect - Server %s  User %s  "
@@ -264,6 +264,16 @@ int vauth_open_update()
                      MYSQL_UPDATE_PORT);
             last_query = SqlBufUpdate;
         }
+
+#else
+        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                 "   mysql_real_connect( - Server %s  User %s  "
+                 "Password: *** Base: NULL Port: %i ?:NULL )\n", 
+                 MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
+                 MYSQL_UPDATE_PORT);
+        last_query = SqlBufUpdate;
+#endif
+
         verrori = VA_NO_AUTH_CONNECTION;
     
 #ifdef VPOPMAIL_DEBUG
@@ -484,6 +494,8 @@ int vauth_open_read_getall()
                      "   Can not connect to getall database - %s\n", 
                      mysql_error( &mysql_update ));
 
+#ifdef VPOPMAIL_DEBUG
+
             if( show_trace ) {
                 snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
                          "   mysql_real_connect - Server %s  User %s  "
@@ -497,6 +509,15 @@ int vauth_open_read_getall()
                          MYSQL_READ_SERVER, MYSQL_READ_USER, 
                          MYSQL_READ_PORT);
             }
+
+#else
+             snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+                      "   mysql_real_connect( - Server %s  User %s  "
+                      "Password: *** Base: NULL Port: %i ?:NULL )\n", 
+                      MYSQL_READ_SERVER, MYSQL_READ_USER, 
+                      MYSQL_READ_PORT);
+
+#endif
 
             verrori = VA_NO_AUTH_CONNECTION;
     
