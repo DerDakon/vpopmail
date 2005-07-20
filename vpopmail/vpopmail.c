@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.18 2005-05-23 16:12:36 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.19 2005-07-20 00:10:22 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3105,7 +3105,8 @@ char *get_remote_ip()
   char *ipaddr;
   char *p;
 
-  ipenv = getenv("TCPREMOTEIP");
+  ipenv = getenv("TCPREMOTEIP"); /* tcpserver from daemontools */
+  if (ipenv == NULL) ipenv = getenv("REMOTE_HOST"); /* xinetd */
   if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipbuf))) return ipenv;
 
   strcpy (ipbuf, ipenv);
