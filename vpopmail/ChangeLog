@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.13 - unreleased
 
+	Riccardo Bini
+	- vdelivermail.c: Use DOMAINS_DIR instead of hard-coded "domains".
+
 	Tom Collins
 	- hmac_md5.c: include <strings.h> for bzero and bcopy declarations.
 	- configure.in: fix checks to limit enable-valias to MySQL only.
