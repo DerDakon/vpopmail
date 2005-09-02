@@ -43,7 +43,7 @@ compile cdbmake_pack.c cdbmake.h uint32.h
 compile: \
 warn-auto.sh conf-cc
 	( cat warn-auto.sh; \
-	echo exec "`head -1 conf-cc`" '-c $${1+"$$@"}' \
+	echo exec "`head -1 conf-cc`" -fPIC '-c $${1+"$$@"}' \
 	) > compile
 	chmod 755 compile
 
