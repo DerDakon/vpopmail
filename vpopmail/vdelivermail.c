@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.4 2005-03-23 06:18:11 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.5 2005-09-02 18:47:29 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -550,7 +550,7 @@ void deliver_mail(char *address, char *quota)
                 sprintf(tmp_file, "%s/.over-quota.msg",TheDomainDir);
                 if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                     /* if no domain over quota then check in vpopmail dir */
-                    sprintf(tmp_file, "%s/domains/.over-quota.msg",VPOPMAILDIR);
+                    sprintf(tmp_file, "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
                     fs=fopen(tmp_file, "r");
                 }
 
@@ -580,7 +580,7 @@ void deliver_mail(char *address, char *quota)
             sprintf(tmp_file, "%s/.over-quota.msg",TheDomainDir);
             if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                 /* if no domain over quota then check in vpopmail dir */
-                sprintf(tmp_file, "%s/domains/.over-quota.msg",VPOPMAILDIR);
+                sprintf(tmp_file, "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
                 fs=fopen(tmp_file, "r");
             }
 
@@ -946,7 +946,7 @@ void usernotfound()
         sprintf(tmp_file, "%s/.no-user.msg",TheDomainDir);
         if ( (fs=fopen(tmp_file, "r")) == NULL ) {
             /* if no domain no user then check in vpopmail dir */
-            sprintf(tmp_file, "%s/domains/.no-user.msg",VPOPMAILDIR);
+            sprintf(tmp_file, "%s/%s/.no-user.msg",VPOPMAILDIR,DOMAINS_DIR);
             fs=fopen(tmp_file, "r");
         }
         if ( fs == NULL ) {
@@ -1016,7 +1016,7 @@ int deliver_quota_warning(const char *dir, const char *q)
            (stat(quotawarnmsg, &sb) != 0)) {
 
         /* if that fails look in vpopmail dir */
-        sprintf(quotawarnmsg, "%s/domains/.quotawarn.msg", VPOPMAILDIR);
+        sprintf(quotawarnmsg, "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
         if ( ((read_fd = open(quotawarnmsg, O_RDONLY)) < 0) || 
               (stat(quotawarnmsg, &sb) != 0)) {
             return 0;
