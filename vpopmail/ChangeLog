@@ -6,6 +6,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Riccardo Bini
 	- vdelivermail.c: Use DOMAINS_DIR instead of hard-coded "domains".
 
+	Jory A. Pratt
+	- Compile libvpopmail with -fPIC option so amd64 users can compile
+	  courier-authlib against libvpopmail.a.
+
 	Tom Collins
 	- hmac_md5.c: include <strings.h> for bzero and bcopy declarations.
 	- configure.in: fix checks to limit enable-valias to MySQL only.
