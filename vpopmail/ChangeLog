@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.13 - unreleased
+5.4.13 - released 16-Sep-05
 
 	Riccardo Bini
 	- vdelivermail.c: Use DOMAINS_DIR instead of hard-coded "domains".
