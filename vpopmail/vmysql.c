@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.4 2004-12-16 15:57:34 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.5 2005-11-01 16:01:01 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -331,7 +331,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
  char dom_dir[156];
  uid_t uid; 
  gid_t gid;
- char dirbuf[200];
+ char dirbuf[512];
  char quota[30];
  char Crypted[100];
  int err;
@@ -352,17 +352,17 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 
     if ( strlen(domain) <= 0 ) {
         if ( strlen(dir) > 0 ) {
-            snprintf(dirbuf, SQL_BUF_SIZE, 
+            snprintf(dirbuf, sizeof(dirbuf), 
                 "%s/users/%s/%s", VPOPMAILDIR, dir, user);
         } else {
-            snprintf(dirbuf, SQL_BUF_SIZE, "%s/users/%s", VPOPMAILDIR, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
         }
     } else {
-        vget_assign(domain, dom_dir, 156, &uid, &gid );
+        vget_assign(domain, dom_dir, sizeof(dom_dir), &uid, &gid );
         if ( strlen(dir) > 0 ) {
-            snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s/%s", dom_dir, dir, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/%s/%s", dom_dir, dir, user);
         } else {
-            snprintf(dirbuf, SQL_BUF_SIZE, "%s/%s", dom_dir, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/%s", dom_dir, user);
         }
     }
 
