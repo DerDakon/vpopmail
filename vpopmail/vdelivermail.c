@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.5 2005-09-02 18:47:29 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.6 2005-11-19 16:24:22 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -709,7 +709,10 @@ int check_forward_deliver(char *dir)
 
     /* read the file, line by line */
     while ( fgets(qmail_line, sizeof(qmail_line), fs ) != NULL ) {
-        if (*qmail_line == '#') continue;
+        if (*qmail_line == '#') {
+            return_value = 1;
+            continue;
+        }
 
         /* remove the trailing new line */
         for(i=0;qmail_line[i]!=0;++i) {

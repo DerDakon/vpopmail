@@ -7,6 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vmysql.c: Increase buffer size in vauth_adduser() and use 
 	  correct size when calling snprintf.
 
+	Rick Morris
+	- vdelivermail.c: Fix problem where "# delete" in .qmail file was
+	  being ignored. [1360346]
+
 5.4.13 - released 16-Sep-05
 
 	Riccardo Bini
