@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.19 2005-07-20 00:10:22 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.20 2005-12-08 06:10:36 tomcollins Exp $
  * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -429,6 +429,94 @@ int vdeldomain( char *domain )
 
   return(VA_SUCCESS);
 
+}
+
+/************************************************************************/
+
+/* get_domain_entries
+ *
+ * Parses the qmail users/assign file and returns a domain_entry pointer.
+ * If first parameter is not NULL, re-open users/assign file and start scanning.
+ *   If first parameter is "", return all entries.  Otherwise, only return
+ *   entries where "real" domain matches the first parameter.
+ * If first parameter is NULL, returns the next line in already open file.
+ *
+ * Example 1.  Scan through all entries.
+ *   domain_entry *e;
+ *   e = get_domain_entries ("");
+ *   while (e) {
+ *     printf ("Alias: %s  Real domain: %s  uid: %d  gid: %d  path: %s\n",
+ *       e->domain, e->realdomain, e->uid, e->gid, e->path);
+ *     e = get_domain_entries (NULL);
+ *   }
+ *
+ * Example 2.  Find all entries (primary and aliases) for domain.com.
+ *   domain_entry *e;
+ *   e = get_domain_entries ("domain.com");
+ *   while (e) {
+ *     printf ("Alias: %s  Real domain: %s  uid: %d  gid: %d  path: %s\n",
+ *       e->domain, e->realdomain, e->uid, e->gid, e->path);
+ *     e = get_domain_entries (NULL);
+ *   }
+ *
+ *
+ */
+
+domain_entry *get_domain_entries (const char *match_real)
+{
+        static FILE *fs = NULL;
+        static char     match_buffer[MAX_PW_DOMAIN];
+        static domain_entry entry;
+        static char linebuf[MAX_BUFF];
+        char *p;
+
+        if (match_real != NULL) {
+                if (fs != NULL) fclose (fs);
+                snprintf (linebuf, sizeof (linebuf), "%s/users/assign", QMAILDIR);
+                fs = fopen (linebuf, "r");
+
+                snprintf (match_buffer, sizeof (match_buffer), match_real);
+                vget_assign(match_buffer,NULL,0,NULL,NULL);
+        }
+
+        if (fs == NULL) {
+           verrori = VA_CANNOT_READ_ASSIGN;
+           return NULL;
+        }
+
+        while (fgets (linebuf, sizeof (linebuf), fs) != NULL) {
+                /* ignore non-domain entries */
+                if (*linebuf != '+') continue;
+
+                entry.domain = strtok (linebuf + 1, ":");
+                if (entry.domain == NULL) continue;
+
+                /* ignore entries without '.' in them */
+                if (strchr (entry.domain, '.') == NULL) continue;
+
+                entry.realdomain = strtok (NULL, ":");
+                if (entry.realdomain == NULL) continue;
+
+                /* remove trailing '-' from entry.domain */
+                *(entry.realdomain-2) = '\0';
+
+                if ((p = strtok (NULL, ":")) == NULL) continue;
+                entry.uid = atoi (p);
+
+                if ((p = strtok (NULL, ":")) == NULL) continue;
+                entry.gid = atoi (p);
+
+                entry.path = strtok (NULL, ":");
+                if (entry.path == NULL) continue;
+
+                if (!*match_buffer || (strcmp (match_buffer, entry.realdomain) == 0))
+                        return &entry;
+        }
+
+        /* reached end of file, so we're done */
+        fclose (fs);
+        fs=NULL;
+        return NULL;
 }
 
 /************************************************************************/

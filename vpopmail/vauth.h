@@ -1,5 +1,5 @@
 /*
- * $Id: vauth.h,v 1.3.2.3 2005-03-10 05:22:38 tomcollins Exp $
+ * $Id: vauth.h,v 1.3.2.4 2005-12-08 06:10:36 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,8 @@ struct vqpasswd {
   char *pw_shell;		/* User Quota (or NOQUOTA)  */
   char *pw_clear_passwd;	/* Clear password.  */
 };
+
+int vauth_open( int will_update );
 
 int vauth_adddomain(char *);
 int vauth_deldomain(char *);
