@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.8 2005-06-23 04:09:59 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.9 2005-12-08 06:10:36 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
 #define VPOPMAIL_VPOPMAIL_H
 
 #define DEFAULT_DOMAIN default_domain()
+
+/* max buffer sizes */
+#define MAX_BUFF 256
+#define MAX_DOM_ALIAS 20
 
 /* max field sizes */
 #define MAX_PW_NAME         32
@@ -204,3 +208,20 @@ char *dec2hex(unsigned char *);
 
 
 #endif
+
+typedef struct domain_entry {
+        char    *domain;
+        char    *realdomain;
+        int             uid;
+        int             gid;
+        char    *path;
+        char    *aliases[MAX_DOM_ALIAS];
+} domain_entry;
+
+domain_entry *get_domain_entries( const char *match_real );
+
+void vsqlerror( FILE *f, char *comment );
+
+//  Error handling
+extern char sqlerr[MAX_BUFF];
+extern char *last_query;

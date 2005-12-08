@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12.2.1 2005-02-11 17:24:46 tomcollins Exp $
+ * $Id: vcdb.c,v 1.12.2.2 2005-12-08 06:10:36 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12.2.1 2005-02-11 17:24:46 tomcollins Exp $
+** $Id: vcdb.c,v 1.12.2.2 2005-12-08 06:10:36 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -1119,4 +1119,35 @@ int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
   if ( vpw == NULL ) return(-1);
 
   return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
+}
+
+/*   Verify the connection to the authentication database   */
+
+int vauth_open( int will_update ) {
+
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
+#endif
+
+
+/*
+ *  If the connection to this authentication database can fail
+ *  you should test access here.  If it works, return 0, else
+ *  return VA_NO_AUTH_CONNECTION.  You can also set the string
+ *  sqlerr to some short descriptive text about the problem,
+ *  and allocate a much longer string, pointed to by last_query
+ *  that can be displayed in an error message returned because
+ *  of this problem.
+ *
+ */
+
+    return( 0 );
 }
