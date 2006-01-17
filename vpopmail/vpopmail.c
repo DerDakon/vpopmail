@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.21 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.22 2006-01-17 19:30:52 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3017,6 +3017,10 @@ int result;
   if ( rebuild_cdb ) {
     if (update_rules() != 0) {
       fprintf(stderr, "Error. update_rules() failed\n");
+      #ifdef FILE_LOCKING
+        unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+        close(fd_lok_file);
+      #endif /* FILE_LOCKING */
       return (-1);
     }
   }

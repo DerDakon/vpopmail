@@ -15,6 +15,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vpopmaild: store quota in proper format and update maildirsize 
 	  on quota change.
 
+	Gaetan Minet
+	- Remove lock file in open_smtp_relay() even if update_rules() fails.
+
 	Rick Morris
 	- vdelivermail.c: Fix problem where "# delete" in .qmail file was
 	  being ignored. [1360346]
