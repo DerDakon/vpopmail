@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.9 2005-12-08 06:10:36 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.10 2006-01-17 18:50:22 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,15 +19,23 @@
 #ifndef VPOPMAIL_VPOPMAIL_H
 #define VPOPMAIL_VPOPMAIL_H
 
+/*  Enable expanded debug information.  Consider these for ./configure options  */
+//  Show entry and parms when hitting vpopmail library functions
+//#define SHOW_TRACE
+//  Show database queries
+//#define SHOW_QUERY
+//  Dump returnd data
+//#define DUMP_DATA
+
 #define DEFAULT_DOMAIN default_domain()
 
 /* max buffer sizes */
-#define MAX_BUFF 256
+#define MAX_BUFF 300
 #define MAX_DOM_ALIAS 20
 
 /* max field sizes */
 #define MAX_PW_NAME         32
-#define MAX_PW_DOMAIN       64
+#define MAX_PW_DOMAIN       96
 #define MAX_PW_PASS         40
 #define MAX_PW_GECOS        48
 #define MAX_PW_CLEAR_PASSWD 16
@@ -129,6 +137,7 @@ int vdeluser( char *, char *);
 int vpasswd( char *, char *, char *, int);
 int vsetuserquota( char *, char *, char * );
 int vexit(int err);
+int vexiterror( FILE *f, char *comment);
 
 char randltr(void);
 int mkpasswd3( char *, char *, int);
@@ -136,10 +145,12 @@ char *vgetpasswd( char *);
 int vdelfiles( char *);
 int add_domain_assign( char *alias_domain, char *real_domain, 
                        char *dir, uid_t uid, gid_t gid);
-int del_control( char *);
-int del_domain_assign( char *alias_domain, char *real_domain,
+//int del_control( char *);
+int del_control( char *aliases[MAX_DOM_ALIAS], int aliascount);
+int del_domain_assign( char *aliasies[MAX_DOM_ALIAS], int aliascount, 
+                       char *real_domain,
                        char *dir, uid_t uid, gid_t gid);
-int remove_line( char *, char *);
+int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount);
 int r_chown( char *, uid_t, gid_t);
 int signal_process( char *, int );
 int update_newu();
@@ -150,7 +161,7 @@ void lowerit( char *);
 #if HAVE_CRYPT_H
 #include <crypt.h>
 #endif
-int update_file(char *, char *);
+int update_file(char *, char *, int);
 int count_rcpthosts();
 int compile_morercpthosts();
 char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid);

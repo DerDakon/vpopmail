@@ -1,6 +1,6 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.20 2005-12-08 06:10:36 tomcollins Exp $
- * Copyright (C) 2000-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vpopmail.c,v 1.28.2.21 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
+#include <errno.h>
+#include <err.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -31,8 +33,6 @@
 #include <time.h>
 #include <dirent.h>
 #include <pwd.h>
-#include <errno.h>
-#include <err.h>
 #include "config.h"
 #include "md5.h"
 #include "vpopmail.h"
@@ -41,7 +41,6 @@
 #include "vlimits.h"
 #include "maildirquota.h"
 
-#define MAX_BUFF 256
 
 #ifdef POP_AUTH_OPEN_RELAY
 /* keep a output pipe to tcp.smtp file */
@@ -60,7 +59,6 @@ int OptimizeAddDomain = 0;
 #define PS_TOKENS " \t"
 #define CDB_TOKENS ":\n\r"
 
-
 #ifdef IP_ALIAS_DOMAINS
 int host_in_locals(char *domain);
 #endif
@@ -72,6 +70,12 @@ static char gen_chars[] = "abcdefghijklmnopqrstuvwxyz" \
 static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
                             "1234567890_-.@";
+
+ typedef struct defsortrec {
+   char *key;
+   char *value;
+ } sortrec;
+
 
 /************************************************************************/
 
@@ -92,6 +96,16 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char tmpbuf[MAX_BUFF];
  char Dir[MAX_BUFF];
  char calling_dir[MAX_BUFF];
+
+ char *aliases[1];
+ int aliascount=0;
+ 
+  /*
+   * In case we need to use delete_line, build an array and count 
+   * to use as its parameters 
+   *
+   */
+  aliases[aliascount++]=strdup(domain);
 
   /* we only do lower case */
   lowerit(domain);
@@ -253,11 +267,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     vget_assign(domain, Dir, sizeof(Dir), &uid, &gid );
 
-    if ( del_domain_assign(domain, domain, Dir, uid, gid) != 0) {
+    if ( del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
       fprintf(stderr, "Failed while attempting to remove domain from assign file\n");
     }
 
-    if (del_control(domain) !=0) {
+    if (del_control(aliases,aliascount) !=0) {
       fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
@@ -281,6 +295,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   /* return back to the callers directory and return success */
   chdir(calling_dir);
 
+  free( aliases[0] );
+
   return(VA_SUCCESS);
 }
 
@@ -302,6 +318,9 @@ int vdeldomain( char *domain )
  char dircontrol[MAX_BUFF];
  uid_t uid;
  gid_t gid;
+ char *aliases[MAX_DOM_ALIAS];
+ domain_entry *entry;
+ int i=0, aliascount=0;
 
   /* we always convert domains to lower case */
   lowerit(domain);
@@ -331,10 +350,17 @@ int vdeldomain( char *domain )
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
 
-  /* if this is an NOT aliased domain....
+  if ( strcmp(domain_to_del, domain) != 0 ) {
+     /*  This is just an alias, so add it to the list of aliases
+      *  that are about to be deleted.  It will be the only one
+      *  but I will use the same code as multi domains anyway.
+      */
+     aliases[aliascount++] = strdup( domain_to_del );
+
+  } else {
+    /* this is an NOT aliased domain....
    * (aliased domains dont have any filestructure of their own)
    */
-  if ( strcmp(domain_to_del, domain) == 0 ) {
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
@@ -351,7 +377,35 @@ int vdeldomain( char *domain )
      *    aliases are removed 1st (list them)
      * 2. Zap all the aliases in additon to this domain
      *
+     * Rick Widmer 28 April 3004
+     *
+     * OK.  Option 2 won.  If this domain has aliases they will all
+     * be deleted.  If you want to warn people about this it should
+     * be done by the program calling vdeldomain() before you call it.
+     * You shuould be able to find example code in vdeldomain.c.
+     *
      */
+
+     entry = get_domain_entries( domain );
+
+     if (entry==NULL) {   //  something went wrong
+       if( verrori ) {    //  could not open file
+         fprintf(stderr,"%s\n", verror(verrori));
+
+       } else {           //  domain does not exist
+         fprintf(stderr,"%s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
+       }
+     }
+
+     while( entry ) {
+       aliases[aliascount++] = strdup(entry->domain);
+       entry = get_domain_entries(NULL);
+     }
+
+//   Dump the alias list
+//     for(i=0;i<aliascount;i++) {
+//       fprintf(stderr,"alias %s\n", aliases[i]);
+//     }
 
     /* call the auth module to delete the domain from the storage */
     /* Note !! We must del domain from auth module __before__ we delete it from
@@ -415,17 +469,23 @@ int vdeldomain( char *domain )
   /* delete the email domain from the qmail control files :
    * rcpthosts, morercpthosts, virtualdomains
    */
-  if (del_control(domain_to_del) != 0) {
+  if (del_control(aliases,aliascount) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from qmail's control files\n");
   }
 
   /* delete the assign file line */
-  if (del_domain_assign(domain_to_del, domain, Dir, uid, gid) != 0) {
+  if (del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from the assign file\n");
   }
 
   /* send a HUP signal to qmail-send process to reread control files */
   signal_process("qmail-send", SIGHUP);
+
+  /*  clean up memory used by the alias list  */
+  for(i=0;i<aliascount;i++) {
+    free( aliases[i] );
+  }
+
 
   return(VA_SUCCESS);
 
@@ -880,6 +940,10 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  struct stat mystat;
  char tmpstr1[MAX_BUFF];
  char tmpstr2[MAX_BUFF];
+ char *aliases[1];
+ int aliascount=0;
+
+ aliases[aliascount++]=strdup(alias_domain);
 
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/users/assign", QMAILDIR);
 
@@ -898,7 +962,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
     alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
 
   /* update the file and add the above line and remove duplicates */
-  if (update_file(tmpstr1, tmpstr2) !=0 ) {
+  if (update_file(tmpstr1, tmpstr2, 1) !=0 ) {
    fprintf (stderr, "Failed while attempting to update_file() the assign file\n");
    return (-1);
   }
@@ -919,7 +983,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
    */
   if ( count_rcpthosts() >= 50 ) {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/morercpthosts", QMAILDIR);
-    if (update_file(tmpstr1, alias_domain) !=0) {
+    if (update_file(tmpstr1, alias_domain, 2) !=0) {
       fprintf (stderr, "Failed while attempting to update_file() the morercpthosts file\n");
       return (-1);
     }
@@ -931,7 +995,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   /* or just add to rcpthosts */
   } else {
     snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/rcpthosts", QMAILDIR);
-    if (update_file(tmpstr1, alias_domain) != 0) {
+    if (update_file(tmpstr1, alias_domain, 2) != 0) {
       fprintf (stderr, "Failed while attempting to update_file() the rcpthosts file\n");
       return (-1);
     }
@@ -942,7 +1006,7 @@ int add_domain_assign( char *alias_domain, char *real_domain,
   /* Add to virtualdomains file and remove duplicates  and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/virtualdomains", QMAILDIR );
   snprintf(tmpstr2, sizeof(tmpstr2), "%s:%s", alias_domain, alias_domain );
-  if (update_file(tmpstr1, tmpstr2) !=0 ) {
+  if (update_file(tmpstr1, tmpstr2, 3) !=0 ) {
     fprintf (stderr, "Failed while attempting to update_file() the virtualdomains file\n");
     return (-1);
   };
@@ -950,11 +1014,13 @@ int add_domain_assign( char *alias_domain, char *real_domain,
 
   /* make sure it's not in locals and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/locals", QMAILDIR);
-  if (remove_line( alias_domain, tmpstr1) < 0) {
-    fprintf (stderr, "Failure while attempting to remove_line() the locals file\n");
+  if (remove_lines( tmpstr1, aliases, aliascount) < 0) {
+    fprintf (stderr, "Failure while attempting to remove_lines() the locals file\n");
     return(-1);
   }
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
+
+  free( aliases[0] );
 
   return(0);
 }
@@ -967,21 +1033,22 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  * - /var/qmail/control/rcpthosts
  * - /var/qmail/control/virtualdomains
  */
-int del_control(char *domain ) 
+int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount ) 
 {
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
  struct stat statbuf;
+ char *virthosts[MAX_DOM_ALIAS];
 
- int problem_occurred = 0;
+ int problem_occurred = 0, i=0;
 
   /* delete entry from control/rcpthosts (if it is found) */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/rcpthosts", QMAILDIR);
-  switch ( remove_line( domain, tmpbuf1) ) {
+  switch ( remove_lines(tmpbuf1, aliases, aliascount) ) {
 
     case -1 :
       /* error ocurred in remove line */
-      fprintf (stderr, "Failed while attempting to remove_line() the rcpthosts file\n");
+      fprintf (stderr, "Failed while attempting to remove_lines() the rcpthosts file\n");
       problem_occurred = 1;
       break;
 
@@ -989,7 +1056,7 @@ int del_control(char *domain )
       /* not found in rcpthosts, so try morercpthosts */
       snprintf(tmpbuf1, sizeof(tmpbuf1), "%s/control/morercpthosts", QMAILDIR);
   
-      switch (remove_line( domain, tmpbuf1) ) {
+      switch (remove_lines(tmpbuf1, aliases, aliascount) ) {
 
         case -1 :
           /* error ocurred in remove line
@@ -1032,11 +1099,20 @@ int del_control(char *domain )
   } /* switch for rcpthosts */
 
   /* delete entry from control/virtualdomains (if it exists) */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", domain, domain);
+  
+  for(i=0;i<aliascount;i++) {
+    snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", aliases[i], aliases[i]);
+    virthosts[i]=strdup(tmpbuf1);
+  }
+
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
-  if (remove_line( tmpbuf1, tmpbuf2) < 0 ) {
-    fprintf(stderr, "Failed while attempting to remove_line() the virtualdomains file\n"); 
+  if (remove_lines( tmpbuf2, virthosts, aliascount) < 0 ) {
+    fprintf(stderr, "Failed while attempting to remove_lines() the virtualdomains file\n"); 
     problem_occurred = 1; 
+  }
+
+  for(i=0;i<aliascount;i++) {
+    free( virthosts[i] );
   }
 
   /* make sure correct permissions are set on virtualdomains */
@@ -1054,26 +1130,34 @@ int del_control(char *domain )
 /*
  * delete a domain from the users/assign file
  * input : lots ;)
- * output : 0 = success
+ *
+ * output : 0 = success no aliases
  *          less than error = failure
+ *          greater than 0 = number of aliases deleted
  *
  */
-int del_domain_assign( char *alias_domain, char *real_domain, 
+int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount, 
+                       char *real_domain, 
                        char *dir, gid_t uid, gid_t gid )  
 {
  char search_string[MAX_BUFF];
  char assign_file[MAX_BUFF];
+ char *virthosts[MAX_DOM_ALIAS];
+ int i;
 
   /* format the removal string */ 
+  for(i=0;i<aliascount;i++) {
   snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
-    alias_domain, real_domain, (long unsigned)uid, (long unsigned)gid, dir);
+      aliases[i], real_domain, (long unsigned)uid, (long unsigned)gid, dir);
+    virthosts[i] = strdup( search_string );
+  }
 
   /* format the assign file name */
   snprintf(assign_file, sizeof(assign_file), "%s/users/assign", QMAILDIR);
 
   /* remove the formatted string from the file */
-  if (remove_line( search_string, assign_file) < 0) {
-    fprintf(stderr, "Failed while attempting to remove_line the assign file\n");
+  if (remove_lines( assign_file, virthosts, aliascount ) < 0) {
+    fprintf(stderr, "Failed while attempting to remove_lines() the assign file\n");
     return (-1);
   }
 
@@ -1097,143 +1181,96 @@ int del_domain_assign( char *alias_domain, char *real_domain,
  *          0 on success, no match found
  *          1 on success, match was found
  */
-int remove_line( char *template, char *filename )
+int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
 {
+ FILE *fs = NULL;
+ FILE *fs1 = NULL;
+#ifdef FILE_LOCKING
+ int fd3 = 0;
+#endif
  char tmpbuf1[MAX_BUFF];
- struct stat statbuf;
- FILE *fs_orig;
- FILE *fs_bak;
-#ifdef FILE_LOCKING
- FILE *fs_lock;
-#endif
- int found;
- int i;
+ char tmpbuf2[MAX_BUFF];
+ int i, count=0, removed=0, doit=0;
 
-  /* if we can't stat the file, return error */
-  if ( stat(filename,&statbuf) == -1 ) return(-1);
+//  fprintf( stderr, "\n***************************************\n" 
+//                      "remove lines - file: %s\n", filename );
+//  for(i=0;i<aliascount;i++) {
+//    fprintf( stderr,  "               line: %s\n", aliases[i] );
+//  }
+
 
 #ifdef FILE_LOCKING
-  /* format the lock file name */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-
-  /* open the file with write permissions and check for error */
-  if ( (fs_lock = fopen(tmpbuf1, "w+")) == NULL ) {
-    /* return error */
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
-    return(-1);
+    return(VA_COULD_NOT_UPDATE_FILE);
   }
 
-  /* ask for a write lock on the file
-   * we don't want anyone writing to it now 
-   */
-  if ( get_write_lock(fs_lock) < 0 ) {
-
-    /* remove lock */
-    unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
-    fclose(fs_lock);
-
-    /* print error message */
-    fprintf(stderr, "could not get write lock on %s\n", tmpbuf1);
-
-    /* return error */
-    return(-1);
-  }
+  if ( get_write_lock(fd3) < 0 ) return(-1);
 #endif
 
-  /* format a backup file name */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.bak", filename);
-
-  /* remove the file if it exists already */
-  unlink(tmpbuf1);
-
-  /* move the orignal file to the .bak file */
-  rename(filename, tmpbuf1);
-
-  /* open the file and check for error */
-  if ( (fs_orig = fopen(filename, "w+")) == NULL ) {
-
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf1, "w+");
+  if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
-    /* release resources */
-    fclose(fs_lock);
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
+    return(VA_COULD_NOT_UPDATE_FILE);
 #endif
-
-    fprintf(stderr, "%s file would not open w+\n", filename);
-    return(-1);
   }
 
-  /* open the .bak file in read mode and check for error */
-
-/* Michael Bowe 23rd August 2003
- * Isnt the w+ bit of this code wrong?
- * At this point our orignal file is known as .bak
- * so why would we want to try and w+ it? Wont this
- * del the contents of the file? Ouch!
- * I have remarked the original code out and left my version below
- *
- *  if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
- *   if ( (fs_bak = fopen(tmpbuf1, "w+")) == NULL ) {
- *     fprintf(stderr, "%s would not open r+ or w+\n", tmpbuf1);
- *     fclose(fs_orig);
- * #ifdef FILE_LOCKING
- *     unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
- *     fclose(fs_lock);
- * #endif
- *      return(-1);
- *    }
- *  }
- */
-
-  if ( (fs_bak = fopen(tmpbuf1, "r+")) == NULL ) {
-     fprintf(stderr, "%s would not open r+ \n", tmpbuf1);
-     fclose(fs_orig);
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  if ( (fs = fopen(tmpbuf1, "r+")) == NULL ) {
+    if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
+      fclose(fs1);
 #ifdef FILE_LOCKING
-     unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
-     fclose(fs_lock);
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
 #endif
-     return(-1);
-  }
-
-  /* Search the .bak file line by line.
-   * Copy across any lines that do not contain our search string
-   * back to the original filename.
-   */
-  found = 0;
-  /* suck in a line from the .bak file */
-  while (fgets(tmpbuf1,sizeof(tmpbuf1),fs_bak)!=NULL){
-    /* if a newline was sucked in (likely), change it to be a \0 */
-    for(i=0;tmpbuf1[i]!=0;++i) if (tmpbuf1[i]=='\n') tmpbuf1[i]=0;
-    /* look to see if this line contains our search string */ 
-    if ( strcmp(template, tmpbuf1) != 0) {
-      /* match not found, so copy this line from the .bak to the filename */
-      fputs(tmpbuf1, fs_orig);
-      fputs("\n", fs_orig);
-    } else {
-      found = 1;
+      return(VA_COULD_NOT_UPDATE_FILE);
     }
   }
 
-  /* we are done with these two, release the resources */
-  fclose(fs_orig);
-  fclose(fs_bak);
+  while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
+    count++;
 
-  /* format the name of the backup file */
-  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.bak", filename);
-  /* remove the .bak file */
-  unlink(tmpbuf1);
+    //  Trim \n off end of line.
+    for(i=0;tmpbuf1[i]!=0;++i) {
+      if (tmpbuf1[i]=='\n') {
+        tmpbuf1[i]=0;
+      }
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    doit=1;
+    for(i=0;i<aliascount;i++) {
+      if( 0 == strcmp(tmpbuf1,aliases[i])) {
+        doit=0;
+//        fprintf( stderr, "      ***  DELETE  ***\n");
+        }
+      }    
+    if( doit ) {
+      fprintf(fs1, "%s\n", tmpbuf1);
+    } else {
+      removed++;
+    }
+  }
+
+  fclose(fs);
+  fclose(fs1);
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  snprintf(tmpbuf2, sizeof(tmpbuf2), "%s.%lu", filename, (long unsigned)getpid());
+
+  rename(tmpbuf2, tmpbuf1);
 
 #ifdef FILE_LOCKING
-  /* unlock, we are done */
-  unlock_lock(fileno(fs_lock), 0, SEEK_SET, 0);
-
-  /* close the lock file to release resources */
-  fclose(fs_lock);
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
 #endif
 
-  /* return 0 = everything went okay, but we didn't find it
-   *        1 = everything went okay, and we found a match
-   */
-  return(found);
-
+  return(removed);
 }
 
 /************************************************************************/
@@ -1489,6 +1526,16 @@ int vdeluser( char *user, char *domain )
    * somewhere else and is passed with a null domain?
    * Should we display en error (which is what will happen when
    * vget_assign runs below.
+   *
+   * Rick Widmer 4 May 2004
+   * No don't use a default domain, if the domain is empty 
+   * or bad, complain and exit.  It should not do any I/O, 
+   * just return an error state.
+   *
+   * Also check the catchall account, if delete user is catchall
+   * refuse to delete the user.  Error message should suggest
+   * changing the catchall settings first.
+   *
    */
 
   umask(VPOPMAIL_UMASK);
@@ -1505,7 +1552,7 @@ int vdeluser( char *user, char *domain )
   getcwd(calling_dir, sizeof(calling_dir));
 
   /* lookup the location of this domain's directory */
-  if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid ) ==NULL ) {
+  if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid ) == NULL ) {
     return(VA_DOMAIN_DOES_NOT_EXIST);
   }
 
@@ -1567,34 +1614,161 @@ void lowerit(char *instr )
 
 /************************************************************************/
 
-int update_file(char *filename, char *update_line)
+int extract_domain(char *domain, char *update_line, int file_type )
+{
+int i,j;
+char *parts[10];
+char *t, *u;
+char tmpbuf[MAX_BUFF];
+
+
+//  fprintf( stderr, "extract_domain - line: %s\n", update_line );
+
+  i=0;
+
+  //  If users/assign - need to start at first character
+  if( 1 == file_type ) {
+    j=1;
+  } else {
+    j=0;
+  }
+
+  //  Chop our string off at the first :
+  while( j < MAX_BUFF && 
+         0 != update_line[j] && 
+         ':' != update_line[j] ) {
+     domain[i++] = update_line[j++];  
+     }
+
+  //  If users/assign - need to delete last character
+  if( 1 == file_type ) {
+    domain[--i] = 0;
+  } else {
+    domain[i] = 0;
+  }
+
+//  fprintf( stderr, "extract_domain - result: %s\n", domain );
+
+
+  //  Take the domain name string apart on '.'s.
+  i=0;
+  strcpy(tmpbuf, domain);
+
+  t = strtok( tmpbuf, "." );
+  while( t && i < 10 ) {
+    parts[i++] = t;
+    t = strtok( NULL, "." );
+  }
+
+  //  Get a look at the array before shuffle
+//  for(j=0;j<i;j++) {
+//    fprintf( stderr, "extract_domain - i: %d part: %s\n", j, parts[j] );
+//  }
+  
+  //  Juggle the order of stuff in the domain name
+
+  //  Save the last two terms
+  t = parts[--i];
+  u = parts[--i];
+
+  //  Make room for two elements at the beginning of the name
+  for(j=0;j<i;j++) {
+    parts[j+2]=parts[j];
+  }
+
+  //  Put the parts you saved back in the beginning of the domain name
+#ifdef SORTTLD
+  parts[0] = t;
+  parts[1] = u;
+#else
+  parts[0] = u;
+  parts[1] = t;
+#endif
+
+  i=i+2;
+
+  //  Clean out the domain variable
+  for(j=0;j<MAX_BUFF;j++) {
+    domain[j] = 0;
+  }
+
+  //  Get one last look at the array before assembling it
+//  for(j=0;j<i;j++) {
+//    fprintf( stderr, "extract_domain - modified i: %d part: %s\n", 
+//             j, parts[j] );
+//  }
+  
+  //  Copy the first term into the domain name
+  strcpy(domain, parts[0] );
+
+  //  Copy the rest of the terms into the domain name
+  for(j=1;j<i;j++) {
+    strncat( domain, ".", MAX_BUFF );
+    strncat( domain, parts[j], MAX_BUFF );
+  }
+  
+
+//  fprintf( stderr, "extract_domain - final result: %s\n", domain );
+
+return 0;
+}
+
+
+/************************************************************************/
+
+int sort_check(const void *a, const void *b )
+//int sort_check(const sortrec *a, const sortrec *b )
+{
+   
+return( strncmp( ((sortrec *)(a))->key, ((sortrec *)(b))->key, MAX_BUFF));
+//return( strncmp( a->key, b->key, MAX_BUFF));
+
+}
+
+/************************************************************************/
+
+/*
+ *
+ * Note:  sortdata needs to be dynamically allocated based on the
+ * number of entries specified in file_lines.
+ *
+ */
+
+int sort_file(char *filename, int file_lines, int file_type )
 {
  FILE *fs = NULL;
  FILE *fs1 = NULL;
 #ifdef FILE_LOCKING
- FILE *fs3 = NULL;
+ int fd3 = 0;
 #endif
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
- int user_assign = 0;
- int i;
+ int i, count=0;
+ char cur_domain[MAX_BUFF];
+
+ sortrec sortdata[2000];
+
+//  sortdata = malloc(  file_lines * sizeof( sortrec ));
+
+//  fprintf( stderr, "\n***************************************\n" 
+//                   "sort_file: %s\n", filename );
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-  if ( (fs3 = fopen(tmpbuf1, "w+")) == NULL ) {
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
 
-  if ( get_write_lock(fs3) < 0 ) return(-1);
+  if ( get_write_lock(fd3) < 0 ) return(-1);
 #endif
 
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
   fs1 = fopen(tmpbuf1, "w+");
   if ( fs1 == NULL ) {
 #ifdef FILE_LOCKING
-    unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-    fclose(fs3);
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
     return(VA_COULD_NOT_UPDATE_FILE);
 #endif
   }
@@ -1604,32 +1778,48 @@ int update_file(char *filename, char *update_line)
     if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
       fclose(fs1);
 #ifdef FILE_LOCKING
-      fclose(fs3);
-      unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
 #endif
       return(VA_COULD_NOT_UPDATE_FILE);
     }
   }
 
   while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
-    snprintf(tmpbuf2, sizeof(tmpbuf2), "%s", tmpbuf1);
+
+    //  Trim \n off end of line.
     for(i=0;tmpbuf1[i]!=0;++i) {
       if (tmpbuf1[i]=='\n') {
         tmpbuf1[i]=0;
       }
     }
 
-    /* special case for users/assign */
-    if ( strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
-      fprintf(fs1, "%s\n", update_line);
-      user_assign = 1;
-    } else if ( strncmp(tmpbuf1, update_line, sizeof(tmpbuf1)) != 0 ) {
-      fputs(tmpbuf2, fs1);
-      }
+    //  Don't paint the last line of users/assign from the file
+    if ( 1 == file_type && strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
+      continue;
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    extract_domain( cur_domain, tmpbuf1, file_type );
+
+    sortdata[count].key = strdup( cur_domain );
+    sortdata[count++].value = strdup( tmpbuf1 );
   }
 
-  if ( user_assign == 1 ) fprintf(fs1, ".\n");
-  else fprintf(fs1, "%s\n", update_line);
+//  fprintf( stderr, "\nSorting...\n\n" );
+  qsort(sortdata, count, sizeof( sortrec ), sort_check);
+//  fprintf( stderr, "\nSort done.\n\n" );
+
+  for(i=0;i<count;i++) {
+//    fprintf( stderr, "   Entry: %s\n", sortdata[i].value );
+    fprintf(fs1, "%s\n", sortdata[i].value);
+  }   
+
+  //  Now we print the period line to users/assign, if needed
+  if( 1 == file_type ) {
+    fprintf(fs1, ".\n");
+  }
 
   fclose(fs);
   fclose(fs1);
@@ -1640,9 +1830,136 @@ int update_file(char *filename, char *update_line)
   rename(tmpbuf2, tmpbuf1);
 
 #ifdef FILE_LOCKING
-  unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-  fclose(fs3);
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
 #endif
+
+//  free( sortrec );
+
+  return(0);
+}
+
+/************************************************************************/
+
+int update_file(char *filename, char *update_line, int file_type )
+{
+ FILE *fs = NULL;
+ FILE *fs1 = NULL;
+#ifdef FILE_LOCKING
+ int fd3 = 0;
+#endif
+ char tmpbuf1[MAX_BUFF];
+ char tmpbuf2[MAX_BUFF];
+ int i, x=0;
+ char new_domain[MAX_BUFF];
+ char cur_domain[MAX_BUFF];
+ char prv_domain[MAX_BUFF];
+ int hit=0, count=0, needsort = 0;
+
+//  fprintf( stderr, "\n***************************************\n" 
+//                   "update_file - line: %s\n", update_line );
+
+  extract_domain( new_domain, update_line, file_type );
+  strcpy(prv_domain, "");
+
+#ifdef FILE_LOCKING
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
+    fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
+    return(VA_COULD_NOT_UPDATE_FILE);
+  }
+
+  if ( get_write_lock(fd3) < 0 ) return(-1);
+#endif
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.%lu", filename, (long unsigned)getpid());
+  fs1 = fopen(tmpbuf1, "w+");
+  if ( fs1 == NULL ) {
+#ifdef FILE_LOCKING
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
+    return(VA_COULD_NOT_UPDATE_FILE);
+#endif
+  }
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  if ( (fs = fopen(tmpbuf1, "r+")) == NULL ) {
+    if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
+      fclose(fs1);
+#ifdef FILE_LOCKING
+      close(fd3);
+      unlock_lock(fd3, 0, SEEK_SET, 0);
+#endif
+      return(VA_COULD_NOT_UPDATE_FILE);
+    }
+  }
+
+  while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
+    count++;
+
+    //  Trim \n off end of line.
+    for(i=0;tmpbuf1[i]!=0;++i) {
+      if (tmpbuf1[i]=='\n') {
+        tmpbuf1[i]=0;
+      }
+    }
+
+    //  Don't paint the last line of users/assign from the file
+    if ( 1 == file_type && strncmp(tmpbuf1, ".", sizeof(tmpbuf1)) == 0 ) {
+      continue;
+    }
+
+//    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    extract_domain( cur_domain, tmpbuf1, file_type );
+   
+    if( 0 == hit && ( x=strncmp(cur_domain, new_domain, MAX_BUFF)) > 0  ) {
+//      fprintf( stderr, "HIT!\n" );
+      hit=1;
+      fprintf(fs1, "%s\n", update_line);
+    }
+
+//    fprintf( stderr, "UpdateUsers - cur_domain: %s new_domain: %s x: %i\n", 
+//             cur_domain, new_domain, x );
+
+    if( ( x=strncmp(prv_domain, cur_domain, MAX_BUFF)) > 0  ) {
+      fprintf( stderr, "Entry is out of order: %s\n", cur_domain );
+      needsort=1;
+    }
+
+//    fprintf( stderr, "Chk order - prv: %s cur: %s x: %i\n", 
+//             prv_domain, cur_domain, x );
+
+    strcpy(prv_domain, cur_domain);
+
+    fprintf(fs1, "%s\n", tmpbuf1);
+  }
+
+  if( 0 == hit ) {
+//    fprintf( stderr, "Add at end\n" );
+    fprintf(fs1, "%s\n", update_line);
+    }
+
+  //  Now we print the period line to users/assign, if needed
+  if( 1 == file_type ) {
+    fprintf(fs1, ".\n");
+  }
+
+  fclose(fs);
+  fclose(fs1);
+
+  snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
+  snprintf(tmpbuf2, sizeof(tmpbuf2), "%s.%lu", filename, (long unsigned)getpid());
+
+  rename(tmpbuf2, tmpbuf1);
+
+#ifdef FILE_LOCKING
+  unlock_lock(fd3, 0, SEEK_SET, 0);
+  close(fd3);
+#endif
+
+  count ++;   //  increment count because of the entry we added.
+  if( needsort ) sort_file(filename, count, file_type);
 
   return(0);
 }
@@ -1847,7 +2164,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     return(NULL);
   }
 
-  for (i = 0; i < sizeof(dirnames)/sizeof(dirnames[0]); i++) {
+  for (i = 0; i < (int)(sizeof(dirnames)/sizeof(dirnames[0])); i++) {
     if (mkdir(dirnames[i],VPOPMAIL_DIR_MODE) == -1){ 
       fprintf(stderr, "make_user_dir: failed on %s\n", dirnames[i]);
       /* back out of changes made above */
@@ -2171,7 +2488,7 @@ char *verror(int va_err )
    case VA_BAD_UID:
     return("running as invalid uid");
    case VA_NO_AUTH_CONNECTION:
-    return("no auth connection");
+    return("no authentication database connection");
    case VA_MEMORY_ALLOC_ERR:
     return("memory allocation error");
    case VA_USER_NAME_TOO_LONG:
@@ -2198,9 +2515,39 @@ char *verror(int va_err )
     return("error parsing data");
    case VA_CANNOT_READ_LIMITS:
     return("can't read domain limits");
+   case VA_CANNOT_READ_ASSIGN:
+    return("can't read users/assign file");
    default:
     return("Unknown error");
   }
+}
+
+/************************************************************************/
+
+
+void vsqlerror( FILE *f, char *comment )
+{
+    fprintf( f, "Error - %s. %s\n", verror( verrori ), comment );
+/*
+    if( NULL != sqlerr && strlen(sqlerr) > 0 ) {
+        fprintf( f,"%s",sqlerr);
+    }
+
+    if( NULL != last_query && strlen( last_query ) > 0 ) {
+        fprintf( f,"%s", last_query);
+    }
+*/
+}
+
+
+/************************************************************************/
+
+int vexiterror( FILE *f, char *comment )
+{
+
+    vsqlerror( f, comment );
+    vclose();
+    exit(verrori);
 }
 
 /************************************************************************/
@@ -2311,8 +2658,11 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
  char cdb_file[MAX_BUFF];
  char *cdb_buf;
 
-  /* cant lookup a null domain! */
-  if ( domain == NULL || *domain == 0) return(NULL);
+  /* cant lookup a null domain! -- but it does clear the cache */
+  if ( domain == NULL || *domain == 0) {
+    in_domain = NULL;
+    return(NULL);
+  }
 
   /* if domain matches last lookup, use cached values */
   lowerit(domain);
@@ -2554,12 +2904,21 @@ int vsqwebmail_pass( char *dir, char *crypted, uid_t uid, gid_t gid )
 int open_smtp_relay()
 {
 #ifdef USE_SQL
+
+int result;
+
+//  NOTE: vopen_smpt_relay returns <0 on error 0 on duplicate 1 added
+//  check for failure.
+
   /* store the user's ip address into the sql relay table */
-  if (vopen_smtp_relay()) {
+  if (( result = vopen_smtp_relay()) < 0 ) {   //   database error
+      vsqlerror( stderr, "Error. vopen_smpt_relay failed" );
+      return (verrori);
+  } else if ( result == 1 ) {
     /* generate a new tcp.smtp.cdb file */
-    if (update_rules() != 0) {
-      fprintf (stderr, "Error. update_rules failed\n");
-      return (-1);
+    if (update_rules()) {
+      vsqlerror( stderr, "Error. vupdate_rules failed" );
+      return (verrori);
     }
   }
 #else
@@ -2569,7 +2928,7 @@ int open_smtp_relay()
  FILE *fs_cur_file;
  FILE *fs_tmp_file;
 #ifdef FILE_LOCKING
- FILE *fs_lok_file;
+ int fd_lok_file;
 #endif /* FILE_LOCKING */
  char *ipaddr;
  char *tmpstr;
@@ -2580,6 +2939,7 @@ int open_smtp_relay()
  char tmpbuf2[MAX_BUFF];
 
   mytime = time(NULL);
+
   ipaddr = get_remote_ip();
   if ( ipaddr == NULL ) {
       return 0;
@@ -2587,8 +2947,8 @@ int open_smtp_relay()
 
 #ifdef FILE_LOCKING
   /* by default the OPEN_SMTP_LOK_FILE is ~vpopmail/etc/open-smtp.lock */
-  if ( (fs_lok_file=fopen(OPEN_SMTP_LOK_FILE, "w+")) == NULL) return(-1);
-  get_write_lock(fs_lok_file);
+  if ( (fd_lok_file=open(OPEN_SMTP_LOK_FILE, O_WRONLY | O_CREAT))<0) return(-1);
+  get_write_lock(fd_lok_file);
 #endif /* FILE_LOCKING */
 
   /* by default the OPEN_SMTP_CUR_FILE is ~vpopmail/etc/open-smtp */
@@ -2596,8 +2956,8 @@ int open_smtp_relay()
     /* open for read/write failed, so try creating it from scratch */
     if ( (fs_cur_file = fopen(OPEN_SMTP_CUR_FILE, "w+")) == NULL ) {
 #ifdef FILE_LOCKING
-      unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-      fclose(fs_lok_file);
+      unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+      close(fd_lok_file);
 #endif /* FILE_LOCKING */
       /* failed trying to access the open-smtp file */
       return(-1);
@@ -2612,8 +2972,8 @@ int open_smtp_relay()
 
   if ( fs_tmp_file == NULL ) {
 #ifdef FILE_LOCKING
-    unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-    fclose(fs_lok_file);
+    unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+    close(fd_lok_file);
 #endif /* FILE_LOCKING */
     /* failed to create the tmp file */
     return(-1);
@@ -2662,8 +3022,8 @@ int open_smtp_relay()
   }
 
 #ifdef FILE_LOCKING
-  unlock_lock(fileno(fs_lok_file), 0, SEEK_SET, 0);
-  fclose(fs_lok_file);
+  unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+  close(fd_lok_file);
 #endif /* FILE_LOCKING */
 #endif /* USE_SQL */
   return(0);
@@ -2842,7 +3202,7 @@ int update_rules()
   close(tcprules_fdm);  
 
   /* wait untill tcprules finishes so we don't have zombies */
-  while(wait(&wstat)!= pid);
+  while(wait(&wstat)!= (int)pid);
 
   /* if tcprules encounters an error, then the tempfile will be
    * left behind on the disk. We dont want this because we could
@@ -3327,7 +3687,7 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	b = buffer;
 	for (f = format; *f != '\0'; f++) {
 		if (*f != '%') {
-			if (++printed < size) *b++ = *f;
+			if (++printed < (int)size) *b++ = *f;
 		} else {
 			f++;
 			s = n;
@@ -3371,9 +3731,9 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 			}
 			while (*s != '\0') {
 				if (strchr (ESCAPE_CHARS, *s) != NULL) {
-					if (++printed < size) *b++ = '\\';
+					if (++printed < (int)size) *b++ = '\\';
 				}
-				if (++printed < size) *b++ = *s;
+				if (++printed < (int)size) *b++ = *s;
 				s++;
 			}
 		}
@@ -3387,7 +3747,7 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	 * incomplete query could be very dangerous (say if a WHERE clause
 	 * got dropped from a DELETE).
 	 */
-	if (printed >= size) {
+	if (printed >= (int)size) {
 		memset (buffer, '\0', size);
 	}
 	

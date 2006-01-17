@@ -1,6 +1,6 @@
 /*
- * $Id: vldap.c,v 1.15 2004-01-07 16:06:16 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vldap.c,v 1.15.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,13 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "vldap.h"
+
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
 
 LDAP *ld = NULL;
 LDAPMessage *glm = NULL;
@@ -905,6 +912,40 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
 #endif
 
     return VA_SUCCESS;
+}
+
+/***************************************************************************/
+
+/*   Verify the connection to the authentication database   */
+
+int vauth_open( int will_update ) {
+
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
+#endif 
+
+
+
+/*
+ *  If the connection to this authentication database can fail
+ *  you should test access here.  If it works, return 0, else 
+ *  return VA_NO_AUTH_CONNECTION.  You can also set the string 
+ *  sqlerr to some short descriptive text about the problem, 
+ *  and allocate a much longer string, pointed to by last_query
+ *  that can be displayed in an error message returned because
+ *  of this problem.
+ *
+ */
+
+    return( 0 );
 }
 
 /***************************************************************************/

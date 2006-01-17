@@ -1,6 +1,6 @@
 /*
- * $Id: vipmap.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vipmap.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,6 @@
 void usage();
 void get_options(int argc,char **argv);
 
-#define MAX_BUFF 256
-
 int Action;
 char Ip[MAX_BUFF];
 char Domain[MAX_BUFF];
@@ -45,6 +43,10 @@ int main(int argc, char *argv[])
  int result;
  int first;
 #endif
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
 	get_options(argc,argv);
 

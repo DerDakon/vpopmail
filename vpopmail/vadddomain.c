@@ -1,6 +1,6 @@
 /*
- * $Id: vadddomain.c,v 1.3.2.1 2004-10-18 05:41:15 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vadddomain.c,v 1.3.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,6 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
-
 char Domain[MAX_BUFF];
 char Passwd[MAX_BUFF];
 char User[MAX_BUFF];
@@ -60,6 +58,10 @@ int main(int argc, char *argv[])
 
  char TmpBuf1[MAX_BUFF];
  
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
+
     get_options(argc,argv);
 
     /* create the domain */

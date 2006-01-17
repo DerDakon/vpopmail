@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.10.2.1 2005-01-23 17:05:04 tomcollins Exp $
+ * $Id: vlimits.c,v 1.10.2.2 2006-01-17 18:50:22 tomcollins Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -17,8 +17,6 @@
 #include "vlimits.h"
 
 #define TOKENS " :\t\n\r"
-
-#define MAX_BUFF 256
 
 void vdefault_limits (struct vlimits *limits)
 {
@@ -139,6 +137,15 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
                 limits->disable_webmail = 1;
             }
 
+            if (!strcmp(s1, "disable_spamassassin")) {
+                limits->disable_spamassassin = 1;
+            }
+
+            if (!strcmp(s1, "delete_spam")) {
+                limits->delete_spam = 1;
+            }
+
+
             if (!strcmp(s1, "perm_account")) {
                 if ((s2 = strtok(NULL, TOKENS)) == NULL)
                     continue;
@@ -217,6 +224,8 @@ int vlimits_write_limits_file(const char *dir, const struct vlimits *limits)
         if (limits->disable_webmail) fprintf(fs, "disable_webmail\n");
         if (limits->disable_relay) fprintf(fs, "disable_external_relay\n");
         if (limits->disable_smtp) fprintf(fs, "disable_smtp\n");
+        if (limits->disable_spamassassin) fprintf(fs, "disable_spamassassin\n");
+        if (limits->delete_spam) fprintf(fs, "delete_spam\n");
         fprintf(fs, "perm_account: %d\n", limits->perm_account);
         fprintf(fs, "perm_alias: %d\n", limits->perm_alias);
         fprintf(fs, "perm_forward: %d\n", limits->perm_forward);
@@ -258,6 +267,13 @@ int vlimits_get_flag_mask(struct vlimits *limits)
     if (limits->disable_dialup != 0) {
         mask |= NO_DIALUP;
     }
+    if (limits->disable_spamassassin != 0) {
+        mask |= NO_SPAMASSASSIN;
+    }
+    if (limits->delete_spam != 0) {
+        mask |= DELETE_SPAM;
+    }
+
     return mask;
     /* this feature has been temporarily disabled until we can figure
      * out a solution to the problem where edited users will have domain

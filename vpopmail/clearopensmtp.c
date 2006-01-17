@@ -1,5 +1,5 @@
 /*
- * $Id: clearopensmtp.c,v 1.3 2004-01-13 11:46:28 mbowe Exp $
+ * $Id: clearopensmtp.c,v 1.3.2.1 2006-01-17 18:50:22 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 #ifdef POP_AUTH_OPEN_RELAY
 
 #ifndef USE_SQL
-#define MAX_BUFF 256
 static char TmpBuf1[MAX_BUFF];
 static char TmpBuf2[MAX_BUFF];
 #endif /* ndef USE_SQL */
@@ -43,6 +42,10 @@ int main()
 #endif /* ndef USE_SQL */
  time_t mytime;
  time_t clear_minutes;
+
+	if( vauth_open( 0 )) {
+		vexiterror( stderr, "Initial open." );
+	}
 
 	clear_minutes = RELAY_CLEAR_MINUTES * 60;
 	mytime = time(NULL);

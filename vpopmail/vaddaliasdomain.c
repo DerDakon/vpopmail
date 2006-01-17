@@ -1,6 +1,6 @@
 /*
- * $Id: vaddaliasdomain.c,v 1.2 2003-09-29 23:59:15 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vaddaliasdomain.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,8 @@
 #include <signal.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauth.h"
 
-
-#define MAX_BUFF 256
 
 char Domain_a[MAX_BUFF];
 char Domain_b[MAX_BUFF];
@@ -43,6 +42,10 @@ int main(int argc, char *argv[])
     int err;
     char *doma;
     char *domb;
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 

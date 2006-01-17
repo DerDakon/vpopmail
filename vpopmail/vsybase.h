@@ -1,6 +1,6 @@
 /*
- * $Id: vsybase.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vsybase.h,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ pw_shell varchar(255), primary key(pw_name)"
 #define LARGE_SITE 1
 
 char *vauth_munch_domain(char *);
-int vauth_open();
+int vauth_open( int will_update );
 
 int vauth_adddomain_size(char *, int);
 int vauth_deldomain_size(char *, int);

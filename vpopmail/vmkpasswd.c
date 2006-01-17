@@ -1,6 +1,6 @@
 /*
- * $Id: vmkpasswd.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vmkpasswd.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,6 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-
-#define MAX_BUFF 256
 char Domain[MAX_BUFF];
 
 void usage();

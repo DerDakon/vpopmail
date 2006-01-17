@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+# Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
 SHELL = @SHELL@
 
 srcdir = @srcdir@
@@ -91,13 +91,18 @@ vpopuser = @vpopuser@
 
 SUBDIRS = cdb
 
-noinst_LIBRARIES = libvpopmail.a
+EXTRA_DIST = README.* cdb/* vactivedir.c vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
+
+noinst_HEADERS = md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vactivedir.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h
 
 COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
+
 CONFIG_CLEAN_FILES = vauth.c
 
 MYSQLCONF = $(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS = $(DESTDIR)@vpopmaildir@/etc/vlimits.default
+
+noinst_LIBRARIES = libvpopmail.a
 
 libvpopmail_a_SOURCES = $(COMMONSOURCES) 
 libvpopmail_a_LIBADD = cdb/*.o
@@ -114,6 +119,9 @@ vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
 
+vpopmaild_SOURCES = vpopmaild.c
+vpopmaild_LDADD = libvpopmail.a @auth_libs@
+
 vdominfo_SOURCES = vdominfo.c
 vdominfo_LDADD = libvpopmail.a @auth_libs@
 
@@ -129,9 +137,6 @@ dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
 
-
-# vqmaillocal_SOURCES = vqmaillocal.c 
-# vqmaillocal_LDADD = libvpopmail.a @auth_libs@
 vkill_SOURCES = vkill.c 
 vkill_LDADD = libvpopmail.a @auth_libs@
 
@@ -183,9 +188,6 @@ vipmap_LDADD = libvpopmail.a  @auth_libs@
 vmoddomlimits_SOURCES = vmoddomlimits.c
 vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
 
-vpopmaild_SOURCES = vpopmaild.c
-vpopmaild_LDADD = libvpopmail.a @auth_libs@
-
 DEFS = -I. @auth_inc@ 
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
@@ -213,7 +215,7 @@ vpopmailbin_PROGRAMS = vchkpw$(EXEEXT) vdelivermail$(EXEEXT) \
 	valias$(EXEEXT) vuserinfo$(EXEEXT) vmkpasswd$(EXEEXT) \
 	vipmap$(EXEEXT) vdominfo$(EXEEXT) vconvert$(EXEEXT) \
 	vkill$(EXEEXT) vmoddomlimits$(EXEEXT) vchangepw$(EXEEXT) \
-	dotqmail2valias$(EXEEXT) vpopmaild${EXEEXT}
+	dotqmail2valias$(EXEEXT) vpopmaild$(EXEEXT)
 PROGRAMS = $(vpopmailbin_PROGRAMS)
 
 am_clearopensmtp_OBJECTS = clearopensmtp.$(OBJEXT)
@@ -300,6 +302,10 @@ am_vpopbull_OBJECTS = vpopbull.$(OBJEXT)
 vpopbull_OBJECTS = $(am_vpopbull_OBJECTS)
 vpopbull_DEPENDENCIES = libvpopmail.a
 vpopbull_LDFLAGS =
+am_vpopmaild_OBJECTS = vpopmaild.$(OBJEXT)
+vpopmaild_OBJECTS = $(am_vpopmaild_OBJECTS)
+vpopmaild_DEPENDENCIES = libvpopmail.a
+vpopmaild_LDFLAGS =
 am_vsetuserquota_OBJECTS = vsetuserquota.$(OBJEXT)
 vsetuserquota_OBJECTS = $(am_vsetuserquota_OBJECTS)
 vsetuserquota_DEPENDENCIES = libvpopmail.a
@@ -308,9 +314,6 @@ am_vuserinfo_OBJECTS = vuserinfo.$(OBJEXT) maildirquota.$(OBJEXT)
 vuserinfo_OBJECTS = $(am_vuserinfo_OBJECTS)
 vuserinfo_DEPENDENCIES = libvpopmail.a
 vuserinfo_LDFLAGS =
-am_vpopmaild_OBJECTS = vpopmaild.$(OBJEXT)
-vpopmaild_OBJECTS = $(am_vpopmaild_OBJECTS)
-vpopmaild_DEPENDENCIES = libvpopmail.a
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
@@ -330,19 +333,21 @@ DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) \
 	$(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) \
 	$(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) \
-	$(vpopbull_SOURCES) $(vsetuserquota_SOURCES) \
-	$(vuserinfo_SOURCES) $(vpopmaild_SOURCES)
+	$(vpopbull_SOURCES) $(vpopmaild_SOURCES) \
+	$(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
+HEADERS = $(noinst_HEADERS)
+
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-info-recursive all-recursive install-data-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
-DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-	Makefile.in aclocal.m4 config.guess config.h.in config.sub \
-	configure configure.in install-sh ltmain.sh missing \
-	mkinstalldirs
+DIST_COMMON = README $(noinst_HEADERS) AUTHORS COPYING ChangeLog \
+	INSTALL Makefile.am Makefile.in aclocal.m4 config.guess \
+	config.h.in config.sub configure configure.in install-sh \
+	ltmain.sh missing mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES) ${vpopmaild_SOURCES}
+SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) $(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) $(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) $(vchangepw_SOURCES) $(vchkpw_SOURCES) $(vconvert_SOURCES) $(vdeldomain_SOURCES) $(vdelivermail_SOURCES) $(vdeloldusers_SOURCES) $(vdeluser_SOURCES) $(vdominfo_SOURCES) $(vipmap_SOURCES) $(vkill_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) $(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) $(vpopmaild_SOURCES) $(vsetuserquota_SOURCES) $(vuserinfo_SOURCES)
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -487,16 +492,15 @@ vpasswd$(EXEEXT): $(vpasswd_OBJECTS) $(vpasswd_DEPENDENCIES)
 vpopbull$(EXEEXT): $(vpopbull_OBJECTS) $(vpopbull_DEPENDENCIES) 
 	@rm -f vpopbull$(EXEEXT)
 	$(LINK) $(vpopbull_LDFLAGS) $(vpopbull_OBJECTS) $(vpopbull_LDADD) $(LIBS)
+vpopmaild$(EXEEXT): $(vpopmaild_OBJECTS) $(vpopmaild_DEPENDENCIES) 
+	@rm -f vpopmaild$(EXEEXT)
+	$(LINK) $(vpopmaild_LDFLAGS) $(vpopmaild_OBJECTS) $(vpopmaild_LDADD) $(LIBS)
 vsetuserquota$(EXEEXT): $(vsetuserquota_OBJECTS) $(vsetuserquota_DEPENDENCIES) 
 	@rm -f vsetuserquota$(EXEEXT)
 	$(LINK) $(vsetuserquota_LDFLAGS) $(vsetuserquota_OBJECTS) $(vsetuserquota_LDADD) $(LIBS)
 vuserinfo$(EXEEXT): $(vuserinfo_OBJECTS) $(vuserinfo_DEPENDENCIES) 
 	@rm -f vuserinfo$(EXEEXT)
 	$(LINK) $(vuserinfo_LDFLAGS) $(vuserinfo_OBJECTS) $(vuserinfo_LDADD) $(LIBS)
-
-vpopmaild$(EXEEXT): $(vpopmaild_OBJECTS) $(vpopmaild_DEPENDENCIES)
-	@rm -f vpopmaild$(EXEEXT)
-	$(LINK) $(vpopmaild_LDFLAGS) $(vpopmaild_OBJECTS) $(vpopmaild_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -676,6 +680,7 @@ distcleancheck_listfiles = find . -type f -print
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
+	$(mkinstalldirs) $(distdir)/cdb
 	@list='$(DISTFILES)'; for file in $$list; do \
 	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
@@ -709,6 +714,9 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="${top_distdir}" distdir="$(distdir)" \
+	  dist-hook
 	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
@@ -763,7 +771,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LIBRARIES) $(PROGRAMS) config.h
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 installdirs: installdirs-recursive
 installdirs-am:
 	$(mkinstalldirs) $(DESTDIR)$(vpopmailbindir)
@@ -932,6 +940,17 @@ fix-priv:
 	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/@domains_dir@
+
+dist-hook:
+	-rm $(distdir)/cdb/makefile
+
+pre-dist:
+	@if test ! -d cdb/makefile; then \
+	  cp cdb/Makefile cdb/makefile; \
+	  echo "distdir:" >> cdb/makefile; \
+	  echo "	@echo 'nothing to do in cdb'" >> cdb/makefile; \
+	  echo "" >> cdb/makefile; \
+	fi
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

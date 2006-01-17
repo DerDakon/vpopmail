@@ -1,6 +1,6 @@
 /*
- * $Id: vmysql.c,v 1.15.2.5 2005-11-01 16:01:01 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vmysql.c,v 1.15.2.6 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -264,9 +264,39 @@ int vauth_open_read()
 #define vauth_open_read vauth_open_update
 #endif
 
-/*
+//  Make vauth_open_read answer for vauth_open, so that function
+//  can be called to test the database.
+
+int vauth_open( int will_update ) {
+
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
+#endif 
+
+
+if( will_update ) {
+    return( vauth_open_update());
+    }
+
+else {
+    return( vauth_open_read());
+    }
+
+}
+
+/************************************************************************
+ *
  * Open a connection to the database for read-only queries
  */
+
 int vauth_open_read_getall()
 {
 
@@ -331,7 +361,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
  char dom_dir[156];
  uid_t uid; 
  gid_t gid;
- char dirbuf[512];
+ char dirbuf[200];
  char quota[30];
  char Crypted[100];
  int err;
@@ -1330,7 +1360,6 @@ int valias_delete_domain( char *domain)
 void vcreate_valias_table()
 {
   vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);
-  return;
 }
 
 char *valias_select_all( char *alias, char *domain )
@@ -1411,7 +1440,6 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass,
 void vcreate_vlog_table()
 {
   vauth_create_table ("vlog", VLOG_TABLE_LAYOUT, 1);
-  return;
 }
 #endif
 
@@ -1419,7 +1447,6 @@ void vcreate_vlog_table()
 void vcreate_limits_table()
 {
   vauth_create_table ("limits", LIMITS_TABLE_LAYOUT, 1);
-  return;
 }
 
 int vget_limits(const char *domain, struct vlimits *limits)

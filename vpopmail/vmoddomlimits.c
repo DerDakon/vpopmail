@@ -1,6 +1,6 @@
 /*
- * $Id: vmoddomlimits.c,v 1.8.2.1 2004-10-18 05:35:06 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vmoddomlimits.c,v 1.8.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,6 @@
 #include "vpopmail.h"
 #include "vauth.h"
 #include "vlimits.h"
-
-#define MAX_BUFF 256
 
 char Domain[MAX_BUFF];
 
@@ -81,6 +79,10 @@ int main(int argc, char *argv[])
  int i;
  char OptionString[MAX_BUFF];
  
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
     
@@ -152,6 +154,14 @@ int main(int argc, char *argv[])
             if (limits.disable_dialup != 0) {
                 printf("  NO_DIALUP\n");
                 strncat(OptionString, "u", sizeof(OptionString)-strlen(OptionString)-1);
+            }
+            if (limits.disable_spamassassin != 0) {
+                printf("  NO_SPAMASSASSIN\n");
+                strncat(OptionString, "c", sizeof(OptionString)-strlen(OptionString)-1);
+            }
+            if (limits.delete_spam != 0) {
+                printf("  DEL_SPAM\n");
+                strncat(OptionString, "x", sizeof(OptionString)-strlen(OptionString)-1);
             }
             printf("Flags (for commandline): %s\n", OptionString);
             printf("Flags for non postmaster accounts:");
@@ -239,7 +249,9 @@ int main(int argc, char *argv[])
             limits.disable_webmail = 0;
             limits.disable_imap = 0;
             limits.disable_relay = 0;
-            for (i=0; i<strlen(GidFlagString); i++) {
+            limits.disable_spamassassin = 0;
+            limits.delete_spam = 0;
+            for (i=0; i<(int)strlen(GidFlagString); i++) {
                 switch(GidFlagString[i]) {
                     case 'u': limits.disable_dialup = 1; break;
                     case 'd': limits.disable_passwordchanging = 1; break;
@@ -248,12 +260,14 @@ int main(int argc, char *argv[])
                     case 'w': limits.disable_webmail = 1; break;
                     case 'i': limits.disable_imap = 1; break;
                     case 'r': limits.disable_relay = 1; break;
+                    case 'c': limits.disable_spamassassin = 1; break;
+                    case 'x': limits.delete_spam = 1; break;
                 }
             }
         }
         if (PermAccountFlag == 1) {
             limits.perm_account=0;
-            for (i=0; i<strlen(PermAccountFlagString); i++) {
+            for (i=0; i<(int)strlen(PermAccountFlagString); i++) {
                 switch(PermAccountFlagString[i]) {
                     case 'a': limits.perm_account|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_account|=VLIMIT_DISABLE_CREATE; break;
@@ -264,7 +278,7 @@ int main(int argc, char *argv[])
         }
         if (PermAliasFlag == 1) {
             limits.perm_alias=0;
-            for (i=0; i<strlen(PermAliasFlagString); i++) {
+            for (i=0; i<(int)strlen(PermAliasFlagString); i++) {
                 switch(PermAliasFlagString[i]) {
                     case 'a': limits.perm_alias|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_alias|=VLIMIT_DISABLE_CREATE; break;
@@ -275,7 +289,7 @@ int main(int argc, char *argv[])
         }
         if (PermForwardFlag == 1) {
             limits.perm_forward=0;
-            for (i=0; i<strlen(PermForwardFlagString); i++) {
+            for (i=0; i<(int)strlen(PermForwardFlagString); i++) {
                 switch(PermForwardFlagString[i]) {
                     case 'a': limits.perm_forward|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_forward|=VLIMIT_DISABLE_CREATE; break;
@@ -286,7 +300,7 @@ int main(int argc, char *argv[])
         }
         if (PermAutoresponderFlag == 1) {
             limits.perm_autoresponder=0;
-            for (i=0; i<strlen(PermAutoresponderFlagString); i++) {
+            for (i=0; i<(int)strlen(PermAutoresponderFlagString); i++) {
                 switch(PermAutoresponderFlagString[i]) {
                     case 'a': limits.perm_autoresponder|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_autoresponder|=VLIMIT_DISABLE_CREATE; break;
@@ -297,7 +311,7 @@ int main(int argc, char *argv[])
         }
         if (PermMaillistFlag == 1) {
             limits.perm_maillist=0;
-            for (i=0; i<strlen(PermMaillistFlagString); i++) {
+            for (i=0; i<(int)strlen(PermMaillistFlagString); i++) {
                 switch(PermMaillistFlagString[i]) {
                     case 'a': limits.perm_maillist|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_maillist|=VLIMIT_DISABLE_CREATE; break;
@@ -308,7 +322,7 @@ int main(int argc, char *argv[])
         }
         if (PermMaillistUsersFlag == 1) {
             limits.perm_maillist_users=0;
-            for (i=0; i<strlen(PermMaillistUsersFlagString); i++) {
+            for (i=0; i<(int)strlen(PermMaillistUsersFlagString); i++) {
                 switch(PermMaillistUsersFlagString[i]) {
                     case 'a': limits.perm_maillist_users|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_maillist_users|=VLIMIT_DISABLE_CREATE; break;
@@ -319,7 +333,7 @@ int main(int argc, char *argv[])
         }
         if (PermMaillistModeratorsFlag == 1) {
             limits.perm_maillist_moderators=0;
-            for (i=0; i<strlen(PermMaillistModeratorsFlagString); i++) {
+            for (i=0; i<(int)strlen(PermMaillistModeratorsFlagString); i++) {
                 switch(PermMaillistModeratorsFlagString[i]) {
                     case 'a': limits.perm_maillist_moderators|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_maillist_moderators|=VLIMIT_DISABLE_CREATE; break;
@@ -330,7 +344,7 @@ int main(int argc, char *argv[])
         }
         if (PermQuotaFlag == 1) {
             limits.perm_quota=0;
-            for (i=0; i<strlen(PermQuotaFlagString); i++) {
+            for (i=0; i<(int)strlen(PermQuotaFlagString); i++) {
                 switch(PermQuotaFlagString[i]) {
                     case 'a': limits.perm_quota|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_quota|=VLIMIT_DISABLE_CREATE; break;
@@ -341,7 +355,7 @@ int main(int argc, char *argv[])
         }
         if (PermDefaultQuotaFlag == 1) {
             limits.perm_defaultquota=0;
-            for (i=0; i<strlen(PermDefaultQuotaFlagString); i++) {
+            for (i=0; i<(int)strlen(PermDefaultQuotaFlagString); i++) {
                 switch(PermDefaultQuotaFlagString[i]) {
                     case 'a': limits.perm_defaultquota|=VLIMIT_DISABLE_ALL; break;
                     case 'c': limits.perm_defaultquota|=VLIMIT_DISABLE_CREATE; break;
@@ -395,6 +409,9 @@ void usage()
     printf("            w ( set no web mail access flag )\n");
     printf("            i ( set no imap access flag )\n");
     printf("            r ( set no external relay flag )\n");
+    printf("            c ( set no spamassasssin flag )\n");
+    printf("            x ( set delete spam flag )\n");
+
     
     printf("the following options are bit flags for non postmaster admins\n");
     printf("         -p \"flags\"  (set pop account flags)\n");

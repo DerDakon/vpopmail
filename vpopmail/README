@@ -181,4 +181,40 @@ If all of your pop email accounts are under virtual domains, you can
 increase the security of your pop server by running it under the uid
 and gid of vpopmail/vchkpw using the tcpserver -u and -g options.
 
+--------------------------------------------------------------------------
 
+Sorting qmail control files
+
+vpopmail now sorts the qmail control files.  When adding a record vpopmail
+uses an insertion sort to keep entries in order.  As it is doing this
+sort, it verifies the order of all records in the file.  If if finds entries
+that are out of order, it will sort the entire file by loading it into 
+memory and using qsort.
+
+The files that are sorted:  rcpthosts, morercpthosts, virtualdomains,
+users/alias.  I don't believe there will be any problem having these 
+files sorted, since they work in random order already.  It is much 
+more convienent searching for a domain with the files in order, and 
+programs like vdominfo and vpopmaild will report domain names in order.
+
+At first glance, the sort order may seem bizarre, but once you work with
+it, it should become natural.  Here is a small example from my test server:
+
+developersdesk.com
+admin.developersdesk.com
+mail.developersdesk.com
+test.developersdesk.com
+developersdesk.net
+developersdesk.org
+mvas.com
+mvas.net
+mvas.org
+test.com
+
+They are actually sorted as if they were written like this:
+
+developersdesk.com.mail
+
+I bet for most people that tends to group customers together.  A special
+sort may be apropriate for domains that end in a country code.  If someone
+has any ideas, post it on the SourceFORGE vpopmail-devel mailing list.

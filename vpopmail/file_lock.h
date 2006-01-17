@@ -1,6 +1,6 @@
 /*
- * $Id: file_lock.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
+ * $Id: file_lock.h,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License  
@@ -56,6 +56,6 @@ lock_test(int fd, int type, off_t offset, int whence, off_t len);
 #define is_writelock(fd, offset, whence, len) \
 		lock_test(fd, F_WRLCK, offset, whence, len)
 
-int get_read_lock( FILE *fs );
-int get_write_lock( FILE *fs );
+int get_read_lock( int fd );
+int get_write_lock( int fd );
 #endif
