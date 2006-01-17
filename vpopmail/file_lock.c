@@ -1,6 +1,6 @@
 /*
- * $Id: file_lock.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: file_lock.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +60,11 @@ lock_test(int fd, int type, off_t offset, int whence, off_t len)
 	return(lock.l_pid);	/* true, return pid of lock owner */
 }
 
-int get_read_lock(FILE *fs)
+int get_read_lock(int fd)
 {
  int try = 0;
 
-	while(read_lock(fileno(fs), 0, SEEK_SET, 0) < 0)
+	while(read_lock(fd, 0, SEEK_SET, 0) < 0)
 	{
 		if (errno == EAGAIN || errno == EACCES || errno ==ENOLCK ) 
 		{
@@ -84,11 +84,11 @@ int get_read_lock(FILE *fs)
 	return(0);
 }
 
-int get_write_lock( FILE *fs ) 
+int get_write_lock( int fd ) 
 {
  int try = 0;
 
-	while(write_lock(fileno(fs), 0, SEEK_SET, 0) < 0)
+	while(write_lock(fd, 0, SEEK_SET, 0) < 0)
 	{
 		if (errno == EAGAIN || errno == EACCES || errno == ENOLCK ) 
 		{

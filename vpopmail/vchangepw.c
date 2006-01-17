@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.1 2003-11-20 22:58:03 tomcollins Exp $
+ * $Id: vchangepw.c,v 1.1.2.1 2006-01-17 18:50:22 tomcollins Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
@@ -45,8 +45,6 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-#define MAX_BUFF 256
-
 int main(int argc, char *argv[])
 {
 	int i;
@@ -58,6 +56,10 @@ int main(int argc, char *argv[])
 	char Domain[MAX_BUFF];
 	char Passwd[MAX_BUFF];
 	char OldPasswd[MAX_BUFF];
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
 	memset(Email, 0, MAX_BUFF);
 	memset(Passwd, 0, MAX_BUFF);

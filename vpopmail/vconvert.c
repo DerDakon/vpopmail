@@ -1,6 +1,6 @@
 /*
- * $Id: vconvert.c,v 1.2.2.2 2004-08-24 17:17:39 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vconvert.c,v 1.2.2.3 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,6 @@
 #endif
 
 int do_all_domains();
-
-#define MAX_BUFF 256
 
 char User[MAX_BUFF];
 char Passwd[MAX_BUFF];
@@ -82,6 +80,10 @@ int  PasswdFormat;
 
 int main(int argc, char *argv[])
 {
+	if( vauth_open( 1 )) {
+		vexiterror( stderr, "Initial open." );
+	}
+
 	get_options(argc,argv);
 
 	if ( optind == argc ) {
@@ -103,34 +105,28 @@ int main(int argc, char *argv[])
 
 int do_all_domains()
 {
- FILE *fs;
- char assign_file[MAX_BUFF];
- static char tmpbuf[MAX_BUFF];
- int i;
+ domain_entry *e;
 
-    snprintf(assign_file, sizeof(assign_file), "%s/users/assign",  QMAILDIR); 
-    if ( (fs=fopen(assign_file, "r"))==NULL ) {
-       snprintf(tmpbuf, sizeof(tmpbuf), "could not open qmail assign file at %s\n", assign_file);
-       perror(tmpbuf);
-       vexit(-1);
-    }
-    while ( fgets(tmpbuf, sizeof(tmpbuf),fs) != NULL ) {
-        if (*tmpbuf != '+') continue;  /* ignore non-domain entries */
-        for(i=1;tmpbuf[i]!=':';++i);
-        tmpbuf[i-1] = 0;
-        /* ignore non-domain entries */
-        if (strchr (tmpbuf, '.') == NULL) continue;
-	if ( tmpbuf[1] != '\n' ) {
-            printf("converting %s ...", &tmpbuf[1] );
-            if ( conv_domain( &tmpbuf[1] ) != 0 ) {
+    e = get_domain_entries("");
+    while( e ) {
+ 
+        if( strcmp( e->realdomain, e->domain ) != 0 ) {  //  is an alias
+           printf( "%s is an alias of %s.\n", 
+                   e->domain, e->realdomain );
+        } else {
+            printf( "converting %s...    ", e->realdomain );
+
+            if ( conv_domain( e->realdomain ) != 0 ) {
                 printf("domain conversion failed\n");
                 /* should vexit -1 here? */
             } else {
                 printf("done\n");
             }
         }
+
+        e = get_domain_entries( NULL );
     }
-    fclose(fs);
+
     return(0);
 }
 

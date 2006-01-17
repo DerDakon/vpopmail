@@ -1,6 +1,6 @@
 /*
- * $Id: vuserinfo.c,v 1.4.2.4 2004-12-27 23:04:14 rwidmer Exp $
- * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vuserinfo.c,v 1.4.2.5 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,6 @@
 #include "maildirquota.h"
 
 
-#define MAX_BUFF 256
-
 char Email[MAX_BUFF];
 char Domain[MAX_BUFF];
 
@@ -66,6 +64,10 @@ int main(int argc, char *argv[])
  int i;
 
  char User[MAX_BUFF];
+
+    if( vauth_open( 0 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 
@@ -298,6 +300,8 @@ void display_user(struct vqpasswd *mypw, char *domain)
             display_limit (mypw, NO_DIALUP,      "no dialup flag has been set");
             display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
             display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");
+            display_limit (mypw, SA_ADMIN,       "has system administrator access");
+            display_limit (mypw, SA_EXPERT,      "has expert access");
             display_limit (mypw, V_USER0,        "user flag 0 is set");
             display_limit (mypw, V_USER1,        "user flag 1 is set");
             display_limit (mypw, V_USER2,        "user flag 2 is set");

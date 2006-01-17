@@ -1,6 +1,6 @@
 /*
- * $Id: vadduser.c,v 1.8 2004-02-16 06:48:41 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vadduser.c,v 1.8.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,6 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
-#define MAX_BUFF 256
-
 char Email[MAX_BUFF];
 char Passwd[MAX_BUFF];
 char Quota[MAX_BUFF];
@@ -51,6 +49,10 @@ int main(int argc,char **argv)
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
  struct vqpasswd *vpw;
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 

@@ -1,6 +1,6 @@
 /*
- * $Id: vdominfo.c,v 1.2.2.3 2004-11-11 07:09:17 tomcollins Exp $
- * Copyright (C) 2001,2002 Inter7 Internet Technologies, Inc.
+ * $Id: vdominfo.c,v 1.2.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,8 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
 char Domain[MAX_BUFF];
-char RealName[MAX_BUFF];
+char RealDomain[MAX_BUFF];
 char Dir[MAX_BUFF];
 uid_t Uid;
 gid_t Gid;
@@ -42,8 +41,9 @@ int DisplayTotalUsers;
 
 void usage();
 void get_options(int argc, char **argv);
-void display_domain(char *domain, char *real, char *dir, uid_t uid, gid_t gid);
+void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdomain);
 void display_all_domains();
+void display_one_domain( char * Domain );
 
 #define TOKENS ":\n"
 
@@ -51,17 +51,16 @@ extern vdir_type vdir;
 
 int main(int argc, char *argv[])
 {
+    if( vauth_open( 0 )) {
+        vexiterror( stderr, "Initial open." );
+    }
+
     get_options(argc,argv);
 
     /* did we want to view a single domain domain? */
     if (Domain[0] != 0 ) {
         /* yes, just lookup a single domain */
-        strcpy (RealName, Domain);
-        if ( vget_assign(RealName, Dir, sizeof(Dir), &Uid, &Gid ) == NULL ) {
-            printf("domain %s does not exist\n", Domain );
-            vexit(-1);
-        }
-        display_domain(Domain, RealName, Dir, Uid, Gid);
+        display_one_domain( Domain );
     } else {
         display_all_domains();
     }
@@ -78,6 +77,7 @@ void usage()
     printf("         -g (display gid field)\n");
     printf("         -d (display domain directory)\n");
     printf("         -t (display total users)\n");
+    printf("         -r (display real domain)\n");
 }
 
 void get_options(int argc, char **argv)
@@ -141,94 +141,95 @@ void get_options(int argc, char **argv)
     }
 }
 
-void display_domain(char *domain, char *real, char *dir, uid_t uid, gid_t gid)
+void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdomain)
 {
     if ( DisplayAll ) {
-        if (strcmp (domain, real) == 0)
+        if(strcmp(domain, realdomain)==0)
             printf("domain: %s\n", domain);
         else
-            printf("domain: %s (alias of %s)\n", domain, real); 
+           printf("domain: %s (alias of %s)\n", domain, realdomain); 
         printf("uid:    %lu\n", (long unsigned)uid);
         printf("gid:    %lu\n", (long unsigned)gid);
         printf("dir:    %s\n",  dir);
-        open_big_dir(domain, uid, gid);
+        open_big_dir(realdomain, uid, gid);
         printf("users:  %lu\n",  vdir.cur_users);
-        close_big_dir(domain,uid,gid);
+        close_big_dir(realdomain,uid,gid);
     } else {
-        /* show real domain name if original was alias */
-        if ( DisplayName ) printf("%s\n", real); 
+        /* show real domain if original was alias */
+        if ( DisplayName ) printf("%s\n", realdomain); 
         if ( DisplayUid ) printf("%lu\n", (long unsigned)uid);
         if ( DisplayGid ) printf("%lu\n", (long unsigned)gid);
         if ( DisplayDir ) printf("%s\n",  dir);
         if ( DisplayTotalUsers ) {
-            open_big_dir(domain, uid, gid);
+            open_big_dir(realdomain, uid, gid);
             printf("%lu\n",  vdir.cur_users);
-            close_big_dir(domain,uid,gid);
+            close_big_dir(realdomain,uid,gid);
         }
     }
 }
 
 void display_all_domains()
 {
- FILE *fs;
- char *tmpstr;
- char TmpBuf[MAX_BUFF];
+ domain_entry *entry;
 
-    snprintf(TmpBuf, sizeof(TmpBuf), "%s/users/assign", QMAILDIR);
-    if ((fs=fopen(TmpBuf, "r"))==NULL) {
-        printf("could not open assign file %s\n", TmpBuf);
+    entry = get_domain_entries( Domain );
+    if (entry==NULL) {
+      if( verrori ) {
+        printf("Can't get domain entries - %s\n", verror( verrori ));
         vexit(-1);
+      } else {
+        printf("What now - %s\n", verror( verrori ));
+        vexit(0);
+      }
     }
 
-    /* users/assign looks like
-     * +alias.domain.com-:real.domain.com:89:89:/var/vpopmail/domains/real.domain.com:-::
-     */
+    while( entry ) {
+	display_domain(entry->domain, entry->path, entry->uid, 
+                       entry->gid, entry->realdomain);
 
-    while( fgets(TmpBuf, sizeof(TmpBuf), fs) != NULL ) {
-
-        /* skip over any lines that do not contain tokens */
-	if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
-
-	/* ignore lines that don't start with "+" */
-	if (*tmpstr != '+') continue;
-
-	/* suck out the "alias name" of the domain 
-         * (we have to drop the leading '+' and the trailing "-") 
-         */
-	snprintf(Domain, sizeof(Domain), "%s", tmpstr+1);
-        Domain[strlen(Domain)-1] = 0;
-
-	/* ignore domains without '.' in them (non-vpopmail entries */
-	if (strchr (Domain, '.') == NULL) continue;
-
-        /* jump over the token between the alias and real domain */
-	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-        /* suck out the "real name" of the domain */
-	snprintf(RealName, sizeof(RealName), "%s", tmpstr);
-
-	/* jump over the token between real domain and uid */
-	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-	/* suck out the uid */
-	Uid = atol(tmpstr);
-
-	/* jump over the token between the uid and the gid */
-	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-	/* suck out the gid */
-	Gid = atol(tmpstr);
-
-	/* jump over the token between the gid and the dir */
-	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-
-        /* suck out the dir */
-	snprintf(Dir, sizeof(Dir), "%s", tmpstr);
-
-	display_domain(Domain, RealName, Dir, Uid, Gid);
+	if (strcmp(entry->domain, entry->realdomain) != 0) {
+ 		printf ("alias of: %s\n", entry->realdomain);
+	}
 
 	printf ("\n");
+        entry = get_domain_entries(NULL);
     }
-    fclose(fs);
+}
+
+void display_one_domain( char * Domain )
+{
+ domain_entry *entry;
+ char *aliases[MAX_DOM_ALIAS];
+ int  i, aliascount=0;
+
+    entry = get_domain_entries( Domain );
+    if (entry==NULL) {
+      if( verrori ) {
+        printf("Can't get domain entries - %s\n", verror( verrori ));
+        vexit(verrori);
+      } else {
+        printf("Invalid domain name\n");
+        vexit(VA_DOMAIN_DOES_NOT_EXIST);
+      }
+    }
+
+    while( entry ) {
+	if (strcmp(entry->domain, entry->realdomain) != 0) {
+// 		printf ("Note:   %s is an alias for %s\n",
+//                         entry->domain, entry->realdomain);
+                aliases[aliascount++] = strdup(entry->domain);
+
+        } else {
+		display_domain(entry->domain, entry->path, entry->uid, 
+        	               entry->gid, entry->realdomain);
+	}
+
+        entry = get_domain_entries(NULL);
+    }
+
+    for(i=0;i<aliascount;i++) {
+ 	printf ("alias: %s\n", aliases[i]);
+        free( aliases[i] );
+    } 
 }
 

@@ -1,6 +1,6 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.3 2005-02-04 15:45:46 tomcollins Exp $
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * $Id: vmoduser.c,v 1.3.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,6 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
-
 char Email[MAX_BUFF];
 char Gecos[MAX_BUFF];
 char Dir[MAX_BUFF];
@@ -54,6 +52,10 @@ int main(int argc, char *argv[])
  struct vqpasswd *mypw;
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
     get_options(argc,argv);
 
@@ -142,8 +144,12 @@ void usage()
     printf("         -b ( bounce all mail )\n");
     printf("         -o ( user is not subject to domain limits )\n");
     printf("         -r ( disable roaming user/pop-before-smtp )\n");
-    printf("         -a ( grant qmailadmin administrator privileges)\n");
-    printf("  [The following flags aren't used directly by vpopmail, but are]\n");
+    printf("         -a ( grant qmailadmin administrator privileges )\n");
+    printf("         -S ( grant system administrator privileges - access all domains )\n");
+    printf("         -E ( grant expert privileges - edit .qmail files )\n");
+    printf("         -f ( disable spamassassin)\n");
+    printf("         -F ( delete spam)\n");
+    printf("  [The following flags aren't used directly by vpopmail but are]\n");
     printf("  [included for other programs that share the user database.]\n");
     printf("         -u ( set no dialup flag )\n");
     printf("         -0 ( set V_USER0 flag )\n"); 
@@ -172,7 +178,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFS")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -241,6 +247,18 @@ void get_options(int argc,char **argv)
                 break;
             case 'a':
                 GidFlag |= QA_ADMIN;
+                break;
+            case 'S':
+                if ( getuid()==0 ) GidFlag |= SA_ADMIN;
+                break;
+            case 'E':
+                if ( getuid()==0 ) GidFlag |= SA_EXPERT;
+                break;
+            case 'f':
+                GidFlag |= NO_SPAMASSASSIN;
+                break;
+            case 'F':
+                GidFlag |= DELETE_SPAM;
                 break;
             case 'h':
                 usage();

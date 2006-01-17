@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.1.2.1 2004-03-10 15:18:51 tomcollins Exp $
+ * $Id: dotqmail2valias.c,v 1.1.2.2 2006-01-17 18:50:22 tomcollins Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
@@ -29,8 +29,6 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
-#define MAX_BUFF 256
 
 /* Default behavior is to do nothing if there are already valias table 
  * entries for a dotqmail file to be processed.  Define one of the 
@@ -71,6 +69,10 @@ int main(int argc, char *argv[])
 	fprintf (stderr, "You must enable valiases (./configure --enable-valias) to use this program.\n");
 	return -1;
 #endif
+
+	if( vauth_open( 1 )) {
+		vexiterror( stderr, "Initial open." );
+	}
 
 	get_options(argc,argv);
 

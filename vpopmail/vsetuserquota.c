@@ -1,6 +1,6 @@
 /*
- * $Id: vsetuserquota.c,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vsetuserquota.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,6 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 256
-
 char Email[MAX_BUFF];
 char Quota[MAX_BUFF];
 
@@ -49,6 +47,10 @@ int main(int argc, char *argv[])
 
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
 
 	get_options(argc,argv);
 

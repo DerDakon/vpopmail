@@ -1,6 +1,6 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.3 2004-12-16 15:57:34 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vchkpw.c,v 1.11.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -408,6 +408,9 @@ void login_virtual_user()
   int apopaccepted = -1;
   int cramaccepted = -1;
   char AuthType[15] = "PLAIN";
+#ifdef MIN_LOGIN_INTERVAL
+  time_t last_time;
+#endif
 
   /* If thier directory path is empty make them a new one */
   if ( vpw->pw_dir == NULL || vpw->pw_dir[0]==0 ) {
@@ -550,8 +553,35 @@ void login_virtual_user()
   /* If authentication logging is enabled
    * update the authentication time on the account
    */
+
+  /*  NOTE:  Need to extend this to handle 
+   *  grace count.  Each time a login is
+   *  attempted up to grace count it should
+   *  be allowed, and the grace counter 
+   *  incremented.  Once the number of attempts
+   *  exceeds the grace value then start to 
+   *  deny logins.  This allows someone to
+   *  check their email extra often for a short
+   *  time, if they are expecting an important
+   *  message without penalty, but if they just
+   *  set the pop3 login interval below the 
+   *  min interval eventually logins will be
+   *  denied.
+   *
+   *  the grace count limit is already stored in
+   *  MIN_LOGIN_GRACE
+   */
+
 #ifdef ENABLE_AUTH_LOGGING
+#ifdef MIN_LOGIN_INTERVAL
+  last_time = vget_lastauth(vpw, TheDomain );
+#endif
   vset_lastauth(TheUser,TheDomain,IpAddr);
+#ifdef MIN_LOGIN_INTERVAL
+  if(( vget_lastauth(vpw,TheDomain ) - last_time ) < MIN_LOGIN_INTERVAL ) { 
+    vchkpw_exit(1);
+  }
+#endif
 #endif
 
 #ifdef POP_AUTH_OPEN_RELAY
@@ -679,23 +709,26 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 
   if ( (verror == VLOG_ERROR_PASSWD) && ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || ENABLE_LOGGING==4 ) ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-          syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+      }
+      if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_LOGON ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_ACCESS ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_AUTH && ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
       }
   }
 #endif
@@ -739,7 +772,7 @@ int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *c
   MD5Update(&context, clearpass, strlen(clearpass));
   MD5Final(digest, &context);
   s = encrypted;
-  for (i = 0; i < sizeof(digest); ++i) {
+  for (i = 0; i < (int)sizeof(digest); ++i) {
     *s = hextab[digest[i]/16]; ++s;
     *s = hextab[digest[i]%16]; ++s;
   }

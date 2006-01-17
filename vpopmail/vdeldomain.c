@@ -1,6 +1,6 @@
 /*
- * $Id: vdeldomain.c,v 1.2.2.1 2004-10-18 05:44:54 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vdeldomain.c,v 1.2.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
 #include "vpopmail.h"
 #include "vauth.h"
 
+int force=0;
 
-#define MAX_BUFF 256
 char Domain[MAX_BUFF];
 
 void usage();
@@ -41,12 +41,60 @@ int main(int argc, char *argv[])
 {
  int err=0;
 
+ domain_entry *entry;
+ char *aliases[MAX_DOM_ALIAS];
+ char parent[MAX_BUFF];
+ int  i, aliascount=0, doit=1;
+
+    if( vauth_open( 1 )) {
+        vexiterror( stderr, "Initial open." );
+    }
+
 	get_options(argc,argv);
 
+	entry = get_domain_entries( Domain );
+	if (entry==NULL) {
+		if( verrori ) {
+			printf("Can't get domain entries - %s\n", verror( verrori ));
+			vexit(verrori);
+		} else {
+			printf("Invalid domain name\n");
+			vexit(VA_DOMAIN_DOES_NOT_EXIST);
+		}
+	}
+
+	while( entry ) {
+		if (strcmp(entry->domain, entry->realdomain) != 0) {
+			aliases[aliascount++] = strdup(entry->domain);
+		} else {
+			strcpy(parent,entry->domain);
+		}
+
+		entry = get_domain_entries(NULL);
+	}
+
+	if( aliascount > 0 && 0 == strncmp(Domain,parent,MAX_BUFF)) {  
+		//  Have aliases
+		if( force ) {
+			printf("Warning: Alias domains deleted:\n");
+		} else {
+			printf("Warning: Alias domains exist:\n");
+			doit=0;
+		}
+
+		for(i=0;i<aliascount;i++) {
+			printf ("   %s\n", aliases[i]);
+			free( aliases[i] );
+		} 
+	}
+
+        if( doit ) {
 	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
 		printf("Error: %s\n", verror(err));
 	}
-
+	} else {
+		printf("   use -f to force delete of domain and all aliases\n");
+	}
 	return(vexit(err));
 }
 
@@ -55,6 +103,7 @@ void usage()
 {
 	printf("vdeldomain: usage: [options] domain_name\n");
 	printf("options: -v (print version number)\n");
+	printf("options: -f (force delete of virtual domains)\n");
 }
 
 void get_options(int argc,char **argv)
@@ -65,10 +114,13 @@ void get_options(int argc,char **argv)
 	memset(Domain, 0, sizeof(Domain));
 
 	errflag = 0;
-	while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
+	while( !errflag && (c=getopt(argc,argv,"vf")) != -1 ) {
 		switch(c) {
 			case 'v':
 				printf("version: %s\n", VERSION);
+				break;
+			case 'f':
+				force=1;
 				break;
 			default:
 				errflag = 1;

@@ -1,6 +1,6 @@
 /*
- * $Id: vcdb.c,v 1.12.2.2 2005-12-08 06:10:36 tomcollins Exp $
- * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+ * $Id: vcdb.c,v 1.12.2.3 2006-01-17 18:50:22 tomcollins Exp $
+ * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12.2.2 2005-12-08 06:10:36 tomcollins Exp $
+** $Id: vcdb.c,v 1.12.2.3 2006-01-17 18:50:22 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -45,11 +45,20 @@
 
 #define TOKENS " \n"
 
+//  Variables to control debug output
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
+
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
 
+char sqlerr[MAX_BUFF] = "";
+char *last_query = NULL;
+
 extern int cdb_seek();
-#define MAX_BUFF 300
 
 static char vpasswd_file[MAX_BUFF];
 static char vpasswd_bak_file[MAX_BUFF];
@@ -97,7 +106,7 @@ int make_vpasswd_cdb(char *domain)
         return(-1);
     }
 
-    for (i=0; i < sizeof(cdbm.final); i++) {
+    for (i=0; i < (int)sizeof(cdbm.final); i++) {
         if (putc(' ',tmfile) == EOF) {
                 fprintf(stderr,"Error:error writing temp file\n");
             return(-1);
@@ -114,7 +123,7 @@ int make_vpasswd_cdb(char *domain)
         while (*ptr != '\n') { ptr++; }
         *ptr = 0;
         keylen = strlen(key); datalen = strlen(data);
-#ifdef DEBUG
+#ifdef VPOPMAIL_DEBUG
         fprintf (stderr,"Got entry: keylen = %lu, key = %s\n           datalen = %lu, data = %s\n",keylen,key,datalen,data);
 #endif
 
@@ -126,14 +135,14 @@ int make_vpasswd_cdb(char *domain)
         }
 
         h = CDBMAKE_HASHSTART;
-        for (i=0; i < keylen; i++) {
+        for (i=0; i < (int)keylen; i++) {
             h = cdbmake_hashadd(h,key[i]);
             if (putc(key[i],tmfile) == EOF) {
                 fprintf (stderr,"Error: error temp file\n");
                 return(-1);
             }
         }
-        for (i=0; i < datalen; i++) {
+        for (i=0; i < (int)datalen; i++) {
             if (putc(data[i],tmfile) == EOF) {
                 fprintf (stderr,"Error: write error temp file");
                 return(-1);
@@ -227,9 +236,9 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t tuid;
  gid_t tgid;
  uint32 dlen;
- FILE *pwf;
+ int pwf;
 #ifdef FILE_LOCKING
- FILE *lock_fs;
+ int lock_fd;
 #endif
 
     verrori = 0;
@@ -251,19 +260,19 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     set_vpasswd_files( in_domain );
 
-    if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
+    if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
 #ifdef FILE_LOCKING
-		if ( (lock_fs = fopen(vpasswd_lock_file, "w+")) == NULL) {
+		if ( (lock_fd=open(vpasswd_lock_file, O_WRONLY|O_CREAT)) < 0) {
 			return(NULL);
 		}
-		get_write_lock( lock_fs );
+		get_write_lock( lock_fd );
 #endif
         make_vpasswd_cdb(domain);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(lock_fs), 0, SEEK_SET, 0);
-		fclose(lock_fs);
+		unlock_lock(lock_fd, 0, SEEK_SET, 0);
+		close(lock_fd);
 #endif
-        if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
+        if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
             return(NULL);
         }
     }
@@ -273,17 +282,17 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     ptr = line;
     while (*ptr != ':') { ptr++; }
     ptr++;
-    switch (cdb_seek(fileno(pwf),user,strlen(user),&dlen)) {
+    switch (cdb_seek(pwf,user,strlen(user),&dlen)) {
         case -1:
         case 0:
-            fclose(pwf);
+            close(pwf);
             return NULL;
     }
-    if (fread(ptr,sizeof(char),dlen,pwf) != dlen) {
-        fclose(pwf);
+    if (read(pwf, ptr,dlen) != (int)dlen) {
+        close(pwf);
         return NULL;
     }
-    fclose(pwf);
+    close(pwf);
     line[(dlen+strlen(user)+1)] = 0;
 
     pwent.pw_name   = "";
@@ -315,7 +324,8 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     vlimits_setflags (&pwent, in_domain);
 
-#ifdef DEBUG
+#ifdef VPOPMAIL_DEBUG
+    if( dump_data ) {
     fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
     fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
     fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
@@ -324,6 +334,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
     fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
     fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
+    }
 #endif
 
     return(&pwent);
@@ -395,7 +406,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
 
     /* do not trod on the vpasswd file */
@@ -410,8 +421,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
     vcdb_strip_char( gecos );
 
 #ifdef FILE_LOCKING
-    fs3 = fopen(vpasswd_lock_file, "w+");
-    if ( get_write_lock(fs3) < 0 ) return(-2);
+    fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+    if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -423,8 +434,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
 		if ( fs1 != NULL ) fclose(fs1);
 		if ( fs2 != NULL ) fclose(fs2);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -448,8 +459,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);
@@ -474,14 +485,14 @@ int vauth_deluser( char *user, char *domain )
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
 
     set_vpasswd_files( domain );
 
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -493,8 +504,8 @@ int vauth_deluser( char *user, char *domain )
 		if ( fs1 != NULL ) fclose(fs1);
 		if ( fs2 != NULL ) fclose(fs2);
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -514,8 +525,8 @@ int vauth_deluser( char *user, char *domain )
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);
@@ -552,7 +563,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
  FILE *fs1;
  FILE *fs2;
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
  uid_t myuid;
  uid_t uid;
@@ -578,8 +589,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     fs1 = fopen(vpasswd_bak_file, "w+");
@@ -592,8 +603,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 		if ( fs2 != NULL ) fclose(fs2);
 
 #ifdef FILE_LOCKING
-		unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-		fclose(fs3);
+		unlock_lock(fd3, 0, SEEK_SET, 0);
+		close(fd3);
 #endif
         return(-1);
     }
@@ -637,8 +648,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     make_vpasswd_cdb(domain);
 
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
 #ifdef SQWEBMAIL_PASS
@@ -707,7 +718,7 @@ int vauth_adduser_line( FILE *fs1,
 int vmkpasswd( char *domain )
 {
 #ifdef FILE_LOCKING
- FILE *fs3;
+ int fd3;
 #endif
  char Dir[156];
  uid_t uid;
@@ -722,17 +733,48 @@ int vmkpasswd( char *domain )
     lowerit(domain);
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fs3 = fopen(vpasswd_lock_file, "w+");
-	if ( get_write_lock(fs3) < 0 ) return(-2);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
     make_vpasswd_cdb(domain);
 #ifdef FILE_LOCKING
-	unlock_lock(fileno(fs3), 0, SEEK_SET, 0);
-	fclose(fs3);
+	unlock_lock(fd3, 0, SEEK_SET, 0);
+	close(fd3);
 #endif
 
     return(0);
+}
+
+/*   Verify the connection to the authentication database   */
+
+int vauth_open( int will_update ) {
+
+#ifdef VPOPMAIL_DEBUG
+show_trace = ( getenv("VPSHOW_TRACE") != NULL);
+show_query = ( getenv("VPSHOW_QUERY") != NULL);
+dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
+#endif
+
+#ifdef VPOPMAIL_DEBUG
+    if( show_trace ) {
+        fprintf( stderr, "vauth_open()\n");
+    }
+#endif 
+
+
+/*
+ *  If the connection to this authentication database can fail
+ *  you should test access here.  If it works, return 0, else 
+ *  return VA_NO_AUTH_CONNECTION.  You can also set the string 
+ *  sqlerr to some short descriptive text about the problem, 
+ *  and allocate a much longer string, pointed to by last_query
+ *  that can be displayed in an error message returned because
+ *  of this problem.
+ *
+ */
+
+    return( 0 );
 }
 
 void vclose()
@@ -1119,35 +1161,4 @@ int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
   if ( vpw == NULL ) return(-1);
 
   return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
-}
-
-/*   Verify the connection to the authentication database   */
-
-int vauth_open( int will_update ) {
-
-#ifdef VPOPMAIL_DEBUG
-show_trace = ( getenv("VPSHOW_TRACE") != NULL);
-show_query = ( getenv("VPSHOW_QUERY") != NULL);
-dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
-#endif
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_open()\n");
-    }
-#endif
-
-
-/*
- *  If the connection to this authentication database can fail
- *  you should test access here.  If it works, return 0, else
- *  return VA_NO_AUTH_CONNECTION.  You can also set the string
- *  sqlerr to some short descriptive text about the problem,
- *  and allocate a much longer string, pointed to by last_query
- *  that can be displayed in an error message returned because
- *  of this problem.
- *
- */
-
-    return( 0 );
 }

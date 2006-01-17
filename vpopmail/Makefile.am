@@ -1,13 +1,16 @@
-# Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
+# Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
 
 @SET_MAKE@
 
 SUBDIRS=cdb
 OBJEXT=o
 
-noinst_LIBRARIES=libvpopmail.a
+EXTRA_DIST=README.* cdb/* vactivedir.c vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
+
+noinst_HEADERS=md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vactivedir.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h
 
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
+
 CONFIG_CLEAN_FILES=vauth.c
 
 INSTALL_PROGRAM= ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ $(AM_INSTALL_PROGRAM_FLAGS)
@@ -15,6 +18,8 @@ INSTALL_STRIP_PROGRAM=${INSTALL_PROGRAM} -s
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
+
+noinst_LIBRARIES=libvpopmail.a
 
 libvpopmail_a_SOURCES=$(COMMONSOURCES) 
 libvpopmail_a_LIBADD =  cdb/*.o
@@ -24,10 +29,14 @@ vpopmailbindir=@vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias
+ vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias \
+ vpopmaild
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
+
+vpopmaild_SOURCES = vpopmaild.c
+vpopmaild_LDADD = libvpopmail.a @auth_libs@
 
 vdominfo_SOURCES = vdominfo.c
 vdominfo_LDADD = libvpopmail.a @auth_libs@
@@ -43,9 +52,6 @@ dotqmail2valias_LDADD = libvpopmail.a @auth_libs@
 
 vdelivermail_SOURCES = vdelivermail.c maildirquota.c
 vdelivermail_LDADD = libvpopmail.a @auth_libs@
-
-# vqmaillocal_SOURCES = vqmaillocal.c 
-# vqmaillocal_LDADD = libvpopmail.a @auth_libs@
 
 vkill_SOURCES = vkill.c 
 vkill_LDADD = libvpopmail.a @auth_libs@
@@ -177,6 +183,17 @@ fix-priv:
 	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/@domains_dir@
+
+dist-hook:
+	-rm $(distdir)/cdb/makefile
+
+pre-dist:
+	@if test ! -d cdb/makefile; then \
+	  cp cdb/Makefile cdb/makefile; \
+	  echo "distdir:" >> cdb/makefile; \
+	  echo "	@echo 'nothing to do in cdb'" >> cdb/makefile; \
+	  echo "" >> cdb/makefile; \
+	fi
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 
