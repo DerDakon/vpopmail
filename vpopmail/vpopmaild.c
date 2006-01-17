@@ -534,7 +534,8 @@ int mod_user()
       tmpvpw->pw_gecos = strdup(value);
 
     } else if ( can_override==1 && strcmp(param,"quota") == 0 ) {
-      tmpvpw->pw_shell = strdup(value);
+      tmpvpw->pw_shell = format_maildirquota(strdup(value));
+      update_maildirsize(TmpDomain, tmpvpw->pw_dir, tmpvpw->pw_shell);
 
     /* anyone can change encrypted password? */
     } else if ( strcmp(param,"encrypted_password") == 0 ) {
