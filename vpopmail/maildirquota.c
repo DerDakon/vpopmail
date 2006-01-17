@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7.2.3 2005-05-23 15:52:29 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.7.2.4 2006-01-17 19:08:34 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -97,6 +97,9 @@ struct vlimits limits;
 		/* convert from MB to bytes */
 		maxsize = limits.diskquota * 1024 * 1024;
 		maxcnt = limits.maxmsgcount;
+
+		/* only check the quota if one is set. */
+		if ((maxsize == 0) && (maxcnt == 0)) return 0;
 
 		if (vget_assign (domain, domdir, sizeof(domdir), NULL, NULL) == NULL)
 			return -1;
