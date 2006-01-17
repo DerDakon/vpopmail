@@ -9,6 +9,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Backport most of 5.5.1, including code required for vpopmaild.
 	- Allow --enable-valias option for Postgres backend (incorrectly
 	  disabled in 5.4.13).
+	- Only check a domain's disk usage when a quota is set. [1396238]
 
 	Rick Morris
 	- vdelivermail.c: Fix problem where "# delete" in .qmail file was
