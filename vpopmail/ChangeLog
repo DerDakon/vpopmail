@@ -11,6 +11,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  disabled in 5.4.13).
 	- Only check a domain's disk usage when a quota is set. [1396238]
 
+	Bill Shupp
+	- vpopmaild: store quota in proper format and update maildirsize 
+	  on quota change.
+
 	Rick Morris
 	- vdelivermail.c: Fix problem where "# delete" in .qmail file was
 	  being ignored. [1360346]
