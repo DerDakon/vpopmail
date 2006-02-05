@@ -61,7 +61,7 @@ AC_FUNC_CLOSEDIR_VOID
 AC_TYPE_SIGNAL
 #AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime])
+AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
 
 #----------------------------------------------------------------------
 
