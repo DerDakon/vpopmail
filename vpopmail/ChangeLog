@@ -6,6 +6,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- Add 'compile' script to distribution.
 	- If warn() isn't available, use fprintf() instead.
+	- vmysql.c: add missing valias_select_names, valias_select_names_next,
+	  and valias_select_names_end from 5.5 branch.
 
 5.4.14 - released 17-Jan-06
 
