@@ -855,7 +855,7 @@ Optional Features:
   --enable-sqwebmail-pass    Store a copy of the user's password in the the user's maildir for use by pre-v3 sqwebmail.
   --enable-qmail-ext         Enable qmail email address extension support.
   --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table.
-  --enable-domains-dir=TEXT  Set domains directory name for ~vpopmail/domains/user/.
+  --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).
   --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.
   --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.
   --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, sybase, or activedir).
@@ -8038,6 +8038,7 @@ echo "            Current settings"
 echo "---------------------------------------"
 echo ""
 echo "vpopmail directory = "$vpopmaildir""
+echo " domains directory = "$vpopmaildir"/"$domains_dir""
 echo "               uid = "$vpopmailuid""
 echo "               gid = "$vpopmailgid""
 
