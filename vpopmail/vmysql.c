@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.6 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.7 2006-02-24 07:27:31 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1408,6 +1408,82 @@ char *valias_select_all_next(char *alias)
         return(valias_current->data);
     }
 }
+
+/************************************************************************
+ *
+ *  valias_select_names
+ */
+
+char *valias_select_names( char *alias, char *domain )
+{
+ struct linklist *temp_entry = NULL;
+
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
+
+    if ( vauth_open_read() ) return(NULL);
+
+    qnprintf( SqlBufRead, SQL_BUF_SIZE, 
+        "select distinct alias from valias where domain = '%s' order by alias", domain );
+
+    if (mysql_query(&mysql_read,SqlBufRead)) {
+        vcreate_valias_table();
+        if (mysql_query(&mysql_read,SqlBufRead)) {
+            verrori = VA_QUERY_FAILED;
+
+            return(NULL);
+        }
+    }
+    if(!( res_read = mysql_store_result(&mysql_read))) {
+        verrori = VA_STORE_RESULT_FAILED;
+
+        return(NULL);
+    }
+
+    while ((row = mysql_fetch_row(res_read))) {
+        temp_entry = linklist_add (temp_entry, row[1], row[0]);
+        if (valias_current == NULL) valias_current = temp_entry;
+    }
+    mysql_free_result (res_read);
+ 
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
+}
+
+/************************************************************************
+ *
+ *  valias_select_names_next
+ */
+
+char *valias_select_names_next(char *alias)
+{
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+ 
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
+}
+
+
+/************************************************************************
+ *
+ *  valias_select_names_end
+ */
+
+void valias_select_names_end() {
+
+//  not needed by mysql
+
+}
+
 #endif
 
 #ifdef ENABLE_SQL_LOGGING
