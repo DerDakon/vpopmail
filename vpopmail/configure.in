@@ -854,7 +854,7 @@ AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 domains_dir="domains"
 
 AC_ARG_ENABLE(domains-dir,
-    [  --enable-domains-dir=TEXT  Set domains directory name for ~vpopmail/[domains]/user/.],
+    [  --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).],
     domains_dir="$enableval",
 )
 
@@ -1420,6 +1420,7 @@ echo "            Current settings"
 echo "---------------------------------------"
 echo ""
 echo "vpopmail directory = "$vpopmaildir""
+echo " domains directory = "$vpopmaildir"/"$domains_dir""
 echo "               uid = "$vpopmailuid""
 echo "               gid = "$vpopmailgid""
 
