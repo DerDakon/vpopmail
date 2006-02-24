@@ -1,6 +1,5 @@
-#ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.6.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.3 2006-02-24 07:35:02 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,6 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+#include "config.h"
+#ifndef VALIAS 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
 

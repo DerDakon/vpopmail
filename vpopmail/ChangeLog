@@ -1,13 +1,14 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.15 - unreleased
+5.4.15 - released 23-Feb-06
 
 	Tom Collins
 	- Add 'compile' script to distribution.
 	- If warn() isn't available, use fprintf() instead.
 	- vmysql.c: add missing valias_select_names, valias_select_names_next,
 	  and valias_select_names_end from 5.5 branch.
+	- vpalias.c: #include "config.h" before we check if VALIAS defined.
 
 5.4.14 - released 17-Jan-06
 
