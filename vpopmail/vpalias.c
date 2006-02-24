@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.3 2006-02-24 07:35:02 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.4 2006-02-24 07:41:01 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,7 +46,6 @@ void valias_select_names_end();
 char *valias_select( char *alias, char *domain )
 {
  char *tmpstr;
- struct stat mystat;
  static char tmpbuf[156];
  uid_t uid;
  gid_t gid;
