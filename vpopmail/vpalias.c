@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.4 2006-02-24 07:41:01 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.5 2006-03-04 01:15:01 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,7 +72,10 @@ char *valias_select( char *alias, char *domain )
       return( NULL );
     }
 
-    if ( alias_fs != NULL ) fclose(alias_fs);
+    if ( alias_fs != NULL ) {
+      fclose(alias_fs);
+      alias_fs = NULL;
+    }
 
     if ((tmpstr=vget_assign(domain,alias_line,MAX_ALIAS_LINE,&uid,&gid))==NULL) {
 	printf("invalid domain, not in qmail assign file\n");
@@ -273,7 +276,10 @@ char *valias_select_names( char *domain )
       }
     }
 
-    if (mydir!=NULL) closedir(mydir);
+    if (mydir!=NULL) {
+      closedir(mydir);
+      mydir = NULL;
+    }
     qsort(names, num_names, sizeof(char *), sort_compare );    
 
     return(valias_select_names_next());
