@@ -1,5 +1,5 @@
 /*
- * $Id: valias.c,v 1.3.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: valias.c,v 1.3.2.2 2006-03-21 04:53:40 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
                         valias_select_names_end();
 		} else {
                         fprintf(stderr, "Please enter domain name only.\n" );
+			vexit(-1);
 		}
 		break;
 
@@ -107,8 +108,9 @@ int main(int argc, char *argv[])
 			tmpalias = valias_select_next();
 		}
 		if (AliasExists) {
-			printf ("Error: alias %s -> %s already exists.\n",
+			fprintf (stderr, "Error: alias %s -> %s already exists.\n",
 				Email, AliasLine);
+			vexit(-1);
 		} else {
 			valias_insert( Alias, Domain, AliasLine );
 		}
@@ -119,7 +121,8 @@ int main(int argc, char *argv[])
 		break;
 
         default:
-		printf("error, Alias Action '%d' is invalid\n", AliasAction);
+		fprintf(stderr, "error, Alias Action '%d' is invalid\n", 
+			AliasAction);
 		break;
 	}
 	return(vexit(0));
@@ -178,14 +181,14 @@ void get_options(int argc,char **argv)
 	if ( optind < argc ) {
 		snprintf(Email, sizeof(Email), "%s", argv[optind]);
                 if ( (i = parse_email( Email, Alias, Domain, sizeof(Alias))) != 0 ) {
-                  printf("Error: %s\n", verror(i));
+                  fprintf(stderr, "Error: %s\n", verror(i));
                   vexit(i);
                 }
 		++optind;
 	} 
 
 	if ( Email[0] == 0 ) {
-		printf("must supply alias email address\n");
+		fprintf(stderr, "must supply alias email address\n");
 		usage();
 		vexit(-1);
 	}
