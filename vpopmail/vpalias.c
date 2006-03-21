@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.5 2006-03-04 01:15:01 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.6 2006-03-21 05:10:25 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -235,10 +235,13 @@ char *valias_select_names( char *domain )
      *  Allocate a buffer for them
      */    
 
+    if (mydir!=NULL) closedir(mydir);
+
+    if (max_names == 0) return NULL;
+
     names = malloc( max_names * sizeof(char *));
     memset(names, 0, max_names * sizeof(char *));
 
-    if (mydir!=NULL) closedir(mydir);
     if ( (mydir = opendir(Dir)) == NULL ) return(NULL);
 
     while ((mydirent=readdir(mydir))!=NULL) {
@@ -320,6 +323,7 @@ char *valias_select_all( char *alias, char *domain )
 {
  uid_t uid;
  gid_t gid;
+ char *result;
 
     if ( alias == NULL )  { 
       verrori=VA_NULL_POINTER;  
@@ -346,7 +350,9 @@ char *valias_select_all( char *alias, char *domain )
 	return(NULL);
     }
 
-    strcpy(alias, valias_select_names( domain ));
+    result = valias_select_names( domain );
+    if (result == NULL) return NULL;
+    strcpy(alias, result);
     strncpy(mydomain, domain, MAX_FILE_SIZE);
     return(valias_select(alias, domain));
 }
