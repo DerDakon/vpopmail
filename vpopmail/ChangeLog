@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.16 - unreleased
 
+	Michael Krieger
+	- vpalias: Properly handle some empty search results.
+
 	Tom Collins
 	- vpalias: Fix double-free in code ported from 5.5 branch.
 	- valias: exit non-zero on error, send all errors to stderr.
