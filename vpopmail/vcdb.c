@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.21 2005-03-11 11:43:44 rwidmer Exp $
+ * $Id: vcdb.c,v 1.22 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.21 2005-03-11 11:43:44 rwidmer Exp $
+** $Id: vcdb.c,v 1.22 2006-04-08 10:29:20 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -245,7 +245,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     lowerit(user);
     lowerit(domain);
 
-    vget_assign(domain,NULL,0,&tuid,&tgid);
+    if (vget_assign(domain,NULL,0,&tuid,&tgid) == NULL) {
+        /* domain does not exist */
+        return(NULL);
+    }
+
     myuid = geteuid();
     if ( myuid != 0 && myuid != tuid ) {
 	return(NULL);
@@ -280,8 +284,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     ptr++;
     switch (cdb_seek(pwf,user,strlen(user),&dlen)) {
         case -1:
-            close(pwf);
-            return NULL;
         case 0:
             close(pwf);
             return NULL;
@@ -324,14 +326,14 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
 #ifdef VPOPMAIL_DEBUG
     if( dump_data ) {
-        fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
-        fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
-        fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
-        fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
-        fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
-        fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
-        fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
-        fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
+    fprintf (stderr,"vgetpw: db: results: pw_name   = %s\n",pwent.pw_name);
+    fprintf (stderr,"                     pw_passwd = %s\n",pwent.pw_passwd);
+    fprintf (stderr,"                     pw_uid    = %d\n",pwent.pw_uid);
+    fprintf (stderr,"                     pw_gid    = %d\n",pwent.pw_gid);
+    fprintf (stderr,"                     pw_flags  = %d\n",pwent.pw_flags);
+    fprintf (stderr,"                     pw_gecos  = %s\n",pwent.pw_gecos);
+    fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
+    fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
     }
 #endif
 

@@ -4,8 +4,8 @@
  */
 
 /*
- * $Id: vqmaillocal.c,v 1.6 2004-11-23 15:47:03 tomcollins Exp $
- * Copyright (C) 2002-2004 Inter7 Internet Technologies, Inc.
+ * $Id: vqmaillocal.c,v 1.7 2006-04-08 10:29:21 rwidmer Exp $
+ * Copyright (C) 2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -484,7 +484,7 @@ int deliver_mail(char *address, char *quota)
     }
 
     /* write the Return-Path: and Delivered-To: headers */
-    if (write(write_fd,DeliveredTo,strlen(DeliveredTo))!= (int)strlen(DeliveredTo)) {
+    if (write(write_fd,DeliveredTo,strlen(DeliveredTo))!= strlen(DeliveredTo)) {
         close(write_fd);
         /* Check if the user is over quota */
         if ( errno == EDQUOT ) {

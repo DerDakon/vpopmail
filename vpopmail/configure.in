@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.5.1)
+AC_INIT(vpopmail,5.4.16)
 PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
 
@@ -33,7 +33,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h memory.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h memory.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h])
 
 #----------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ AC_FUNC_CLOSEDIR_VOID
 AC_TYPE_SIGNAL
 #AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime])
+AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
 
 #----------------------------------------------------------------------
 
@@ -822,80 +822,26 @@ case $IPALIAS in
 esac
 
 #----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether spamassassin is enabled)
-AC_ARG_ENABLE(spamassassin,
-        [  --enable-spamassassin      Enable spamassassin. See  README.spamassassin for more info.],
-        ENABLE_SPAMASSASSIN=$enableval,
-                [
-                        ENABLE_SPAMASSASSIN=0
-                ]
-)
-
-case $ENABLE_SPAMASSASSIN in
-  0*|n*|N*)
-      AC_MSG_RESULT(no)
-      ;;
-  *)
-      AC_MSG_RESULT(yes)
-      ENABLE_SPAMASSASSIN=1
-      AC_DEFINE_UNQUOTED(SPAMASSASSIN,$ENABLE_SPAMASSASSIN,"")
-
-    AC_MSG_CHECKING(whether we can locate the spamc program)
-    for f in /usr/bin/spamc /usr/local/bin/spamc
-    do
-        if test -f $f
-        then
-            spamc_prog=$f
-            break
-        fi
-    done
-    AC_ARG_ENABLE(spamc-prog,
-        [  --enable-spamc-prog=PATH    Full path to spamc program [/usr/{local/}bin/tcprules].],
-        spamc_prog="$enableval",
-        [
-            if test "$spamc_prog" = ""
-            then
-                AC_MSG_RESULT(no)
-                AC_MSG_ERROR([Unable to find your spamc prog, specify --enable-spamc-prog.])
-            fi
-        ]
-    )
-
-    if test ! -f "$spamc_prog"
-    then
-        AC_MSG_RESULT(no)
-        AC_MSG_ERROR([Unable to find your spamc program, specify --enable-spamc-prog=/full/path/to/spamc])
-    fi
-
-    AC_MSG_RESULT(yes)
-    AC_DEFINE_UNQUOTED(SPAMC_PROG,"$spamc_prog","")
-
-      ;;
-esac
-
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether domainquotas is enabled)
-AC_ARG_ENABLE(domainquotas,
-        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
-        ENABLE_DOMAIN_QUOTAS=$enableval,
-                [
-                        ENABLE_DOMAIN_QUOTAS=0
-                ]
-)
-
-case $ENABLE_DOMAIN_QUOTAS in
-  0*|n*|N*)
-      AC_MSG_RESULT(no)
-      ;;
-  *)
-      AC_MSG_RESULT(yes)
-      ENABLE_DOMAIN_QUOTAS=1
-      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
-      ;;
-esac
+#  -- domain quotas disabled until they actually work again --
+#AC_MSG_CHECKING(whether domainquotas is enabled)
+#AC_ARG_ENABLE(domainquotas,
+#        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
+#        ENABLE_DOMAIN_QUOTAS=$enableval,
+#                [
+#                        ENABLE_DOMAIN_QUOTAS=0
+#                ]
+#)
+#
+#case $ENABLE_DOMAIN_QUOTAS in
+#  0*|n*|N*)
+#      AC_MSG_RESULT(no)
+#      ;;
+#  *)
+#      AC_MSG_RESULT(yes)
+#      ENABLE_DOMAIN_QUOTAS=1
+#      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
+#      ;;
+#esac
 
 #----------------------------------------------------------------------
 
@@ -908,7 +854,7 @@ AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 domains_dir="domains"
 
 AC_ARG_ENABLE(domains-dir,
-    [  --enable-domains-dir=TEXT  Set domains directory name for ~vpopmail/[domains]/user/.],
+    [  --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).],
     domains_dir="$enableval",
 )
 
@@ -1239,7 +1185,7 @@ esac
 
 AC_MSG_CHECKING(whether sql-logging is enabled)
 AC_ARG_ENABLE(sql-logging,
-        [  --enable-sql-logging     Enable authentication logging to MySQL/Postgres.],
+        [  --enable-sql-logging       Enable authentication logging to MySQL/Postgres.],
         ENABLE_SQL_LOGGING=$enableval,
                 [
                         ENABLE_SQL_LOGGING=n
@@ -1249,12 +1195,12 @@ AC_ARG_ENABLE(sql-logging,
 case $ENABLE_SQL_LOGGING in
   1*|y*|Y*)
       AC_MSG_RESULT(yes)
-      if test $USE_SQL != 1
+      if test "$USE_SQL" != 1
       then
-          AC_MSG_ERROR(sql-logging is only supported in the MySQL/Postgres authentication module)
+          AC_MSG_ERROR(sql-logging is only supported in the MySQL/Postgres authentication modules)
       else
-          ENABLE_SQL_LOGGING=1
-          AC_DEFINE_UNQUOTED(ENABLE_SQL_LOGGING,$ENABLE_SQL_LOGGING,"")
+        ENABLE_SQL_LOGGING=1
+        AC_DEFINE_UNQUOTED(ENABLE_SQL_LOGGING,$ENABLE_SQL_LOGGING,"")
       fi
       ;;
   *)
@@ -1276,7 +1222,7 @@ AC_ARG_ENABLE(mysql-limits,
 case $ENABLE_MYSQL_LIMITS in
   1*|y*|Y*)
       AC_MSG_RESULT(yes)
-      if test $USE_MYSQL != 1
+      if test "$USE_MYSQL" != 1
       then
           AC_MSG_ERROR(mysql-limits is only supported in the MySQL authentication module)
       else
@@ -1303,7 +1249,7 @@ AC_ARG_ENABLE(mysql-replication,
 case $MYSQL_REPLICATION in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
-        if test $USE_MYSQL != 1
+        if test "$USE_MYSQL" != 1
         then
                 AC_MSG_ERROR(mysql-replication is only supported in the MySQL authentication module)
         else
@@ -1320,7 +1266,7 @@ esac
 
 AC_MSG_CHECKING(whether valias is enabled)
 AC_ARG_ENABLE(valias,
-        [  --enable-valias            Store email aliases in MySQL.],
+        [  --enable-valias            Store email aliases in SQL table instead of .qmail files.],
         VALIAS=$enableval,
                 [
                         VALIAS=n
@@ -1330,9 +1276,9 @@ AC_ARG_ENABLE(valias,
 case $VALIAS in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
-        if test $USE_MYSQL != 1
+        if test "$USE_SQL" != 1
         then
-                AC_MSG_ERROR(valias is only supported in the MySQL authentication module)
+                AC_MSG_ERROR(valias option is only supported in the SQL authentication modules)
         else
                 VALIAS=1
                 AC_DEFINE_UNQUOTED(VALIAS,$VALIAS,"")
@@ -1373,77 +1319,19 @@ esac
 
 #----------------------------------------------------------------------
 
-min_login_interval="0"
-
-AC_ARG_ENABLE(min-login-interval,
-    [  --enable-min-login-interval=SECONDS  Minimum time between POP3 login attempts.],
-    min_login_interval="$enableval",
-)
-
-AC_DEFINE_UNQUOTED(MIN_LOGIN_INTERVAL,$min_login_interval,"")
-AC_SUBST(min_login_interval)
-
-#----------------------------------------------------------------------
-
-min_login_grace="0"
-
-AC_ARG_ENABLE(min-login-grace,
-    [  --enable-min-login-grace=COUNT  Number of short logins allowed before limit takes effect.],
-    min_login_grace="$enableval",
-)
-
-AC_DEFINE_UNQUOTED(MIN_LOGIN_GRACE,$min_login_grace,"")
-AC_SUBST(min_login_grace)
-
-#----------------------------------------------------------------------
-
-webmail_ip="127.0.0.1"
-
-AC_ARG_ENABLE(webmail-ip,
-    [  --enable-webmail-ip=ADDRESS-LIST  List of IP addresses assumed to be webmail hosts.],
-    webmail_ip="$enableval",
-)
-
-AC_DEFINE_UNQUOTED(WEBMAIL_IP,"$webmail_ip","")
-AC_SUBST(webmail_ip)
-
-#----------------------------------------------------------------------
-
-AC_MSG_CHECKING(whether debug is enabled)
-AC_ARG_ENABLE(debug,
-        [  --enable-debug         Enable debugging.  Environment variables still have to be set.],
-        VPOPMAIL_DEBUG=$enableval,
-                [
-                        VPOPMAIL_DEBUG=n
-                ]
-)
-
-case $VPOPMAIL_DEBUG in
-  1*|y*|Y*)
-        AC_MSG_RESULT(yes)
-        VPOPMAIL_DEBUG=1
-        AC_DEFINE_UNQUOTED(VPOPMAIL_DEBUG,$VPOPMAIL_DEBUG,"")
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
 AC_MSG_CHECKING(whether any discontinued --enable commands have been used)
 
 AC_ARG_ENABLE(mysql-logging, [],
     [
         AC_MSG_RESULT(yes)
-        AC_MSG_ERROR(--enable-mysql-logging has been superceded.  --enable-sql-logging instead)
+        AC_MSG_ERROR(--enable-mysql-logging has been superceded.  Please use --enable-sql-logging instead)
     ]
 )
 
 AC_ARG_ENABLE(pgsql-logging, [],
     [
         AC_MSG_RESULT(yes)
-        AC_MSG_ERROR(--enable-pgsql-logging has been superceded.  --enable-sql-logging instead)
+        AC_MSG_ERROR(--enable-pgsql-logging has been superceded.  Please use --enable-sql-logging instead)
     ]
 )
 
@@ -1489,6 +1377,13 @@ AC_ARG_ENABLE(active-directory, [],
     ]
 ) 
 
+AC_ARG_ENABLE(domainquotas, [],
+    [
+        AC_MSG_RESULT(yes)
+        AC_MSG_ERROR(--enable-domainquotas has been temporarily disabled since the domain quota code is broken.)
+    ]
+)
+
 AC_ARG_ENABLE(hardquota, [],
     [
         AC_MSG_RESULT(yes)
@@ -1525,6 +1420,7 @@ echo "            Current settings"
 echo "---------------------------------------"
 echo ""
 echo "vpopmail directory = "$vpopmaildir""
+echo " domains directory = "$vpopmaildir"/"$domains_dir""
 echo "               uid = "$vpopmailuid""
 echo "               gid = "$vpopmailgid""
 
@@ -1644,14 +1540,14 @@ case $IPALIAS in
 esac
 
 
-case $ENABLE_DOMAIN_QUOTAS in
-  1*|y*|Y*)
-    echo "     domain quotas = ON  --enable-domainquotas"
-    ;;
-  *)
-    echo "     domain quotas = OFF --disable-domainquotas (default)"
-    ;;
-esac
+#case $ENABLE_DOMAIN_QUOTAS in
+#  1*|y*|Y*)
+#    echo "     domain quotas = ON  --enable-domainquotas"
+#    ;;
+#  *)
+#    echo "     domain quotas = OFF --disable-domainquotas (default)"
+#    ;;
+#esac
 
 
 case $AUTH_MODULE in
@@ -1691,10 +1587,10 @@ case $AUTH_MODULE in
 
     case $VALIAS in
       1*|y*|Y*)
-        echo "      MySQL valias = ON  --enable-valias"
+        echo "  SQL valias table = ON  --enable-valias"
         ;;
       *)
-        echo "      MySQL valias = OFF --disable-valias (default)"
+        echo "  SQL valias table = OFF --disable-valias (default)"
         ;;
     esac
     ;;
@@ -1704,10 +1600,10 @@ case $AUTH_MODULE in
 
     case $ENABLE_SQL_LOGGING in
       1*|y*|Y*)
-        echo "      sql logging = ON  --enable-sql-logging"
+        echo "       sql logging = ON  --enable-sql-logging"
         ;;
       *)
-        echo "      sql logging = OFF --disable-sql-logging (default)"
+        echo "       sql logging = OFF --disable-sql-logging (default)"
       ;;
     esac
     ;;
@@ -1777,65 +1673,15 @@ case $ENABLE_AUTH_LOGGING in
 esac
 
 
-if test $USE_SQL = 1
+if test "$USE_SQL" = 1
 then
-  if test $MANY_DOMAINS = 1
+  if test "$MANY_DOMAINS" = 1
   then
-    echo " many domains mode = all domains in one SQL table"
-    echo "                     --enable-many-domains (default)"
+    echo "all domains in one SQL table = --enable-many-domains (default)"
   else
-    echo " many domains mode = one domain per SQL table"
-    echo "                     --disable-many-domains"
+    echo "one domain per SQL table     = --disable-many-domains"
   fi
 fi
-
-case $VPOPMAIL_DEBUG in
-  1*|y*|Y*)
-    echo "             debug = ON  --enable-debug"
-    ;;
-  *)
-    echo "             debug = OFF --disable-debug (default)"
-    ;;
-esac
-
-echo "min login interval = "$min_login_interval""
-echo "   min login grace = "$min_login_grace""
-echo "        webmail IP = "$webmail_ip""
-
-echo "${CC} -O2" > cdb/conf-cc
-case $ENABLE_SPAMASSASSIN in
-  1*|y*|Y*)
-    echo "      spamassassin = ON  --enable-spamassassin"
-    ;;
-  *)
-    echo "      spamassassin = OFF --disable-spamassassin (default)"
-    ;;
-esac
-
-
-if test $USE_SQL = 1
-then
-  if test $MANY_DOMAINS = 0
-  then
-    echo "";
-    AC_MSG_WARN(
-[
-*********************************************************************
-*  You are using the --disable-many-domains option, which is in     *
-*  peril of being depreciated.  If it is important to you to        *
-*  continue to use separate tables for each doman, please send      *
-*  an email to the vpopmail-devel list at:                          *
-*  vpopmail-dev@lists.sourceforge.net                               *
-*                                                                   *
-*  If I don't hear from anyone in the next few months, this option  *
-*  will be depreciated before I add a more relational table         *
-*  structure option.                                                *
-*********************************************************************
-
-])
-  fi
-fi
-
 
 echo "${CC} -O2" > cdb/conf-cc
 echo "${CC} -s" > cdb/conf-ld

@@ -1,6 +1,6 @@
 /*
- * $Id: vauth.h,v 1.8 2004-12-30 07:46:14 rwidmer Exp $
- * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
+ * $Id: vauth.h,v 1.9 2006-04-08 10:29:20 rwidmer Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,15 +39,14 @@
 struct vqpasswd {
   char *pw_name;		/* Username.  */
   char *pw_passwd;		/* Password.  */
-  uid_t pw_uid;			/* User ID.  */
-  gid_t pw_gid;			/* Group ID.  */
+  uid_t pw_uid;			/* User ID (not used?).  */
+  gid_t pw_gid;			/* user-specific permissions/limits  */
   gid_t pw_flags;		/* permissions/limits (gid | domain limits) */
   char *pw_gecos;		/* Real name.  */
   char *pw_dir;			/* Home directory.  */
-  char *pw_shell;		/* Shell program.  */
+  char *pw_shell;		/* User Quota (or NOQUOTA)  */
   char *pw_clear_passwd;	/* Clear password.  */
 };
-
 
 int vauth_open( int will_update );
 

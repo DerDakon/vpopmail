@@ -3,6 +3,132 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 
 
+
+5.5.1 - unreleased  
+        Rick Widmer
+        - Sync to 5.4.16 this includes the following entries from the 5.4 changelog
+
+5.4.16 - unreleased
+
+	Michael Krieger
+	- vpalias: Properly handle some empty search results.
+
+	Tom Collins
+	- vpalias: Fix double-free in code ported from 5.5 branch.
+	- valias: exit non-zero on error, send all errors to stderr.
+
+5.4.15 - released 24-Feb-06
+
+	Tom Collins
+	- Add 'compile' script to distribution.
+	- If warn() isn't available, use fprintf() instead.
+	- vmysql.c: add missing valias_select_names, valias_select_names_next,
+	  and valias_select_names_end from 5.5 branch.
+	- vpalias.c: #include "config.h" before we check if VALIAS defined.
+
+5.4.14 - released 17-Jan-06
+
+	Tom Collins
+	- vmysql.c: Increase buffer size in vauth_adduser() and use 
+	  correct size when calling snprintf.
+	- Backport most of 5.5.1, including code required for vpopmaild.
+	- Allow --enable-valias option for Postgres backend (incorrectly
+	  disabled in 5.4.13).
+	- Only check a domain's disk usage when a quota is set. [1396238]
+
+	Bill Shupp
+	- vpopmaild: store quota in proper format and update maildirsize 
+	  on quota change.
+
+	Gaetan Minet
+	- Remove lock file in open_smtp_relay() even if update_rules() fails.
+
+	Rick Morris
+	- vdelivermail.c: Fix problem where "# delete" in .qmail file was
+	  being ignored. [1360346]
+
+	Robin Bowes
+	- Add vpopmaild (the vpopmail daemon) from 5.5 development series.
+
+5.4.13 - released 16-Sep-05
+
+	Riccardo Bini
+	- vdelivermail.c: Use DOMAINS_DIR instead of hard-coded "domains".
+
+	Jory A. Pratt
+	- Compile libvpopmail with -fPIC option so amd64 users can compile
+	  courier-authlib against libvpopmail.a.
+
+	Tom Collins
+	- hmac_md5.c: include <strings.h> for bzero and bcopy declarations.
+	- configure.in: fix checks to limit enable-valias to MySQL only.
+	- INSTALL: make clear that valias only applies to MySQL backend.
+	- vpopmail.c: modify get_remote_ip() to work with xinetd, not
+	  just tcpserver from daemontools.
+
+5.4.12 - released 4-Jul-05
+
+	Tom Collins
+	- vdelivermail: read full message, even on catchall delete/bounce
+	  to avoid SIGPIPE error if maildrop is calling vdelivermail.
+	- vdelivermail: missing declaration when QMAIL_EXT defined.
+	- vpopmail.h: remove declaration of crypt() and use #include 
+	  crypt.h instead (if present).
+	- configure: remove enable-domainquotas option until the domain
+	  quota code is fixed.
+	- maildirquota.c: fix bug from 5.4.11 that could accidentally
+	  close stdin and result in a failed delivery in vdelivermail.
+	- vpopmail.c: better error checking in r_mkdir().
+
+5.4.11 - released 20-Mar-05
+
+	Tom Collins
+	- vdelivermail: code cleanup (fix exit codes, improve reliability,
+	  fix problems with quotas). [837146, 840749, 904155, 1111291,
+	  1119741, 1145618]
+
+5.4.10 - released 20-Mar-05
+
+	Stephan Tesch
+	- md5.h: fix related to segfaults in vchkpw on Sparc64. [1144851]
+
+	Peter Seiderer
+	- vcdb.c: vauth_getpw() didn't check for invalid domain.
+
+	Bill Shupp
+	- vuserinfo: display spamassassin info.
+
+	Anonymous
+	- vpopmail.c: Add missing ifdef that preventing modification of
+	  one-character username accounts.
+
+	Niki Denev
+	- maildirquota.c: Remove double free() and fix use of free'd
+	  memory in docheckquota(). [1101316]
+	- contrib/qmail-maildir++.patch: same fix as for maildirquota.c.
+
+	Tom Collins
+	- vlimits.c: print errors to stderr.
+	- vmoduser.c: add clarity to usage/help for bit flags.
+	- vcdb.c: be sure to close password file in vauth_getpw().
+	- md5.h: use cdb/uint32.h (built by configure)  for defining 
+	  uint32. [1144851]
+	- vpopmail.c: fix vauth_user() to not clobber pw_uid and pw_gid.
+	- vpopmail.c: If setting user quota for new user fails because newly
+	  created user does not exist, sleep 5 seconds and try again.  
+	  (This can happen on servers using MySQL replication.)
+	- Remove convert/vcalias.c and related files; vcalias was replaced
+	  by dotqmail2valias.
+
+	Michael Bowe
+	- configure.in: fix typo of where the configure script says it
+	  is checking for qmail-inject when in fact it was checking for
+	  qmail-newmrh 
+	- Documentation updates to README.roamingusers. Mention the 
+	  requirement of tcpserver for POP-before-SMTP. Also include
+	  some documentation on IMAP-before-SMTP. [1110269]
+
+
 5.5.1 - unreleased  (Some more stuff before release)
 
         Rick Widmer 10-Mar-2005

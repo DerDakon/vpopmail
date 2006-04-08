@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.28 2005-07-17 12:11:35 rwidmer Exp $
+ * $Id: vmysql.c,v 1.29 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,13 +36,6 @@ Add error result for "unable to read vpopmail.mysql" and return it
 #include "vauth.h"
 #include "vlimits.h"
 #include "vmysql.h"
-
-//  Variables to control debug output
-#ifdef VPOPMAIL_DEBUG
-int show_trace=0;
-int show_query=0;
-int dump_data=0;
-#endif
 
 static MYSQL mysql_update;
 static MYSQL mysql_read_getall;
@@ -87,10 +80,6 @@ char IDir[SMALL_BUFF];
 char IShell[SMALL_BUFF];
 char IClearPass[SMALL_BUFF];
 
-char sqlerr[MAX_BUFF] = "";
-char *last_query = NULL;
-int  showerrors=1;
-
 void vcreate_dir_control(char *domain);
 void vcreate_vlog_table();
 
@@ -106,11 +95,9 @@ void vcreate_valias_table();
 void vcreate_lastauth_table();
 #endif
 
-/**************************************************************************
- *
+/* 
  * get mysql connection info
  */
-
 int load_connection_info() {
     FILE *fp;
     char conn_info[256];
@@ -121,12 +108,6 @@ int load_connection_info() {
     char delimiters[] = "|\n";
     char *conf_read, *conf_update;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "load_connection_info() loaded: %i\n", loaded );
-    }
-#endif
-
     if (loaded) return 0;
     loaded = 1;
 
@@ -134,15 +115,8 @@ int load_connection_info() {
 
     fp = fopen(config, "r");
     if (fp == NULL) {
-        snprintf(sqlerr, MAX_BUFF,
-                 "   Can't read settings from %s\n", 
-                 config);
-        verrori = VA_NO_AUTH_CONNECTION;
-        if( showerrors ) { 
-            vsqlerror( stderr, "open connection file" );
-        }
-
-        return( verrori );
+        fprintf(stderr, "vmysql: can't read settings from %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
     }
     
     /* skip comments and blank lines */
@@ -152,13 +126,8 @@ int load_connection_info() {
 
     if (eof) {
         /* no valid data read, return error */
-        snprintf(sqlerr, MAX_BUFF,
-                 "   No valid settings in %s\n", config);
-        verrori = VA_NO_AUTH_CONNECTION;
-        if( showerrors ) {
-            vsqlerror( stderr, "Reading SQL settings file" );
-        }
-        return( verrori );
+        fprintf(stderr, "vmysql: no valid settings in %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
     }
 
     conf_read = strdup(conn_info);
@@ -201,27 +170,20 @@ int load_connection_info() {
         if (MYSQL_UPDATE_DATABASE == NULL) return VA_PARSE_ERROR;
     }
 
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-/* useful debugging info  */
-        fprintf(stderr, "   connection settings:\n" );
-        fprintf(stderr, "      read:   server:%s port:%d user:%s pw:%s db:%s\n",
-            MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
-            MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
-        fprintf(stderr, "      update: server:%s port:%d user:%s pw:%s db:%s\n",
-            MYSQL_UPDATE_SERVER, MYSQL_UPDATE_PORT, MYSQL_UPDATE_USER,
-            MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE);    
-    }
-#endif
-
+/* useful debugging info
+    fprintf(stderr, "read settings: server:%s port:%d user:%s pw:%s db:%s\n",
+        MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
+        MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
+    fprintf(stderr, "update settings: server:%s port:%d user:%s pw:%s db:%s\n",
+        MYSQL_UPDATE_SERVER, MYSQL_UPDATE_PORT, MYSQL_UPDATE_USER,
+	MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE);    
+*/
     return 0;
 }
 
-/************************************************************************
- *
+/* 
  * Open a connection to mysql for updates
  */
-
 int vauth_open_update()
 {
     unsigned int timeout = 2;
@@ -229,159 +191,59 @@ int vauth_open_update()
     if ( update_open != 0 ) return(0);
     update_open = 1;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "open_update()\n");
-    }
-#endif
-
-    if( load_connection_info())  return( verrori );
+    verrori = load_connection_info();
+    if (verrori) return -1;
 	
     mysql_init(&mysql_update);
-
     mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
     /* Try to connect to the mysql update server */
     if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
-                             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD,
-                             NULL, MYSQL_UPDATE_PORT, NULL, 0))) {
-
-        snprintf(sqlerr, MAX_BUFF,
-                 "   Can not connect to update database - %s\n", 
-                 mysql_error( &mysql_update ));
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                     "   mysql_real_connect - Server %s  User %s  "
-                     "Password: %s Base: NULL Port: %i ?:NULL\n", 
-                     MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
-                     MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_PORT);
-        } else {
-            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                     "   mysql_real_connect( - Server %s  User %s  "
-                     "Password: *** Base: NULL Port: %i ?:NULL )\n", 
-                     MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
-                     MYSQL_UPDATE_PORT);
-            last_query = SqlBufUpdate;
-        }
-
-#else
-        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                 "   mysql_real_connect( - Server %s  User %s  "
-                 "Password: *** Base: NULL Port: %i ?:NULL )\n", 
-                 MYSQL_UPDATE_SERVER, MYSQL_UPDATE_USER, 
-                 MYSQL_UPDATE_PORT);
-        last_query = SqlBufUpdate;
-#endif
-
-        verrori = VA_NO_AUTH_CONNECTION;
-    
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            last_query = SqlBufUpdate;
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "Connecting to the database server" );
-        }
-        return( verrori );
+			     MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
+			     NULL, 0))) {
+      
+      /* if we can not connect, report a error and return */
+      verrori = VA_NO_AUTH_CONNECTION;
+      return(VA_NO_AUTH_CONNECTION);
     }
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "   Now try to select database\n");
-    }
-#endif
-
+    /* set the database we use */
     if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "   Now try to create database\n");
+      /* we were able to connect, so create the database */ 
+      snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
+		"create database %s", MYSQL_UPDATE_DATABASE );
+      if (mysql_query(&mysql_update,SqlBufUpdate)) {
+	
+	/* we could not create the database
+	 * so report the error and return 
+	 */
+	fprintf(stderr, "vmysql: couldn't create database '%s': %s\n", MYSQL_UPDATE_DATABASE,
+	  mysql_error(&mysql_update));
+	return(-1);
+      } 
+      /* set the database (we just created)*/ 
+      if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
+	fprintf(stderr, "could not enter (just created) %s database\n", MYSQL_UPDATE_DATABASE);
+	return(-1);
+      }    
     }
-#endif
 
-        snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                  "create database %s", MYSQL_UPDATE_DATABASE );
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "open_update query\n%s\n", SqlBufUpdate );
-        }
-#endif
-
-        if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   Unable to create database - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_CANNOT_CREATE_DATABASE;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "   %s\n   %s\n", sqlerr, last_query );
-            } 
-#endif
-            if( showerrors ) {
-                vsqlerror( stderr, "Creating database" );
-            }
-            return( verrori );
-        }
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf( stderr, "   Now try to select database we just created\n");
-        }
-#endif
-
-        fprintf( stderr, "   before select\n");
-        /* set the database */ 
-        if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   Unable to select new database - %s\n", 
-                     mysql_error( &mysql_update ));
-            snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                      "   mysql_select( database: %s )", 
-                      MYSQL_UPDATE_DATABASE );
-            last_query = SqlBufUpdate;
-            verrori = VA_CANNOT_OPEN_DATABASE;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            } 
-#endif
-            if( showerrors ) {
-                vsqlerror( stderr, "Selectin database" );
-            }
-            return( verrori );
-        }    
-    }
     return(0);
 }
 
-/************************************************************************
- *
+#ifdef MYSQL_REPLICATION
+/*
  * Open a connection to the database for read-only queries
  */
-
-#ifdef MYSQL_REPLICATION
-
 int vauth_open_read()
 {
     /* if we are already connected, just return */
     if ( read_open != 0 ) return(0);
     read_open = 1;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "open_read()\n" );
-    }
-#endif
-
     /* connect to mysql and set the database */
-    if( load_connection_info())  return( verrori );
-
+    verrori = load_connection_info();
+    if (verrori) return -1;
     mysql_init(&mysql_read);
     if (!(mysql_real_connect(&mysql_read, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
@@ -390,38 +252,8 @@ int vauth_open_read()
         if (!(mysql_real_connect(&mysql_read, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE,
             MYSQL_READ_PORT, NULL, 0))) {
-
-            snprintf(sqlerr, MAX_BUFF,
-                     "   Can not connect to read database - %s\n", 
-                     mysql_error( &mysql_update ));
-
-            if( show_trace ) {
-                snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                         "   mysql_real_connect - Server %s  User %s  "
-                         "Password: %s Base: NULL Port: %s ?:NULL\n", 
-                         MYSQL_READ_SERVER, MYSQL_READ_USER, 
-                         MYSQL_READ_PASSWD, MYSQL_READ_PORT);
-            } else {
-                snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                         "   mysql_real_connect( - Server %s  User %s  "
-                         "Password: *** Base: NULL Port: %i ?:NULL )\n", 
-                         MYSQL_READ_SERVER, MYSQL_READ_USER, 
-                         MYSQL_READ_PORT);
-            }
-
-            last_query = SqlBufUpdate;
             verrori = VA_NO_AUTH_CONNECTION;
-    
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                last_query = SqlBufUpdate;
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors ) {
-                vsqlerror( stderr, "Opening SQL read connection" );
-            }
-            return( verrori );
+            return( VA_NO_AUTH_CONNECTION );
         }
     }
 
@@ -472,15 +304,9 @@ int vauth_open_read_getall()
     if ( read_getall_open != 0 ) return(0);
     read_getall_open = 1;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "open_read_getall()\n" );
-    }
-#endif
-
     /* connect to mysql and set the database */
-    if( load_connection_info())  return( verrori );
-
+    verrori = load_connection_info();
+    if (verrori) return -1;
     mysql_init(&mysql_read_getall);
     if (!(mysql_real_connect(&mysql_read_getall, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
@@ -489,130 +315,44 @@ int vauth_open_read_getall()
         if (!(mysql_real_connect(&mysql_read_getall, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE, 
             MYSQL_UPDATE_PORT, NULL, 0))) {
-
-            snprintf(sqlerr, MAX_BUFF,
-                     "   Can not connect to getall database - %s\n", 
-                     mysql_error( &mysql_update ));
-
-#ifdef VPOPMAIL_DEBUG
-
-            if( show_trace ) {
-                snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                         "   mysql_real_connect - Server %s  User %s  "
-                         "Password: %s Base: NULL Port: %i ?:NULL\n", 
-                         MYSQL_READ_SERVER, MYSQL_READ_USER, 
-                         MYSQL_READ_PASSWD, MYSQL_READ_PORT);
-            } else {
-                snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                         "   mysql_real_connect( - Server %s  User %s  "
-                         "Password: *** Base: NULL Port: %i ?:NULL )\n", 
-                         MYSQL_READ_SERVER, MYSQL_READ_USER, 
-                         MYSQL_READ_PORT);
-            }
-
-#else
-             snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-                      "   mysql_real_connect( - Server %s  User %s  "
-                      "Password: *** Base: NULL Port: %i ?:NULL )\n", 
-                      MYSQL_READ_SERVER, MYSQL_READ_USER, 
-                      MYSQL_READ_PORT);
-
-#endif
-
             verrori = VA_NO_AUTH_CONNECTION;
-    
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                last_query = SqlBufUpdate;
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors ) {
-                vsqlerror( stderr, "Opening SQL read-getall connection" );
-            }
-            return( verrori );
+            return(-1);
         }
+        return(-1);
     }
 
     /* return success */
     return(0);
 }
 
-/************************************************************************
- *
- *  vauth_create_table
- */
-
-int vauth_create_table (char *table, char *layout)
+int vauth_create_table (char *table, char *layout, int showerror)
 {
- static char SqlBufCreate[SQL_BUF_SIZE];
+  int err;
+  char SqlBufCreate[SQL_BUF_SIZE];
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, 
-                 "vauth_create_table( table: %s layout: %s showerror: %i)\n",
-                 table, layout, showerrors );
-    }
-#endif
-
-  if (vauth_open_update()) return (verrori);
-
+  if ((err = vauth_open_update()) != 0) return (err);
   snprintf (SqlBufCreate, SQL_BUF_SIZE, "CREATE TABLE %s ( %s )", table, layout);
-#ifdef VPOPMAIL_DEBUG
-  if( show_query ) {
-    fprintf( stderr, "vauth_create_table query\n%s\n", SqlBufCreate );
-  }
-#endif
-
   if (mysql_query (&mysql_update, SqlBufCreate)) {
-    snprintf(sqlerr, MAX_BUFF, 
-             "   Unable to create table %s - %s\n", 
-             table, mysql_error( &mysql_update ));
-    last_query = SqlBufCreate;
-    verrori = VA_CANNOT_CREATE_TABLE;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-    } 
-#endif
-    if( showerrors ) {
-        vsqlerror( stderr, "Creating table" );
-    }
-    return( verrori );
+    if (showerror)
+      fprintf (stderr, "vmysql: error creating table '%s': %s\n", table, 
+        mysql_error(&mysql_update));
+    return -1;
+  } else {
+    return 0;
   }
-
-  return 0;
 }
  
-/************************************************************************
- *
- *  vauth_adddomain
- */
-
 int vauth_adddomain( char *domain )
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_adddomain( %s )\n", domain );
-    }
-#endif
-
 #ifndef MANY_DOMAINS
   vset_default_domain( domain );
-  vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT );
+  return (vauth_create_table (vauth_munch_domain( domain ), TABLE_LAYOUT, 1));
 #else
   /* if creation fails, don't show an error */
-  vauth_create_table (MYSQL_DEFAULT_TABLE, TABLE_LAYOUT);
-  if( verrori == VA_QUERY_FAILED ) verrori = 0;
+  vauth_create_table (MYSQL_DEFAULT_TABLE, TABLE_LAYOUT, 0);
+  return (0);
 #endif
-  return( verrori );
 }
-
-/************************************************************************
- *
- *  vauth_adduser
- */
 
 int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
     char *dir, int apop )
@@ -624,16 +364,9 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
  char dirbuf[200];
  char quota[30];
  char Crypted[100];
+ int err;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_adduser( user: %s domain: %s pass: %s "
-                         "gecos %s dir %s apop %i )\n", 
-                         user, domain, pass, gecos, dir, apop );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
     strncpy( quota, "NOQUOTA", 30 );
@@ -649,17 +382,17 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 
     if ( strlen(domain) <= 0 ) {
         if ( strlen(dir) > 0 ) {
-            snprintf(dirbuf, SQL_BUF_SIZE, 
+            snprintf(dirbuf, sizeof(dirbuf), 
                 "%s/users/%s/%s", VPOPMAILDIR, dir, user);
         } else {
-            snprintf(dirbuf, SQL_BUF_SIZE, "%s/users/%s", VPOPMAILDIR, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
         }
     } else {
-        vget_assign(domain, dom_dir, 156, &uid, &gid );
+        vget_assign(domain, dom_dir, sizeof(dom_dir), &uid, &gid );
         if ( strlen(dir) > 0 ) {
-            snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s/%s", dom_dir, dir, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/%s/%s", dom_dir, dir, user);
         } else {
-            snprintf(dirbuf, SQL_BUF_SIZE, "%s/%s", dom_dir, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/%s", dom_dir, user);
         }
     }
 
@@ -680,54 +413,24 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 #endif
 );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_adduser query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to add user %s@%s - %s\n", 
-                 domstr, user, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "Adding user" );
-        }
-        return( verrori );
+        fprintf(stderr, "vmysql: sql error[2]: %s\n", mysql_error(&mysql_update));
+        return(-1);
     } 
 
     return(0);
 
 }
 
-
-/************************************************************************
- *
- *  vauth_getpw
- */
-
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
  char *domstr;
  static struct vqpasswd vpw;
  static char in_domain[156];
+ int err;
  uid_t myuid;
  uid_t uid;
  gid_t gid;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_getpw( user: %s domain: %s )\n",
-                         user, domain );
-    }
-#endif
 
     vget_assign(domain,NULL,0,&uid,&gid);
 
@@ -735,7 +438,10 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if ( myuid != 0 && myuid != uid ) return(NULL);
 
     verrori = 0;
-    if( vauth_open_read()) return( NULL );
+    if ( (err=vauth_open_read()) != 0 ) {
+        verrori = err;
+        return(NULL);
+    }
 
     lowerit(user);
     lowerit(domain);
@@ -757,45 +463,13 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 , in_domain
 #endif
 );
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_getpw query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to retrieve user information - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
         fprintf(stderr, "vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
-        if( showerrors ) {
-            vsqlerror( stderr, "Getpw query" );
-        }
         return(NULL);
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vautn_getpw - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "Getpw read" );
-        }
+        fprintf(stderr, "vmysql: store result failed 1\n");
         return(NULL);
     }
     
@@ -837,39 +511,20 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     vlimits_setflags (&vpw, in_domain);
 
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-        fprintf( stderr, 
-                 "   vauth_getpw returned: \n"
-                 "      name: %s pass: %s uid %i gid %i\n"
-                 "      gecos: %s clear pw: %s shell: %s\ndir: %s\n\n",
-                 vpw.pw_name, vpw.pw_passwd, vpw.pw_uid, vpw.pw_gid,
-                 vpw.pw_gecos, vpw.pw_clear_passwd, vpw.pw_shell, vpw.pw_dir );
-    }
-#endif
-
     return(&vpw);
 }
 
-/************************************************************************
- *
- * del a domain from the auth backend
+/* del a domain from the auth backend
  * - drop the domain's table, or del all users from users table
  * - delete domain's entries from lastauth table
  * - delete domain's limit's entries
  */
-
 int vauth_deldomain( char *domain )
 {
  char *tmpstr;
+ int err;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_deldomain( %s )\n", domain );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -882,27 +537,8 @@ int vauth_deldomain( char *domain )
         tmpstr, domain );
 #endif 
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_deldomain - delete query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unablet to delete domain %s - %s\n", 
-                 domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "vdeldomain - delete domain" );
-        }
-        return( verrori );
+        return(-1);
     } 
 
 #ifdef VALIAS 
@@ -912,27 +548,8 @@ int vauth_deldomain( char *domain )
 #ifdef ENABLE_AUTH_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from lastauth where domain = '%s'", domain );
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_deldomain - delete lastauth entry\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to delete domain lastauth %s - %s\n", 
-                 domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "vdeldomain - delete lastauth" );
-        }
-        return( verrori );
+        return(-1);
     } 
 #endif
 
@@ -941,23 +558,12 @@ int vauth_deldomain( char *domain )
     return(0);
 }
 
-/************************************************************************
- *
- *  vauth_deluser
- */
-
 int vauth_deluser( char *user, char *domain )
 {
  char *tmpstr;
+ int err = 0;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_deluser( user: %s domain: %s )\n",
-                         user, domain );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -975,70 +581,25 @@ int vauth_deluser( char *user, char *domain )
 , domain
 #endif
  );
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_deluser - delete query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to delete user %s@%s - %s\n", 
-                 user, domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
+        err = -1;
     } 
 
 #ifdef ENABLE_AUTH_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-              "delete from lastauth where user = '%s' and domain = '%s'", 
-              user, domain );
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_deluser - delete lastauth query\n%s\n", SqlBufUpdate );
-    }
-#endif
-
+        "delete from lastauth where user = '%s' and domain = '%s'", 
+        user, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to delete user %s@%s lastauth - %s\n", 
-                 user, domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
+        err = -1;
     } 
 #endif
-    if( verrori && showerrors ) {
-        vsqlerror( stderr, "vdeluser" );
-    }
-    return(verrori);
+    return(err);
 }
-
-/************************************************************************
- *
- *  vauth_setquota
- */
 
 int vauth_setquota( char *username, char *domain, char *quota)
 {
  char *tmpstr;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_setquota( user: %s domain: %s quota %s )\n",
-                         username, domain, quota );
-    }
-#endif
+ int err;
 
     if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR
@@ -1047,7 +608,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
     
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -1062,49 +623,19 @@ int vauth_setquota( char *username, char *domain, char *quota)
 #endif
 );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_setquota\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   Unable to set quota %s@%s - %s\n", 
-                 username, domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "setting quota" );
-        }
-        return( verrori );
+        fprintf(stderr, "vmysql: sql error[4]: %s\n", mysql_error(&mysql_update));
+        return(-1);
     } 
     return(0);
 }
-
-/************************************************************************
- *
- *  vauth_getall
- */
 
 struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 {
  char *domstr = NULL;
  static struct vqpasswd vpw;
  static int more = 0;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_getall( domain: %s first: %i sortit %i)\n",
-                         domain, first, sortit );
-    }
-#endif
+ int err;
 
     vset_default_domain( domain );
 
@@ -1115,7 +646,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 #endif
 
     if ( first == 1 ) {
-        if( vauth_open_read_getall()) return( NULL );
+        if ( (err=vauth_open_read_getall()) != 0 ) return(NULL);
 
         qnprintf(SqlBufRead,  SQL_BUF_SIZE, GETALL, domstr
 #ifdef MANY_DOMAINS
@@ -1130,48 +661,15 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         if (res_read!=NULL) mysql_free_result(res_read_getall);
         res_read = NULL;
 
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vqpasswd query\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read_getall,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   Unable to vauth_getall domain %s - %s\n", 
-                     domain, mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors ) {
-                vsqlerror( stderr, "vauth get all query" );
-            }
-            return( NULL );
-        }
-
-        if (!(res_read_getall=mysql_store_result(&mysql_read_getall))) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vauth_getall - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            fprintf(stderr, "vmysql: store result failed 2\n");
-            if( showerrors ) {
-                vsqlerror( stderr, "vauth get all read" );
-            }
+            fprintf(stderr, "vmysql: sql error[5]: %s\n", mysql_error(&mysql_read_getall));
             return(NULL);
         }
 
+        if (!(res_read_getall=mysql_store_result(&mysql_read_getall))) {
+            fprintf(stderr, "vmysql: store result failed 2\n");
+            return(NULL);
+        }
     } else if ( more == 0 ) {
         return(NULL);
     }
@@ -1206,17 +704,6 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         }
 #endif
         more = 1;
-
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-        fprintf( stderr, "   name: %s pass: %s uid %i gid %i gecos: %s\n"
-                         "   clear pw: %s, shell: %s\n   dir: %s\n\n",
-                         vpw.pw_name, vpw.pw_passwd, vpw.pw_uid, vpw.pw_gid,
-                         vpw.pw_gecos, vpw.pw_clear_passwd, vpw.pw_shell, 
-                         vpw.pw_dir );
-    }
-#endif
-
         return(&vpw);
     }
     more = 0;
@@ -1233,11 +720,6 @@ void vauth_end_getall()
     res_read_getall = NULL;
 
 }
-
-/************************************************************************
- *
- *  vauth_munch_domain
- */
 
 char *vauth_munch_domain( char *domain )
 {
@@ -1264,17 +746,6 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
  gid_t gid;
  int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_setpw( inpw{ name: %s pass: %s "
-                         "uid %i gid %i gecos: %s clear pw: %s, "
-                         "shell: %s\ndir: %s }, domain: %s )\n\n",
-                         inpw->pw_name, inpw->pw_passwd, inpw->pw_uid, 
-                         inpw->pw_gid, inpw->pw_gecos, inpw->pw_clear_passwd,
-                         inpw->pw_shell, inpw->pw_dir, domain );
-    }
-#endif
-
     err = vcheck_vqpw(inpw, domain);
     if ( err != 0 ) return(err);
 
@@ -1284,7 +755,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
         return(VA_BAD_UID);
     }
 
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -1310,27 +781,9 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 #endif
             );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vauth_setpw query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vauthsetpw failed - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "vauth setpw" );
-        }
-        return( verrori );
+        fprintf(stderr, "vmysql: sql error[6]: %s\n", mysql_error(&mysql_update));
+        return(-1);
     } 
 
 #ifdef SQWEBMAIL_PASS
@@ -1345,13 +798,8 @@ int vopen_smtp_relay()
 {
  char *ipaddr;
  time_t mytime;
+ int err;
  int rows;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vopen_smtp_relay()\n");
-    }
-#endif
 
     mytime = time(NULL);
     ipaddr = get_remote_ip();
@@ -1359,39 +807,15 @@ int vopen_smtp_relay()
         return 0;
     }
 
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return 0;
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
 "replace into relay ( ip_addr, timestamp ) values ( '%s', %d )",
             ipaddr, (int)mytime);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vpopn_smtp_relay query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_relay_table();
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "\n%s\n", SqlBufUpdate );
-    }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vopen_smtp_relay - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "open smtp relay" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[7]: %s\n", mysql_error(&mysql_update));
         }
     }
     rows = mysql_affected_rows(&mysql_update);
@@ -1401,156 +825,60 @@ int vopen_smtp_relay()
     return rows == 1;
 }
 
-/************************************************************************
- *
- *  vupdate_rules
- */
-
 void vupdate_rules(int fdm)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vopen_smtp_relay( fdm: %i )\n", fdm );
-    }
-#endif
-
-    if( vauth_open_read()) return;
+    if (vauth_open_read() != 0) return;
 
     snprintf(SqlBufRead, SQL_BUF_SIZE, "select ip_addr from relay");
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vupdate_rules query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   Update rules failed  - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "update rules query" );
-            }
+            fprintf(stderr, "vmysql: sql error[8]: %s\n", mysql_error(&mysql_read));
             return;
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   update_rules - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "update rules read" );
-        }
+        fprintf(stderr, "vmysql: store result failed 3\n");
         return;
     }
     while((row = mysql_fetch_row(res_read))) {
         snprintf(SqlBufRead, SQL_BUF_SIZE, "%s:allow,RELAYCLIENT=\"\",RBLSMTPD=\"\"\n", row[0]);
-#ifdef VPOPMAIL_DEBUG
-        if( dump_data ) {
-            fprintf( stderr, "\n%s\n", SqlBufRead );
-        }
-#endif
         write(fdm,SqlBufRead, strlen(SqlBufRead));
     }
     mysql_free_result(res_read);
 
 }
 
-/************************************************************************
- *
- *  vclear_open_smtp
- */
-
 void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 {
  time_t delete_time;
+ int err;
     
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, 
-                 "vclear_open_smtp( clear_minutes: %i, mytime: %i )\n", 
-                  (int) clear_minutes, (int) mytime );
-    }
-#endif
-
-    if (vauth_open_update()) return;
+    if ( (err=vauth_open_update()) != 0 ) return; 
     delete_time = mytime - clear_minutes;
 
     snprintf( SqlBufUpdate, SQL_BUF_SIZE, "delete from relay where timestamp <= %d", 
         (int)delete_time);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vclear_open_smtp query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_relay_table();
         return;
     }
 }
 
-/************************************************************************
- *
- *  vcreate_relay_table
- */
-
 void vcreate_relay_table()
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vcreate_relay_table()\n");
-    }
-#endif
-
-  vauth_create_table ("relay", RELAY_TABLE_LAYOUT);
+  vauth_create_table ("relay", RELAY_TABLE_LAYOUT, 1);
+  return;
 }
 #endif
-
-/************************************************************************
- *
- *  vmkpasswd
- */
 
 int vmkpasswd( char *domain )
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vmkpasswd( domain: %s )\n", domain );
-    }
-#endif
-
     return(0);
 }
 
-/************************************************************************
- *
- *  vclose
- */
-
 void vclose()
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vclose()\n" );
-    }
-#endif
-
     if (read_open == 1 ) {
         mysql_close(&mysql_read);
         read_open = 0;
@@ -1568,207 +896,76 @@ void vclose()
 #ifdef IP_ALIAS_DOMAINS
 void vcreate_ip_map_table()
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vcreate_ip_map_table()\n" );
-    }
-#endif
-
-  vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT);
+  vauth_create_table ("ip_alias_map", IP_ALIAS_TABLE_LAYOUT, 1);
+  return;
 }
-
-/************************************************************************
- *
- *  vget_ip_map
- */
 
 int vget_ip_map( char *ip, char *domain, int domain_size)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, 
-                 "vget_ip_map( ip: %s domain: {return value} )\n",
-                 ip );
-    }
-#endif
-
  int ret = -1;
 
-    if ( ip == NULL || strlen(ip) <= 0 ) return(VA_INVALID_IP_ADDRESS);
-    if ( domain == NULL ) return(VA_INVALID_DOMAIN_NAME);
-    if ( vauth_open_read() ) return(verrori);
+    if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
+    if ( domain == NULL ) return(-2);
+    if ( vauth_open_read() != 0 ) return(-3);
 
-    qnprintf(SqlBufRead, SQL_BUF_SIZE, 
-             "select domain from ip_alias_map where ip_addr = '%s'",
-             ip);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vget_ip_map query\n%s\n", SqlBufRead );
-    }
-#endif
+    qnprintf(SqlBufRead, SQL_BUF_SIZE, "select domain from ip_alias_map where ip_addr = '%s'",
+        ip);
     if (mysql_query(&mysql_read,SqlBufRead)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vget_ip_map failed for IP %s - %s\n", 
-                 ip, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "Get IP map query" );
-        }
-        return( verrori );
+        return(-1);
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vget_ip_map - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "Get IP map read" );
-        }
-        return(verrori);
+        fprintf(stderr, "vget_ip_map: store result failed 4\n");
+        return(-4);
     }
     while((row = mysql_fetch_row(res_read))) {
         ret = 0;
         strncpy(domain, row[0], domain_size);
     }
     mysql_free_result(res_read);
-
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-        fprintf( stderr, "   Returned domain: %s\n\n", domain );
-    }
-#endif
-
     return(ret);
 }
-
-/************************************************************************
- *
- *  vadd_ip_map
- */
 
 int vadd_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
-    if (vauth_open_update()) return (verrori);
+    if ( vauth_open_update() != 0 ) return(-1);
 
     qnprintf(SqlBufUpdate,SQL_BUF_SIZE,  
       "replace into ip_alias_map ( ip_addr, domain ) values ( '%s', '%s' )",
       ip, domain);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-         fprintf( stderr, "vadd_ip_map query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_ip_map_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vadd_ip_map retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vadd_ip_map ( ip: %s domain: %s ) failed - %s\n", 
-                     ip, domain, mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Add IP map" );
-            }
-            return( verrori );
+            return(-1);
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  vdel_ip_map
- */
-
 int vdel_ip_map( char *ip, char *domain) 
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vadd_ip_map( ip: %s domain: %s )\n",
-                         ip, domain );
-    }
-#endif
-
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
-    if (vauth_open_update()) return (verrori);
+    if ( vauth_open_update() != 0 ) return(-1);
 
     qnprintf( SqlBufUpdate,SQL_BUF_SIZE,  
         "delete from ip_alias_map where ip_addr = '%s' and domain = '%s'",
             ip, domain);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vdel_ip_map\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vdel_ip_map ( ip: %s domain: %s ) failed - %s\n", 
-                 ip, domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors ) {
-            vsqlerror( stderr, "Del IP map" );
-        }
-        return( verrori );
+        return(0);
     } 
     return(0);
 }
-
-/************************************************************************
- *
- *  vshow_ip_map
- */
 
 int vshow_ip_map( int first, char *ip, char *domain )
 {
  static int more = 0;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, 
-                 "vshow_ip_map( first: %i ip: {return} domain: {Return} )\n",
-                 first );
-    }
-#endif
-
-    if ( ip == NULL || strlen(ip) <= 0 ) return(VA_INVALID_IP_ADDRESS);
-    if ( domain == NULL ) return(VA_INVALID_DOMAIN_NAME);
-    if ( vauth_open_read() ) return(verrori);
+    if ( ip == NULL ) return(-1);
+    if ( domain == NULL ) return(-1);
+    if ( vauth_open_read() != 0 ) return(-1);
 
     if ( first == 1 ) {
 
@@ -1778,50 +975,15 @@ int vshow_ip_map( int first, char *ip, char *domain )
         if (res_read!=NULL) mysql_free_result(res_read);
         res_read = NULL;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vshow_ip_map query\n%s\n", SqlBufRead );
-    }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
             vcreate_ip_map_table();
             if (mysql_query(&mysql_read,SqlBufRead)) {
-                snprintf(sqlerr, MAX_BUFF, 
-                         "   vshow_ip_map ( domain: %s ) failed - %s\n", 
-                         domain, mysql_error( &mysql_update ));
-                snprintf(sqlerr, MAX_BUFF, 
-                         "   - %s\n", 
-                         domstr, user, mysql_error( &mysql_update ));
-                last_query = SqlBufUpdate;
-                verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-                if( show_trace ) {
-                    fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-                } 
-#endif
-                if( showerrors )  {
-                    vsqlerror( stderr, "Show IP map query" );
-                }
                 return(0);
             }
         }
 
         if (!(res_read = mysql_store_result(&mysql_read))) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vshow_ip_map - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Show IP map read" );
-            }
+            fprintf(stderr, "vmysql: store result failed 5\n");
             return(0);
         }
     } else if ( more == 0 ) {
@@ -1832,13 +994,6 @@ int vshow_ip_map( int first, char *ip, char *domain )
         strncpy(ip, row[0], 18); 
         strncpy(domain, row[1], 156); 
         more = 1;
-#ifdef VPOPMAIL_DEBUG
-        if( dump_data ) {
-            fprintf( stderr, "   Returned ip: %s domain: %s\n\n", 
-                     ip, domain );
-        }
-#endif
-
         return(1);
     }
     more = 0;
@@ -1848,75 +1003,25 @@ int vshow_ip_map( int first, char *ip, char *domain )
 }
 #endif
 
-/************************************************************************
- *
- *  vread_dir_control
- */
-
 int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  int found = 0;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vread_dir_control( domain: %s uid: %i gid %i )\n",
-                         domain, uid, gid );
-    }
-#endif
-
-    if ( vauth_open_read() ) return(verrori);
+    if ( vauth_open_read() != 0 ) return(-1);
     qnprintf(SqlBufRead, SQL_BUF_SIZE, 
         "select %s from dir_control where domain = '%s'", 
         DIR_CONTROL_SELECT, domain );
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vread_dir_control query\n%s\n", SqlBufRead );
-        }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_dir_control(domain);
         qnprintf(SqlBufRead, SQL_BUF_SIZE, 
             "select %s from dir_control where domain = '%s'", 
            DIR_CONTROL_SELECT, domain );
-#ifdef VPOPMAIL_DEBUG
-           if( show_query ) {
-               fprintf( stderr, "vread_dir_control retry\n%s\n", SqlBufRead );
-           }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vread_dir_control failed %s - %s\n", 
-                     domain, mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Read dir control query" );
-            }
-            return( verrori );
+            return(-1);
         }
     }
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vread_dircontrol - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
         fprintf(stderr, "vread_dir_control: store result failed 6\n");
-        if( showerrors )  {
-            vsqlerror( stderr, "Read dir control read" );
-        }
         return(0);
     }
 
@@ -1943,7 +1048,6 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
         vdir->level_index[2] = atoi(row[14]);
 
         strncpy(vdir->the_dir, row[15], MAX_DIR_NAME);
-
     }
     mysql_free_result(res_read);
 
@@ -1963,48 +1067,12 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
         vdir->level_max = MAX_DIR_LEVELS;
         vdir->the_dir[0] = 0;
     }
-
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-        fprintf( stderr, "   curr_users:\t%li\n", vdir->cur_users );
-        fprintf( stderr, "   level_curr:\t%i\n", vdir->level_cur );
-        fprintf( stderr, "   level_max:\t%i\n", vdir->level_max );
-  
-        fprintf( stderr, "   level_start:\t%i\t%i\t%i\n", 
-                 vdir->level_start[0], vdir->level_start[1], 
-                 vdir->level_start[2] );
-
-        fprintf( stderr, "   level_end:\t%i\t%i\t%i\n", 
-                 vdir->level_end[0], vdir->level_end[1], 
-                 vdir->level_end[2] );
-
-        fprintf( stderr, "   level_mod:\t%i\t%i\t%i\n", 
-                 vdir->level_mod[0], vdir->level_mod[1], 
-                 vdir->level_mod[2] );
-
-        fprintf( stderr, "   level_index:\t%i\t%i\t%i\n", 
-                 vdir->level_index[0], vdir->level_index[1], 
-                 vdir->level_index[2] );
-    }
-#endif
     return(0);
 }
 
-/************************************************************************
- *
- *  vwrite_dir_control
- */
-
 int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vwrite_dir_control( domain: %s uid: %i gid %i )\n",
-                         domain, uid, gid );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( vauth_open_update() != 0 ) return(-1);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
 domain, cur_users, \
@@ -2026,48 +1094,20 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     vdir->level_index[0], vdir->level_index[1], vdir->level_index[2],
     vdir->the_dir);
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vwrite_dir_control query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vwrite_dir_control retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   write_dir_control failed %s - %s\n", 
-                     domain, mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Write dir control" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[b]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
 
     return(0);
 }
 
-/************************************************************************
- *
- *  vcreate_dir_control
- */
-
 void vcreate_dir_control(char *domain)
 {
-  if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT)) return;
+  if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1)) return;
 
     /* this next bit should be replaced with a call to vwrite_dir_control */
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
@@ -2086,390 +1126,136 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
 '')\n",
     domain, MAX_DIR_LEVELS, MAX_DIR_LIST-1, MAX_DIR_LIST-1, MAX_DIR_LIST-1);
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vcreate_dir_control query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vcreate_dir_control failed %s - %s\n", 
-                 domain, mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        } 
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "Create Dir control" );
-        }
+        fprintf(stderr, "vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
         return;
     }
 }
 
-/************************************************************************
- *
- *  vdel_dir_control
- */
-
 int vdel_dir_control(char *domain)
 {
+ int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vdel_dir_control( domain: %s )\n", domain );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from dir_control where domain = '%s'", 
         domain); 
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vdel_dir_control query\n%s\n", SqlBufUpdate );
-        }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vdel_dir_control retry\n%s\n", SqlBufUpdate );
-        }
-#endif
             if (mysql_query(&mysql_update,SqlBufUpdate)) {
-                snprintf(sqlerr, MAX_BUFF, 
-                         "   vdel_dir_control failed %s - %s\n", 
-                         domain, mysql_error( &mysql_update ));
-                last_query = SqlBufUpdate;
-                verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-                if( show_trace ) {
-                    fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-                }
-#endif
-                if( showerrors )  {
-                    vsqlerror( stderr, "Delete dir control" );
-                }
-                return( verrori );
+                fprintf(stderr, "vmysql: sql error[e]: %s\n", mysql_error(&mysql_update));
+                return(-1);
         }
     }
 
     return(0);
 }
-
-/************************************************************************
- *
- *  vset_lastauth
- */
 
 #ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
+ int err;
 
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
 "replace into lastauth set user='%s', domain='%s', \
 remote_ip='%s', timestamp=%lu", user, domain, remoteip, time(NULL)); 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vset_lastauth query\n%s\n", SqlBufUpdate );
-    } 
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_lastauth_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vset_lastauth retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vset_lastauth %s@%s - %s\n", 
-                     user, domain, mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Set last auth" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[f]: %s\n", mysql_error(&mysql_update));
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  vget_lastauth
- */
-
 time_t vget_lastauth(struct vqpasswd *pw, char *domain)
 {
+ int err;
  time_t mytime;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vget_lastauth( user: %s domain: %s )\n",
-                         pw->pw_name, domain );
-    }
-#endif
-
-    if ( vauth_open_read() ) return(verrori);
+    if ( (err=vauth_open_read()) != 0 ) return(err);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
     "select timestamp from lastauth where user='%s' and domain='%s'", 
         pw->pw_name, domain);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vget_lastauty query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vget_lastauth retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vget_lastauth failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Get last auth query" );
-            }
+            fprintf(stderr, "vmysql: sql error[g]: %s\n", mysql_error(&mysql_read));
             return(0);
         }
     }
-    if( !(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vget_lastauth - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "Get last auth read" );
-        }
-        return(0);
-
-    }
+    res_read = mysql_store_result(&mysql_read);
     mytime = 0;
     while((row = mysql_fetch_row(res_read))) {
         mytime = atol(row[0]);
     }
     mysql_free_result(res_read);
-
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-//    need to do the cache changes first...
-//    fprintf( stderr, "   Time: %i  IP: %s\n", 
-//             (int)lastauthtime, lastauthip );
-    }
-#endif
-
     return(mytime);
 }
-
-/************************************************************************
- *
- *  vget_lastauthip
- */
 
 char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[100];
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vget_lastauthip( user: %s domain: %s )\n",
-                         pw->pw_name, domain );
-    }
-#endif
-
-    if ( vauth_open_read() ) return(NULL);
+    if ( vauth_open_read() != 0 ) return(NULL);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
     "select remote_ip from lastauth where user='%s' and domain='%s'", 
         pw->pw_name, domain);
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vget_lastauthip query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vget_lastauthip retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vget_alstauthip failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Get last auth ip query" );
-            }
+            fprintf(stderr, "vmysql: sql error[h]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
-
-    if( !(res_read = mysql_store_result(&mysql_read)))  {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vget_lastauthip - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query ); 
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "Get last auth ip read" );
-        }
-        return(NULL);
-    }
-
+    res_read = mysql_store_result(&mysql_read);
     while((row = mysql_fetch_row(res_read))) {
         strncpy(tmpbuf,row[0],100);
     }
-
     mysql_free_result(res_read);
-
-#ifdef VPOPMAIL_DEBUG
-    if( dump_data ) {
-//    need to do the cache changes first...
-//    fprintf( stderr, "   Time: %i  IP: %s\n", 
-//             (int)lastauthtime, lastauthip );
-    }
-#endif
-
     return(tmpbuf);
 }
 
-/************************************************************************
- *
- *  vcreate_lastauth_table
- */
-
 void vcreate_lastauth_table()
 {
-  vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT);
+  vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT, 1);
+  return;
 }
 #endif /* ENABLE_AUTH_LOGGING */
 
-/************************************************************************
- *
- *  valias_select
- */
-
 #ifdef VALIAS
 struct linklist *valias_current = NULL;
+
 char *valias_select( char *alias, char *domain )
 {
+ int err;
  struct linklist *temp_entry = NULL;
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select( alias: %s domain: %s )\n",
-                         alias, domain );
-    }
-#endif
 
     /* remove old entries as necessary */
     while (valias_current != NULL)
         valias_current = linklist_del (valias_current);
 
     /* if we can not connect, set the verrori value */
-    if ( vauth_open_read() ) return(NULL);
+    if ( (err=vauth_open_read()) != 0 ) {
+      return(NULL);
+    }
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, "select valias_line from valias \
 where alias = '%s' and domain = '%s'", alias, domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_select query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_select retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_select failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "valias_select query" );
-            }
+            fprintf(stderr, "vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
-    if( !(res_read = mysql_store_result(&mysql_read)))  {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   valias_select - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "valias select read" );
-        }
-        return(NULL);
-    }
-
+    res_read = mysql_store_result(&mysql_read);
     while ((row = mysql_fetch_row(res_read))) {
         temp_entry = linklist_add (temp_entry, row[0], "");
         if (valias_current == NULL) valias_current = temp_entry;
@@ -2480,323 +1266,124 @@ where alias = '%s' and domain = '%s'", alias, domain );
     else return(valias_current->data);
 }
 
-/************************************************************************
- *
- *  valias_select_next
- */
-
 char *valias_select_next()
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select_next()\n");
-    }
-#endif
-
     if (valias_current == NULL) return NULL;
- 
+
     valias_current = linklist_del (valias_current);
 
     if (valias_current == NULL) return NULL;
-    else {
-#ifdef VPOPMAIL_DEBUG
-        if( dump_data ) {
-            fprintf(stderr, "   %s\n", valias_current->data );
-        }
-#endif
-        return valias_current->data;
-    }
+    else return valias_current->data;
 }
 
 int valias_insert( char *alias, char *domain, char *alias_line)
 {
+ int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_insert( alias: %s domain: %s line: %s )\n",
-                 alias, domain, alias_line );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
-
+    if ( (err=vauth_open_update()) != 0 ) return(err);
     while(*alias_line==' ' && *alias_line!=0) ++alias_line;
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "insert into valias \
 ( alias, domain, valias_line ) values ( '%s', '%s', '%s')",
         alias, domain, alias_line );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_insert query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_insert retry\n%s\n", SqlBufUpdate );
-        } 
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_insert failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "valias select next" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[k]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  valias_remove
- */
-
 int valias_remove( char *alias, char *domain, char *alias_line)
 {
+ int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_remove( alias: %s domain: %s line: %s )\n",
-                         alias, domain, alias_line );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
 and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_remove query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_remove retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_remove failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "valias remove" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  valias_delete
- */
-
 int valias_delete( char *alias, char *domain)
 {
+ int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_delete( alias: %s domain: %s )\n",
-                         alias, domain );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
 and domain = '%s'", alias, domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_delete query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_delete retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_delete failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "valias delete" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[l]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  valias_delete_domain
- */
-
 int valias_delete_domain( char *domain)
 {
+ int err;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_delete_domain( domain: %s )\n", domain );
-    }
-#endif
-
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where domain = '%s'", 
         domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_delete_domain query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_delete_domain retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_delete_domain failed %s - %s\n", 
-                     domain, mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "valias delete domain" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[m]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
     return(0);
 }
 
-/************************************************************************
- *
- *  vcreate_valias_table
- */
-
 void vcreate_valias_table()
 {
-  vauth_create_table ("valias", VALIAS_TABLE_LAYOUT);
+  vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);
 }
 
 char *valias_select_all( char *alias, char *domain )
 {
+ int err;
  struct linklist *temp_entry = NULL;
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select_all( alias: %s domain: %s )\n", 
-                 alias, domain );
-    }
-#endif
 
     /* remove old entries as necessary */
     while (valias_current != NULL)
         valias_current = linklist_del (valias_current);
 
-    if ( vauth_open_read() ) return(NULL);
+    if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
         "select alias, valias_line from valias where domain = '%s' order by alias", domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vcreate_valias_table query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vcreate_valias_table retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_select_all failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "create alias table query" );
-            }
+            fprintf(stderr, "vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
-    if(!( res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vcreate_alias_table - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "create alias table read" );
-        }
-        return(NULL);
-    }
-
+    res_read = mysql_store_result(&mysql_read);
     while ((row = mysql_fetch_row(res_read))) {
         temp_entry = linklist_add (temp_entry, row[1], row[0]);
         if (valias_current == NULL) valias_current = temp_entry;
@@ -2810,29 +1397,14 @@ char *valias_select_all( char *alias, char *domain )
     }
 }
 
-/************************************************************************
- *
- *  valias_select_all_next
- */
-
 char *valias_select_all_next(char *alias)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select_all_next( alias: %s )\n", alias );
-    }
-#endif
     if (valias_current == NULL) return NULL;
     valias_current = linklist_del (valias_current);
-     
+            
     if (valias_current == NULL) return NULL; /* no results */
     else {
         strcpy (alias, valias_current->d2);
-#ifdef VPOPMAIL_DEBUG
-        if( dump_data ) {
-            fprintf(stderr, "   alias: %s something: %s\n", alias, valias_current->data );
-        }
-#endif
         return(valias_current->data);
     }
 }
@@ -2846,12 +1418,6 @@ char *valias_select_names( char *alias, char *domain )
 {
  struct linklist *temp_entry = NULL;
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select_names( alias: %s domain: %s )\n",
-    }
-             alias, domain );
-#endif      
 
     /* remove old entries as necessary */
     while (valias_current != NULL)
@@ -2862,51 +1428,17 @@ char *valias_select_names( char *alias, char *domain )
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
         "select distinct alias from valias where domain = '%s' order by alias", domain );
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "valias_select_names query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "valias_select_names retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   valias_select_names failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
             verrori = VA_QUERY_FAILED;
 
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "select names query" );
-            }
             return(NULL);
         }
     }
     if(!( res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   valias_select_names - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
         verrori = VA_STORE_RESULT_FAILED;
 
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "select names read" );
-        }
         return(NULL);
     }
 
@@ -2930,22 +1462,12 @@ char *valias_select_names( char *alias, char *domain )
 
 char *valias_select_names_next(char *alias)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "valias_select_names_next( alias: %s )\n", alias );
-    }
-#endif
     if (valias_current == NULL) return NULL;
     valias_current = linklist_del (valias_current);
  
     if (valias_current == NULL) return NULL; /* no results */
     else {
         strcpy (alias, valias_current->d2);
-#ifdef VPOPMAIL_DEBUG
-        if( dump_data ) {
-            fprintf(stderr, "   alias: %s something: %s\n", alias, valias_current->data );
-        }
-#endif
         return(valias_current->data);
     }
 }
@@ -2964,29 +1486,16 @@ void valias_select_names_end() {
 
 #endif
 
-/************************************************************************
- *
- *  logmysql
- */
-
 #ifdef ENABLE_SQL_LOGGING
 int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
 {
+ int err;
  time_t mytime;
  
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "logmysql( verror: %i user: %s domain: %s " 
-                         "password %s name: %s ip: %s log %s )\n",
-                         verror, TheUser, TheDomain, ThePass, TheName,
-                         IpAddr, LogLine );
-    }
-#endif
-
 
     mytime = time(NULL);
-    if (vauth_open_update()) return (verrori);
+    if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
         "INSERT INTO vlog set user='%s', passwd='%s', \
@@ -2994,78 +1503,34 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass,
         error=%i, timestamp=%d", TheUser, ThePass, TheDomain,
         TheName, IpAddr, LogLine, verror, (int)mytime);
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "logmysql query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_vlog_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "logmysql retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   logmysql failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "Log mysql" );
-            }
-            return( verrori );
+                fprintf(stderr, "error inserting into vlog table\n");
         }
     }
     return(0);
 }
 
 
-/************************************************************************
- *
- *  vcreate_vlog_table
- */
-
 void vcreate_vlog_table()
 {
-  vauth_create_table ("vlog", VLOG_TABLE_LAYOUT);
+  vauth_create_table ("vlog", VLOG_TABLE_LAYOUT, 1);
 }
 #endif
-
-/************************************************************************
- *
- *  vcreat_limits_table
- */
 
 #ifdef ENABLE_MYSQL_LIMITS
 void vcreate_limits_table()
 {
-  vauth_create_table ("limits", LIMITS_TABLE_LAYOUT);
+  vauth_create_table ("limits", LIMITS_TABLE_LAYOUT, 1);
 }
-
-/************************************************************************
- *
- *  vget_limits
- */
 
 int vget_limits(const char *domain, struct vlimits *limits)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vget_limits( domain: %s )\n", domain );
-    }
-#endif
-
     vdefault_limits (limits);
 
-    if ( vauth_open_read() ) return(verrori);
+    if (vauth_open_read() != 0)
+         return(-1);
 
     qnprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT maxpopaccounts, maxaliases, "
         "maxforwards, maxautoresponders, maxmailinglists, diskquota, "
@@ -3078,53 +1543,16 @@ int vget_limits(const char *domain, struct vlimits *limits)
         "WHERE domain = '%s'", domain);
 
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vget_limits query\n%s\n", SqlBufRead );
-    }
-#endif
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_limits_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vget_limits retry\n%s\n", SqlBufRead );
-        }
-#endif
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vget_limits %s failed - %s\n", 
-                     domain, mysql_error( &mysql_update ));
-            last_query = SqlBufRead;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "vget limits query" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[p]: %s\n", mysql_error(&mysql_read));
+            return(-1);
         }
     }
-
     if (!(res_read = mysql_store_result(&mysql_read))) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vget_limits - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufRead;
-        verrori = VA_STORE_RESULT_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "fget limits read" );
-        }
-        return(verrori);
+        fprintf(stderr, "vmysql: store result failed 7\n");
+        return -1;
     }
 
     if (mysql_num_rows(res_read) == 0) {
@@ -3167,49 +1595,13 @@ int vget_limits(const char *domain, struct vlimits *limits)
     }
     mysql_free_result(res_read);
 
-#ifdef VPOPMAIL_DEBUG 
-    if( dump_data ) {
-        fprintf( stderr, 
-            "   Max:\n"
-            "      pop: %i  alias: %i  forward: %i auto: %i list: %i\n"
-            "   Quota:\n"
-            "      disk: %i default: %i msgcount: %i\n"
-            "   Disable:\n"
-            "      pop: %i imap: %i dialup: %i  pw change: %i "
-            "webmail: %i relay: %i smtp: %i\n"
-            "   Perm:\n"
-            "      account: %i alias: %i forward: %i auto: %i "
-            "maillist: %i users: %i moderate: %i quota: %i def quota: %i\n\n",
-            limits->maxpopaccounts, limits->maxaliases, limits->maxforwards,
-            limits->maxautoresponders, limits->maxmailinglists, 
-
-            limits->diskquota, limits->defaultquota, 
-            limits->defaultmaxmsgcount,
-
-            limits->disable_pop, limits->disable_imap,
-            limits->disable_dialup, limits->disable_passwordchanging,
-            limits->disable_webmail, limits->disable_relay,
-            limits->disable_smtp,
-
-            limits->perm_account, limits->perm_alias,
-            limits->perm_forward, limits->perm_autoresponder,
-            limits->perm_maillist, limits->perm_maillist_users,
-            limits->perm_maillist_moderators, limits->perm_quota,
-            limits->perm_defaultquota);
-    }
-#endif
-
     return 0;
 }
 
-/************************************************************************
- *
- *  vset_limits
- */
-
 int vset_limits(const char *domain, const struct vlimits *limits)
 {
-    if (vauth_open_update()) return (verrori);
+    if (vauth_open_update() != 0)
+        return(-1);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "REPLACE INTO limits ("
         "domain, maxpopaccounts, maxaliases, "
@@ -3248,88 +1640,27 @@ int vset_limits(const char *domain, const struct vlimits *limits)
         limits->perm_quota,
         limits->perm_defaultquota);
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vset_limits query\n%s\n", SqlBufUpdate );
-    }
-#endif
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_limits_table();
-#ifdef VPOPMAIL_DEBUG
-        if( show_query ) {
-            fprintf( stderr, "vset_limits retry\n%s\n", SqlBufUpdate );
-        }
-#endif
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
-            snprintf(sqlerr, MAX_BUFF, 
-                     "   vset_limits failed - %s\n", 
-                     mysql_error( &mysql_update ));
-            last_query = SqlBufUpdate;
-            verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-            if( show_trace ) {
-                fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-            }
-#endif
-            if( showerrors )  {
-                vsqlerror( stderr, "vset limits" );
-            }
-            return( verrori );
+            fprintf(stderr, "vmysql: sql error[q]: %s\n", mysql_error(&mysql_update));
+            return(-1);
         }
     }
 
     return 0;
 }
-
-/************************************************************************
- *
-    if( show_trace ) {
- *  vdel_limits
- */
 
 int vdel_limits(const char *domain)
 {
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vdel_limits( domain: %s )\n", domain );
-    }
-#endif
-
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM limits WHERE domain = '%s'", domain);
 
-#ifdef VPOPMAIL_DEBUG
-    if( show_query ) {
-        fprintf( stderr, "vdel_limits query\n%s\n", SqlBufUpdate );
-    }
-#endif
-    if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        snprintf(sqlerr, MAX_BUFF, 
-                 "   vdel_limits failed - %s\n", 
-                 mysql_error( &mysql_update ));
-        last_query = SqlBufUpdate;
-        verrori = VA_QUERY_FAILED;
-
-#ifdef VPOPMAIL_DEBUG
-        if( show_trace ) {
-            fprintf(stderr, "%s\n%s\n", sqlerr, last_query );
-        }
-#endif
-        if( showerrors )  {
-            vsqlerror( stderr, "vdel limits" );
-        }
-        return( verrori );
-    }
-
+    if (mysql_query(&mysql_update,SqlBufUpdate))
+        return(-1);
     return 0;
 }
 
 #endif
-
-/************************************************************************
- *
- *  vauth_crypt
- */
 
 int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {

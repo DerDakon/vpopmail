@@ -1,5 +1,5 @@
 /*
- * $Id: vpopbull.c,v 1.11 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vpopbull.c,v 1.12 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -181,7 +181,6 @@ int process_domain(domain, fsi, fsx )
  time_t tm;
  int pid;
  int first = 1;
-
 
 	gethostname(hostname,sizeof(hostname));
 	pid=getpid();

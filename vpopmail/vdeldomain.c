@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.8 2004-12-28 00:31:05 rwidmer Exp $
+ * $Id: vdeldomain.c,v 1.9 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
 	}
 
         if( doit ) {
-	 	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
-			printf("Error: %s\n", verror(err));
-		}
+	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
+		printf("Error: %s\n", verror(err));
+	}
 	} else {
 		printf("   use -f to force delete of domain and all aliases\n");
 	}
@@ -120,7 +120,7 @@ void get_options(int argc,char **argv)
 				printf("version: %s\n", VERSION);
 				break;
 			case 'f':
-                                force=1;
+				force=1;
 				break;
 			default:
 				errflag = 1;

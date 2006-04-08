@@ -10,9 +10,6 @@
 #undef DOMAINS_DIR
 
 /* "" */
-#undef DOMAIN_QUOTAS
-
-/* "" */
 #undef ENABLE_AUTH_LOGGING
 
 /* "" */
@@ -44,6 +41,9 @@
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
+
+/* Define to 1 if you have the <crypt.h> header file. */
+#undef HAVE_CRYPT_H
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
@@ -180,6 +180,9 @@
 /* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
 #undef HAVE_UTIME_NULL
 
+/* Define to 1 if you have the `warn' function. */
+#undef HAVE_WARN
+
 /* "" */
 #undef IP_ALIAS_DOMAINS
 
@@ -194,12 +197,6 @@
 
 /* "" */
 #undef MD5_PASSWORDS
-
-/* "" */
-#undef MIN_LOGIN_GRACE
-
-/* "" */
-#undef MIN_LOGIN_INTERVAL
 
 /* "" */
 #undef MYSQL_REPLICATION
@@ -260,12 +257,6 @@
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
-
-/* "" */
-#undef SPAMASSASSIN
-
-/* "" */
-#undef SPAMC_PROG
 
 /* "" */
 #undef SQWEBMAIL_PASS
@@ -331,13 +322,7 @@
 #undef VPOPMAILUID
 
 /* "" */
-#undef VPOPMAIL_DEBUG
-
-/* "" */
 #undef VPOPUSER
-
-/* "" */
-#undef WEBMAIL_IP
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
@@ -345,11 +330,9 @@
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
 #undef inline
-#endif
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t

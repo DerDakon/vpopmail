@@ -1,6 +1,5 @@
-#ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.10 2004-11-23 15:47:03 tomcollins Exp $
+ * $Id: vpalias.c,v 1.11 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,6 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+#include "config.h"
+#ifndef VALIAS 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
 
@@ -46,7 +46,6 @@ void valias_select_names_end();
 char *valias_select( char *alias, char *domain )
 {
  char *tmpstr;
- struct stat mystat;
  static char tmpbuf[156];
  uid_t uid;
  gid_t gid;
@@ -73,7 +72,10 @@ char *valias_select( char *alias, char *domain )
       return( NULL );
     }
 
-    if ( alias_fs != NULL ) fclose(alias_fs);
+    if ( alias_fs != NULL ) {
+      fclose(alias_fs);
+      alias_fs = NULL;
+    }
 
     if ((tmpstr=vget_assign(domain,alias_line,MAX_ALIAS_LINE,&uid,&gid))==NULL) {
 	printf("invalid domain, not in qmail assign file\n");
@@ -84,13 +86,6 @@ char *valias_select( char *alias, char *domain )
     for (p = alias; (i < (int)sizeof(tmpbuf) - 1) && (*p != '\0'); p++)
       tmpbuf[i++] = (*p == '.' ? ':' : *p);
     tmpbuf[i] = '\0';
-
-
-    if(!lstat(tmpbuf, &mystat) && S_ISLNK(mystat.st_mode)) {
-       strcpy(tmpbuf, "EzMLM Mailing List");
-       return( tmpbuf );
-    }
-
     if ( (alias_fs = fopen(tmpbuf, "r")) == NULL ) {
     	return(NULL);
     }
@@ -240,10 +235,13 @@ char *valias_select_names( char *domain )
      *  Allocate a buffer for them
      */    
 
+    if (mydir!=NULL) closedir(mydir);
+
+    if (max_names == 0) return NULL;
+
     names = malloc( max_names * sizeof(char *));
     memset(names, 0, max_names * sizeof(char *));
 
-    if (mydir!=NULL) closedir(mydir);
     if ( (mydir = opendir(Dir)) == NULL ) return(NULL);
 
     while ((mydirent=readdir(mydir))!=NULL) {
@@ -281,7 +279,10 @@ char *valias_select_names( char *domain )
       }
     }
 
-    if (mydir!=NULL) closedir(mydir);
+    if (mydir!=NULL) {
+      closedir(mydir);
+      mydir = NULL;
+    }
     qsort(names, num_names, sizeof(char *), sort_compare );    
 
     return(valias_select_names_next());
@@ -322,6 +323,7 @@ char *valias_select_all( char *alias, char *domain )
 {
  uid_t uid;
  gid_t gid;
+ char *result;
 
     if ( alias == NULL )  { 
       verrori=VA_NULL_POINTER;  
@@ -348,7 +350,9 @@ char *valias_select_all( char *alias, char *domain )
 	return(NULL);
     }
 
-    strcpy(alias, valias_select_names( domain ));
+    result = valias_select_names( domain );
+    if (result == NULL) return NULL;
+    strcpy(alias, result);
     strncpy(mydomain, domain, MAX_FILE_SIZE);
     return(valias_select(alias, domain));
 }

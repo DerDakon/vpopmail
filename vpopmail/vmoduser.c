@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.11 2005-03-11 11:43:44 rwidmer Exp $
+ * $Id: vmoduser.c,v 1.12 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
 void usage()
 {
-    printf( "vmoduser: usage: [options] email_addr or domain ( for the entire domain )\n");
+    printf( "vmoduser: usage: [options] email_addr or domain (for each user in domain)\n");
     printf("options: -v ( display the vpopmail version number )\n");
     printf("         -n ( don't rebuild the vpasswd.cdb file )\n");
     printf("         -q quota ( set quota )\n");
@@ -136,16 +136,16 @@ void usage()
     printf("the following options are bit flags in the gid int field\n");
     printf("         -x ( clear all flags )\n");
     printf("         -d ( don't allow user to change password )\n");
-    printf("         -p ( disable pop access )\n");
-    printf("         -s ( disable smtp auth access )\n");
+    printf("         -p ( disable POP access )\n");
+    printf("         -s ( disable SMTP AUTH access )\n");
     printf("         -w ( disable webmail [IMAP from localhost*] access )\n");
-    printf("            ( *full list of webmail server IPs in vchkpw.c)\n");
+    printf("            ( * full list of webmail server IPs in vchkpw.c )\n");
     printf("         -i ( disable non-webmail IMAP access )\n");
     printf("         -b ( bounce all mail )\n");
     printf("         -o ( user is not subject to domain limits )\n");
     printf("         -r ( disable roaming user/pop-before-smtp )\n");
     printf("         -a ( grant qmailadmin administrator privileges )\n");
-    printf("         -S ( gramt system administrator privileges - access all domains )\n");
+    printf("         -S ( grant system administrator privileges - access all domains )\n");
     printf("         -E ( grant expert privileges - edit .qmail files )\n");
     printf("         -f ( disable spamassassin)\n");
     printf("         -F ( delete spam)\n");

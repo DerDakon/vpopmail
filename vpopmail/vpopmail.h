@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.22 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.23 2006-04-08 10:29:21 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -158,7 +158,9 @@ int parse_email( char *, char *, char *, int);
 int add_user_assign( char *, char *);
 int del_user_assign( char *);
 void lowerit( char *);
-char *crypt();
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
+#endif
 int update_file(char *, char *, int);
 int count_rcpthosts();
 int compile_morercpthosts();
@@ -199,7 +201,9 @@ char *date_header();
 char *get_remote_ip();
 char *maildir_to_email(const char *maildir);
 int qnprintf (char *buffer, size_t size, const char *format, ...);
-
+#ifndef HAVE_WARN
+#define warn(...) fprintf(stderr, __VA_ARGS__)
+#endif
 /* Even though this definition defines data as 4096 bytes, we only allocate just
  * enough memory to hold the data.
  */
@@ -234,5 +238,3 @@ void vsqlerror( FILE *f, char *comment );
 //  Error handling
 extern char sqlerr[MAX_BUFF];
 extern char *last_query;
-
-

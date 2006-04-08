@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.11 2004-12-28 00:31:05 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.12 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -145,7 +145,7 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
 {
     if ( DisplayAll ) {
         if(strcmp(domain, realdomain)==0)
-           printf("domain: %s\n", domain);
+            printf("domain: %s\n", domain);
         else
            printf("domain: %s (alias of %s)\n", domain, realdomain); 
         printf("uid:    %lu\n", (long unsigned)uid);
@@ -190,7 +190,7 @@ void display_all_domains()
 	if (strcmp(entry->domain, entry->realdomain) != 0) {
  		printf ("alias of: %s\n", entry->realdomain);
 	}
-     
+
 	printf ("\n");
         entry = get_domain_entries(NULL);
     }

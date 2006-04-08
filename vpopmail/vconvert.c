@@ -1,5 +1,5 @@
 /*
- * $Id: vconvert.c,v 1.8 2004-12-28 00:31:05 rwidmer Exp $
+ * $Id: vconvert.c,v 1.9 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ int do_all_domains()
                 printf("domain conversion failed\n");
                 /* should vexit -1 here? */
             } else {
-               printf("done\n");
+                printf("done\n");
             }
         }
 

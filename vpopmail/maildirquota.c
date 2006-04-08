@@ -1,6 +1,6 @@
 /*
- * $Id: maildirquota.c,v 1.10 2005-03-11 11:43:44 rwidmer Exp $
- * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
+ * $Id: maildirquota.c,v 1.11 2006-04-08 10:29:20 rwidmer Exp $
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,8 +49,10 @@ static int docheckquota(const char *dir, int *maildirsize_fdptr,
 static int docount(const char *, time_t *, off_t *, unsigned *);
 static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt);
+/* moved into maildirquota.h as non-static
 static int maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt);
+*/
 static int maildir_safeopen(const char *path, int mode, int perm);
 static char *str_pid_t(pid_t t, char *arg);
 static char *str_time_t(time_t t, char *arg);
@@ -95,6 +97,9 @@ struct vlimits limits;
 		/* convert from MB to bytes */
 		maxsize = limits.diskquota * 1024 * 1024;
 		maxcnt = limits.maxmsgcount;
+
+		/* only check the quota if one is set. */
+		if ((maxsize == 0) && (maxcnt == 0)) return 0;
 
 		if (vget_assign (domain, domdir, sizeof(domdir), NULL, NULL) == NULL)
 			return -1;
@@ -253,46 +258,18 @@ int readuserquota(const char* dir, long *sizep, int *cntp)
 int user_over_maildirquota( const char *dir, const char *q)
 {
 struct  stat    stat_buf;
-int     quotafd;
-int     ret_value;
+int     quotafd = -1;
+int     ret_value = 0;
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0 && *q)
         {
-                if (maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1)
-                        && errno != EAGAIN)
-                {
-                        if (quotafd >= 0)       close(quotafd);
-                        ret_value = 1;
-                } else {
-                        maildir_addquota(dir, quotafd, q, stat_buf.st_size, 1);
-                        if (quotafd >= 0)       close(quotafd);
-                        ret_value = 0;
-                }
-        } else {
-                ret_value = 0;
+                ret_value = (maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1)
+                        && errno != EAGAIN);
         }
 
+        if (quotafd != -1)       close(quotafd);
         return(ret_value);
-}
-
-void add_warningsize_to_quota( const char *dir, const char *q)
-{
-struct  stat    stat_buf;
-int     quotafd;
-char    quotawarnmsg[500];
-
-        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
-
-        if (stat(quotawarnmsg, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
-                stat_buf.st_size > 0 && *q)
-        {
-                maildir_checkquota(dir, &quotafd, q, stat_buf.st_size, 1);
-                if (quotafd >= 0)       close(quotafd);
-                maildir_addquota(dir, quotafd, q, 
-                    stat_buf.st_size, 1);
-                if (quotafd >= 0)       close(quotafd);
-        }
 }
 
 /* Read the maildirsize file */
@@ -407,7 +384,7 @@ int	npercentage=0;
 			break;
 		case 'C':
 
-			if (i < (int)n)
+			if (i < n)
 			{
 				*percentage=100;
 				return (-1);
@@ -460,7 +437,7 @@ static int docheckquota(const char *dir,
 char	*checkfolder=(char *)malloc(strlen(dir)+sizeof("/maildirfolder"));
 char	*newmaildirsizename;
 struct stat stat_buf;
-int	maildirsize_fd;
+int	maildirsize_fd = -1;
 off_t	maildirsize_size;
 unsigned maildirsize_cnt;
 unsigned maildirsize_nlines;
@@ -503,6 +480,8 @@ struct dirent *de;
 		if (maildirsize_nlines == 1 && tm < stat_buf.st_mtime + 15*60)
 			return (n);
 	}
+
+	/* rebuild the maildirsize file */
 
 	maxtime=0;
 	maildirsize_size=0;
@@ -613,7 +592,7 @@ struct dirent *de;
 		quota_type, percentage));
 }
 
-static int	maildir_addquota(const char *dir, int maildirsize_fd,
+int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
 	if (!quota_type || !*quota_type)	return (0);
@@ -697,7 +676,7 @@ int	n;
 	{
 		if (n)
 		{
-			if (n < (int)p->iov_len)
+			if (n < p->iov_len)
 			{
 				p->iov_base=
 					((char *)p->iov_base + n);

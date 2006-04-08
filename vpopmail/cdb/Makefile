@@ -43,7 +43,7 @@ compile cdbmake_pack.c cdbmake.h uint32.h
 compile: \
 warn-auto.sh conf-cc
 	( cat warn-auto.sh; \
-	echo exec "`head -1 conf-cc`" '-c $${1+"$$@"}' \
+	echo exec "`head -1 conf-cc`" -fPIC '-c $${1+"$$@"}' \
 	) > compile
 	chmod 755 compile
 
@@ -98,4 +98,3 @@ tryulong32.c compile load uint32.h1 uint32.h2
 	./tryulong32 ) >/dev/null 2>&1 \
 	&& cat uint32.h2 || cat uint32.h1 ) > uint32.h
 	rm -f tryulong32.o tryulong32
-

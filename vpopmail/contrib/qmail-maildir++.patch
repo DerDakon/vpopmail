@@ -164,7 +164,7 @@ diff -crN ../qmail-1.03/maildirflags.c ./maildirflags.c
 + #include	<sys/types.h>
 + #include	<string.h>
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + int maildir_hasflag(const char *filename, char flag)
 + {
@@ -260,7 +260,7 @@ diff -crN ../qmail-1.03/maildirgetquota.h ./maildirgetquota.h
 + extern "C" {
 + #endif
 + 
-+ static const char maildirgetquota_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char maildirgetquota_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + #define	QUOTABUFSIZE	256
 + 
@@ -293,7 +293,7 @@ diff -crN ../qmail-1.03/maildirmisc.h ./maildirmisc.h
 + extern "C" {
 + #endif
 + 
-+ static const char maildirmisc_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char maildirmisc_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + /*
 + **
@@ -452,7 +452,7 @@ diff -crN ../qmail-1.03/maildiropen.c ./maildiropen.c
 + 
 + #include	"maildirmisc.h"
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + char *maildir_getlink(const char *filename)
 + {
@@ -579,7 +579,7 @@ diff -crN ../qmail-1.03/maildirparsequota.c ./maildirparsequota.c
 + #include	<stdlib.h>
 + #include	<string.h>
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + int maildir_parsequota(const char *n, unsigned long *s)
 + {
@@ -664,7 +664,7 @@ diff -crN ../qmail-1.03/maildirquota.c ./maildirquota.c
 + #include	<time.h>
 + #include	"numlib.h"
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + /* Read the maildirsize file */
 + 
@@ -941,8 +941,8 @@ diff -crN ../qmail-1.03/maildirquota.c ./maildirquota.c
 + 	if (doaddquota(dir, maildirsize_fd, quota_type, maildirsize_size,
 + 		maildirsize_cnt, 1))
 + 	{
-+ 		free(newmaildirsizename);
 + 		unlink(newmaildirsizename);
++ 		free(newmaildirsizename);
 + 		close(maildirsize_fd);
 + 		*maildirsize_fdptr= -1;
 + 		free(checkfolder);
@@ -953,7 +953,7 @@ diff -crN ../qmail-1.03/maildirquota.c ./maildirquota.c
 + 
 + 	if (rename(newmaildirsizename, checkfolder))
 + 	{
-+ 		free(checkfolder);
++ 		/* free(checkfolder); */
 + 		unlink(newmaildirsizename);
 + 		close(maildirsize_fd);
 + 		*maildirsize_fdptr= -1;
@@ -1327,7 +1327,7 @@ diff -crN ../qmail-1.03/maildirquota.h ./maildirquota.h
 + extern "C" {
 + #endif
 + 
-+ static const char maildirquota_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char maildirquota_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + int maildir_checkquota(const char *,	/* Pointer to directory */
 + 	int *,	/* Initialized to -1, or opened descriptor for maildirsize */
@@ -1371,7 +1371,7 @@ diff -crN ../qmail-1.03/numlib.h ./numlib.h
 + extern "C" {
 + #endif
 + 
-+ static const char numlib_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char numlib_h_rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + #if	HAVE_CONFIG_H
 + #include	"config.h"
@@ -1424,7 +1424,7 @@ diff -crN ../qmail-1.03/overmaildirquota.c ./overmaildirquota.c
 + #include        <errno.h>
 + #include        <sys/stat.h>
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + 
 + 
@@ -1770,7 +1770,7 @@ diff -crN ../qmail-1.03/strpidt.c ./strpidt.c
 + #include	"numlib.h"
 + #include	<string.h>
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + char *str_pid_t(pid_t t, char *arg)
 + {
@@ -1802,7 +1802,7 @@ diff -crN ../qmail-1.03/strtimet.c ./strtimet.c
 + #include	"numlib.h"
 + #include	<string.h>
 + 
-+ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.1.1.1 2003-09-10 20:43:16 tomcollins Exp $";
++ static const char rcsid[]="$Id: qmail-maildir++.patch,v 1.2 2006-04-08 10:29:25 rwidmer Exp $";
 + 
 + char *str_time_t(time_t t, char *arg)
 + {

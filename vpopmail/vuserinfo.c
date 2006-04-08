@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.12 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vuserinfo.c,v 1.13 2006-04-08 10:29:21 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -301,7 +301,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
             display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
             display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");
             display_limit (mypw, SA_ADMIN,       "has system administrator access");
-            display_limit (mypw, SA_EXPERT,       "has expert access");
+            display_limit (mypw, SA_EXPERT,      "has expert access");
             display_limit (mypw, V_USER0,        "user flag 0 is set");
             display_limit (mypw, V_USER1,        "user flag 1 is set");
             display_limit (mypw, V_USER2,        "user flag 2 is set");

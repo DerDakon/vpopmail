@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.32 2004-12-30 07:46:14 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.33 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1511,8 +1511,7 @@ int logsql(	int verror, char *TheUser, char *TheDomain, char *ThePass,
   */
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp 
-  values('%s','%s','%s','%s','%s','%s',%i,%d", 
+  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp) values('%s','%s','%s','%s','%s','%s',%i,%d)", 
 	    TheUser, ThePass, TheDomain, TheName, 
 	    IpAddr, LogLine, verror, (int)mytime);
 
@@ -1521,8 +1520,7 @@ int logsql(	int verror, char *TheUser, char *TheDomain, char *ThePass,
     if( pgres ) PQclear(pgres);
     vcreate_vlog_table();
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp 
-  values('%s','%s','%s','%s','%s','%s',%i,%d", 
+  "INSERT INTO vlog (userid,passwd,domain,logon,remoteip,message,error,timestamp) values('%s','%s','%s','%s','%s','%s',%i,%d)", 
 	    TheUser, ThePass, TheDomain, TheName, 
 	    IpAddr, LogLine, verror, (int)mytime);
 

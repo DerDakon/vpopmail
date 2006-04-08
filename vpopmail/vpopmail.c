@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.48 2005-03-11 11:43:44 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.49 2006-04-08 10:29:20 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
+#include <errno.h>
+#include <err.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -357,8 +359,8 @@ int vdeldomain( char *domain )
 
   } else {
     /* this is an NOT aliased domain....
-     * (aliased domains dont have any filestructure of their own)
-     */
+   * (aliased domains dont have any filestructure of their own)
+   */
 
     /* check if the domain's dir exists */
     if ( stat(Dir, &statbuf) != 0 ) {
@@ -498,7 +500,7 @@ int vdeldomain( char *domain )
  *   If first parameter is "", return all entries.  Otherwise, only return
  *   entries where "real" domain matches the first parameter.
  * If first parameter is NULL, returns the next line in already open file.
- * 
+ *
  * Example 1.  Scan through all entries.
  *   domain_entry *e;
  *   e = get_domain_entries ("");
@@ -527,16 +529,16 @@ domain_entry *get_domain_entries (const char *match_real)
         static domain_entry entry;
         static char linebuf[MAX_BUFF];
         char *p;
-        
+
         if (match_real != NULL) {
                 if (fs != NULL) fclose (fs);
                 snprintf (linebuf, sizeof (linebuf), "%s/users/assign", QMAILDIR);
                 fs = fopen (linebuf, "r");
 
                 snprintf (match_buffer, sizeof (match_buffer), match_real);
-		vget_assign(match_buffer,NULL,0,NULL,NULL);
+                vget_assign(match_buffer,NULL,0,NULL,NULL);
         }
-        
+
         if (fs == NULL) {
            verrori = VA_CANNOT_READ_ASSIGN;
            return NULL;
@@ -545,32 +547,32 @@ domain_entry *get_domain_entries (const char *match_real)
         while (fgets (linebuf, sizeof (linebuf), fs) != NULL) {
                 /* ignore non-domain entries */
                 if (*linebuf != '+') continue;
-                
+
                 entry.domain = strtok (linebuf + 1, ":");
                 if (entry.domain == NULL) continue;
-                
+
                 /* ignore entries without '.' in them */
                 if (strchr (entry.domain, '.') == NULL) continue;
 
                 entry.realdomain = strtok (NULL, ":");
                 if (entry.realdomain == NULL) continue;
-                
+
                 /* remove trailing '-' from entry.domain */
                 *(entry.realdomain-2) = '\0';
-                
+
                 if ((p = strtok (NULL, ":")) == NULL) continue;
                 entry.uid = atoi (p);
 
                 if ((p = strtok (NULL, ":")) == NULL) continue;
                 entry.gid = atoi (p);
-                
+
                 entry.path = strtok (NULL, ":");
                 if (entry.path == NULL) continue;
-                
+
                 if (!*match_buffer || (strcmp (match_buffer, entry.realdomain) == 0))
                         return &entry;
         }
-        
+
         /* reached end of file, so we're done */
         fclose (fs);
         fs=NULL;
@@ -642,7 +644,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   }
         
   /* add the user to the auth backend */
-  /* NOTE: We really need to update this method to include the quota */
+  /* NOTE: We really need to update this method to include the quota. */
   if (vauth_adduser(username, domain, password, gecos, user_hash, apop )!=0) {
     fprintf(stderr, "Failed while attempting to add user to auth backend\n");
     /* back out of changes made so far */
@@ -664,7 +666,8 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
       strcpy (quota, "NOQUOTA");
   }
 
-  if(vsetuserquota (username, domain, quota)==VA_USER_DOES_NOT_EXIST){
+  if (vsetuserquota (username, domain, quota) == VA_USER_DOES_NOT_EXIST) {
+    /* server with replication, need to wait and try again */
     sleep(5);
     vsetuserquota (username, domain, quota);
   }
@@ -1144,7 +1147,7 @@ int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount,
 
   /* format the removal string */ 
   for(i=0;i<aliascount;i++) {
-    snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
+  snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
       aliases[i], real_domain, (long unsigned)uid, (long unsigned)gid, dir);
     virthosts[i] = strdup( search_string );
   }
@@ -1350,9 +1353,9 @@ int signal_process(char *name, int sig_num)
 
   while (fgets(tmpbuf1, sizeof(tmpbuf1), ps)!= NULL ) {
     if ( strstr( tmpbuf1, name ) != NULL && 
-         strstr(tmpbuf1,"supervise")==NULL &&
-         strstr(tmpbuf1,"multilog")==NULL &&
-         strstr(tmpbuf1,"svscan")==NULL) {
+         strstr(tmpbuf1, "supervise") == NULL &&
+         strstr(tmpbuf1, "multilog") == NULL &&
+         strstr(tmpbuf1, "svscan") == NULL) {
       tmpstr = strtok(tmpbuf1, PS_TOKENS);
       col = 0;
       do {
@@ -1364,7 +1367,7 @@ int signal_process(char *name, int sig_num)
         tmpstr = strtok(NULL, PS_TOKENS);
       } while ( tmpstr!=NULL );
       tmppid = atoi(pid);
-      if ( tmppid && ( tmppid != mypid )) { 
+      if ( tmppid && (tmppid != mypid) ) { 
         kill(tmppid,sig_num);
       }
     }
@@ -2204,19 +2207,38 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 int r_mkdir(char *path, uid_t uid, gid_t gid )
 {
  char tmpbuf[MAX_BUFF];
+ int err;
  int i;
+ struct stat sb;
 
-  for(i=0;path[i]!=0;++i){
-    if ( (i > 0) && (path[i] == '/') ) {
+  if (*path == '\0') return 0;
+
+  for(i=0; ;++i){
+    if ( (i > 0) && ((path[i] == '/') || (path[i] == '\0')) ) {
       tmpbuf[i] = 0;
-      if (mkdir(tmpbuf,VPOPMAIL_DIR_MODE) == 0)
+      err = mkdir(tmpbuf,VPOPMAIL_DIR_MODE);
+      if (err == 0)
         chown(tmpbuf, uid, gid);
+      else if (errno != EEXIST) {
+        /* Note that if tmpbuf is a file, we'll catch the error on the
+         * next directory creation (ENOTDIR) or when we verify that the
+         * directory exists and is a directory at the end of the function.
+         */
+        warn ("Unable to create directory %s: ", tmpbuf);
+        return -1;
+      }
+      if (path[i] == '\0') break;
     }
     tmpbuf[i] = path[i];
   }
-  mkdir(path,VPOPMAIL_DIR_MODE);
-  chown(path, uid, gid);
-  return(0);
+  if (stat (path, &sb) != 0) {
+    warn ("Couldn't stat %s: ", path);
+    return -1;
+  } else if (! S_ISDIR(sb.st_mode)) {
+    fprintf (stderr, "Error: %s is not a directory.\n", path);
+    return -1;
+  }
+  return 0;
 }
 
 /************************************************************************/
@@ -2506,7 +2528,7 @@ char *verror(int va_err )
 void vsqlerror( FILE *f, char *comment )
 {
     fprintf( f, "Error - %s. %s\n", verror( verrori ), comment );
-
+/*
     if( NULL != sqlerr && strlen(sqlerr) > 0 ) {
         fprintf( f,"%s",sqlerr);
     }
@@ -2514,6 +2536,7 @@ void vsqlerror( FILE *f, char *comment )
     if( NULL != last_query && strlen( last_query ) > 0 ) {
         fprintf( f,"%s", last_query);
     }
+*/
 }
 
 
@@ -2994,6 +3017,10 @@ int result;
   if ( rebuild_cdb ) {
     if (update_rules() != 0) {
       fprintf(stderr, "Error. update_rules() failed\n");
+      #ifdef FILE_LOCKING
+        unlock_lock(fd_lok_file, 0, SEEK_SET, 0);
+        close(fd_lok_file);
+      #endif /* FILE_LOCKING */
       return (-1);
     }
   }
@@ -3263,7 +3290,9 @@ int vcheck_vqpw(struct vqpasswd *inpw, char *domain)
    * have to allow 1 char for null termination
    */ 
   if ( strlen(inpw->pw_name) > MAX_PW_NAME )    return(VA_USER_NAME_TOO_LONG);
+#ifdef USERS_BIG_DIR
   if ( strlen(inpw->pw_name) == 1 )             return(VA_ILLEGAL_USERNAME);
+#endif
   if ( strlen(domain) > MAX_PW_DOMAIN )         return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(inpw->pw_passwd) > MAX_PW_PASS )  return(VA_PASSWD_TOO_LONG);
   if ( strlen(inpw->pw_gecos) > MAX_PW_GECOS )  return(VA_GECOS_TOO_LONG);
@@ -3528,7 +3557,8 @@ char *get_remote_ip()
   char *ipaddr;
   char *p;
 
-  ipenv = getenv("TCPREMOTEIP");
+  ipenv = getenv("TCPREMOTEIP"); /* tcpserver from daemontools */
+  if (ipenv == NULL) ipenv = getenv("REMOTE_HOST"); /* xinetd */
   if ((ipenv == NULL) || (strlen(ipenv) > sizeof(ipbuf))) return ipenv;
 
   strcpy (ipbuf, ipenv);

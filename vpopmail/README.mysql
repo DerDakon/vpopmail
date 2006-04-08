@@ -6,9 +6,10 @@ as stable as the default CDB authentication system.
 
 --------------------------------------------------------------------------
 
-2003/Dec/29 
-Doc was contributed by Michael Bowe <mbowe@pipeline.com.au>
-(Has had a couple of minor tweaks made since then)
+2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
+(Document originally contributed on this date, but has had some
+minor tweaks done since that time)
+
 
 A QUICK GUIDE TO VPOPMAIL WITH MYSQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,7 +115,7 @@ Download and unpack the source
 	cd /usr/local/src
 	wget http://telia.dl.sourceforge.net/sourceforge/vpopmail/vpopmail-5.4.7.tar.gz
 	tar xzf vpopmail-5.4.7.tar.gz
-	chown -R root.root vpopmail-5.4.6
+	chown -R root.root vpopmail-5.4.7
 	cd vpopmail-5.4.7
 
 Setup the MySQL support in the vpopmail sources
@@ -132,8 +133,6 @@ Setup the MySQL support in the vpopmail sources
 	#   * Use the database called vpopmail
 	#
 
-	mkdir ~vpopmail/etc
-	chown vpopmail.vchkpw ~vpopmail/etc
 	echo "localhost|0|vpopmailuser|vpoppasswd|vpopmail" > ~vpopmail/etc/vpopmail.mysql
 	chown vpopmail.vchkpw ~vpopmail/etc/vpopmail.mysql
 	chmod 640 ~vpopmail/etc/vpopmail.mysql
@@ -347,7 +346,6 @@ $ make
 
 $ su
 # make install-strip
-
 
 
 ## CONVERSION FROM CDB TO MYSQL: ##

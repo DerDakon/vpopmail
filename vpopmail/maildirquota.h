@@ -1,11 +1,11 @@
-/* $Id: maildirquota.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+/* $Id: maildirquota.h,v 1.3 2006-04-08 10:29:20 rwidmer Exp $
    This is a composite of deliverquota's maildirquota.h, maildirmisc.h, and 
    numlib.h.  I only consolidated them to keep this patch to vpopmail  a bit 
    less intrusive.
    -Bill Shupp
  */
 
-
+#define QUOTA_WARN_PERCENT 90
 
 /* I've removed pretty much the whole file execept for
    some public functions so as to not conflict with courier.
@@ -16,8 +16,13 @@ int readdomainquota(const char *dir, long *sizep, int *cntp);
 int readuserquota(const char* dir, long *sizep, int *cntp);
 int domain_over_maildirquota(const char *userdir);
 int user_over_maildirquota(const char *dir, const char *quota);
-void add_warningsize_to_quota( const char *dir, const char *quota);
 int vmaildir_readquota(const char *dir,	const char *quota);
+
+int maildir_addquota(const char *,	/* Pointer to the maildir */
+	int,	/* Must be the int pointed to by 2nd arg to checkquota */
+	const char *,	/* The quota */
+	long,	/* +/- bytes */
+	int);	/* +/- files */
 
 /* skip the rest... */
 #if 0
@@ -40,19 +45,13 @@ int vmaildir_readquota(const char *dir,	const char *quota);
 extern "C" {
 #endif
 
-static const char maildirquota_h_rcsid[]="$Id: maildirquota.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $";
+static const char maildirquota_h_rcsid[]="$Id: maildirquota.h,v 1.3 2006-04-08 10:29:20 rwidmer Exp $";
 
 int maildir_checkquota(const char *,	/* Pointer to directory */
 	int *,	/* Initialized to -1, or opened descriptor for maildirsize */
 	const char *,	/* The quota */
 	long,		/* Extra bytes planning to add/remove from maildir */
 	int);		/* Extra messages planning to add/remove from maildir */
-
-int maildir_addquota(const char *,	/* Pointer to the maildir */
-	int,	/* Must be the int pointed to by 2nd arg to checkquota */
-	const char *,	/* The quota */
-	long,	/* +/- bytes */
-	int);	/* +/- files */
 
 int maildir_readquota(const char *,	/* Directory */
 	const char *);			/* Quota, from getquota */
@@ -85,7 +84,7 @@ int maildir_parsequota(const char *, unsigned long *);
 extern "C" {
 #endif
 
-static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $";
+static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h,v 1.3 2006-04-08 10:29:20 rwidmer Exp $";
 
 /*
 **
@@ -236,7 +235,7 @@ int maildir_hasflag(const char *filename, char);
 extern "C" {
 #endif
 
-static const char numlib_h_rcsid[]="$Id: maildirquota.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $";
+static const char numlib_h_rcsid[]="$Id: maildirquota.h,v 1.3 2006-04-08 10:29:20 rwidmer Exp $";
 
 #define	NUMBUFSIZE	60
 
