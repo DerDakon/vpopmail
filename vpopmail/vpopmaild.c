@@ -39,8 +39,9 @@
 #define MAX_FILE_NAME 156
 
 #define TOKENS " \n\t\r"
+#define PASS_TOKENS "\n\r"
 #define PARAM_TOKENS " =:\n\r"
-#define PARAM_SPACE_TOKENS "=:\n\r"
+#define GECOS_TOKENS "=:\n\r"
 #define LIST_DOMAIN_TOKENS " :\t\n\r"
 
 
@@ -65,7 +66,10 @@ char TmpUser[AUTH_SIZE];
 char TmpPass[AUTH_SIZE];        /* for C/R this is 'TheResponse' */
 char TmpDomain[AUTH_SIZE];
 
-int compact_output = 0;
+#define LOGIN_LIMIT 3
+int login_tries = 0; /* count invalid login attempts */
+int logged_in = 0;   /* 0=not logged in, 1=mailbox, 2=domain, 3=system */
+int output_type = 0; /* 0=full, 1=compact, 2=silent */
 
 int login();
 int add_user();
@@ -115,6 +119,7 @@ int qa_sort(const void * a, const void * b);
 
 
 typedef struct func_t {
+ int level; /* user level required to run the command */
  char *command;
  int (*func)();
  char *help;
@@ -125,40 +130,40 @@ typedef struct func_t {
 */
 
 func_t Functions[] = {
-{"add_user", add_user, "user@domain password<crlf>" },
-{"del_user", del_user, "user@domain<crlf>" },
-{"mod_user", mod_user, "user@domain (option lines)<crlf>.<crlf>" },
-{"user_info", user_info, "user_domain<crlf>" },
-{"add_alias_domain", add_alias_domain, "domain alias<crlf>" },
-{"add_domain", add_domain, "domain postmaster@password<crlf>" },
-{"del_domain", del_domain, "domain<crlf>" },
-{"dom_info", dom_info, "domain<crlf>" },
-{"mk_dir", mk_dir, "/full/path/to/dir<crlf>" },
-{"rm_dir", rm_dir, "/full/path/to/dir<crlf>" },
-{"list_dir", list_dir, "/full/path/to/dir<crlf>" },
-{"rm_file", rm_file, "/full/path/to/file<crlf>" },
-{"write_file", write_file, "/full/path (data lines)<crlf>.<crlf>" },
-{"read_file", read_file, "/full/path<crlf>" },
-{"list_domains", list_domains, "[page per_page]<crlf>" },
-{"find_domain", find_domain, "domain [per-page]<crlf>" },
-{"domain_count", domain_count, "<crlf>" },
-{"list_users", list_users, "domain<crlf>" },
-{"list_alias", list_alias, "domain<crlf>" },
-{"list_lists", list_lists, "domain<crlf>" },
-{"get_ip_map", get_ip_map, "domain<crlf>" },
-{"add_ip_map", add_ip_map, "domain ip<crlf>" },
-{"del_ip_map", del_ip_map, "domain<crlf>" },
-{"show_ip_map", show_ip_map, "domain<crlf>" },
-{"get_limits", get_limits, "domain<crlf>" },
-{"set_limits", set_limits, "domain (option lines)<crlf>.<crlf>"},
-{"del_limits", del_limits, "domain<crlf>" },
-{"get_lastauth", get_lastauth, "user@domain<crlf>" },
-{"add_list", add_list, "domain listname (command line options)<crlf>" },
-{"del_list", del_list, "domain listname<crlf>"},
-{"mod_list", mod_list, "domain listname (command line options)<crlf>" },
-{"quit", quit, "quit" },
-{"help", help, "help" },
-{NULL, NULL } };
+{2, "add_user", add_user, "user@domain password<crlf>" },
+{2, "del_user", del_user, "user@domain<crlf>" },
+{1, "mod_user", mod_user, "user@domain (option lines)<crlf>.<crlf>" },
+{2, "user_info", user_info, "user_domain<crlf>" },
+{3, "add_alias_domain", add_alias_domain, "domain alias<crlf>" },
+{3, "add_domain", add_domain, "domain postmaster@password<crlf>" },
+{3, "del_domain", del_domain, "domain<crlf>" },
+{3, "dom_info", dom_info, "domain<crlf>" },
+{1, "mk_dir", mk_dir, "/full/path/to/dir<crlf>" },
+{1, "rm_dir", rm_dir, "/full/path/to/dir<crlf>" },
+{1, "list_dir", list_dir, "/full/path/to/dir<crlf>" },
+{1, "rm_file", rm_file, "/full/path/to/file<crlf>" },
+{1, "write_file", write_file, "/full/path (data lines)<crlf>.<crlf>" },
+{1, "read_file", read_file, "/full/path<crlf>" },
+{3, "list_domains", list_domains, "[page per_page]<crlf>" },
+{3, "find_domain", find_domain, "domain [per-page]<crlf>" },
+{3, "domain_count", domain_count, "<crlf>" },
+{2, "list_users", list_users, "domain<crlf>" },
+{2, "list_alias", list_alias, "domain<crlf>" },
+{2, "list_lists", list_lists, "domain<crlf>" },
+{1, "get_ip_map", get_ip_map, "domain<crlf>" },
+{3, "add_ip_map", add_ip_map, "domain ip<crlf>" },
+{3, "del_ip_map", del_ip_map, "domain<crlf>" },
+{3, "show_ip_map", show_ip_map, "domain<crlf>" },
+{2, "get_limits", get_limits, "domain<crlf>" },
+{3, "set_limits", set_limits, "domain (option lines)<crlf>.<crlf>"},
+{3, "del_limits", del_limits, "domain<crlf>" },
+{1, "get_lastauth", get_lastauth, "user@domain<crlf>" },
+{2, "add_list", add_list, "domain listname (command line options)<crlf>" },
+{2, "del_list", del_list, "domain listname<crlf>"},
+{2, "mod_list", mod_list, "domain listname (command line options)<crlf>" },
+{0, "help", help, "help" },
+{0, "quit", quit, "quit" },
+{0, NULL, NULL, NULL } };
 
 
 int wait_read()
@@ -211,7 +216,7 @@ int main(int argc, char **argv)
 
   if( vauth_open( 1 )) {
       snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "Can't open authentication database." RET_CRLF);
+        RET_ERR "599 Can't open authentication database." RET_CRLF);
       wait_write();
     exit( -1 );
   }
@@ -219,20 +224,27 @@ int main(int argc, char **argv)
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   wait_write();
 
-  read_size = wait_read();
-  if ( read_size < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX read timeout" RET_CRLF);
-    wait_write();
-    exit(-1);
-  } 
+  /* authenticate first */
+  while( ! logged_in ) {
+    read_size = wait_read();
+    if ( read_size < 0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        RET_ERR "XXX read timeout" RET_CRLF);
+      wait_write();
+      exit(-1);
+    } 
 
-  /* authenticate first or drop connection */
-  if ( login() < 0 ) {
-    wait_write();
-    vclose();
-    exit(-1);
-  } else {
+    i=login() ;
+    if ( i == -2 ) {
+      login_tries ++;
+      if (login_tries >= LOGIN_LIMIT) {
+        snprintf(WriteBuf, sizeof(WriteBuf), 
+          RET_ERR "112 excessive invalid logins, goodbye" RET_CRLF);
+        wait_write();
+        vclose();
+        exit(-1);
+      }
+    }
     wait_write();
   }
 
@@ -253,7 +265,8 @@ int main(int argc, char **argv)
     }
 
     for(found=0,i=0;found==0&&Functions[i].command!=NULL;++i ) {
-      if ( strcasecmp(Functions[i].command, command) == 0 ) { 
+      if (    ( ! strcasecmp(Functions[i].command, command) )
+           && ( logged_in >= Functions[i].level ) ) { 
         found = 1;
         Functions[i].func();
       }
@@ -264,7 +277,6 @@ int main(int argc, char **argv)
     }
     wait_write();
   }
-
 }
 
 int login()
@@ -272,7 +284,8 @@ int login()
  char *command;
  char *email;
  char *pass;
- char *param;
+ /* not used?
+ char *param; */
  uid_t uid;
  gid_t gid;
 
@@ -283,51 +296,53 @@ int login()
     return(-1);
   }
 
-  if (strcasecmp(command, "login" ) != 0 ) {
-    if (strcasecmp(command, "help") == 0 ) help();
+  if (!strcasecmp(command,"quit")) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_OK );
+    wait_write();
+    vclose();
+    exit(-1);
+  }
+
+  if (!strcasecmp(command,"help")) { help(); return(-1); }
+
+  if (!strcasecmp(command,"login")) { output_type = 0 ; }
+  else if (!strcasecmp(command,"clogin")) { output_type = 1 ; }
+  else if (!strcasecmp(command,"slogin")) { output_type = 2 ; }
+  else {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "XXX authorization first" RET_CRLF);
     return(-1);
   }
+
   if ((email=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "XXX email address required" RET_CRLF);
     return(-1);
   }
 
-  if ((pass=strtok(NULL,TOKENS))==NULL) {
+  if ((pass=strtok(NULL,PASS_TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "XXX password required" RET_CRLF);
-    return(-2);
-  }
-
-  if ((param=strtok(NULL,TOKENS))!=NULL) {
-    if( strcmp(param,"compact")==0) {
-      compact_output=1;
-//      fprintf(stderr,"compact mode\n" );
-    }
+    return(-1);
   }
 
   if ( parse_email( email, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX invalid login" RET_CRLF);
-    return(-1); 
+      RET_ERR "112 invalid login" RET_CRLF);
+    return(-2); 
   }
 
   if ((tmpvpw = vauth_getpw(TheUser, TheDomain))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX invalid login" RET_CRLF);
-    return(-1);
+      RET_ERR "112 invalid login" RET_CRLF);
+    return(-2);
   }
 
   if ( vauth_crypt(TheUser, TheDomain, pass, tmpvpw) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
      RET_ERR "112 invalid login" RET_CRLF);
-    return(-1);
+    return(-2);
   } 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
-
 
   AuthVpw.pw_name = strdup(tmpvpw->pw_name);
   AuthVpw.pw_passwd = strdup(tmpvpw->pw_passwd);
@@ -345,36 +360,47 @@ int login()
   snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
     VPOPMAILDIR);
 
-  if ( (AuthVpw.pw_gid & QA_ADMIN) || 
+  if ( AuthVpw.pw_gid & SA_ADMIN )
+    logged_in = 3;
+  else if ( (AuthVpw.pw_gid & QA_ADMIN) || 
               (strcmp("postmaster", AuthVpw.pw_name)==0) ) {
     AuthVpw.pw_gid |= QA_ADMIN; 
     strcpy( TheDomainDir, vget_assign(TheDomain,NULL,0,NULL,NULL));
+    logged_in = 2;
   }
+  else
+    logged_in = 1;
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir %s" RET_CRLF, VPOPMAILDIR);
-  wait_write();
+  if(output_type < 2 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+    wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "domain_dir %s" RET_CRLF, TheDomainDir);
-  wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir %s" RET_CRLF, VPOPMAILDIR);
+    wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "uid %d" RET_CRLF, uid);
-  wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "domain_dir %s" RET_CRLF, TheDomainDir);
+    wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "gid %d" RET_CRLF, gid);
-  wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "uid %d" RET_CRLF, uid);
+    wait_write();
 
-  send_user_info(&AuthVpw);
+    snprintf(WriteBuf,sizeof(WriteBuf), "gid %d" RET_CRLF, gid);
+    wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+    send_user_info(&AuthVpw);
+
+    snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+  }
+  else
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+
   return(0);
-  
 }
 
 int add_user()
 {
  char *email_address;
  char *password;
- char *gecos;
  int   ret;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
@@ -402,20 +428,14 @@ int add_user()
     return(-1);
   }
 
-  if ((password=strtok(NULL,TOKENS))==NULL) {
+  if ((password=strtok(NULL,PASS_TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "XXX password required" RET_CRLF);
     return(-1);
   }
 
-  if ((gecos=strtok(NULL,PARAM_SPACE_TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX gecos required" RET_CRLF);
-    return(-1);
-  }
-
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
-  if ((ret=vadduser(TmpUser, TmpDomain, password, gecos, USE_POP )) < 0 ) {
+  if ((ret=vadduser(TmpUser, TmpDomain, password, TmpUser, USE_POP )) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
     return(-1);
   }
@@ -527,7 +547,7 @@ int mod_user()
   while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL ) {
     if ( ReadBuf[0]  == '.' ) break;
     if ( (param = strtok(ReadBuf,PARAM_TOKENS)) == NULL ) continue;
-    if ( (value = strtok(NULL,PARAM_SPACE_TOKENS)) == NULL ) continue;
+    if ( (value = strtok(NULL,PASS_TOKENS)) == NULL ) continue;
 
     /* anyone can change the comment field */
     if ( strcmp(param,"comment") == 0 ) {
@@ -714,7 +734,7 @@ void send_user_info(struct vqpasswd *tmpvpw)
     tmpvpw->pw_clear_passwd);
   wait_write();
 
-  if( compact_output ) {
+  if( output_type ) {
     snprintf(WriteBuf, sizeof(WriteBuf), "gidflags %i" RET_CRLF, tmpvpw->pw_gid);
     wait_write();
 
@@ -847,7 +867,7 @@ int add_domain()
     return(-1);
   }
 
-  if ((password=strtok(NULL,TOKENS))==NULL) {
+  if ((password=strtok(NULL,PASS_TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "XXX password required" RET_CRLF);
     return(-1);
@@ -2052,6 +2072,8 @@ int set_limits()
     return(-1);
   }
 
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+    wait_write();
   if ((param=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required" RET_CRLF);
     return(-1);
@@ -2241,14 +2263,22 @@ int help()
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf),"login user@domain password" RET_CRLF);
-  wait_write();
+  if (!logged_in) {
+    snprintf(WriteBuf,sizeof(WriteBuf),"login user@domain password" RET_CRLF);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf),"clogin user@domain password" RET_CRLF);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf),"slogin user@domain password" RET_CRLF);
+    wait_write();
+  }
 
   for(i=0;Functions[i].command!=NULL;++i ) {
-    snprintf(WriteBuf, sizeof(WriteBuf), "%s %s" RET_CRLF, 
-      Functions[i].command,
-      Functions[i].help );
-    wait_write();
+    if (logged_in >= Functions[i].level) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s %s" RET_CRLF, 
+        Functions[i].command,
+        Functions[i].help );
+      wait_write();
+    }
   }
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0); 

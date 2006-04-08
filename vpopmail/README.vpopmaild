@@ -14,7 +14,6 @@ Then for list of commands:
 help
 
 
-
 There is a PHP object to work with this daemon available at
 
    http://pmailadmin.sourceforge.net/
@@ -22,6 +21,28 @@ There is a PHP object to work with this daemon available at
 
 This is very rough, but it is a start for documentation on the daemon.
 (Rick)
+
+--------------------------------------------------------------------
+
+2006-04-02: updated to reflect new "login" options and the fact that the
+"help" command now only shows the commands available to the client's
+security level. Fixed the description of the access rights needed for
+"set_limits" to reflect what's in the code (only SA_ADMIN can run the
+function.) 
+
+There is also more information about setting up a vpopmaild service
+under daemontools at this page:
+
+   http://qmail.jms1.net/vpopmaild.shtml
+
+-John Simpson <jms1@jms1.net>
+
+--------------------------------------------------------------------
+
+2006-04-04: removed "long_name" from the add_user command. if you need
+to set the gecos name on a new mailbox, create it with the add_user
+command and then use mod_user's "comment" command to change it (the
+initial value is the same as the mailbox "userid". -jms1
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
@@ -32,22 +53,34 @@ This is very rough, but it is a start for documentation on the daemon.
 
 --------------------------------------------------------------------
 
-login user@domain.ext password  [compact]
+login user@domain.ext password
+clogin user@domain.ext password
+slogin user@domain.ext password
 
 Rights required: Must be a valid email address.
 
-Action: Verify the username and password of the persion desiring to
-        login, and set thier access rights.
+Action:	Verify the username and password of the persion desiring to
+	login, and set their access rights.
 
-	If the compact option is given, bitmap values are returned
-        as a single numeric value instead of a line for each bit
-        used.  This reduces data transfer, but requires the client
-        to split up the bitmap.
+	For the "login" command, a successful login will return a
+	full list of the user's information.
 
+	For the "clogin" command, a successful login wil return a
+	compact version of the user's information- bitmap values
+	are returned as a single numeric value instead of a line
+	for each bit used. This reduces data transfer, but requires
+	the client to split up the bitmap.  All commands that return
+	a bitmap will return the numeric value. 
+
+	For the "slogin" command, a successful login only returns
+	the "+OK " response, with no additional information. This
+	is useful in cases where the client does not need to know
+	anything other than whether or not the login attempt was
+	successful (i.e. for the SMTP AUTH command.)
 
 --------------------------------------------------------------------
 
-add_user user@domain.ext password long_name
+add_user user@domain.ext password
 
 Rights required: SA_ADMIN, or QA_ADMIN
 
@@ -168,8 +201,12 @@ encrypted_password - The encrypted value of the password.
 
 clear_text_password - The password in clear text.
 
+If the login type was clogin, all of the following information
+will be returned within a single decimal number.  You can use the
+information at the bottom of this file as a key to decode the values.
+This is much faster, but requires the client to decode the bitmap.
 
-The following values are returned as the character '1' or '0'. '1'
+Otherwise the following values are returned as the character '1' or '0'. '1'
 says the field is active which, for example an active no_password_change
 means the user can not change passwords.
 
@@ -512,7 +549,7 @@ perm_defaultquota
 
 set_limits domain
 
-Rights required: SA_ADMIN, or QA_ADMIN with override_domain_limits rights.
+Rights required: SA_ADMIN
 
 Action:  Set Limits informaiton for a domain.  
 
@@ -616,17 +653,15 @@ Action:  Shutdown the daemon.  You should always call this before
 
 --------------------------------------------------------------------
 
-int help()
+help
 
 Rights required: Any
 
-Action:  Display help on the daemon.  It does not, but should limit
-         the actions listed to the abilities of the current user.  If
-         no user is logged in, it should only display login, help and 
-         quit.  Maybe it shouldn't show anything...
-
-         Consider only showing commands available to the current
-         user.
+Action:	Display a list of the commands currently available to the
+	client. The list will adjust itself to match the access
+	rights of the userid with which the client is logged in.
+	If the client is not logged in yet, only the "login",
+	"clogin", "slogin", "help", and "quit" commands are shown.
 
 --------------------------------------------------------------------
 
