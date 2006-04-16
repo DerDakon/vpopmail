@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.30 2006-04-16 03:42:00 rwidmer Exp $
+ * $Id: vmysql.c,v 1.31 2006-04-16 10:54:52 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1306,8 +1306,8 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line ) ;
+       call_onchange ( "valias_insert" ) ;
        }
 #endif
 
@@ -1320,6 +1320,14 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain, alias_line ) ;
+       call_onchange ( "valias_remove" ) ;
+       }
+#endif
+
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
 and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
@@ -1331,15 +1339,6 @@ and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
             return(-1);
         }
     }
-
-#ifdef ONCHANGE_SCRIPT
-    if( allow_onchange ) {
-       /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
-       }
-#endif
-
     return(0);
 }
 
@@ -1348,6 +1347,14 @@ int valias_delete( char *alias, char *domain)
  int err;
 
     if ( (err=vauth_open_update()) != 0 ) return(err);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , alias , domain ) ;
+       call_onchange ( "valias_delete" ) ;
+       }
+#endif
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where alias = '%s' \
@@ -1368,6 +1375,14 @@ int valias_delete_domain( char *domain)
  int err;
 
     if ( (err=vauth_open_update()) != 0 ) return(err);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
+       call_onchange ( "valias_delete_domain" ) ;
+       }
+#endif
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from valias where domain = '%s'", 

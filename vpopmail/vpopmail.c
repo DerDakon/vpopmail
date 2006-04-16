@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.50 2006-04-16 03:42:00 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.51 2006-04-16 10:54:52 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -420,6 +420,16 @@ int vdeldomain( char *domain )
 //       fprintf(stderr,"alias %s\n", aliases[i]);
 //     }
 
+#ifdef ONCHANGE_SCRIPT
+     /* tell other programs that data has changed */
+     if( 0 == strcmp( domain_to_del, domain )) {
+        snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
+     } else {
+        snprintf ( onchange_buf , MAX_BUFF , "%s alias of %s" , domain_to_del, domain ) ;
+     }
+     call_onchange ( "del_domain" ) ;
+#endif
+
     /* call the auth module to delete the domain from the storage */
     /* Note !! We must del domain from auth module __before__ we delete it from
      * fs, because deletion from auth module may fail !!!!
@@ -499,16 +509,6 @@ int vdeldomain( char *domain )
     free( aliases[i] );
   }
 
-
-#ifdef ONCHANGE_SCRIPT
-  /* tell other programs that data has changed */
-  if( 0 == strcmp( domain_to_del, domain )) {
-     snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
-  } else {
-     snprintf ( onchange_buf , MAX_BUFF , "%s alias of %s" , domain_to_del, domain ) ;
-  }
-  call_onchange ( "del_domain" ) ;
-#endif
 
   return(VA_SUCCESS);
 
@@ -1599,6 +1599,12 @@ int vdeluser( char *user, char *domain )
     return(VA_BAD_D_DIR);
   }
 
+#ifdef ONCHANGE_SCRIPT
+  /* tell other programs that data has changed */
+  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , user , domain ) ;
+  call_onchange ( "del_user" ) ;
+#endif
+
   /* del the user from the auth system */
   if (vauth_deluser( user, domain ) !=0 ) {
     fprintf (stderr, "Failed to delete user from auth backend\n");
@@ -1616,12 +1622,6 @@ int vdeluser( char *user, char *domain )
     chdir(calling_dir);
     return(VA_BAD_DIR);
   }
-
-#ifdef ONCHANGE_SCRIPT
-  /* tell other programs that data has changed */
-  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , user , domain ) ;
-  call_onchange ( "del_user" ) ;
-#endif
 
   /* go back to the callers directory */
   chdir(calling_dir);

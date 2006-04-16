@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.12 2006-04-16 03:42:00 rwidmer Exp $
+ * $Id: vpalias.c,v 1.13 2006-04-16 10:54:52 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -146,8 +146,8 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line ) ;
+       call_onchange ( "valias_insert" ) ;
        }
 #endif
 
@@ -177,18 +177,19 @@ int valias_delete( char *alias, char *domain)
 	printf("invalid domain, not in qmail assign file\n");
 	return(-1);
     }
-    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
-    for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
-    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
-    i=unlink(Dir);
 
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , alias , domain ) ;
+       call_onchange ( "valias_delete" ) ;
        }
 #endif
+
+    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
+    for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
+    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
+    i=unlink(Dir);
 
     return(i);
 }
