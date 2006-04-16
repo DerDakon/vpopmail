@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.49 2006-04-08 10:29:20 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.50 2006-04-16 03:42:00 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -100,6 +100,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char *aliases[1];
  int aliascount=0;
  
+#ifdef ONCHANGE_SCRIPT
+  /*  Don't execute any implied onchange in called functions  */
+  allow_onchange = 0;
+#endif
+
   /*
    * In case we need to use delete_line, build an array and count 
    * to use as its parameters 
@@ -292,6 +297,14 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     signal_process("qmail-send", SIGHUP);
   }
 
+#ifdef ONCHANGE_SCRIPT
+  allow_onchange = 1;
+  /* tell other programs that data has changed */
+  snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
+  call_onchange ( "add_domain" ) ;
+  allow_onchange = 0;
+#endif
+
   /* return back to the callers directory and return success */
   chdir(calling_dir);
 
@@ -382,7 +395,7 @@ int vdeldomain( char *domain )
      * OK.  Option 2 won.  If this domain has aliases they will all
      * be deleted.  If you want to warn people about this it should
      * be done by the program calling vdeldomain() before you call it.
-     * You shuould be able to find example code in vdeldomain.c.
+     * You should be able to find example code in vdeldomain.c.
      *
      */
 
@@ -486,6 +499,16 @@ int vdeldomain( char *domain )
     free( aliases[i] );
   }
 
+
+#ifdef ONCHANGE_SCRIPT
+  /* tell other programs that data has changed */
+  if( 0 == strcmp( domain_to_del, domain )) {
+     snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
+  } else {
+     snprintf ( onchange_buf , MAX_BUFF , "%s alias of %s" , domain_to_del, domain ) ;
+  }
+  call_onchange ( "del_domain" ) ;
+#endif
 
   return(VA_SUCCESS);
 
@@ -595,6 +618,12 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
  struct vlimits limits;
  char quota[50];
 
+#ifdef ONCHANGE_SCRIPT
+ int temp_onchange;
+    temp_onchange = allow_onchange;
+    allow_onchange = 0;
+#endif
+
   /* check gecos for : characters - bad */
   if ( strchr(gecos,':')!=0) return(VA_BAD_CHAR);
 
@@ -692,6 +721,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     fprintf (stderr, "Failed to create create lastauth entry\n");
     return (VA_NO_AUTH_CONNECTION);
   }
+#endif
+
+#ifdef ONCHANGE_SCRIPT
+  allow_onchange = temp_onchange;
+  /* tell other programs that data has changed */
+  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , username , domain ) ;
+  call_onchange ( "add_user" ) ;
+  allow_onchange = 1;
 #endif
 
   /* jump back into the dir from which the vadduser was run */
@@ -1579,6 +1616,12 @@ int vdeluser( char *user, char *domain )
     chdir(calling_dir);
     return(VA_BAD_DIR);
   }
+
+#ifdef ONCHANGE_SCRIPT
+  /* tell other programs that data has changed */
+  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , user , domain ) ;
+  call_onchange ( "del_user" ) ;
+#endif
 
   /* go back to the callers directory */
   chdir(calling_dir);
@@ -3463,6 +3506,12 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
   /* signal qmail-send, so it can see the changes */
   signal_process("qmail-send", SIGHUP);
 
+#ifdef ONCHANGE_SCRIPT
+  /* tell other programs that data has changed */
+  snprintf ( onchange_buf , MAX_BUFF , "%s" , alias_domain ) ;
+  call_onchange ( "add_alias_domain" ) ;
+#endif
+
   return(VA_SUCCESS);
 }
 
@@ -3793,3 +3842,54 @@ struct linklist * linklist_del (struct linklist *list) {
 	return next;
 }
 
+#ifdef ONCHANGE_SCRIPT
+/************************************************************************
+ *
+ * Run an external program to notify other systems that something changed
+ * John Simpson <jms1@jms1.net> 2005-01-22
+ *
+ * 2006-03-30 jms1 - added command line parameters for external program
+ */
+char onchange_buf[MAX_BUFF];
+int allow_onchange=1;
+int call_onchange ( const char *cmd )
+{
+	char path[MAX_BUFF] ;
+	int pid ;
+
+        if( !allow_onchange )  {
+           return(0);
+           }
+
+	/* build the name */
+	snprintf ( path, sizeof(path), "%s/etc/onchange", VPOPMAILDIR ) ;
+
+	/* if it doesn't exist, we're done */
+	if( access(path,F_OK) ) { 
+           fprintf(stderr, "ONCHANGE script %s not found.\n", path);
+           return(0);
+           }
+
+	/* it does exist, make sure we're allowed to run it */
+	if( access(path,X_OK) ) { 
+           fprintf(stderr, "ONCHANGE script %s not executable.\n", path);
+           return(EACCES);
+           }
+
+	/* okay, let's do it */
+	pid = vfork() ;
+	if ( 0 == pid )
+	{
+		execl ( path , "onchange" , cmd , onchange_buf , NULL ) ;
+           	fprintf(stderr, "ONCHANGE script %s unable to fork.\n", path);
+	        return(0);
+	}
+	else if ( pid > 0 )
+		wait ( &pid ) ;
+	else
+           	fprintf(stderr, "ONCHANGE script %s failed.\n", path);
+	        return(0);
+
+	return(0) ;
+}
+#endif

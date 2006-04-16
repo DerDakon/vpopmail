@@ -1,5 +1,5 @@
-/*
- * $Id: vldap.c,v 1.19 2004-12-30 07:46:14 rwidmer Exp $
+f*
+ * $Id: vldap.c,v 1.20 2006-04-16 03:42:00 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -909,6 +909,14 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
 #ifdef SQWEBMAIL_PASS
     vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
+#endif
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
 #endif
 
     return VA_SUCCESS;

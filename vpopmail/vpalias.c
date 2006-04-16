@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.11 2006-04-08 10:29:20 rwidmer Exp $
+ * $Id: vpalias.c,v 1.12 2006-04-16 03:42:00 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -142,6 +142,15 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 
     fprintf(fs, "%s\n", alias_line);
     fclose(fs);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
+#endif
+
     return(0);
 }
 
@@ -171,7 +180,17 @@ int valias_delete( char *alias, char *domain)
     strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
     for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
     strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
-    return(unlink(Dir));
+    i=unlink(Dir);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
+#endif
+
+    return(i);
 }
 
 static int sort_compare( const void *p1, const void *p2 ) 

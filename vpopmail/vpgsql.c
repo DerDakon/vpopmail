@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.33 2006-04-08 10:29:20 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.34 2006-04-16 03:42:00 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -633,6 +633,15 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 #ifdef SQWEBMAIL_PASS
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
+#endif
+
     return(0);
 }
 
@@ -1330,6 +1339,15 @@ int valias_insert( char *alias, char *domain, char *alias_line)
       return(-1);
     }
     if(pgres) PQclear(pgres);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
+#endif
+
     return(0);
   }
   return(-1);
@@ -1360,6 +1378,15 @@ int valias_delete( char *alias, char *domain)
     }
   }
   if(pgres) PQclear(pgres);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
+#endif
+
   return(0);
 }
 
