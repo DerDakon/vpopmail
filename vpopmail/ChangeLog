@@ -21,6 +21,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vdominfo: undo change from 5.4.14 that displayed alias domains
 	  incorrectly.
 
+	Toshihiko Kyoda
+	- vdelivermail: check for over quota when creating temp mail file.
+
 	Tom Collins
 	- vpalias: Fix double-free in code ported from 5.5 branch.
 	- valias: exit non-zero on error, send all errors to stderr.
