@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.6 2005-11-19 16:24:22 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.7 2006-05-07 19:14:37 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -429,6 +429,7 @@ int deliver_to_maildir (
 
     /* open the new email file */
     if ((write_fd=open(local_file_tmp, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) == -1) {
+        if (errno == EDQUOT) return -1;
         printf("can not open new email file errno=%d file=%s\n", 
             errno, local_file_tmp);
         return(-2);
