@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.6 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.7 2006-05-07 18:41:52 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -135,7 +135,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
 
 #ifdef VPOPMAIL_DEBUG
     if( show_trace ) {
-        fprintf( stderr, "vauth_open()\n");
+        fprintf( stderr, "vauth_open(%d)\n",will_update);
     }
 #endif 
 
@@ -170,7 +170,7 @@ int vauth_create_table (char *table, char *layout, int showerror)
   PGresult *pgres;
   char SqlBufCreate[SQL_BUF_SIZE];
   
-  if ( err = vauth_open()) return (err);
+  if ((err = vauth_open(1))) return (err);
 
   snprintf(SqlBufCreate, SQL_BUF_SIZE,
     "CREATE TABLE %s ( %s )", table, layout);
@@ -211,7 +211,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   int err;
   PGresult *pgres;
     
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
   strncpy( quota, "NOQUOTA", 30 );
@@ -275,7 +275,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   PGresult *pgres;
 
   verrori = 0;
-  if ( (err=vauth_open()) != 0 ) {
+  if ( (err=vauth_open(0)) != 0 ) {
     verrori = err;
     return(NULL);
   }
@@ -353,7 +353,7 @@ int vauth_deldomain( char *domain )
   char *tmpstr;
   int err;
     
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -396,7 +396,7 @@ int vauth_deluser( char *user, char *domain )
   char *tmpstr;
   int err = 0;
     
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -447,7 +447,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
   if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
     
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -492,7 +492,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 #endif
 
   if ( first == 1 ) {
-    if ( (err=vauth_open()) != 0 ) return(NULL);
+    if ( (err=vauth_open(0)) != 0 ) return(NULL);
     qnprintf(SqlBufRead,  SQL_BUF_SIZE, GETALL, domstr
 #ifdef MANY_DOMAINS
 	     ,domain
@@ -597,7 +597,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     return(VA_BAD_UID);
   }
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -650,7 +650,7 @@ int vopen_smtp_relay()
     return 0;
   }
 
-  if ( (err=vauth_open()) != 0 ) return 0;
+  if ( (err=vauth_open(1)) != 0 ) return 0;
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
     "UPDATE relay SET ip_addr='%s', timestamp=%d WHERE ip_addr='%s'",
@@ -698,7 +698,7 @@ void vupdate_rules(int fdm)
   register unsigned i=0, n, len=strlen(re)+1;
   char *buf=NULL;
 
-  if (vauth_open() != 0) return;
+  if (vauth_open(0) != 0) return;
 
   snprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT ip_addr FROM relay");
   if ( !(pgres=PQexec(pgc, SqlBufRead)) || PQresultStatus(pgres)!=PGRES_TUPLES_OK) {
@@ -739,7 +739,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
   time_t delete_time;
   int err;
     
-  if ( (err=vauth_open()) != 0 ) return;
+  if ( (err=vauth_open(1)) != 0 ) return;
   delete_time = mytime - clear_minutes;
 
   snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -789,7 +789,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL ) return(-2);
-  if ( vauth_open() != 0 ) return(-3);
+  if ( vauth_open(0) != 0 ) return(-3);
 
   qnprintf(SqlBufRead, SQL_BUF_SIZE,
 	   "select domain from ip_alias_map where ip_addr = '%s'",
@@ -822,7 +822,7 @@ int vadd_ip_map( char *ip, char *domain)
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   if( ( err=pg_begin() )!= 0 ) {     /* begin transaction */
     return(err);
@@ -865,7 +865,7 @@ int vdel_ip_map( char *ip, char *domain)
 
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf( SqlBufUpdate,SQL_BUF_SIZE,  
 	    "delete from ip_alias_map where ip_addr='%s' and domain='%s'",
@@ -890,7 +890,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
 
   if ( ip == NULL ) return(-1);
   if ( domain == NULL ) return(-1);
-  if ( ( err=vauth_open() ) != 0 ) return(err);
+  if ( ( err=vauth_open(0) ) != 0 ) return(err);
 
   if ( first == 1 ) {
     snprintf(SqlBufRead,SQL_BUF_SIZE, 
@@ -934,7 +934,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
   PGresult *pgres;
   int found = 0;
 
-  if ( vauth_open() != 0 ) return(-1);
+  if ( vauth_open(0) != 0 ) return(-1);
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
 	   "select %s from dir_control where domain = '%s'", 
@@ -1002,7 +1002,7 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
   PGresult *pgres;
 
-  if ( vauth_open() != 0 ) return(-1);
+  if ( vauth_open(1) != 0 ) return(-1);
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
 	   "delete from dir_control where domain='%s'", domain );
@@ -1089,7 +1089,7 @@ int vdel_dir_control(char *domain)
   PGresult *pgres;
   int err;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
 	   "delete from dir_control where domain = '%s'", 
@@ -1118,7 +1118,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
   PGresult *pgres;
   int err=0;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
     "UPDATE lastauth SET remote_ip='%s', timestamp=%lu " \
@@ -1183,7 +1183,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
   int err, ntuples;
   time_t mytime;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(0)) != 0 ) return(err);
 
   qnprintf( SqlBufRead,  SQL_BUF_SIZE, "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", pw->pw_name, domain);
 
@@ -1215,7 +1215,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
   static char tmpbuf[100];
   int ntuples=0;
 
-  if ( vauth_open() != 0 ) return(NULL);
+  if ( vauth_open(0) != 0 ) return(NULL);
 
   qnprintf( SqlBufRead,  SQL_BUF_SIZE, "select remote_ip from lastauth where userid='%s' and domain='%s'",  pw->pw_name, domain);
 
@@ -1260,7 +1260,7 @@ char *valias_select( char *alias, char *domain )
   while (valias_current != NULL)
     valias_current = linklist_del (valias_current);
 
-  if ( (err=vauth_open()) != 0 ) {
+  if ( (err=vauth_open(0)) != 0 ) {
     verrori = err;
     return(NULL);
   }
@@ -1308,7 +1308,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
   PGresult *pgres;
   int err;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   while(*alias_line==' ') ++alias_line;
 
@@ -1340,7 +1340,7 @@ int valias_delete( char *alias, char *domain)
   PGresult *pgres;
   int err;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
 	    "delete from valias where alias='%s' and domain='%s'", 
@@ -1368,7 +1368,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
   PGresult *pgres;
   int err;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
 	    "delete from valias where alias='%s' and valias_line='%s' and domain='%s'", 
@@ -1393,7 +1393,7 @@ int valias_delete_domain( char *domain)
   PGresult *pgres;
   int err;
 
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
 	    "delete from valias where domain='%s'", domain );
@@ -1445,7 +1445,7 @@ char *valias_select_all( char *alias, char *domain )
   while (valias_current != NULL)
     valias_current = linklist_del (valias_current);
 
-  if ( (err=vauth_open()) != 0 ) return(NULL);
+  if ( (err=vauth_open(0)) != 0 ) return(NULL);
 
   qnprintf( SqlBufRead, SQL_BUF_SIZE, 
 	    "select alias, valias_line from valias where domain = '%s' order by alias", 
@@ -1500,7 +1500,7 @@ int logsql(	int verror, char *TheUser, char *TheDomain, char *ThePass,
   time_t mytime;
 
   mytime = time(NULL);
-  if ( (err=vauth_open()) != 0 ) return(err);
+  if ( (err=vauth_open(1)) != 0 ) return(err);
   /*
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE,

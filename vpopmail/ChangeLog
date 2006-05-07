@@ -16,6 +16,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Rick Widmer
 	- vpgsql: fix queries to allow domains starting with digits.
 
+	John Simpson
+	- vpgsql: fix compile errors introduced in 5.4.14.
+
 	Tom Collins
 	- vpalias: Fix double-free in code ported from 5.5 branch.
 	- valias: exit non-zero on error, send all errors to stderr.
