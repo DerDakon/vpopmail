@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.16 - unreleased
+5.4.16 - released 7-May-06
 
 	Michael Krieger
 	- vpalias: Properly handle some empty search results.
