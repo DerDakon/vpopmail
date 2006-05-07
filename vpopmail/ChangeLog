@@ -13,6 +13,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Jianbin Xiao
 	- vmysql: reconnect to server if connection was dropped.
 
+	Rick Widmer
+	- vpgsql: fix queries to allow domains starting with digits.
+
 	Tom Collins
 	- vpalias: Fix double-free in code ported from 5.5 branch.
 	- valias: exit non-zero on error, send all errors to stderr.

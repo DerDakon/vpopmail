@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.h,v 1.4.2.2 2004-12-16 15:57:34 tomcollins Exp $
+ * $Id: vpgsql.h,v 1.4.2.3 2006-05-07 18:36:19 tomcollins Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,60 +98,60 @@ int vauth_setpw_size( struct vqpasswd *, char *, int);
 
 #ifdef MANY_DOMAINS
 #ifdef CLEAR_PASS
-#define INSERT "INSERT INTO %s \
+#define INSERT "INSERT INTO \"%s\" \
 ( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
 , pw_clear_passwd ) VALUES ( '%s', '%s', '%s', %d, 0, '%s', '%s', '%s' ,'%s' )"
 #else
-#define INSERT "INSERT INTO %s \
+#define INSERT "INSERT INTO \"%s\" \
 ( pw_name, pw_domain, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
 ) VALUES ( '%s', '%s', '%s', %d, 0, '%s', '%s', '%s' )"
 #endif
 #else
 #ifdef CLEAR_PASS
-#define INSERT "INSERT INTO %s \
+#define INSERT "INSERT INTO \"%s\" \
 ( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
 , pw_clear_passwd ) VALUES ( '%s', \
 '%s', %d, 0, '%s', '%s', '%s' ,'%s' )"
 #else
-#define INSERT "INSERT INTO %s \
+#define INSERT "INSERT INTO \"%s\" \
 ( pw_name, pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
  ) VALUES ( '%s', '%s', %d, 0, '%s', '%s', '%s' )"
 #endif
 #endif
 
 #ifdef MANY_DOMAINS
-#define DELETE_USER "DELETE FROM %s where pw_name = '%s' \
+#define DELETE_USER "DELETE FROM \"%s\" where pw_name = '%s' \
 and pw_domain = '%s' " 
 #else
-#define DELETE_USER "DELETE FROM %s where pw_name = '%s' "
+#define DELETE_USER "DELETE FROM \"%s\" where pw_name = '%s' "
 #endif
 
 #ifdef MANY_DOMAINS
-#define SETQUOTA "UPDATE %s SET pw_shell = '%s' WHERE pw_name = '%s' \
+#define SETQUOTA "UPDATE \"%s\" SET pw_shell = '%s' WHERE pw_name = '%s' \
 AND pw_domain = '%s' "
 #else
-#define SETQUOTA "UPDATE %s SET pw_shell = '%s' WHERE pw_name = '%s' "
+#define SETQUOTA "UPDATE \"%s\" SET pw_shell = '%s' WHERE pw_name = '%s' "
 #endif
 
 #ifdef MANY_DOMAINS
 #ifdef CLEAR_PASS
 #define USER_SELECT "SELECT pw_name, pw_passwd, pw_uid, pw_gid, \
 pw_gecos, pw_dir, pw_shell , pw_clear_passwd \
-FROM %s WHERE pw_name = '%s' AND pw_domain = '%s'"
+FROM \"%s\" WHERE pw_name = '%s' AND pw_domain = '%s'"
 #else
 #define USER_SELECT "SELECT pw_name, pw_passwd, pw_uid, pw_gid, \
 pw_gecos, pw_dir, pw_shell \
-FROM %s WHERE pw_name = '%s' AND pw_domain = '%s' "
+FROM \"%s\" WHERE pw_name = '%s' AND pw_domain = '%s' "
 #endif
 #else
 #ifdef CLEAR_PASS
 #define USER_SELECT "SELECT pw_name, pw_passwd, pw_uid, pw_gid, \
 pw_gecos, pw_dir, pw_shell , pw_clear_passwd \
-FROM %s WHERE pw_name = '%s'" 
+FROM \"%s\" WHERE pw_name = '%s'" 
 #else
 #define USER_SELECT "SELECT pw_name, pw_passwd, pw_uid, pw_gid, \
 pw_gecos, pw_dir, pw_shell \
-FROM %s WHERE pw_name = '%s' "
+FROM \"%s\" WHERE pw_name = '%s' "
 #endif
 #endif
 
@@ -159,41 +159,41 @@ FROM %s WHERE pw_name = '%s' "
 #ifdef CLEAR_PASS
 #define GETALL "SELECT pw_name, \
 pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, \
-pw_clear_passwd FROM %s WHERE pw_domain = '%s'"
+pw_clear_passwd FROM \"%s\" WHERE pw_domain = '%s'"
 #else
 #define GETALL "SELECT pw_name, \
 pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell \
-FROM %s WHERE pw_domain = '%s'"
+FROM \"%s\" WHERE pw_domain = '%s'"
 #endif
 #else
 #ifdef CLEAR_PASS
 #define GETALL "SELECT pw_name, \
 pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell, \
-pw_clear_passwd FROM %s"
+pw_clear_passwd FROM \"%s\""
 #else
 #define GETALL "SELECT pw_name, \
-pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell FROM %s "
+pw_passwd, pw_uid, pw_gid, pw_gecos, pw_dir, pw_shell FROM \"%s\" "
 #endif
 #endif
 
 #ifdef MANY_DOMAINS
 #ifdef CLEAR_PASS
-#define SETPW "UPDATE %s SET pw_passwd = '%s', \
+#define SETPW "UPDATE \"%s\" SET pw_passwd = '%s', \
 pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
 pw_shell = '%s', pw_clear_passwd = '%s' \
 WHERE pw_name = '%s' AND pw_domain = '%s' "
 #else
-#define SETPW "UPDATE %s SET pw_passwd = '%s', \
+#define SETPW "UPDATE \"%s\" SET pw_passwd = '%s', \
 pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
 pw_shell = '%s' WHERE pw_name = '%s' AND pw_domain = '%s' "
 #endif
 #else
 #ifdef CLEAR_PASS
-#define SETPW "UPDATE %s SET pw_passwd = '%s', \
+#define SETPW "UPDATE \"%s\" SET pw_passwd = '%s', \
 pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
 pw_shell = '%s', pw_clear_passwd = '%s' WHERE pw_name = '%s' "
 #else
-#define SETPW "UPDATE %s SET pw_passwd = '%s', \
+#define SETPW "UPDATE \"%s\" SET pw_passwd = '%s', \
 pw_uid = %d, pw_gid = %d, pw_gecos = '%s', pw_dir = '%s', \
 pw_shell = '%s' WHERE pw_name = '%s' "
 #endif
