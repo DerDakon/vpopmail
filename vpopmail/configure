@@ -858,11 +858,11 @@ Optional Features:
   --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).
   --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.
   --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.
-  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, sybase, or activedir).
+  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, or sybase).
   --enable-passwd            Enable /etc/passwd (or shadow) accounts in addition to virtual domains.
   --enable-logging=OPT       Log to syslog: n=nothing, e=errors only (default), y=all attempts, p=errors with passwords, v=verbose (all attempts, with passwords).
   --enable-log-name=TEXT     Set syslog name vpopmail.
-  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.
+  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP.
   --enable-sql-logging       Enable authentication logging to MySQL/Postgres.
   --enable-mysql-limits      Use MySQL to store limits instead of .qmailadmin-limits files.
   --enable-mysql-replication Enable support for replicated MySQL auth servers.
@@ -6024,30 +6024,11 @@ _ACEOF
 
     ;;
 
-  ac*|Ac*|AC*)
-    echo "$as_me:$LINENO: result: activedir" >&5
-echo "${ECHO_T}activedir" >&6
-    USE_CDB=0
-    USE_SQL=0
-    USE_ACTIVE_DIR=1
-    rm -rf vauth.c
-    ln -sf vactivedir.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_ACTIVE_DIR $USE_ACTIVE_DIR
-_ACEOF
-
-    authlib=""
-
-    auth_inc=""
-
-    ;;
-
   *)
     echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-    { { echo "$as_me:$LINENO: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir" >&5
-echo "$as_me: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir" >&2;}
+    { { echo "$as_me:$LINENO: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase" >&5
+echo "$as_me: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase" >&2;}
    { (exit 1); exit 1; }; }
     ;;
 
@@ -6734,19 +6715,6 @@ if test "${enable_sybase+set}" = set; then
 echo "${ECHO_T}yes" >&6
 	{ { echo "$as_me:$LINENO: error: --enable-sybase has been superceded. Please use --enable-auth-module=sybase instead" >&5
 echo "$as_me: error: --enable-sybase has been superceded. Please use --enable-auth-module=sybase instead" >&2;}
-   { (exit 1); exit 1; }; }
-
-
-fi;
-
-# Check whether --enable-active-directory or --disable-active-directory was given.
-if test "${enable_active_directory+set}" = set; then
-  enableval="$enable_active_directory"
-
-        echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-        { { echo "$as_me:$LINENO: error: --enable-active-directory has been superceded. Please use --enable-auth-module=activedir instead" >&5
-echo "$as_me: error: --enable-active-directory has been superceded. Please use --enable-auth-module=activedir instead" >&2;}
    { (exit 1); exit 1; }; }
 
 
@@ -8238,9 +8206,6 @@ case $AUTH_MODULE in
     echo "       auth module = sybase --enable-auth-module=sybase"
     ;;
 
-  ac*|Ac*|AC*)
-    echo "       auth module = active directory --enable-auth-module=activedir"
-    ;;
 esac
 
 

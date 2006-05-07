@@ -11,6 +11,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- valias: exit non-zero on error, send all errors to stderr.
 	- vchkpw: make sure we have cleartext pass before checking SMTP_AUTH
 	  or APOP logins.
+	- Remove vactivedir code since it's just a client for a non-existent
+	  server.
 
 5.4.15 - released 24-Feb-06
 
