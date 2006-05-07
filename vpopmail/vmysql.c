@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.7 2006-02-24 07:27:31 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.8 2006-05-07 18:02:24 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -188,7 +188,7 @@ int vauth_open_update()
 {
     unsigned int timeout = 2;
 
-    if ( update_open != 0 ) return(0);
+    if ( update_open && (mysql_ping(&mysql_update)==0) ) return(0);
     update_open = 1;
 
     verrori = load_connection_info();
@@ -238,7 +238,7 @@ int vauth_open_update()
 int vauth_open_read()
 {
     /* if we are already connected, just return */
-    if ( read_open != 0 ) return(0);
+    if ( read_open && (mysql_ping(&mysql_read)==0) ) return(0);
     read_open = 1;
     
     /* connect to mysql and set the database */
