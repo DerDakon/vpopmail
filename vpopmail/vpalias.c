@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.6 2006-03-21 05:10:25 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.7 2006-05-07 17:22:05 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -267,7 +267,7 @@ char *valias_select_names( char *domain )
         if(countit) {
           sprintf(filename, "%s", mydirent->d_name );
           len = strlen( filename ) - 7;
-          names[ num_names ] = malloc( len );
+          names[ num_names ] = malloc( len + 1 );
           for(i=7,j=0; j<=len; i++,j++) {
             names[num_names][j] = filename[i];
             if( ':' == filename[i] ) {
