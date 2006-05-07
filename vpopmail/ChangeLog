@@ -18,6 +18,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	John Simpson
 	- vpgsql: fix compile errors introduced in 5.4.14.
+	- vdominfo: undo change from 5.4.14 that displayed alias domains
+	  incorrectly.
 
 	Tom Collins
 	- vpalias: Fix double-free in code ported from 5.5 branch.
