@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.2.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vdominfo.c,v 1.2.2.5 2006-05-07 18:48:29 tomcollins Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -155,8 +155,12 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
         printf("users:  %lu\n",  vdir.cur_users);
         close_big_dir(realdomain,uid,gid);
     } else {
-        /* show real domain if original was alias */
-        if ( DisplayName ) printf("%s\n", realdomain); 
+        if ( DisplayName ) {
+          if(strcmp(domain, realdomain)==0)
+            printf("%s\n", domain);
+          else
+            printf("%s (alias of %s)\n", domain, realdomain);
+        }
         if ( DisplayUid ) printf("%lu\n", (long unsigned)uid);
         if ( DisplayGid ) printf("%lu\n", (long unsigned)gid);
         if ( DisplayDir ) printf("%s\n",  dir);
@@ -186,10 +190,6 @@ void display_all_domains()
     while( entry ) {
 	display_domain(entry->domain, entry->path, entry->uid, 
                        entry->gid, entry->realdomain);
-
-	if (strcmp(entry->domain, entry->realdomain) != 0) {
- 		printf ("alias of: %s\n", entry->realdomain);
-	}
 
 	printf ("\n");
         entry = get_domain_entries(NULL);
