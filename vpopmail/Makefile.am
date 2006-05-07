@@ -5,9 +5,9 @@
 SUBDIRS=cdb
 OBJEXT=o
 
-EXTRA_DIST=README.* cdb/* vactivedir.c vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
+EXTRA_DIST=README.* cdb/* vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
 
-noinst_HEADERS=md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vactivedir.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h
+noinst_HEADERS=md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h
 
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 

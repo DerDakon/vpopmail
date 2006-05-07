@@ -277,9 +277,6 @@
 #undef USERS_BIG_DIR
 
 /* "" */
-#undef USE_ACTIVE_DIR
-
-/* "" */
 #undef USE_CDB
 
 /* "" */

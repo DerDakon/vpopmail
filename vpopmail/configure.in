@@ -902,7 +902,7 @@ AC_MSG_CHECKING(whether an auth module has been specified)
 AUTH_MODULE="cdb"
 
 AC_ARG_ENABLE(auth-module,
-    [  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, sybase, or activedir).],
+    [  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, or sybase).],
     AUTH_MODULE="$enableval",
 )
 
@@ -1042,23 +1042,9 @@ case $AUTH_MODULE in
     AC_SUBST(auth_inc)
     ;;
 
-  ac*|Ac*|AC*)
-    AC_MSG_RESULT(activedir)
-    USE_CDB=0
-    USE_SQL=0
-    USE_ACTIVE_DIR=1
-    rm -rf vauth.c
-    ln -sf vactivedir.c vauth.c
-    AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR,"")
-    authlib=""
-    AC_SUBST(authlib)
-    auth_inc=""
-    AC_SUBST(auth_inc)
-    ;;
-
   *)
     AC_MSG_RESULT(no)
-    AC_MSG_ERROR(A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase|activedir)
+    AC_MSG_ERROR(A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase)
     ;;
 
 esac
@@ -1163,7 +1149,7 @@ AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
 
 AC_MSG_CHECKING(whether auth-logging is enabled)
 AC_ARG_ENABLE(auth-logging,
-        [  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP, ActiveDir.],
+        [  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP.],
         ENABLE_AUTH_LOGGING=$enableval,
                 [
                         ENABLE_AUTH_LOGGING=y
@@ -1369,13 +1355,6 @@ AC_ARG_ENABLE(sybase, [],
 	AC_MSG_ERROR(--enable-sybase has been superceded. Please use --enable-auth-module=sybase instead)
     ]
 )
-
-AC_ARG_ENABLE(active-directory, [],
-    [
-        AC_MSG_RESULT(yes)
-        AC_MSG_ERROR(--enable-active-directory has been superceded. Please use --enable-auth-module=activedir instead)
-    ]
-) 
 
 AC_ARG_ENABLE(domainquotas, [],
     [
@@ -1620,9 +1599,6 @@ case $AUTH_MODULE in
     echo "       auth module = sybase --enable-auth-module=sybase"
     ;;
 
-  ac*|Ac*|AC*)
-    echo "       auth module = active directory --enable-auth-module=activedir"
-    ;;
 esac
 
 
