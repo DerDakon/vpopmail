@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11.2.5 2006-05-07 17:07:13 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -435,18 +435,21 @@ void login_virtual_user()
     }
   }
 
-#ifdef CLEAR_PASS 
-  /* Check CRAM-MD5 auth */
-  if(ConnType == SMTP_CONN) {
-	  /* printf("vchkpw: smtp auth\n"); */
-    cramaccepted = authcram(ThePass,TheChallenge,vpw->pw_clear_passwd);
-    if(cramaccepted == 0) strcpy(AuthType, "CRAM-MD5");
-  }
+#ifdef CLEAR_PASS
+  /* only check for one-way hashed passwords if we have a valid cleartext */
+  if ((vpw->pw_clear_passwd != NULL && vpw->pw_clear_passwd[0] != 0)) {
+    /* Check CRAM-MD5 auth */
+    if(ConnType == SMTP_CONN) {
+      /* printf("vchkpw: smtp auth\n"); */
+      cramaccepted = authcram(ThePass,TheChallenge,vpw->pw_clear_passwd);
+      if(cramaccepted == 0) strcpy(AuthType, "CRAM-MD5");
+    }
 
-  /* Check APOP auth */
-  if(ConnType == POP_CONN) {
-    apopaccepted = authapop(ThePass,TheChallenge,vpw->pw_clear_passwd);
-    if(apopaccepted == 0) strcpy(AuthType, "APOP");
+    /* Check APOP auth */
+    if(ConnType == POP_CONN) {
+      apopaccepted = authapop(ThePass,TheChallenge,vpw->pw_clear_passwd);
+      if(apopaccepted == 0) strcpy(AuthType, "APOP");
+    }
   }
 #endif
 
