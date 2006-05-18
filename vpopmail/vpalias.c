@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.7 2006-05-07 17:22:05 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.8 2006-05-18 19:23:07 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -115,6 +115,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
  int i;
  char *tmpstr;
  char Dir[156];
+ char *p;
  uid_t uid;
  gid_t gid;
  FILE *fs;
@@ -130,9 +131,13 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 	printf("invalid domain, not in qmail assign file\n");
 	return(-1);
     }
+
+    // create dotqmail filename, converting '.' to ':' as we go
     strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
-    for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
-    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
+    i = strlen(Dir);
+    for (p = alias; (i < (int)sizeof(Dir) - 1) && (*p != '\0'); p++)
+      Dir[i++] = (*p == '.' ? ':' : *p);
+    Dir[i] = '\0';
 	
     if ( (fs = fopen(Dir, "a")) == NULL ) {
 	return(-1);

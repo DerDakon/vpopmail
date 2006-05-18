@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Tom Collins
+	- vpalias: don't trash alias name passed to valias_insert().
+	  [1491087]
+
 5.4.16 - released 7-May-06
 
 	Michael Krieger
