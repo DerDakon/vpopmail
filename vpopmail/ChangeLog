@@ -14,10 +14,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Ken Jones
 	- vpalias: wasn't allocating enough memory for alias name in
-	  valias_select_names (missing one byte for NULL).
+	  valias_select_names (missing one byte for NULL). [1479842]
 
 	Jianbin Xiao
 	- vmysql: reconnect to server if connection was dropped.
+	  [1469731]
 
 	Rick Widmer
 	- vpgsql: fix queries to allow domains starting with digits.
@@ -34,7 +35,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vpalias: Fix double-free in code ported from 5.5 branch.
 	- valias: exit non-zero on error, send all errors to stderr.
 	- vchkpw: make sure we have cleartext pass before checking SMTP_AUTH
-	  or APOP logins.
+	  or APOP logins. [1453216]
 	- Remove vactivedir code since it's just a client for a non-existent
 	  server.
 
