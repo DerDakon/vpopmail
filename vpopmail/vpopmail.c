@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.51 2006-04-16 10:54:52 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.52 2006-06-21 04:12:05 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1707,49 +1707,50 @@ char tmpbuf[MAX_BUFF];
 //  for(j=0;j<i;j++) {
 //    fprintf( stderr, "extract_domain - i: %d part: %s\n", j, parts[j] );
 //  }
-  
-  //  Juggle the order of stuff in the domain name
+  if( i > 1 )  {
+    //  Juggle the order of stuff in the domain name
 
-  //  Save the last two terms
-  t = parts[--i];
-  u = parts[--i];
+    //  Save the last two terms
+    t = parts[--i];
+    u = parts[--i];
 
-  //  Make room for two elements at the beginning of the name
-  for(j=0;j<i;j++) {
-    parts[j+2]=parts[j];
-  }
+    //  Make room for two elements at the beginning of the name
+    for(j=0;j<i;j++) {
+      parts[j+2]=parts[j];
+    }
 
-  //  Put the parts you saved back in the beginning of the domain name
+    //  Put the parts you saved back in the beginning of the domain name
 #ifdef SORTTLD
-  parts[0] = t;
-  parts[1] = u;
+    parts[0] = t;
+    parts[1] = u;
 #else
-  parts[0] = u;
-  parts[1] = t;
+    parts[0] = u;
+    parts[1] = t;
 #endif
 
-  i=i+2;
+    i=i+2;
 
-  //  Clean out the domain variable
-  for(j=0;j<MAX_BUFF;j++) {
-    domain[j] = 0;
-  }
+    //  Clean out the domain variable
+    for(j=0;j<MAX_BUFF;j++) {
+      domain[j] = 0;
+    }
 
-  //  Get one last look at the array before assembling it
-//  for(j=0;j<i;j++) {
-//    fprintf( stderr, "extract_domain - modified i: %d part: %s\n", 
-//             j, parts[j] );
-//  }
+    //  Get one last look at the array before assembling it
+//    for(j=0;j<i;j++) {
+//      fprintf( stderr, "extract_domain - modified i: %d part: %s\n", 
+//               j, parts[j] );
+//    }
   
-  //  Copy the first term into the domain name
-  strcpy(domain, parts[0] );
+    //  Copy the first term into the domain name
+    strcpy(domain, parts[0] );
 
-  //  Copy the rest of the terms into the domain name
-  for(j=1;j<i;j++) {
-    strncat( domain, ".", MAX_BUFF );
-    strncat( domain, parts[j], MAX_BUFF );
-  }
+    //  Copy the rest of the terms into the domain name
+    for(j=1;j<i;j++) {
+      strncat( domain, ".", MAX_BUFF );
+      strncat( domain, parts[j], MAX_BUFF );
+    }
   
+  }
 
 //  fprintf( stderr, "extract_domain - final result: %s\n", domain );
 
