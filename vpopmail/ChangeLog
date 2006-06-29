@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Michael Krieger
+	- vcdb, vpopmail: pass mode to open() when creating files.  Fixes
+	  bug where lock files were created with 0000 permissions.
+
 	Tom Collins
 	- vpalias: don't trash alias name passed to valias_insert().
 	  [1491087]
