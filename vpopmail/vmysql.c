@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.9 2006-06-29 19:12:43 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.10 2006-06-29 19:20:27 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -465,7 +465,31 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 );
     if (mysql_query(&mysql_read,SqlBufRead)) {
         fprintf(stderr, "vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
-        return(NULL);
+        /* Ron Gage - May 29, 2006 - With newer versions of MySQL, there is such a thing
+        as a connection timeout regardless of activity.  By default under MySQL 5, this
+        timeout is 28800 seconds (8 hours).  If your vpopmail system runs fine for the
+        first 8 hours, then stops authenticating, this timeout is your problem (especially
+        under authdaemond).
+        
+        What this code does is when an error is encountered, it first tries to drop and
+        rebuild a connection to the SQL server and tries again.  If this second attempt
+        fails, then something other than the connection timeout is the problem.  This fix
+        need to be implemented in other places but in my setup (Slackware 10.2, netqmail,
+        vpopmail, courier-authdaemond, courier-imapd and a few others), this is always where
+        the auth attempt died with a "SQL server has gone away" error.
+        */
+        
+        fprintf(stderr, "Attempting to rebuild connection to SQL server\n");
+        vclose();
+        verrori = 0;
+        if ( (err=vauth_open_read()) != 0 ) {
+          verrori = err;
+          return(NULL);
+        }
+        if (mysql_query(&mysql_read, SqlBufRead)) {
+          fprintf (stderr, "vmysql: connection rebuild failed: %s\n", mysql_error(&mysql_read));
+          return(NULL);
+        }
     }
 
     if (!(res_read = mysql_store_result(&mysql_read))) {

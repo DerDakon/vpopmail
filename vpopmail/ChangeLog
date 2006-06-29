@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Ron Gage
+	- vmysql: reconnect to server if connection timed out.
+
 	Rolf Eike Beer
 	- vchangepw: add error checking and other code improvements.
 	  [1371572]
