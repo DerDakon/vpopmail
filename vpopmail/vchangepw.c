@@ -1,21 +1,15 @@
 /*
- * $Id: vchangepw.c,v 1.1.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vchangepw.c,v 1.1.2.2 2006-06-29 18:53:35 tomcollins Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
- * The binary "vchangepw" is added. I set up another 
- * user account with this binary as shell and uid/gid 
- * identical to vpopmail. Now users can ssh to the box 
- * as this user and change the password remote without 
- * asking me. It's as secure as everything else when the 
- * login is only allowed with ssh, so everything is 
- * crypted.
- *
- * If you don't create an account as above, you will need to change
- * permissions and ownership on vchangepw to suid vpopmail.
+ * Set up another user account with this binary as shell. Then chmod
+ * it to suid vpopmail. Now users can ssh to the box as this user and
+ * change the password remote without asking anyone. If you only allow
+ * logins via ssh the password wont be sent unencrypted.
  *
  * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
- * Copyright (C) 2003 Rolf Eike Beer
+ * Copyright (C) 2003-2006 Rolf Eike Beer
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,74 +26,82 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <signal.h>
 #include <syslog.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
 	int i;
-	uid_t pw_uid;
-	gid_t pw_gid;
 	struct vqpasswd *vpw = NULL;
 	char Email[MAX_BUFF];
 	char User[MAX_BUFF];
 	char Domain[MAX_BUFF];
-	char Passwd[MAX_BUFF];
-	char OldPasswd[MAX_BUFF];
+	char Passwd[128];	/* must be at least the size of the buffer in vpopmail.c::getpass */
+	char *passwdtmp;
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
     }
 
-	memset(Email, 0, MAX_BUFF);
-	memset(Passwd, 0, MAX_BUFF);
-	memset(Domain, 0, MAX_BUFF);
-	memset(User, 0, MAX_BUFF);
+	memset(Passwd, 0, sizeof(Passwd));
+	memset(Domain, 0, sizeof(Domain));
+	memset(User, 0, sizeof(User));
 
-	printf("Please enter the email address: ");
+	fputs("Please enter the email address: ", stdout);
 
-	fgets(Email, MAX_BUFF, stdin);
-	i = strlen(Email);
-	if (i)
-		Email[i-1]=0;
-	
-	printf("%s\n", Email);
+	fgets(Email, sizeof(Email), stdin);
+	i = strlen(Email) - 1;
+	if (Email[i] != '\n') {
+		puts("Error: email address too long");
+		return 3;
+	}
 
-        if ( (i = parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
-            printf("Error: %s\n", verror(i));
-            vexit(i);
-        }
+	Email[i] = '\0';
+	puts(Email);
 
-	strncpy(OldPasswd, getpass("Enter old password: "), MAX_BUFF);
+	if ( (i = parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
+		fputs("Error: ", stdout);
+		puts(verror(i));
+		vexit(i);
+	}
 
 	openlog("vchangepw", 0, LOG_AUTH);
 
+	passwdtmp = getpass("Enter old password: ");
+	i = strlen(passwdtmp);
+	if (i >= sizeof(Passwd)) {
+		puts("Error: password too long.");
+		syslog(LOG_NOTICE, "Too long password for user <%s>\n", Email);
+		closelog();
+		vexit(3);
+	}
+	strncpy(Passwd, passwdtmp, i + 1);
+
 	if ( (vpw = vauth_getpw(User, Domain)) != NULL ) {
-		vget_assign(Domain,NULL,0,&pw_uid,&pw_gid);
-		if ( strcmp(crypt(OldPasswd,vpw->pw_passwd),vpw->pw_passwd) != 0 ) {
-			printf("Error: authentication failed!\n");
+		vget_assign(Domain, NULL, 0, NULL, NULL);
+		if ( vauth_crypt(User, Domain, Passwd, vpw) != 0 ) {
+			puts("Error: authentication failed!");
 			syslog(LOG_NOTICE, "Wrong password for user <%s>\n", Email);
 			closelog();
 			vexit(3);
 		}
+	} else {
+		puts("Error: authentication failed!");
+		syslog(LOG_NOTICE, "Domain of address <%s> does not exist\n", Email);
+		closelog();
+		vexit(3);
 	}
 
-	strncpy( Passwd, vgetpasswd(Email), MAX_BUFF);
+	strncpy(Passwd, vgetpasswd(Email), sizeof(Passwd));
 
-	if ( (i=vpasswd( User, Domain, Passwd, USE_POP )) != 0 ) {
+	if ( (i = vpasswd( User, Domain, Passwd, USE_POP )) != 0 ) {
 		printf("Error: %s\n", verror(i));
-		syslog(LOG_NOTICE, "Error changing users password! User <%s>, message: ""%s""\n", Email,
-			verror(i));
+		syslog(LOG_NOTICE, "Error changing users password! User <%s>, message: ""%s""\n",
+			Email, verror(i));
 		vexit(i);
 	} else {
 		printf("Password successfully changed.\n");

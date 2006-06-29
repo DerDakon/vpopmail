@@ -3,6 +3,14 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Rolf Eike Beer
+	- vchangepw: add error checking and other code improvements.
+	  [1371572]
+
+	secnetdk
+	- vmysql, vpgsql: remove entries from vlog when deleting a domain
+	  or a user. [1099800]
+
 	Michael Krieger
 	- vcdb, vpopmail: pass mode to open() when creating files.  Fixes
 	  bug where lock files were created with 0000 permissions. [1499043]
