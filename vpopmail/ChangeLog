@@ -5,6 +5,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Rick Widmer
 	- vpopmaild: remove debug output from find_domain function.
+	- vpopmail: fix segfault in users/assign sorting code caused by 
+	  entries that don't contain a dot (.). [1514733]
 
 	Jeremy Kister
 	- vdelivermail: pass qmail-inject's error code instead of always
