@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.25 2006-06-29 19:44:33 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.26 2006-06-29 20:16:12 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1051,10 +1051,8 @@ int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount )
       switch (remove_lines(tmpbuf1, aliases, aliascount) ) {
 
         case -1 :
-          /* error ocurred in remove line
-           * but this is normal enough as on smaller servers, the morercpthosts
-           * file wont exist. So ignore this 'error' condition.
-           */
+          fprintf (stderr, "Failed while attempting to remove_lines() the morercpthosts file\n");
+          problem_occurred = 1;
           break; 
 
         case 0 :
@@ -1063,9 +1061,8 @@ int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount )
 
         case 1 :
           /* was removed from morercpthosts */
-          /* now test to see if morercpthosts exists */
           if ( stat( tmpbuf1, &statbuf) == 0 ) {
-            /* morercpthosts exists. Now check to see if its empty */
+            /* Now check to see if morercpthosts its empty */
             if ( statbuf.st_size == 0 ) {
               /* is empty. So delete it */
               unlink(tmpbuf1);
