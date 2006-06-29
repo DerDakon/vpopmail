@@ -6,6 +6,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- vpalias: don't trash alias name passed to valias_insert().
 	  [1491087]
+	- vpopmaild: don't show last auth if auth-logging disabled.
+	  [1511313]
 
 5.4.16 - released 7-May-06
 
