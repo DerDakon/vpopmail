@@ -20,7 +20,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	secnetdk
 	- vmysql, vpgsql: remove entries from vlog when deleting a domain
-	  or a user. [1099800]
+	  or a user. [1099800, 995762]
 
 	Michael Krieger
 	- vcdb, vpopmail: pass mode to open() when creating files.  Fixes
