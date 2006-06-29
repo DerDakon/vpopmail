@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.8 2006-05-07 18:02:24 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.9 2006-06-29 19:12:43 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -518,6 +518,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  * - drop the domain's table, or del all users from users table
  * - delete domain's entries from lastauth table
  * - delete domain's limit's entries
+ * - delete domain's vlog entries ( If defined with ENABLE_SQL_LOGGING )
  */
 int vauth_deldomain( char *domain )
 {
@@ -551,6 +552,14 @@ int vauth_deldomain( char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         return(-1);
     } 
+#endif
+
+#ifdef ENABLE_SQL_LOGGING
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
+       "delete from vlog where domain = '%s'", domain );
+    if (mysql_query(&mysql_update,SqlBufUpdate)) {
+       return(-1);
+    }
 #endif
 
     vdel_limits(domain);
@@ -592,6 +601,15 @@ int vauth_deluser( char *user, char *domain )
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         err = -1;
     } 
+#endif
+
+#ifdef ENABLE_SQL_LOGGING
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
+        "delete from vlog where domain = '%s' and user = '%s'", 
+       domain, user );
+    if (mysql_query(&mysql_update,SqlBufUpdate)) {
+        err = -1;
+    }
 #endif
     return(err);
 }
