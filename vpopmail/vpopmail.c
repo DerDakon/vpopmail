@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.24 2006-06-29 19:14:04 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.25 2006-06-29 19:44:33 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,6 @@
 #include <string.h>
 #include <pwd.h>
 #include <errno.h>
-#include <err.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -34,6 +33,9 @@
 #include <dirent.h>
 #include <pwd.h>
 #include "config.h"
+#ifdef HAVE_ERR_H
+#include <err.h>
+#endif
 #include "md5.h"
 #include "vpopmail.h"
 #include "file_lock.h"
