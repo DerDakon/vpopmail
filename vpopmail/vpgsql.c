@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.7 2006-05-07 18:41:52 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.8 2006-06-29 19:12:43 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -387,6 +387,15 @@ int vauth_deldomain( char *domain )
     } 	
     if(pgres) PQclear(pgres);
 #endif
+
+#ifdef ENABLE_SQL_LOGGING
+    qnprintf( sqlBufUpdate, SQL_BUF_SIZE,
+       "delete from vlog where domain = '%s'", domain );
+    pgres=PQexec(pgc, SqlBufUpdate);
+    if( !pgres || PGresultStatus(pgres)!=PGRES_COMMAND_OK) {
+      return(-1);
+    }
+#endif
     return(0);
 }
 
@@ -431,6 +440,17 @@ int vauth_deluser( char *user, char *domain )
   }
   if( pgres ) PQclear(pgres);
 #endif
+
+#ifdef ENABLE_SQL_LOGGING
+    qnprintf( sqlBufUpdate, SQL_BUF_SIZE,
+        "delete from vlog where domain = '%s' and user='%s'", 
+       domain, user );
+    pgres=PQexec(pgc, SqlBufUpdate);
+    if( !pgres || PGresultStatus(pgres)!=PGRES_COMMAND_OK) {
+      err = -1;
+    }
+#endif
+
   return(err);
 }
 
