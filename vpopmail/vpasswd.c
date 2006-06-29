@@ -1,5 +1,5 @@
 /*
- * $Id: vpasswd.c,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vpasswd.c,v 1.2.2.2 2006-06-29 19:14:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         }
 
 	if ( strlen(Passwd) <= 0 ) {
-		snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd(Email));
+		vgetpasswd(Email, Passwd, sizeof(Passwd));
 	}
 
 	if ( (i=vpasswd( User, Domain, Passwd, apop )) != 0 ) {

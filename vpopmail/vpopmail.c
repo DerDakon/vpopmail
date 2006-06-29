@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.23 2006-06-29 06:19:04 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.24 2006-06-29 19:14:04 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -782,33 +782,23 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
  * prompt the command line and get a password twice, that matches 
  */
 
-char *vgetpasswd(char *user) 
+void vgetpasswd(char *user, char *pass, size_t len)
 {
- static char pass1[128];
  char pass2[128];
  char prompt[128];
-
- /* Michael Bowe 14th August 2003
-  * Is setting up a static pass1 and returning a pointer
-  * to it is the best way to run this function? Maybe there
-  * is a better way we can do this....
-  */
-
-  memset(pass1, 0, sizeof(pass1));
 
   snprintf( prompt, sizeof(prompt), "Please enter password for %s: ", user);
 
   while( 1 ) {
-    snprintf(pass1, sizeof(pass1), "%s", getpass(prompt));
+    snprintf(pass, len, "%s", getpass(prompt));
     snprintf(pass2, sizeof(pass2), "%s", getpass("enter password again: "));
 
-    if ( strcmp( pass1, pass2 ) != 0 ) {
+    if ( strcmp( pass, pass2 ) != 0 ) {
       printf("Passwords do not match, try again\n");
     } else {
-      break;
+	return;
     }
   }
-  return(pass1);
 }
 
 /************************************************************************/
