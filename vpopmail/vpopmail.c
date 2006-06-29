@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.26 2006-06-29 20:16:12 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.27 2006-06-29 21:57:43 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1209,7 +1209,9 @@ int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
   }
 
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
-  if ( (fs = fopen(tmpbuf1, "r+")) == NULL ) {
+  if ( (fs = fopen(tmpbuf1, "r")) == NULL ) {
+    if (errno != ENOENT)
+	return VA_COULD_NOT_UPDATE_FILE;
     if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
       fclose(fs1);
 #ifdef FILE_LOCKING
