@@ -2165,8 +2165,6 @@ int del_limits()
 int get_lastauth()
 {
  char *email_address;
- time_t last_auth_time;
- char *last_auth_ip;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
@@ -2198,16 +2196,20 @@ int get_lastauth()
     return(-1);
   } 
 
-  last_auth_time = vget_lastauth(tmpvpw, TmpDomain);
-  last_auth_ip = vget_lastauthip(tmpvpw, TmpDomain);
-
+#ifndef ENABLE_AUTH_LOGGING
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+#else
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
   wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,(long int)last_auth_time);
+  snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,
+    (long int) vget_lastauth(tmpvpw, TmpDomain));
   wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF, last_auth_ip);
+  snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF,
+    vget_lastauthip(tmpvpw, TmpDomain));
+#endif
+
   return(0);
 }
 
