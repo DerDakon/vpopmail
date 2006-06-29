@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.1.2.2 2006-06-29 18:53:35 tomcollins Exp $
+ * $Id: vchangepw.c,v 1.1.2.3 2006-06-29 19:14:03 tomcollins Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
@@ -96,7 +96,7 @@ int main(void)
 		vexit(3);
 	}
 
-	strncpy(Passwd, vgetpasswd(Email), sizeof(Passwd));
+	vgetpasswd(Email, Passwd, sizeof(Passwd));
 
 	if ( (i = vpasswd( User, Domain, Passwd, USE_POP )) != 0 ) {
 		printf("Error: %s\n", verror(i));

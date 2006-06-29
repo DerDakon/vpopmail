@@ -6,6 +6,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Rolf Eike Beer
 	- vchangepw: add error checking and other code improvements.
 	  [1371572]
+	- change API for vgetpasswd() to make more sense. [1371566]
 
 	secnetdk
 	- vmysql, vpgsql: remove entries from vlog when deleting a domain

@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.3.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vadddomain.c,v 1.3.2.3 2006-06-29 19:14:03 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -246,6 +246,6 @@ void get_options(int argc,char **argv)
 	++optind;
     } else if (!RandomPw) {
       /* if no postmaster password specified, then prompt user to enter one */
-	snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd("postmaster"));
+	vgetpasswd("postmaster", Passwd, sizeof(Passwd));
     }
 }
