@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.11 2006-02-05 20:08:05 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.12 2006-06-29 18:53:35 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,8 @@
  */
 #ifndef VPOPMAIL_VPOPMAIL_H
 #define VPOPMAIL_VPOPMAIL_H
+
+#include <sys/types.h>		// for uid_t
 
 /*  Enable expanded debug information.  Consider these for ./configure options  */
 //  Show entry and parms when hitting vpopmail library functions
