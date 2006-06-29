@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.8 2006-05-18 19:23:07 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.9 2006-06-29 06:19:59 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -240,7 +240,11 @@ char *valias_select_names( char *domain )
      *  Allocate a buffer for them
      */    
 
-    if (mydir!=NULL) closedir(mydir);
+    if (mydir!=NULL) {
+	    closedir(mydir);
+		/* this is static and hence must be nulled incase max_names == 0 below */
+	    mydir = NULL;
+    }
 
     if (max_names == 0) return NULL;
 
