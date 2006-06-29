@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.7 2006-05-07 19:14:37 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.8 2006-06-29 19:36:43 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -497,6 +497,7 @@ void deliver_mail(char *address, char *quota)
 {
  pid_t inject_pid = 0;
  int child;
+ unsigned int xcode;
  FILE *fs;
  char tmp_file[256];
  char maildirquota[80];
@@ -668,13 +669,14 @@ void deliver_mail(char *address, char *quota)
           printf ("write to qmail-inject failed: %d\n", errno);
           close(fdm);
           waitpid(inject_pid,&child,0);
-          vexiterr (EXIT_DEFER, "system error");
+          vexiterr (EXIT_DEFER, "system error calling qmail-inject");
       }
 
       close(fdm);
       waitpid(inject_pid,&child,0);
-      if (wait_exitcode(child) == 0) return;
-      vexiterr (EXIT_DEFER, "system error");
+      xcode = wait_exitcode(child);
+      if (xcode == 0) return;
+      vexiterr (xcode, "system error calling qmail-inject");
     }
 }
 

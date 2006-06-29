@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Jeremy Kister
+	- vdelivermail: pass qmail-inject's error code instead of always
+	  deferring. [1484105]
+
 	Ron Gage
 	- vmysql: reconnect to server if connection timed out.
 
