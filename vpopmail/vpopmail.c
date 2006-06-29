@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.22 2006-01-17 19:30:52 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.23 2006-06-29 06:19:04 tomcollins Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1201,7 +1201,7 @@ int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
@@ -1755,7 +1755,7 @@ int sort_file(char *filename, int file_lines, int file_type )
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
@@ -1864,7 +1864,7 @@ int update_file(char *filename, char *update_line, int file_type )
 
 #ifdef FILE_LOCKING
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.lock", filename);
-  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT)) < 0 ) {
+  if ( (fd3 = open(tmpbuf1, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR)) < 0 ) {
     fprintf(stderr, "could not open lock file %s\n", tmpbuf1);
     return(VA_COULD_NOT_UPDATE_FILE);
   }
@@ -2947,7 +2947,7 @@ int result;
 
 #ifdef FILE_LOCKING
   /* by default the OPEN_SMTP_LOK_FILE is ~vpopmail/etc/open-smtp.lock */
-  if ( (fd_lok_file=open(OPEN_SMTP_LOK_FILE, O_WRONLY | O_CREAT))<0) return(-1);
+  if ( (fd_lok_file=open(OPEN_SMTP_LOK_FILE, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR))<0) return(-1);
   get_write_lock(fd_lok_file);
 #endif /* FILE_LOCKING */
 

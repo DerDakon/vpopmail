@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12.2.3 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vcdb.c,v 1.12.2.4 2006-06-29 06:19:05 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12.2.3 2006-01-17 18:50:22 tomcollins Exp $
+** $Id: vcdb.c,v 1.12.2.4 2006-06-29 06:19:05 tomcollins Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -262,7 +262,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
     if ((pwf = open(vpasswd_cdb_file,O_RDONLY)) < 0 ) {
 #ifdef FILE_LOCKING
-		if ( (lock_fd=open(vpasswd_lock_file, O_WRONLY|O_CREAT)) < 0) {
+		if ( (lock_fd=open(vpasswd_lock_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
 			return(NULL);
 		}
 		get_write_lock( lock_fd );
@@ -421,7 +421,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
     vcdb_strip_char( gecos );
 
 #ifdef FILE_LOCKING
-    fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+    fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR);
     if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
@@ -491,7 +491,7 @@ int vauth_deluser( char *user, char *domain )
     set_vpasswd_files( domain );
 
 #ifdef FILE_LOCKING
-	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR);
 	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
@@ -589,7 +589,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR);
 	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
@@ -733,7 +733,7 @@ int vmkpasswd( char *domain )
     lowerit(domain);
     set_vpasswd_files( domain );
 #ifdef FILE_LOCKING
-	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT);
+	fd3 = open(vpasswd_lock_file, O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR);
 	if ( get_write_lock(fd3) < 0 ) return(-2);
 #endif
 
