@@ -1453,14 +1453,7 @@ int find_domain()
   miss  = 1;
 
   while( entry ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), "** %s %s %i" RET_CRLF, 
-      entry->realdomain, entry->domain, count);
-    wait_write();
-       
     if( strcmp(domain, entry->domain)==0 ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), "HIT count: %i " RET_CRLF, count );
-      wait_write();
-       
       miss = 0; 
       break;
     }
