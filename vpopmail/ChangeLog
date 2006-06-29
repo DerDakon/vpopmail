@@ -19,6 +19,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- change API for vgetpasswd() to make more sense. [1371566]
 	- Update del_control() to properly handle remove_lines() return
 	  value. [1514613]
+	- vpopmail: minor improvements to remove_lines(). [1371536]
 
 	secnetdk
 	- vmysql, vpgsql: remove entries from vlog when deleting a domain
