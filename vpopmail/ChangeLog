@@ -38,6 +38,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vpopmaild: don't show last auth if auth-logging disabled.
 	  [1511313]
 	- Only include err.h if it's present. [1484110]
+	- vpgsql: convert domain name to lower case when creating table
+	  name. [1227383]
 
 5.4.16 - released 7-May-06
 

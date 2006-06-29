@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.8 2006-06-29 19:12:43 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.9 2006-06-29 23:07:18 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -590,7 +590,7 @@ char *vauth_munch_domain( char *domain )
   if ( domain == NULL || domain[0] == 0 ) return(domain);
 
   for(i=0;domain[i]!=0;++i){
-    tmpbuf[i] = domain[i];
+    tmpbuf[i] = tolower(domain[i]);
     if ( domain[i] == '.' || domain[i] == '-' ) {
       tmpbuf[i] = SQL_DOT_CHAR;
     }
