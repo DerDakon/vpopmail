@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.17 - unreleased
 
+	Rick Widmer
+	- vpopmaild: remove debug output from find_domain function.
+
 	Jeremy Kister
 	- vdelivermail: pass qmail-inject's error code instead of always
 	  deferring. [1484105]
