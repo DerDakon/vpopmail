@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.17 - unreleased
+5.4.17 - released 12-Jul-06
 
 	Rick Widmer
 	- vpopmaild: remove debug output from find_domain function.
