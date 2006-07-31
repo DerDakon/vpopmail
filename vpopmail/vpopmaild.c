@@ -89,6 +89,7 @@ int read_file();
 int list_domains();
 int find_domain();
 int domain_count();
+int user_count();
 int list_users();
 int list_alias();
 int list_lists();
@@ -147,7 +148,8 @@ func_t Functions[] = {
 {3, "list_domains", list_domains, "[page per_page]<crlf>" },
 {3, "find_domain", find_domain, "domain [per-page]<crlf>" },
 {3, "domain_count", domain_count, "<crlf>" },
-{2, "list_users", list_users, "domain<crlf>" },
+{2, "user_count", user_count, "domain<crlf>" },
+{2, "list_users", list_users, "domain [page per_page]<crlf>" },
 {2, "list_alias", list_alias, "domain<crlf>" },
 {2, "list_lists", list_lists, "domain<crlf>" },
 {1, "get_ip_map", get_ip_map, "domain<crlf>" },
@@ -1528,6 +1530,52 @@ int domain_count()
   snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
   wait_write();
 
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  return(0);
+}
+
+int user_count()
+{
+ char *domain;
+ int first;
+ int count;
+
+  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((domain=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "XXX email_address required" RET_CRLF);
+    return(-1);
+  }
+
+  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+        (strcmp(TheDomain,domain))!=0 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "XXX not authorized for domain" RET_CRLF);
+    return(-1);
+  }
+
+  if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
+        (strcmp(TheDomain,domain))!=0 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "XXX not authorized for domain" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  first=1;
+  count = 0;
+  while((tmpvpw=vauth_getall(domain, first, 1))!=NULL) {
+    first = 0;
+    ++count;
+  }
+  snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
+  wait_write();
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
