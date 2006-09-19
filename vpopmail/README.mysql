@@ -14,7 +14,7 @@ minor tweaks done since that time)
 A QUICK GUIDE TO VPOPMAIL WITH MYSQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Full doc available from :
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
+http://www.bowe.id.au/michael/isp/vpopmail-mysql.htm
 
 
 MYSQL :
@@ -152,12 +152,10 @@ Now, build the program with options something like this :
 	./configure \
 	  --disable-roaming-users \
 	  --enable-logging=p \
-	  --disable-ip-alias-domains \
 	  --disable-passwd \
 	  --enable-clear-passwd \
 	  --disable-domain-quotas \
 	  --enable-auth-module=mysql \
-	  --disable-many-domains \
 	  --enable-auth-logging \
 	  --enable-sql-logging \
 	  --enable-valias \
@@ -167,6 +165,15 @@ Now, build the program with options something like this :
 	make install-strip
 
 Notes : 
+	I used to recommend the --disable-many-domains switch - which 
+	tells vpopmail to create one MySQL table per email domain. When 
+	I first started building vpopmail servers, I found this to be the 
+	most logical way, having each domain in its own table. However there 
+	has been some discussion about this config option on the vpopmail 
+	mailing lists, and it sound like this option may be removed at some 
+	point in the future.  If you have a lot of domains on your server, 
+	having each domain in its own table can hurt performance. I now agree 
+	that --enable-many-domains is probably the better choice
 
 Review the contents of the file is used to set the default limits for any
 domains / mailboxes in the vpopmail system. Make sure it contains reasonable 
