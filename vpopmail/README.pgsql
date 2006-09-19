@@ -1,5 +1,5 @@
 /* 
-   $Id: README.pgsql,v 1.9.2.3 2004-12-17 05:00:39 tomcollins Exp $
+   $Id: README.pgsql,v 1.9.2.4 2006-09-19 03:46:46 mbowe Exp $
 */
 --------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ VACUUM ANALYZE valias;
 A QUICK GUIDE TO VPOPMAIL WITH POSTGRESQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Full doc available from :
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-postgresql.htm
+http://www.bowe.id.au/michael/isp/vpopmail-postgresql.htm
 
 Note :
   You should not permit end-users to have shell access to this server.
