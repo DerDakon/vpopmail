@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
+	Tom Collins
+	- vdelivermail: Add missing loop check.
+
 5.4.17 - released 12-Jul-06
 
 	Rick Widmer

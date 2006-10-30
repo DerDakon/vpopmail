@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.8 2006-06-29 19:36:43 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.9 2006-10-30 23:53:33 tomcollins Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -111,8 +111,14 @@ int vexiterr (int err, char *errstr)
  */
 int main(int argc, char **argv)
 {
+    char loopcheck[255];
+
     /* get the arguments to the program and setup things */
     get_arguments(argc, argv);
+    snprintf (loopcheck, sizeof(loopcheck), "%s@%s", TheUser, TheDomain);
+    if ( is_looping( loopcheck ) == 1 ) {
+        vexiterr (EXIT_BOUNCE, "mail is looping");
+    }
  
 #ifdef VALIAS
     /* process valiases if configured */
