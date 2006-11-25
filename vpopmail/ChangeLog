@@ -11,6 +11,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix child handling - waitpid and sys/wait.h [1573288]
 	- Dynamicallly allocate sortdata[] in vpopmail.c [1573287]
 	- Include ctype.h in the PostgreSQL backend [1573284]
+	- Set SHELL in vdelivermail before executing external programs [1573280]
 
 5.4.17 - released 12-Jul-06
 
