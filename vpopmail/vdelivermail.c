@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.8.2.1 2006-11-25 20:12:22 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.11.2.8.2.2 2006-11-25 20:14:29 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -77,9 +77,6 @@ int fdm;
 #define EXIT_DEFER 111
 #define EXIT_OK 0
 #define EXIT_OVERQUOTA EXIT_BOUNCE
-
-/* from qmail's wait.h for run_command() */
-#define wait_exitcode(w) ((w) >> 8)
 
 /* Forward declarations */
 int process_valias(void);
@@ -673,9 +670,12 @@ void deliver_mail(char *address, char *quota)
       }
 
       close(fdm);
-      waitpid(inject_pid,&child,0);
-      xcode = wait_exitcode(child);
-      if (xcode == 0) return;
+      if (waitpid(inject_pid,&child,0) <= 0 || !WIFEXITED(child)) {
+	      xcode = EXIT_DEFER;
+      } else {
+	      xcode = WEXITSTATUS(child);
+	      if (xcode == 0) return;
+      }
       vexiterr (xcode, "system error calling qmail-inject");
     }
 }
@@ -782,9 +782,9 @@ void run_command(char *prog)
      exit(EXIT_DEFER);    /* the child's exit code will get caught below */
   }
 
-  wait(&wstat);
-  waitpid(wstat,&child,0);
-  switch(wait_exitcode(wstat))
+  if (waitpid(child,&wstat,0) < 0 || !WIFEXITED(wstat))
+    vexit(EXIT_DEFER);
+  switch(WEXITSTATUS(wstat))
    {
     case 64: case 65: case 70: case 76: case 77: case 78: case 100: case 112: vexit(EXIT_BOUNCE);
     case 99: vexit(99);	/* not sure about this, when does it exit 99? */
