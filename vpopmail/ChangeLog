@@ -17,6 +17,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Clean cdb files in the distclean target [1573267]
 	- Optional building as non-root [1573266]
 
+
+	Trent Lloyd (lathiat)
+	- Add vailas add/delete/list support to vpopmaild [1555398]
+
+
+
 5.4.17 - released 12-Jul-06
 
 	Rick Widmer

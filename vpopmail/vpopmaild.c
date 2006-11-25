@@ -74,6 +74,9 @@ int mod_user();
 int user_info();
 int add_domain();
 int add_alias_domain();
+int add_alias();
+int remove_alias();
+int delete_alias();
 int del_domain();
 int dom_info();
 int mk_dir();
@@ -131,6 +134,9 @@ func_t Functions[] = {
 {"user_info", user_info, "user_domain<crlf>" },
 {"add_alias_domain", add_alias_domain, "domain alias<crlf>" },
 {"add_domain", add_domain, "domain postmaster@password<crlf>" },
+{"add_alias", add_alias, "user@domain user@otherdomain<crlf>" },
+{"remove_alias", remove_alias, "user@domain user@otherdomain<crlf>" },
+{"delete_alias", delete_alias, "user@domain<crlf>" },
 {"del_domain", del_domain, "domain<crlf>" },
 {"dom_info", dom_info, "domain<crlf>" },
 {"mk_dir", mk_dir, "/full/path/to/dir<crlf>" },
@@ -867,6 +873,105 @@ int add_domain()
   return(0);
 }
 
+int add_alias()
+{
+  char *alias, *alias_line;
+  char Email[256], Domain[256];
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX source email required" RET_CRLF);
+    return(-1);
+  }
+
+  if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias_line=strtok(NULL, "\n"))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias line required" RET_CRLF);
+    return(-1);
+  }
+
+  if (valias_insert(Email, Domain, alias_line) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias insertion failed" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  return(0);
+}
+
+int remove_alias()
+{
+  char *alias, *alias_line;
+  char Email[256], Domain[256];
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX source email required" RET_CRLF);
+    return(-1);
+  }
+
+  if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias_line=strtok(NULL, "\n"))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias line required" RET_CRLF);
+    return(-1);
+  }
+
+  if (valias_remove(Email, Domain, alias_line) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias removal failed" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  return(0);
+}
+
+int delete_alias()
+{
+  char *alias;
+  char Email[256], Domain[256];
+
+  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((alias=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX email required" RET_CRLF);
+    return(-1);
+  }
+
+  if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    return(-1);
+  }
+
+  if (valias_delete(Email, Domain) != 0) {
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias deletion failed" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  return(0);
+}
+
+
+
 /*
  *
  *  Consider adding code from vaddaliasdomain program so it doesn't 
@@ -1593,21 +1698,13 @@ int list_users()
  *
  */
 
-int list_alias()
+int
+list_alias()
 {
- static char thedir[256];
- char *domain;
- char *tmpstr;
- int page = 0;
- int lines_per_page = 0;
- int count;
- int start;
- int end;
- int i,j;
- struct dirent **namelist;
- struct dirent *mydirent;
-
-  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
+  char *domain, *tmpalias;
+  char Alias[256], Email[256], Domain[256];
+ 
+  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
     return(-1);
   }
@@ -1618,61 +1715,49 @@ int list_alias()
     return(-1);
   }
 
-  if ( (vget_assign(domain,thedir,sizeof(thedir),NULL,NULL)) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX Invalid domain" RET_CRLF);
+
+  memset(Alias, 0, sizeof(Alias));
+  memset(Domain, 0, sizeof(Domain));
+  memset(Email, 0, sizeof(Email));
+
+  snprintf(Email, sizeof(Email), "%s", domain);
+  if (parse_email(Email, Alias, Domain, sizeof(Alias)) != 0) {
+    snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "XXX invalid domain or e-mail" RET_CRLF);
     return(-1);
   }
 
-  if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
-    page = atoi(tmpstr);
-    if ( page < 0 ) page = 0;
-    if ((tmpstr=strtok(NULL,TOKENS))!=NULL) {
-      lines_per_page = atoi(tmpstr);
-      if ( lines_per_page < 0 ) lines_per_page = 0;
-    }
-  }
-  if ( page > 0 && lines_per_page > 0 ) {
-    start = (page-1) * lines_per_page;
-    end   = page * lines_per_page;
-  } else {
-    start = 0;
-    end = 0;
-  }
-
-  if ( chdir(thedir) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
-      strerror(errno));
-    return(-1);
-  }
-
-  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
-
-  j = bkscandir(".", &namelist, 0, qa_sort);
-
-  count = 0;
-  for(i=0;i<j;++i) {
-    mydirent=namelist[i];
-
-    if ( strncmp( ".qmail-", mydirent->d_name,7)!= 0 ) continue; 
-    if ( strstr(mydirent->d_name, "-owner") != NULL ) continue;
-    if ( strstr(mydirent->d_name, "-default") != NULL ) continue;
-
-    if ( end>0 ) {
-      if ( count>=start && count<end ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), "%s" RET_CRLF, mydirent->d_name);
-        wait_write();
-      } else if ( count>=end ) {
-        break;
-      }
-    } else { 
-      snprintf(WriteBuf,sizeof(WriteBuf), "%s" RET_CRLF, mydirent->d_name);
+  if (strstr(Email, "@") == NULL) {
+    tmpalias = valias_select_all(Alias, Email);
+    if (tmpalias == NULL) {
+      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
       wait_write();
+      
+      while (tmpalias != NULL) {
+        snprintf(WriteBuf, sizeof(WriteBuf), "%s@%s %s" RET_CRLF, Alias, Email, tmpalias);
+        wait_write();
+        tmpalias = valias_select_all_next(Alias);
+      }
+      snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
     }
-    ++count;
+  } else {
+    tmpalias = valias_select(Alias, Domain);
+    if (tmpalias == NULL) {
+      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+      wait_write();
+      
+      while (tmpalias != NULL) {
+        snprintf(WriteBuf, sizeof(WriteBuf), "%s@%s %s" RET_CRLF, Alias, Domain, tmpalias);
+        wait_write();
+        tmpalias = valias_select_next(Alias);
+      }
+      snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+    }
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+
   return(0);
 }
 
