@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.29.2.1 2006-11-25 20:12:22 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.29.2.2 2006-11-25 20:14:29 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1385,7 +1385,7 @@ int update_newu()
     execl(QMAILNEWU,"qmail-newu", NULL);
     exit(127);
   } else {
-    wait(&pid);
+    waitpid(pid,&pid,0);
   }
   return(0);
 }
@@ -2033,7 +2033,7 @@ int compile_morercpthosts()
     execl(QMAILNEWMRH,"qmail-newmrh", NULL);
     exit(127);
   } else {
-    wait(&pid);
+    waitpid(pid,&pid,0);
   }
   return(0);
 }
@@ -3203,7 +3203,7 @@ int update_rules()
   close(tcprules_fdm);  
 
   /* wait untill tcprules finishes so we don't have zombies */
-  while(wait(&wstat)!= (int)pid);
+  waitpid(pid,&wstat,0);
 
   /* if tcprules encounters an error, then the tempfile will be
    * left behind on the disk. We dont want this because we could
