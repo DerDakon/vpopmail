@@ -9,6 +9,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Peter Pentchev (roamer)
 	- Various sanity checks and minor optimizations [1573292]
 	- Fix child handling - waitpid and sys/wait.h [1573288]
+	- Dynamicallly allocate sortdata[] in vpopmail.c [1573287]
 
 5.4.17 - released 12-Jul-06
 
