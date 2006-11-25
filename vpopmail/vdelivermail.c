@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.8.2.2 2006-11-25 20:14:29 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.11.2.8.2.3 2006-11-25 20:24:55 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -775,6 +775,7 @@ void run_command(char *prog)
      printf("Unable to fork: %d.", errno); 
      vexit(EXIT_DEFER);
    case 0:
+     setenv("SHELL", "/bin/sh", 1);
      args[0] = "/bin/sh"; args[1] = "-c"; args[2] = prog; args[3] = 0;
      sig_catch(SIGPIPE,SIG_DFL);
      execv(*args,args);
