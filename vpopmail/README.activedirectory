@@ -6,10 +6,8 @@ It is believed this module was written to allow a once-off migration
 of accounts from an ActiveDirectory server over to another vpopmail
 authentication system
 
-This module should only be considered as experimental.
-
-The CDB and MySQL modules are the two that are recommended for
-production environments
+This module has been removed.  The CDB and MySQL modules are the two 
+that are recommended for production environments.
 
 --------------------------------------------------------------------------
 
