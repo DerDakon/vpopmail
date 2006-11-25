@@ -11,7 +11,7 @@ noinst_HEADERS=md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vcd
 
 COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 
-CONFIG_CLEAN_FILES=vauth.c
+CONFIG_CLEAN_FILES=vauth.c cdb/conf-cc cdb/conf-ld cdb/compile cdb/load
 
 INSTALL_PROGRAM= ${INSTALL} -o @vpopuser@ -m 711 -g @vpopgroup@ $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_STRIP_PROGRAM=${INSTALL_PROGRAM} -s
