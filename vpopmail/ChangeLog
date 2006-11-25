@@ -15,6 +15,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Some more error checking in vchangepw [1573277]
 	- Improve the vpopmaild documentation [1573269]
 	- Clean cdb files in the distclean target [1573267]
+	- Optional building as non-root [1573266]
 
 5.4.17 - released 12-Jul-06
 
