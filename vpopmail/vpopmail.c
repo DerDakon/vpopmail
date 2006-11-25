@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.29.2.2 2006-11-25 20:14:29 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.29.2.3 2006-11-25 20:18:16 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1741,9 +1741,7 @@ int sort_file(char *filename, int file_lines, int file_type )
  int i, count=0;
  char cur_domain[MAX_BUFF];
 
- sortrec sortdata[2000];
-
-//  sortdata = malloc(  file_lines * sizeof( sortrec ));
+ sortrec *sortdata = NULL;
 
 //  fprintf( stderr, "\n***************************************\n" 
 //                   "sort_file: %s\n", filename );
@@ -1780,6 +1778,17 @@ int sort_file(char *filename, int file_lines, int file_type )
     }
   }
 
+  sortdata = malloc(  file_lines * sizeof( sortrec ));
+  if (sortdata == NULL) {
+    fclose(fs);
+    fclose(fs1);
+#ifdef FILE_LOCKING
+    unlock_lock(fd3, 0, SEEK_SET, 0);
+    close(fd3);
+#endif
+    return(VA_MEMORY_ALLOC_ERR);
+  }
+
   while( fgets(tmpbuf1,sizeof(tmpbuf1),fs) != NULL ) {
 
     //  Trim \n off end of line.
@@ -1796,6 +1805,22 @@ int sort_file(char *filename, int file_lines, int file_type )
     }
 
 //    fprintf( stderr, "   Entry: %s\n", tmpbuf1 );
+
+    // A new entry; is the allocated memory enough?
+    if (count == file_lines) {
+      fclose(fs);
+      fclose(fs1);
+#ifdef FILE_LOCKING
+      unlock_lock(fd3, 0, SEEK_SET, 0);
+      close(fd3);
+#endif
+      for (i = 0; i < count; i++) {
+	free( sortdata[i].key );
+	free( sortdata[i].value );
+      }
+      free( sortdata );
+      return(VA_MEMORY_ALLOC_ERR);
+    }
 
     extract_domain( cur_domain, tmpbuf1, file_type );
 
@@ -1830,7 +1855,11 @@ int sort_file(char *filename, int file_lines, int file_type )
   close(fd3);
 #endif
 
-//  free( sortrec );
+  for (i = 0; i < count; i++) {
+    free( sortdata[i].key );
+    free( sortdata[i].value );
+  }
+  free( sortdata );
 
   return(0);
 }
