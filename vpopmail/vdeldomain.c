@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.2.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vdeldomain.c,v 1.2.2.2.2.1 2006-11-25 20:12:22 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 		if (strcmp(entry->domain, entry->realdomain) != 0) {
 			aliases[aliascount++] = strdup(entry->domain);
 		} else {
-			strcpy(parent,entry->domain);
+			snprintf(parent,sizeof(parent),"%s",entry->domain);
 		}
 
 		entry = get_domain_entries(NULL);

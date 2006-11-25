@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.29 2006-06-29 23:13:26 tomcollins Exp $
+ * $Id: vpopmail.c,v 1.28.2.29.2.1 2006-11-25 20:12:22 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -560,6 +560,8 @@ domain_entry *get_domain_entries (const char *match_real)
                 if (entry.realdomain == NULL) continue;
 
                 /* remove trailing '-' from entry.domain */
+		if (entry.realdomain <= entry.domain + 2 ||
+		    *(entry.realdomain-2) != '-') continue;
                 *(entry.realdomain-2) = '\0';
 
                 if ((p = strtok (NULL, ":")) == NULL) continue;
@@ -1229,6 +1231,7 @@ int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
     for(i=0;tmpbuf1[i]!=0;++i) {
       if (tmpbuf1[i]=='\n') {
         tmpbuf1[i]=0;
+	break;
       }
     }
 
@@ -1239,6 +1242,7 @@ int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
       if( 0 == strcmp(tmpbuf1,aliases[i])) {
         doit=0;
 //        fprintf( stderr, "      ***  DELETE  ***\n");
+	break;
         }
       }    
     if( doit ) {
@@ -1633,7 +1637,8 @@ char tmpbuf[MAX_BUFF];
 
   //  If users/assign - need to delete last character
   if( 1 == file_type ) {
-    domain[--i] = 0;
+    if (i > 0)
+      domain[--i] = 0;
   } else {
     domain[i] = 0;
   }
@@ -1679,9 +1684,7 @@ char tmpbuf[MAX_BUFF];
     i=i+2;
 
     //  Clean out the domain variable
-    for(j=0;j<MAX_BUFF;j++) {
-      domain[j] = 0;
-    }
+    memset(domain, 0, sizeof(domain));
 
     //  Get one last look at the array before assembling it
 //    for(j=0;j<i;j++) {
@@ -1761,8 +1764,8 @@ int sort_file(char *filename, int file_lines, int file_type )
 #ifdef FILE_LOCKING
     unlock_lock(fd3, 0, SEEK_SET, 0);
     close(fd3);
-    return(VA_COULD_NOT_UPDATE_FILE);
 #endif
+    return(VA_COULD_NOT_UPDATE_FILE);
   }
 
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s", filename);
@@ -1770,8 +1773,8 @@ int sort_file(char *filename, int file_lines, int file_type )
     if ( (fs = fopen(tmpbuf1, "w+")) == NULL ) {
       fclose(fs1);
 #ifdef FILE_LOCKING
-      close(fd3);
       unlock_lock(fd3, 0, SEEK_SET, 0);
+      close(fd3);
 #endif
       return(VA_COULD_NOT_UPDATE_FILE);
     }
@@ -1783,6 +1786,7 @@ int sort_file(char *filename, int file_lines, int file_type )
     for(i=0;tmpbuf1[i]!=0;++i) {
       if (tmpbuf1[i]=='\n') {
         tmpbuf1[i]=0;
+	break;
       }
     }
 
@@ -1893,6 +1897,7 @@ int update_file(char *filename, char *update_line, int file_type )
     for(i=0;tmpbuf1[i]!=0;++i) {
       if (tmpbuf1[i]=='\n') {
         tmpbuf1[i]=0;
+	break;
       }
     }
 
@@ -2406,7 +2411,7 @@ int host_in_locals(char *domain)
 
   while( fgets(tmpbuf,sizeof(tmpbuf),fs) != NULL ) {
     /* usually any newlines into nulls */
-    for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') tmpbuf[i]=0;
+    for(i=0;tmpbuf[i]!=0;++i) if (tmpbuf[i]=='\n') { tmpbuf[i]=0; break; }
     /* Michael Bowe 14th August 2003
      * What happens if domain isnt null terminated?
      */
@@ -2899,12 +2904,12 @@ int open_smtp_relay()
 
 int result;
 
-//  NOTE: vopen_smpt_relay returns <0 on error 0 on duplicate 1 added
+//  NOTE: vopen_smtp_relay returns <0 on error 0 on duplicate 1 added
 //  check for failure.
 
   /* store the user's ip address into the sql relay table */
   if (( result = vopen_smtp_relay()) < 0 ) {   //   database error
-      vsqlerror( stderr, "Error. vopen_smpt_relay failed" );
+      vsqlerror( stderr, "Error. vopen_smtp_relay failed" );
       return (verrori);
   } else if ( result == 1 ) {
     /* generate a new tcp.smtp.cdb file */
