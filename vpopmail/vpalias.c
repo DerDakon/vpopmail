@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.9 2006-06-29 06:19:59 tomcollins Exp $
+ * $Id: vpalias.c,v 1.6.2.9.2.1 2006-11-25 20:12:22 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -160,6 +160,7 @@ int valias_delete( char *alias, char *domain)
 {
  char *tmpstr;
  char Dir[156];
+ char *p;
  uid_t uid;
  gid_t gid;
  int i;
@@ -174,8 +175,10 @@ int valias_delete( char *alias, char *domain)
 	return(-1);
     }
     strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
-    for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
-    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
+    i = strlen(Dir);
+    for (p = alias; (i < (int)sizeof(Dir) - 1) && (*p != '\0'); p++)
+      Dir[i++] = (*p == '.' ? ':' : *p);
+    Dir[i] = '\0';
     return(unlink(Dir));
 }
 
@@ -258,7 +261,7 @@ char *valias_select_names( char *domain )
            strcmp(mydirent->d_name, ".qmail-default") != 0 ) {
 
         countit=0;
-        sprintf(filename, "%s/%s", Dir, mydirent->d_name);
+        snprintf(filename, sizeof(filename), "%s/%s", Dir, mydirent->d_name);
         
         if(!lstat(filename, &mystat) && S_ISLNK(mystat.st_mode)) {
           /*  It is a mailing list  */
@@ -278,10 +281,11 @@ char *valias_select_names( char *domain )
           len = strlen( filename ) - 7;
           names[ num_names ] = malloc( len + 1 );
           for(i=7,j=0; j<=len; i++,j++) {
-            names[num_names][j] = filename[i];
             if( ':' == filename[i] ) {
               names[num_names][j] = '.';
-            }
+            } else {
+	      names[num_names][j] = filename[i];
+	    }
           }
           num_names++;          
         }
