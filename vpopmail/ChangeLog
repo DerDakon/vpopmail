@@ -14,6 +14,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Set SHELL in vdelivermail before executing external programs [1573280]
 	- Some more error checking in vchangepw [1573277]
 	- Improve the vpopmaild documentation [1573269]
+	- Clean cdb files in the distclean target [1573267]
 
 5.4.17 - released 12-Jul-06
 
