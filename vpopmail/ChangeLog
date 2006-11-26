@@ -5,6 +5,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Tom Collins
 	- vdelivermail: Add missing loop check.
+	- vchangepw: Minor changes to Peter's error checking. [1573277]
 
 	Rick Widmer
         - Multiple changes to vpopmaild:
