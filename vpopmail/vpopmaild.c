@@ -151,7 +151,7 @@ func_t Functions[] = {
 {"read_file", read_file, "/full/path<crlf>" },
 {"stat_file", stat_file, "/full/path<crlf>" },
 {"list_domains", list_domains, "[page per_page]<crlf>" },
-{"find_domain", find_domain, "domain [per-page]<crlf>" },
+{"find_domain", find_domain, "domain per-page<crlf>" },
 {"domain_count", domain_count, "<crlf>" },
 {"user_count", user_count, "domain <crlf>" },
 {"list_users", list_users, "domain [page per_page]<crlf>" },
