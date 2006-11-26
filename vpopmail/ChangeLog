@@ -4,6 +4,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.4.18 - unreleased 23-Nov-06
 
 	Rick Widmer
+	- Number the error messages (XXX) in vpopmaild
 	- Add various patches from others listed below:
 
 	Peter Pentchev (roamer)
@@ -17,10 +18,13 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Clean cdb files in the distclean target [1573267]
 	- Optional building as non-root [1573266]
 
-
 	Trent Lloyd (lathiat)
 	- Add vailas add/delete/list support to vpopmaild [1555398]
+	- Refresh assign cache if a domain is deleted [1529744]
 
+	Bill Shupp
+	- Add user_count function to vpopmaild
+	- Add stat_file function to vpopmaild
 
 
 5.4.17 - released 12-Jul-06

@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.29.2.3 2006-11-25 20:18:16 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.29.2.4 2006-11-26 00:19:20 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1158,6 +1158,7 @@ int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount,
   /* compile assign file */
   update_newu();
 
+  vget_assign(NULL, NULL, 0, NULL, NULL);  //  clear cache
   return(0);
 }
 
@@ -2686,7 +2687,10 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
 
   /* cant lookup a null domain! -- but it does clear the cache */
   if ( domain == NULL || *domain == 0) {
-    in_domain = NULL;
+    if ( in_domain != NULL ) {
+      free(in_domain);
+      in_domain = NULL;
+    }
     return(NULL);
   }
 

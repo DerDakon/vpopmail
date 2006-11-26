@@ -44,7 +44,7 @@
 #define LIST_DOMAIN_TOKENS " :\t\n\r"
 
 
-#define INVALID_DIRECTORY RET_ERR "XXX invaild directory" RET_CRLF
+#define INVALID_DIRECTORY RET_ERR "0001 invaild directory" RET_CRLF
 
 char ReadBuf[MAX_TMP_BUFF];
 char WriteBuf[MAX_TMP_BUFF];
@@ -85,9 +85,11 @@ int list_dir();
 int rm_file();
 int write_file();
 int read_file();
+int stat_file();
 int list_domains();
 int find_domain();
 int domain_count();
+int user_count();
 int list_users();
 int list_alias();
 int list_lists();
@@ -145,9 +147,12 @@ func_t Functions[] = {
 {"rm_file", rm_file, "/full/path/to/file<crlf>" },
 {"write_file", write_file, "/full/path (data lines)<crlf>.<crlf>" },
 {"read_file", read_file, "/full/path<crlf>" },
+{"stat_file", stat_file, "/full/path<crlf>" },
 {"list_domains", list_domains, "[page per_page]<crlf>" },
 {"find_domain", find_domain, "domain [per-page]<crlf>" },
 {"domain_count", domain_count, "<crlf>" },
+{"user_count", user_count, "domain <crlf>" },
+{"list_users", list_users, "domain [page per_page]<crlf>" },
 {"list_users", list_users, "domain<crlf>" },
 {"list_alias", list_alias, "domain<crlf>" },
 {"list_lists", list_lists, "domain<crlf>" },
@@ -217,7 +222,7 @@ int main(int argc, char **argv)
 
   if( vauth_open( 1 )) {
       snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "Can't open authentication database." RET_CRLF);
+        RET_ERR "0101 Can't open authentication database." RET_CRLF);
       wait_write();
     exit( -1 );
   }
@@ -228,7 +233,7 @@ int main(int argc, char **argv)
   read_size = wait_read();
   if ( read_size < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX read timeout" RET_CRLF);
+      RET_ERR "0102 read timeout" RET_CRLF);
     wait_write();
     exit(-1);
   } 
@@ -246,14 +251,14 @@ int main(int argc, char **argv)
     read_size = wait_read();
     if ( read_size < 0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX read timeout" RET_CRLF);
+        RET_ERR "0103 read timeout" RET_CRLF);
       wait_write();
       vclose();
       exit(-1);
     } 
     if ((command=strtok(ReadBuf,TOKENS))==NULL) {
       snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "XXX Invalid command" RET_CRLF);
+        RET_ERR "0104 Invalid command" RET_CRLF);
       wait_write();
       continue;
     }
@@ -266,7 +271,7 @@ int main(int argc, char **argv)
     }
     if ( found == 0 ) {
       snprintf(WriteBuf, sizeof(WriteBuf), 
-        RET_ERR "XXX Invalid command " RET_CRLF);
+        RET_ERR "0105 Invalid command " RET_CRLF);
     }
     wait_write();
   }
@@ -285,25 +290,25 @@ int login()
 
   if ((command=strtok(ReadBuf,TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX authorization first" RET_CRLF);
+      RET_ERR "0201 authorization first" RET_CRLF);
     return(-1);
   }
 
   if (strcasecmp(command, "login" ) != 0 ) {
     if (strcasecmp(command, "help") == 0 ) help();
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX authorization first" RET_CRLF);
+      RET_ERR "0202 authorization first" RET_CRLF);
     return(-1);
   }
   if ((email=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX email address required" RET_CRLF);
+      RET_ERR "0203 email address required" RET_CRLF);
     return(-1);
   }
 
   if ((pass=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX password required" RET_CRLF);
+      RET_ERR "0204 password required" RET_CRLF);
     return(-2);
   }
 
@@ -316,19 +321,19 @@ int login()
 
   if ( parse_email( email, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX invalid login" RET_CRLF);
+      RET_ERR "0205 invalid login" RET_CRLF);
     return(-1); 
   }
 
   if ((tmpvpw = vauth_getpw(TheUser, TheDomain))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX invalid login" RET_CRLF);
+      RET_ERR "0206 invalid login" RET_CRLF);
     return(-1);
   }
 
   if ( vauth_crypt(TheUser, TheDomain, pass, tmpvpw) != 0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-     RET_ERR "112 invalid login" RET_CRLF);
+     RET_ERR "0207 invalid login" RET_CRLF);
     return(-1);
   } 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
@@ -385,44 +390,44 @@ int add_user()
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized" RET_CRLF);
+      RET_ERR "0301 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "0302 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
+      RET_ERR "0303 invaild email addrress" RET_CRLF);
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "0304 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ((password=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX password required" RET_CRLF);
+      RET_ERR "0305 password required" RET_CRLF);
     return(-1);
   }
 
   if ((gecos=strtok(NULL,PARAM_SPACE_TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX gecos required" RET_CRLF);
+      RET_ERR "0306 gecos required" RET_CRLF);
     return(-1);
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   if ((ret=vadduser(TmpUser, TmpDomain, password, gecos, USE_POP )) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0305 %s" RET_CRLF, verror(ret));
     return(-1);
   }
   return(0);
@@ -435,31 +440,31 @@ int del_user()
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized" RET_CRLF);
+      RET_ERR "0401 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "0402 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
+      RET_ERR "0403 invaild email addrress" RET_CRLF);
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "0404 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vdeluser(TmpUser, TmpDomain)) != VA_SUCCESS ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0405 %s" RET_CRLF, verror(ret));
     return(-1);
   }
 
@@ -479,13 +484,13 @@ int mod_user()
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF );
+      RET_ERR "0501 email_address required" RET_CRLF );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
+      RET_ERR "0502 invaild email addrress" RET_CRLF);
     return(-1);
   } 
 
@@ -495,7 +500,7 @@ int mod_user()
     /* if not their domain, reject */
     if ( strcmp(TheDomain,TmpDomain)!= 0 )  {
       snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "XXX not authorized for domain" RET_CRLF);
+        RET_ERR "0503 not authorized for domain" RET_CRLF);
       return(-1);
     } 
 
@@ -508,7 +513,7 @@ int mod_user()
     /* if not their account, reject */
     if ( strcmp(TheDomain,TmpDomain)!= 0 || strcmp(TheUser,TmpUser)!= 0 )  {
       snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "XXX not authorized for domain" RET_CRLF);
+        RET_ERR "0504 not authorized for domain" RET_CRLF);
       return(-1);
     }
   }
@@ -518,7 +523,7 @@ int mod_user()
   /* get the current user information */
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX user does not exist" RET_CRLF);
+      RET_ERR "0505 user does not exist" RET_CRLF);
     while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL && 
           strcmp(ReadBuf, ".\n") != 0 );
     return(-1);
@@ -644,7 +649,7 @@ int mod_user()
   }
 
   if ( (ret=vauth_setpw( tmpvpw, TmpDomain )) != 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret)); 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0507 %s" RET_CRLF, verror(ret)); 
   } else {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   }
@@ -658,32 +663,32 @@ int user_info()
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized" RET_CRLF);
+      RET_ERR "0601 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "0602 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
+      RET_ERR "0603 invaild email addrress" RET_CRLF);
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "0604 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX user does not exist" RET_CRLF);
+      RET_ERR "0605 user does not exist" RET_CRLF);
     return(-1);
   } 
 
@@ -844,28 +849,28 @@ int add_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0801 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0802 domain required" RET_CRLF);
     return(-1);
   }
 
   if ((password=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX password required" RET_CRLF);
+      RET_ERR "0803 password required" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vadddomain(domain,VPOPMAILDIR,VPOPMAILUID,VPOPMAILGID))!=VA_SUCCESS){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0804 %s" RET_CRLF, verror(ret));
     return(-1);
   }
 
   if ((ret=vadduser("postmaster",domain , password, "postmaster", USE_POP ))<0){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0805 %s" RET_CRLF, verror(ret));
     return(-1);
   }
 
@@ -879,27 +884,27 @@ int add_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0901 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX source email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0902 source email required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0903 invalid source e-mail supplied" RET_CRLF);
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias line required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0904 alias line required" RET_CRLF);
     return(-1);
   }
 
   if (valias_insert(Email, Domain, alias_line) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias insertion failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0905 alias insertion failed" RET_CRLF);
     return(-1);
   }
 
@@ -913,27 +918,27 @@ int remove_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1001 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX source email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1002 source email required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1003 invalid source e-mail supplied" RET_CRLF);
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias line required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1004 alias line required" RET_CRLF);
     return(-1);
   }
 
   if (valias_remove(Email, Domain, alias_line) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias removal failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1005 alias removal failed" RET_CRLF);
     return(-1);
   }
 
@@ -947,22 +952,22 @@ int delete_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1101 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1102 email required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1103 invalid source e-mail supplied" RET_CRLF);
     return(-1);
   }
 
   if (valias_delete(Email, Domain) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX alias deletion failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1104 alias deletion failed" RET_CRLF);
     return(-1);
   }
 
@@ -987,23 +992,23 @@ int add_alias_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1201 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1202 domain required" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX alias name required" RET_CRLF);
+      RET_ERR "1203 alias name required" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vaddaliasdomain(alias,domain))!=VA_SUCCESS){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1204 %s" RET_CRLF, 
              verror(ret));
     return(-1);
   }
@@ -1019,17 +1024,17 @@ int del_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1301 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1302 domain required" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vdeldomain(domain))!=VA_SUCCESS){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, verror(ret));
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1303 %s" RET_CRLF, verror(ret));
     return(-1);
   }
 
@@ -1048,12 +1053,12 @@ int dom_info()
  int  i, aliascount=0;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1401 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1402 domain required" RET_CRLF);
     return(-1);
   }
 
@@ -1061,11 +1066,11 @@ int dom_info()
 
   if (entry==NULL) {   //  something went wrong
     if( verrori ) {    //  could not open file
-      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "100 %s" RET_CRLF, 
+      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1403 %s" RET_CRLF, 
                verror(verrori));
       return(0);
     } else {           //  domain does not exist
-      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "101 %s" RET_CRLF, 
+      snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1404 %s" RET_CRLF, 
                verror(VA_DOMAIN_DOES_NOT_EXIST));
       return(0);
     }
@@ -1210,19 +1215,19 @@ char *validate_path(char *path)
   if ( AuthVpw.pw_gid & SA_ADMIN ) { 
     if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
+        RET_ERR "1501 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
     if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
+        RET_ERR "1502 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   } else {
     if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "XXX unauthorized directory" RET_CRLF);
+        RET_ERR "1503 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   }
@@ -1236,7 +1241,7 @@ int mk_dir()
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX directory required" RET_CRLF);
+      RET_ERR "1601 directory required" RET_CRLF);
     return(-1);
   }
 
@@ -1245,14 +1250,14 @@ int mk_dir()
  
   /* make directory, return error */  
   if ( mkdir(dir,0700) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1602 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
 
   /* Change ownership */
   if ( chown(dir,VPOPMAILUID,VPOPMAILGID) == -1 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1603 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1268,7 +1273,7 @@ int rm_dir()
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX directory required" RET_CRLF);
+      RET_ERR "1701 directory required" RET_CRLF);
     return(-1);
   }
 
@@ -1276,7 +1281,7 @@ int rm_dir()
 
   /* recursive directory delete */ 
   if ( vdelfiles(dir) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1702 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1294,20 +1299,20 @@ int list_dir()
   /* must supply directory parameter */
   if ((dir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX directory required" RET_CRLF);
+      RET_ERR "1801 directory required" RET_CRLF);
     return(-1);
   }
 
   if ( (dir=validate_path(dir)) == NULL ) return(-1);
 
   if ( chdir(dir) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1802 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
 
   if ( (mydir = opendir(".")) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1803 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1362,7 +1367,7 @@ int rm_file()
   /* must supply directory parameter */
   if ((filename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX filename required" RET_CRLF);
+      RET_ERR "1901 filename required" RET_CRLF);
     return(-1);
   }
 
@@ -1370,7 +1375,7 @@ int rm_file()
 
   /* unlink filename */ 
   if ( unlink(filename) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1902 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1388,14 +1393,14 @@ int write_file()
   /* must supply directory parameter */
   if ((filename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX filename required" RET_CRLF);
+      RET_ERR "2001 filename required" RET_CRLF);
     return(-1);
   }
 
   if ( (filename=validate_path(filename)) == NULL ) return(-1);
 
   if ( (fs=fopen(filename,"w+"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2002 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1421,14 +1426,14 @@ int read_file()
   /* must supply directory parameter */
   if ((filename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX filename required" RET_CRLF);
+      RET_ERR "2101 filename required" RET_CRLF);
     return(-1);
   }
 
   if ( (filename=validate_path(filename)) == NULL ) return(-1);
 
   if ( (fs=fopen(filename,"r"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2102 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1454,6 +1459,36 @@ int read_file()
   }
   return(0);
 }
+
+
+int stat_file()
+{
+ char *filename;
+ struct stat mystat;
+
+  /* must supply directory parameter */
+  if ((filename=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "2201 filename required" RET_CRLF);
+    return(-1);
+  }
+
+  if ( (filename=validate_path(filename)) == NULL ) return(-1);
+
+  if ( (stat(filename,&mystat))!=0){
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2202 %s" RET_CRLF, 
+      strerror(errno));
+    return(-1);
+  }
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+  snprintf(WriteBuf,sizeof(WriteBuf), "uid: %d\n", mystat.st_uid); 
+  wait_write();
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  return(0);
+}
+
+
 int list_domains()
 {
  domain_entry *entry;
@@ -1465,7 +1500,7 @@ int list_domains()
  int end;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2301 not authorized" RET_CRLF);
     return(-1);
   }
 
@@ -1489,7 +1524,7 @@ int list_domains()
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX could not open assign file" RET_CRLF);
+      RET_ERR "2302 could not open assign file" RET_CRLF);
     return(-1);
   }
 
@@ -1518,6 +1553,8 @@ int list_domains()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
+
+
 int find_domain()
 {
  domain_entry *entry;
@@ -1531,12 +1568,12 @@ int find_domain()
   per_page = 0;
  
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2401 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2402 domain required" RET_CRLF);
     return(-1);
   }
 
@@ -1547,7 +1584,7 @@ int find_domain()
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX could not open assign file" RET_CRLF);
+      RET_ERR "2403 could not open assign file" RET_CRLF);
     return(-1);
   }
 
@@ -1589,7 +1626,7 @@ int domain_count()
  int count;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2501 not authorized" RET_CRLF);
     return(-1);
   }
 
@@ -1597,7 +1634,7 @@ int domain_count()
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "XXX could not open assign file" RET_CRLF);
+      RET_ERR "2502 could not open assign file" RET_CRLF);
     return(-1);
   }
 
@@ -1618,6 +1655,53 @@ int domain_count()
 }
 
 
+int user_count()
+ {
+  char *domain;
+  int first;
+  int count;
+ 
+   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
+     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2601 not authorized" RET_CRLF);
+     return(-1);
+   }
+ 
+   if ((domain=strtok(NULL,TOKENS))==NULL) {
+     snprintf(WriteBuf,sizeof(WriteBuf),
+       RET_ERR "2602 domain" RET_CRLF);
+     return(-1);
+   }
+ 
+   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) &&
+         (strcmp(TheDomain,domain))!=0 ) {
+     snprintf(WriteBuf,sizeof(WriteBuf),
+       RET_ERR "2603 not authorized for domain" RET_CRLF);
+     return(-1);
+   }
+ 
+   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) &&
+         (strcmp(TheDomain,domain))!=0 ) {
+     snprintf(WriteBuf,sizeof(WriteBuf),
+       RET_ERR "2604 not authorized for domain" RET_CRLF);
+     return(-1);
+   }
+ 
+   snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+   wait_write();
+ 
+   first=1;
+   count = 0;
+   while((tmpvpw=vauth_getall(domain, first, 1))!=NULL) {
+     first = 0;
+     ++count;
+   }
+   snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
+   wait_write();
+   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+   return(0);
+ }
+  	 
+ 
 int list_users()
 {
  char *domain;
@@ -1630,20 +1714,20 @@ int list_users()
  int end;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2701 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "2702 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "2703 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
@@ -1666,7 +1750,7 @@ int list_users()
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "2704 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
@@ -1705,13 +1789,13 @@ list_alias()
   char Alias[256], Email[256], Domain[256];
  
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2801 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX Domain required" RET_CRLF);
+      RET_ERR "2802 Domain required" RET_CRLF);
     return(-1);
   }
 
@@ -1722,7 +1806,7 @@ list_alias()
 
   snprintf(Email, sizeof(Email), "%s", domain);
   if (parse_email(Email, Alias, Domain, sizeof(Alias)) != 0) {
-    snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "XXX invalid domain or e-mail" RET_CRLF);
+    snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "2803 invalid domain or e-mail" RET_CRLF);
     return(-1);
   }
 
@@ -1778,26 +1862,26 @@ int list_lists()
  static char tmpbuf[1024];
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "2901 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "2902 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "2903 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ( (vget_assign(domain,thedir,sizeof(thedir),NULL,NULL)) == NULL ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "2904 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
@@ -1818,7 +1902,7 @@ int list_lists()
   }
 
   if ( chdir(thedir) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2905 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -1864,17 +1948,17 @@ int get_ip_map()
  static char  tmpdomain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3001 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX ip required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3002 ip required" RET_CRLF);
     return(-1);
   }
 
   if ( vget_ip_map(ip,tmpdomain,sizeof(tmpdomain)) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX error" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3003 error" RET_CRLF);
     return(-1);
   }
 
@@ -1886,7 +1970,7 @@ int get_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3004 not available" RET_CRLF);
 #endif
   
   return(0);
@@ -1899,33 +1983,33 @@ int add_ip_map()
  char *domain;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3101 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX ip required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3102 ip required" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3103 domain required" RET_CRLF);
     return(-1);
   }
 
   if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX invalid domain" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3104 invalid domain" RET_CRLF);
     return(-1);
   }
 
   if ( vadd_ip_map(ip,domain) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX error" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3105 error" RET_CRLF);
     return(-1);
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3106 not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -1937,29 +2021,29 @@ int del_ip_map()
  char *domain;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3201 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX ip required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3202 ip required" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3203 domain required" RET_CRLF);
     return(-1);
   }
 
   if ( vdel_ip_map(ip,domain) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX error" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3204 error" RET_CRLF);
     return(-1);
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3205 not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -1972,7 +2056,7 @@ int show_ip_map()
  static char r_domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3301 not authorized" RET_CRLF);
     return(-1);
   }
 
@@ -1989,7 +2073,7 @@ int show_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not available" RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3302 not available" RET_CRLF);
 #endif
   return(0);
 }
@@ -2001,18 +2085,18 @@ int get_limits()
  struct vlimits mylimits;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3401 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3402 domain required" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX could not get limits" RET_CRLF);
+      RET_ERR "3403 could not get limits" RET_CRLF);
     return(-1);
   }
 
@@ -2126,19 +2210,19 @@ int set_limits()
  char *value;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3501 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((param=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX domain required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "3502 domain required" RET_CRLF);
     return(-1);
   }
   snprintf(domain,sizeof(domain), param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX could not get limits" RET_CRLF);
+      RET_ERR "3503 could not get limits" RET_CRLF);
     return(-1);
   }
 
@@ -2207,7 +2291,7 @@ int set_limits()
 
   if ( vset_limits(domain,&mylimits) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX could not set limits" RET_CRLF);
+      RET_ERR "3504 could not set limits" RET_CRLF);
   } else {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
   }
@@ -2220,18 +2304,18 @@ int del_limits()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3601 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX domain required" RET_CRLF);
+      RET_ERR "3602 domain required" RET_CRLF);
     return(-1);
   }
 
   if ((ret=vdel_limits(domain))!=0){
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "XXX %s" RET_CRLF, 
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "3603 %s." RET_CRLF, 
       strerror(errno));
     return(-1);
   }
@@ -2245,32 +2329,32 @@ int get_lastauth()
  char *email_address;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "XXX not authorized" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3701 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX email_address required" RET_CRLF);
+      RET_ERR "3702 email_address required" RET_CRLF);
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX invaild email addrress" RET_CRLF);
+      RET_ERR "3703 invaild email addrress" RET_CRLF);
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX not authorized for domain" RET_CRLF);
+      RET_ERR "3704 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "XXX user does not exist" RET_CRLF);
+      RET_ERR "3705 user does not exist" RET_CRLF);
     return(-1);
   } 
 
@@ -2311,6 +2395,7 @@ int quit()
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   wait_write();
   vclose();
+
   exit(0);
 }
 
