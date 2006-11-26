@@ -44,6 +44,7 @@
 #define LIST_DOMAIN_TOKENS " :\t\n\r"
 
 
+const int MAXPATH = 256;
 
 char ReadBuf[MAX_TMP_BUFF];
 char WriteBuf[MAX_TMP_BUFF];
@@ -110,7 +111,7 @@ int help();
 
 /* utility functions */
 void send_user_info(struct vqpasswd *tmpvpw);
-char *validate_path(char *path);
+int validate_path(char * newpath, char *path);
 int bkscandir(const char *dirname,
               struct dirent ***namelist,
             int (*select)(struct dirent *),
@@ -1158,52 +1159,51 @@ int dom_info()
   return(0);
 }
 
-char *validate_path(char *path)
+int validate_path(char *newpath, char *path)
 {
- static char newpath[256];
- static char theemail[256];
- static char theuser[256];
- static char thedomain[256];
- static char thedir[256];
- struct vqpasswd *myvpw;
- int   i;
- char *slash;
- char *atsign;
 
-  memset(newpath,0,256);
-  memset(theemail,0,256);
-  memset(theuser,0,256);
-  memset(thedomain,0,256);
-  memset(thedir,0,256);
+  char theemail[MAXPATH];
+  char theuser[MAXPATH];
+  char thedomain[MAXPATH];
+  char thedir[MAXPATH];
+  struct vqpasswd *myvpw;
+  int   i;
+  char *slash;
+  char *atsign;
+
+  memset(theemail,0,MAXPATH);
+  memset(theuser,0,MAXPATH);
+  memset(thedomain,0,MAXPATH);
+  memset(thedir,0,MAXPATH);
 
   /* check for fake out path */
   if ( strstr(path,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1501 invalid directory " RET_CRLF);
-    return(NULL);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1501 invalid directory. .. NOT ALLOWED in path! " RET_CRLF);
+    return(1);
   }
 
   /* check for fake out path */
   if ( strstr(path,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1502 invalid directory " RET_CRLF);
-    return(NULL);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1502 invalid directory. Percent NOT ALLOWED in path! " RET_CRLF);
+    return(2);
   }
 
   /* expand the path */
   if ( path[0] == '/' ) {
-    snprintf(newpath,sizeof(newpath), path);
+    snprintf(newpath, MAXPATH, path);
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1503 invalid directory " RET_CRLF);
-      return(NULL);
+      snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1503 invalid directory. Do you need trailing /? " RET_CRLF);
+      return(3);
     }
     atsign = strchr(path,'@');
 
     /* possible email address */
     if ( atsign != NULL ) {
       if ( atsign > slash ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1504 invalid directory " RET_CRLF);
-        return(NULL);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1504 invalid directory. Found '/' before '@' " RET_CRLF);
+        return(4);
       }
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
         theemail[i] = path[i];
@@ -1211,81 +1211,82 @@ char *validate_path(char *path)
       theemail[i] = 0;
 
       if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1505 invalid directory " RET_CRLF);
-        return(NULL);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1505 invalid directory. Can't parse email address." RET_CRLF);
+        return(5);
       } 
 
       if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
-        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1506 invalid directory " RET_CRLF);
-        return(NULL);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1506 invalid directory. Unknown email address. " RET_CRLF);
+        return(6);
       }
 
 
       /* limit domain admins to their domains */
       if ( AuthVpw.pw_gid & QA_ADMIN ) {
         if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1507 invalid directory " RET_CRLF);
-          return(NULL);
+          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1507 invalid domain. " RET_CRLF);
+          return(7);
         }
 
       /* limit users to their accounts */
       } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
         if ( strcmp(TheUser, theuser) != 0 || 
              strcmp(TheDomain, thedomain) != 0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1508 invalid directory " RET_CRLF);
-          return(NULL);
+          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1508 invalid user. " RET_CRLF);
+          return(8);
         }
       }
-      snprintf(newpath, sizeof(newpath), myvpw->pw_dir);
-      strncat(newpath,&path[i],sizeof(newpath));
-    } else {
+      snprintf(newpath, MAXPATH, myvpw->pw_dir);
+      strncat(newpath, &path[i], MAXPATH );
+    } else {     /*  may be domain name   */
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
         thedomain[i] = path[i];
       }
       thedomain[i] = 0;
       if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1509 invalid directory " RET_CRLF);
-        return(NULL);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1509 invalid directory. Unknown domain. " RET_CRLF);
+        return(9);
       } 
-      snprintf(newpath,sizeof(newpath), thedir);
-      strncat(newpath,&path[i],sizeof(newpath));
+      snprintf(newpath, MAXPATH, thedir);
+      strncat(newpath, &path[i], MAXPATH );
     }
   }
 
   if ( AuthVpw.pw_gid & SA_ADMIN ) { 
-    if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
+    if ( strncmp(TheVpopmailDomains, newpath, strlen(TheVpopmailDomains))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
         RET_ERR "1510 unauthorized directory" RET_CRLF);
-      return(NULL);
+      return(10);
     }
   } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
-    if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
+    if ( strncmp(TheDomainDir, newpath, strlen(TheDomainDir)) !=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
         RET_ERR "1511 unauthorized directory" RET_CRLF);
-      return(NULL);
+      return(11);
     }
   } else {
-    if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
+    if ( strncmp(TheUserDir, newpath, strlen(TheUserDir))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
         RET_ERR "1512 unauthorized directory" RET_CRLF);
-      return(NULL);
+      return(12);
     }
   }
-  return(newpath);
+  return( 0 );
 }
 
 int mk_dir()
 {
- char *dir;
+  char *olddir;
+  char dir[MAXPATH];
 
   /* must supply directory parameter */
-  if ((dir=strtok(NULL,TOKENS))==NULL) {
+  if ((olddir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "1601 directory required" RET_CRLF);
     return(-1);
   }
 
-  if ( (dir=validate_path(dir)) == NULL ) return(-1);
+  if ( validate_path(dir, olddir) ) return(-1);
 
  
   /* make directory, return error */  
@@ -1308,16 +1309,18 @@ int mk_dir()
 
 int rm_dir()
 {
- char *dir;
+  char *olddir;
+  char dir[MAXPATH];
+
 
   /* must supply directory parameter */
-  if ((dir=strtok(NULL,TOKENS))==NULL) {
+  if ((olddir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "1701 directory required" RET_CRLF);
     return(-1);
   }
 
-  if ( (dir=validate_path(dir)) == NULL ) return(-1);
+  if ( validate_path( dir, olddir ) ) return(-1);
 
   /* recursive directory delete */ 
   if ( vdelfiles(dir) < 0 ) {
@@ -1331,19 +1334,20 @@ int rm_dir()
 
 int list_dir()
 {
- char *dir;
- DIR *mydir;
- struct dirent *mydirent;
- struct stat statbuf;
+  char *olddir;
+  char dir[MAXPATH];
+  DIR *mydir;
+  struct dirent *mydirent;
+  struct stat statbuf;
 
   /* must supply directory parameter */
-  if ((dir=strtok(NULL,TOKENS))==NULL) {
+  if ((olddir=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "1801 directory required" RET_CRLF);
     return(-1);
   }
 
-  if ( (dir=validate_path(dir)) == NULL ) return(-1);
+  if ( validate_path( dir, olddir )) return(-1);
 
   if ( chdir(dir) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "1802 %s" RET_CRLF, 
@@ -1401,25 +1405,53 @@ int list_dir()
 
 int rename_file()
 {
-  snprintf(WriteBuf,sizeof(WriteBuf), 
-    RET_ERR "3901 Not implemented" RET_CRLF);
-  return(-1);
+  char sourcename[MAXPATH], destname[MAXPATH];
+  char *source, *dest;
+
+  if ((source=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "3801 source file name required" RET_CRLF);
+    return(-1);
+  }
+
+  if ((dest=strtok(NULL,TOKENS))==NULL) {
+    snprintf(WriteBuf,sizeof(WriteBuf), 
+      RET_ERR "3802 destination file name required" RET_CRLF);
+    return(-1);
+  }
+
+  if ( validate_path( sourcename, source )) return(-1);
+
+  if ( validate_path( destname, dest )) return(-1);
+
+
+  if ( rename(sourcename,destname) < 0 ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "3803 %s" RET_CRLF, 
+      strerror(errno));
+
+    return(-1);
+  }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  return(0);
+
 }
 
 
 int rm_file()
 {
- char *filename;
+  char *oldfilename;
+  char filename[MAXPATH];
 
 
   /* must supply directory parameter */
-  if ((filename=strtok(NULL,TOKENS))==NULL) {
+  if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "1901 filename required" RET_CRLF);
     return(-1);
   }
 
-  if ( (filename=validate_path(filename)) == NULL ) return(-1);
+  if ( validate_path( filename, oldfilename )) return(-1);
 
   /* unlink filename */ 
   if ( unlink(filename) < 0 ) {
@@ -1434,18 +1466,19 @@ int rm_file()
 
 int write_file()
 {
- char *filename;
- FILE *fs;
- static char tmpbuf[1024];
+  char *oldfilename;
+  char filename[MAXPATH];
+  FILE *fs;
+  static char tmpbuf[1024];
 
   /* must supply directory parameter */
-  if ((filename=strtok(NULL,TOKENS))==NULL) {
+  if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "2001 filename required" RET_CRLF);
     return(-1);
   }
 
-  if ( (filename=validate_path(filename)) == NULL ) return(-1);
+  if ( validate_path( filename, oldfilename )) return(-1);
 
   if ( (fs=fopen(filename,"w+"))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2002 %s" RET_CRLF, 
@@ -1467,18 +1500,19 @@ int write_file()
 
 int read_file()
 {
- char *filename;
- FILE *fs;
- static char tmpbuf[1024];
+  char *oldfilename;
+  char filename[MAXPATH];
+  FILE *fs;
+  static char tmpbuf[1024];
 
   /* must supply directory parameter */
-  if ((filename=strtok(NULL,TOKENS))==NULL) {
+  if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "2101 filename required" RET_CRLF);
     return(-1);
   }
 
-  if ( (filename=validate_path(filename)) == NULL ) return(-1);
+  if ( validate_path( filename, oldfilename )) return(-1);
 
   if ( (fs=fopen(filename,"r"))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2102 %s" RET_CRLF, 
@@ -1511,17 +1545,18 @@ int read_file()
 
 int stat_file()
 {
- char *filename;
- struct stat mystat;
+  char *oldfilename;
+  char filename[MAXPATH];
+  struct stat mystat;
 
   /* must supply directory parameter */
-  if ((filename=strtok(NULL,TOKENS))==NULL) {
+  if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf,sizeof(WriteBuf), 
       RET_ERR "2201 filename required" RET_CRLF);
     return(-1);
   }
 
-  if ( (filename=validate_path(filename)) == NULL ) return(-1);
+  if ( validate_path( filename, oldfilename )) return(-1);
 
   if ( (stat(filename,&mystat))!=0){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "2202 %s" RET_CRLF, 
