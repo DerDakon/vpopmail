@@ -5,6 +5,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Rick Widmer
         - Multiple changes to vpopmaild:
+	    Add rename_file command.
        	    Expert mode works in vmoduser.     
 	    Commands that are not yet implemented say so.
             Blank input lines are not an error in vpopmaild.
