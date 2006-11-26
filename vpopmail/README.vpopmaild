@@ -367,6 +367,27 @@ a period '.' to mark the end of file.
 
 --------------------------------------------------------------------
 
+int stat_file()
+
+Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
+their own domain.  USER can only work within their home directory.
+
+Action: Stat a file.
+
+Directory can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, that
+is replaced by the path to the domain directory for that domain.  When 
+an email address is specified, that starts at the home directory for 
+that email address.
+
+Currently only the UID of the owner of the file is returned if it exists
+or an error (2202) is returned.  It seems to me this should be extended 
+to include at least access rights in octal, size, owner group, last access,
+last mod, last change.
+
+
+--------------------------------------------------------------------
+
 int read_file()
 
 Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
