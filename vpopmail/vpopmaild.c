@@ -871,6 +871,7 @@ int add_domain()
 
   if ((ret=vadduser("postmaster",domain , password, "postmaster", USE_POP ))<0){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0805 %s" RET_CRLF, verror(ret));
+    vdeldomain( domain );
     return(-1);
   }
 
@@ -2370,6 +2371,9 @@ int get_lastauth()
 
   snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF,
     vget_lastauthip(tmpvpw, TmpDomain));
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 #endif
 
   return(0);
