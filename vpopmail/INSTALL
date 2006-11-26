@@ -12,6 +12,11 @@ For more information see the README files
 For information on upgrading please see the UPGRADE files
  UPGRADE  
 
+If you are having problems with your mail system, it is probably best to
+start with the lists vchkpw@inter7.com, or vpoppmail-devel@lists.sourceforge.net
+rather than annoying the qmail list with vpopmail problems.  (Unless you are SURE
+it is a problem with qmail.)
+
 
 Note: If you are using any of the BSD distro's you should probably use gmake
       and not make.
