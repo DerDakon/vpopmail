@@ -97,7 +97,7 @@ noinst_HEADERS = md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h v
 
 COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 
-CONFIG_CLEAN_FILES = vauth.c
+CONFIG_CLEAN_FILES = vauth.c cdb/conf-cc cdb/conf-ld cdb/compile cdb/load
 
 MYSQLCONF = $(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS = $(DESTDIR)@vpopmaildir@/etc/vlimits.default
