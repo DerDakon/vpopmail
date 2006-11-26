@@ -834,6 +834,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dependency-tracking Speeds up one-time builds
   --enable-dependency-tracking  Do not reject slow dependency extractors
+  --enable-non-root-build    Build vpopmail as a non-root user, only if you know what you are doing. see README.non-root
   --enable-qmaildir=DIR      Directory where qmail control and user directories are installed /var/qmail.
   --enable-qmail-newu=PATH   Full path to qmail-newu program.
   --enable-qmail-inject=PATH Full path to qmail-inject program.
@@ -4695,7 +4696,17 @@ esac
 
 #----------------------------------------------------------------------
 
-if test `$idcommand` != "0"
+# Check whether --enable-non-root-build or --disable-non-root-build was given.
+if test "${enable_non_root_build+set}" = set; then
+  enableval="$enable_non_root_build"
+  idtest='false'
+else
+  idtest='true'
+fi;
+
+#----------------------------------------------------------------------
+
+if $idtest && test `$idcommand` != "0"
 then
   { echo "$as_me:$LINENO: WARNING: === vpopmail must be configured as root. ===" >&5
 echo "$as_me: WARNING: === vpopmail must be configured as root. ===" >&2;}
