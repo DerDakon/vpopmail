@@ -2249,11 +2249,11 @@ int get_limits()
 
 int set_limits()
 {
- char domain[156];
- struct vlimits mylimits;
- int ret;
- char *param;
- char *value;
+  char domain[156];
+  struct vlimits mylimits;
+  int ret;
+  char *param;
+  char *value;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "3501 not authorized" RET_CRLF);
@@ -2264,6 +2264,7 @@ int set_limits()
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "3502 domain required" RET_CRLF);
     return(-1);
   }
+
   snprintf(domain,sizeof(domain), param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
@@ -2276,7 +2277,12 @@ int set_limits()
     if ( ReadBuf[0]  == '.' ) break;
 
     if ( (param = strtok(ReadBuf,PARAM_TOKENS)) == NULL ) continue;
-    if ( (value = strtok(NULL,PARAM_TOKENS)) == NULL ) continue;
+    if ( (value = strtok(NULL,PARAM_TOKENS)) == NULL )  {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        "  Warning: missing value" RET_CRLF);
+      wait_write();
+      continue;
+    }
 
     if ( strcmp(param,"max_popaccounts") == 0 ) {
       mylimits.maxpopaccounts = atoi(value);
@@ -2332,7 +2338,12 @@ int set_limits()
       mylimits.perm_quota = atoi(value);
     } else if ( strcmp(param,"perm_defaultquota") == 0 ) {
       mylimits.perm_defaultquota = atoi(value);
+    } else {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        "  Warning: invalid option" RET_CRLF);
+      wait_write();
     }
+
   }
 
   if ( vset_limits(domain,&mylimits) < 0 ) {

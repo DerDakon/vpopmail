@@ -11,6 +11,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	    Clean up if add_user fails because of bad user data.
 	    Add termination code (.) to get_lastauth return.
 	    Number the error messages (XXX) in vpopmaild
+            If invalid option is sent in set_limits, show warning
 	- Add various patches from others listed below:
 
 	Peter Pentchev (roamer)
