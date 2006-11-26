@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.9 2006-06-29 23:07:18 tomcollins Exp $
+ * $Id: vpgsql.c,v 1.20.2.10 2006-11-26 18:55:53 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+#include <ctype.h>
 #include <pwd.h>
 #include <unistd.h>
 #include <stdio.h>

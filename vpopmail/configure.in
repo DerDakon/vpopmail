@@ -87,7 +87,13 @@ esac
 
 #----------------------------------------------------------------------
 
-if test `$idcommand` != "0"
+AC_ARG_ENABLE(non-root-build,
+    [  --enable-non-root-build    Build vpopmail as a non-root user, only if you know what you are doing. see README.non-root],
+    idtest='false', idtest='true')
+
+#----------------------------------------------------------------------
+
+if $idtest && test `$idcommand` != "0"
 then
   AC_MSG_WARN(=== vpopmail must be configured as root. ===)
   AC_MSG_WARN(=== please switch to the root user and  ===)

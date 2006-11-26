@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.4 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.3.2.5 2006-11-26 18:55:52 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -178,7 +178,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFS")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFSE")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);

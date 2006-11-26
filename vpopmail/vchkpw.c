@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.5 2006-05-07 17:07:13 tomcollins Exp $
+ * $Id: vchkpw.c,v 1.11.2.6 2006-11-26 18:55:52 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -761,9 +761,6 @@ int authcram(unsigned char *response, unsigned char *challenge, unsigned char *p
 
 int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *clearpass)
 {
-#ifdef USE_ACTIVE_DIR
-  return(-1);
-#else
   MD5_CTX context;
   unsigned char digest[16];
   char encrypted[16*2+1];
@@ -782,5 +779,4 @@ int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *c
   *s = '\0';
  
   return strcmp(password,encrypted);
-#endif
 }

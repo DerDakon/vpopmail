@@ -6,6 +6,39 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Tom Collins
 	- vdelivermail: Add missing loop check.
 
+	Rick Widmer
+        - Multiple changes to vpopmaild:
+	    Add rename_file command.
+       	    Expert mode works in vmoduser.     
+	    Commands that are not yet implemented say so.
+            Blank input lines are not an error in vpopmaild.
+            Separate help before and after login in vpopmaild.
+    	    Allow 3 tries to login to vpopmaild.
+	    Clean up if add_user fails because of bad user data.
+	    Add termination code (.) to get_lastauth return.
+	    Number the error messages (XXX) in vpopmaild
+            If invalid option is sent in set_limits, show warning
+	- Add various patches from others listed below:
+
+	Peter Pentchev (roamer)
+	- Various sanity checks and minor optimizations [1573292]
+	- Fix child handling - waitpid and sys/wait.h [1573288]
+	- Dynamicallly allocate sortdata[] in vpopmail.c [1573287]
+	- Include ctype.h in the PostgreSQL backend [1573284]
+	- Set SHELL in vdelivermail before executing external programs [1573280]
+	- Some more error checking in vchangepw [1573277]
+	- Improve the vpopmaild documentation [1573269]
+	- Clean cdb files in the distclean target [1573267]
+	- Optional building as non-root [1573266]
+
+	Trent Lloyd (lathiat)
+	- Add vailas add/delete/list support to vpopmaild [1555398]
+	- Refresh assign cache if a domain is deleted [1529744]
+
+	Bill Shupp
+	- Add user_count function to vpopmaild
+	- Add stat_file function to vpopmaild
+
 5.4.17 - released 12-Jul-06
 
 	Rick Widmer

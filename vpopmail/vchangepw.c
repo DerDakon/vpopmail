@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.1.2.3 2006-06-29 19:14:03 tomcollins Exp $
+ * $Id: vchangepw.c,v 1.1.2.4 2006-11-26 18:55:52 tomcollins Exp $
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 
@@ -35,7 +35,7 @@
 
 int main(void)
 {
-	int i;
+	int i, bad;
 	struct vqpasswd *vpw = NULL;
 	char Email[MAX_BUFF];
 	char User[MAX_BUFF];
@@ -53,9 +53,15 @@ int main(void)
 
 	fputs("Please enter the email address: ", stdout);
 
-	fgets(Email, sizeof(Email), stdin);
-	i = strlen(Email) - 1;
-	if (Email[i] != '\n') {
+	bad = 0;
+	if (fgets(Email, sizeof(Email), stdin) == NULL) {
+		bad = 1;
+	} else {
+		i = strlen(Email) - 1;
+		if (i < 0 || (Email[i] != '\n' && Email[i] != '\r'))
+			bad = 1;
+	}
+	if (bad) {
 		puts("Error: email address too long");
 		return 3;
 	}
