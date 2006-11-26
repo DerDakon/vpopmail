@@ -4,7 +4,13 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.4.18 - unreleased 23-Nov-06
 
 	Rick Widmer
-	- Number the error messages (XXX) in vpopmaild
+        - Multiple changes to vpopmaild:
+            Blank input lines are not an error in vpopmaild.
+            Separate help before and after login in vpopmaild.
+    	    Allow 3 tries to login to vpopmaild.
+	    Clean up if add_user fails because of bad user data.
+	    Add termination code (.) to get_lastauth return.
+	    Number the error messages (XXX) in vpopmaild
 	- Add various patches from others listed below:
 
 	Peter Pentchev (roamer)

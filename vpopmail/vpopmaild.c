@@ -105,6 +105,7 @@ int add_list();
 int del_list();
 int mod_list();
 int quit();
+int minihelp();
 int help();
 
 /* utility functions */
@@ -167,6 +168,7 @@ func_t Functions[] = {
 {"add_list", add_list, "domain listname (command line options)<crlf>" },
 {"del_list", del_list, "domain listname<crlf>"},
 {"mod_list", mod_list, "domain listname (command line options)<crlf>" },
+{"exit", quit, "quit" },
 {"quit", quit, "quit" },
 {"help", help, "help" },
 {NULL, NULL } };
@@ -215,51 +217,104 @@ int wait_write()
 
 int main(int argc, char **argv)
 {
- int read_size;
- char *command;
- int i;
- int found;
+  int read_size;
+  char *command;
+  int i;
+  int found;
+  int status;
+  int failures = 0;
+  int loggedIn = 0;
 
   if( vauth_open( 1 )) {
-      snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "0101 Can't open authentication database." RET_CRLF);
-      wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf),
+      RET_ERR "0101 Can't open authentication database." RET_CRLF);
+    wait_write();
     exit( -1 );
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
   wait_write();
 
-  read_size = wait_read();
-  if ( read_size < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), 
-      RET_ERR "0102 read timeout" RET_CRLF);
-    wait_write();
-    exit(-1);
-  } 
-
   /* authenticate first or drop connection */
-  if ( login() < 0 ) {
-    wait_write();
-    vclose();
-    exit(-1);
-  } else {
-    wait_write();
-  }
-
-  while(1) {
+  while( !loggedIn ) {
     read_size = wait_read();
     if ( read_size < 0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "0103 read timeout" RET_CRLF);
+        RET_ERR "0102 read timeout" RET_CRLF);
+      wait_write();
+      exit(-1);
+    } 
+
+    if ((command=strtok(ReadBuf,TOKENS))==NULL) {
+//      dont bitch about blank lines...
+//      snprintf(WriteBuf,sizeof(WriteBuf),
+//        RET_ERR "0103 Invalid command" RET_CRLF);
+//      wait_write();
+      continue;
+    }
+
+
+    if( strlen( command ) > 0 ) {
+      if (strcasecmp(command, "help") == 0 ) { 
+        minihelp();
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+        wait_write();
+        }
+
+      else if (strcasecmp(command, "login" ) == 0 ) {
+        status = login();
+        if( 0 == status ) {
+          loggedIn = 1;
+          snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+          wait_write();
+        }
+
+        else {
+        failures ++;
+        if( failures > 2 ) {
+          snprintf(WriteBuf, sizeof(WriteBuf), 
+            RET_ERR "0104 Too Many Invalid Login attempts" RET_CRLF);
+          wait_write();
+          vclose();
+          exit(-1);
+          }        
+        else {
+          snprintf(WriteBuf, sizeof(WriteBuf), 
+            RET_ERR "0105 Invalid Login" RET_CRLF);
+          wait_write();
+          }
+        }
+      }
+
+      else {
+        snprintf(WriteBuf, sizeof(WriteBuf), 
+          RET_ERR "0106 authorization first" RET_CRLF);
+        wait_write();
+        vclose();
+        exit(-1);
+      }
+    }
+  }
+
+  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+  wait_write();
+
+  while(1) {
+
+    read_size = wait_read();
+    if ( read_size < 0 ) {
+      snprintf(WriteBuf,sizeof(WriteBuf), 
+        RET_ERR "0107 read timeout" RET_CRLF);
       wait_write();
       vclose();
       exit(-1);
     } 
+
     if ((command=strtok(ReadBuf,TOKENS))==NULL) {
-      snprintf(WriteBuf,sizeof(WriteBuf),
-        RET_ERR "0104 Invalid command" RET_CRLF);
-      wait_write();
+//    don't bitch about blank lines
+//      snprintf(WriteBuf,sizeof(WriteBuf),
+//        RET_ERR "0108 Invalid command" RET_CRLF);
+//      wait_write();
       continue;
     }
 
@@ -271,35 +326,20 @@ int main(int argc, char **argv)
     }
     if ( found == 0 ) {
       snprintf(WriteBuf, sizeof(WriteBuf), 
-        RET_ERR "0105 Invalid command " RET_CRLF);
+        RET_ERR "0109 Invalid command " RET_CRLF);
     }
     wait_write();
   }
-
 }
 
 int login()
 {
- char *command;
  char *email;
  char *pass;
  char *param;
  uid_t uid;
  gid_t gid;
 
-
-  if ((command=strtok(ReadBuf,TOKENS))==NULL) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "0201 authorization first" RET_CRLF);
-    return(-1);
-  }
-
-  if (strcasecmp(command, "login" ) != 0 ) {
-    if (strcasecmp(command, "help") == 0 ) help();
-    snprintf(WriteBuf, sizeof(WriteBuf), 
-      RET_ERR "0202 authorization first" RET_CRLF);
-    return(-1);
-  }
   if ((email=strtok(NULL,TOKENS))==NULL) {
     snprintf(WriteBuf, sizeof(WriteBuf), 
       RET_ERR "0203 email address required" RET_CRLF);
@@ -315,7 +355,6 @@ int login()
   if ((param=strtok(NULL,TOKENS))!=NULL) {
     if( strcmp(param,"compact")==0) {
       compact_output=1;
-//      fprintf(stderr,"compact mode\n" );
     }
   }
 
@@ -1696,6 +1735,7 @@ int user_count()
      first = 0;
      ++count;
    }
+
    snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
    wait_write();
    snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
@@ -1771,8 +1811,13 @@ int list_users()
     } else { 
       send_user_info(tmpvpw);
     }
+
+    snprintf(WriteBuf, sizeof(WriteBuf), RET_CRLF );
+    wait_write();
+
     ++count;
   }
+
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
@@ -2403,14 +2448,30 @@ int quit()
   exit(0);
 }
 
+int minihelp()
+{
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf),"login user@domain password [compact]" RET_CRLF);
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf),"help help" RET_CRLF);
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf),"quit quit" RET_CRLF);
+  wait_write();
+
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  return(0); 
+}
+
 int help()
 {
  int i;
 
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
-
-  snprintf(WriteBuf,sizeof(WriteBuf),"login user@domain password" RET_CRLF);
   wait_write();
 
   for(i=0;Functions[i].command!=NULL;++i ) {
