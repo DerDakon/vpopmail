@@ -44,7 +44,6 @@
 #define LIST_DOMAIN_TOKENS " :\t\n\r"
 
 
-#define INVALID_DIRECTORY RET_ERR "0001 invaild directory" RET_CRLF
 
 char ReadBuf[MAX_TMP_BUFF];
 char WriteBuf[MAX_TMP_BUFF];
@@ -83,6 +82,7 @@ int mk_dir();
 int rm_dir();
 int list_dir();
 int rm_file();
+int rename_file();
 int write_file();
 int read_file();
 int stat_file();
@@ -146,6 +146,7 @@ func_t Functions[] = {
 {"rm_dir", rm_dir, "/full/path/to/dir<crlf>" },
 {"list_dir", list_dir, "/full/path/to/dir<crlf>" },
 {"rm_file", rm_file, "/full/path/to/file<crlf>" },
+{"rename_file", rename_file, "/full/path/to/file<crlf>" },
 {"write_file", write_file, "/full/path (data lines)<crlf>.<crlf>" },
 {"read_file", read_file, "/full/path<crlf>" },
 {"stat_file", stat_file, "/full/path<crlf>" },
@@ -257,7 +258,6 @@ int main(int argc, char **argv)
     if( strlen( command ) > 0 ) {
       if (strcasecmp(command, "help") == 0 ) { 
         minihelp();
-        snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
         wait_write();
         }
 
@@ -1178,13 +1178,13 @@ char *validate_path(char *path)
 
   /* check for fake out path */
   if ( strstr(path,"..") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1501 invalid directory " RET_CRLF);
     return(NULL);
   }
 
   /* check for fake out path */
   if ( strstr(path,"%") != NULL ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1502 invalid directory " RET_CRLF);
     return(NULL);
   }
 
@@ -1194,7 +1194,7 @@ char *validate_path(char *path)
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
-      snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+      snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1503 invalid directory " RET_CRLF);
       return(NULL);
     }
     atsign = strchr(path,'@');
@@ -1202,7 +1202,7 @@ char *validate_path(char *path)
     /* possible email address */
     if ( atsign != NULL ) {
       if ( atsign > slash ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1504 invalid directory " RET_CRLF);
         return(NULL);
       }
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
@@ -1211,12 +1211,12 @@ char *validate_path(char *path)
       theemail[i] = 0;
 
       if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1505 invalid directory " RET_CRLF);
         return(NULL);
       } 
 
       if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1506 invalid directory " RET_CRLF);
         return(NULL);
       }
 
@@ -1224,7 +1224,7 @@ char *validate_path(char *path)
       /* limit domain admins to their domains */
       if ( AuthVpw.pw_gid & QA_ADMIN ) {
         if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1507 invalid directory " RET_CRLF);
           return(NULL);
         }
 
@@ -1232,7 +1232,7 @@ char *validate_path(char *path)
       } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
         if ( strcmp(TheUser, theuser) != 0 || 
              strcmp(TheDomain, thedomain) != 0 ) {
-          snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+          snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1508 invalid directory " RET_CRLF);
           return(NULL);
         }
       }
@@ -1244,7 +1244,7 @@ char *validate_path(char *path)
       }
       thedomain[i] = 0;
       if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
-        snprintf(WriteBuf,sizeof(WriteBuf), INVALID_DIRECTORY);
+        snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1509 invalid directory " RET_CRLF);
         return(NULL);
       } 
       snprintf(newpath,sizeof(newpath), thedir);
@@ -1255,19 +1255,19 @@ char *validate_path(char *path)
   if ( AuthVpw.pw_gid & SA_ADMIN ) { 
     if ( strncmp(TheVpopmailDomains,newpath,strlen(TheVpopmailDomains))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "1501 unauthorized directory" RET_CRLF);
+        RET_ERR "1510 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
     if ( strncmp(TheDomainDir,newpath,strlen(TheDomainDir)) !=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "1502 unauthorized directory" RET_CRLF);
+        RET_ERR "1511 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   } else {
     if ( strncmp(TheUserDir,newpath,strlen(TheUserDir))!=0 ) {
       snprintf(WriteBuf,sizeof(WriteBuf), 
-        RET_ERR "1503 unauthorized directory" RET_CRLF);
+        RET_ERR "1512 unauthorized directory" RET_CRLF);
       return(NULL);
     }
   }
@@ -1398,6 +1398,14 @@ int list_dir()
   snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
+
+int rename_file()
+{
+  snprintf(WriteBuf,sizeof(WriteBuf), 
+    RET_ERR "3901 Not implemented" RET_CRLF);
+  return(-1);
+}
+
 
 int rm_file()
 {
@@ -2437,16 +2445,25 @@ int get_lastauth()
 
 int add_list()
 {
+  snprintf(WriteBuf,sizeof(WriteBuf), 
+    RET_ERR "4001 Not implemented" RET_CRLF);
+  return(-1);
   return(0);
 }
 
 int del_list()
 {
+  snprintf(WriteBuf,sizeof(WriteBuf), 
+    RET_ERR "4101 Not implemented" RET_CRLF);
+  return(-1);
   return(0);
 }
 
 int mod_list()
 {
+  snprintf(WriteBuf,sizeof(WriteBuf), 
+    RET_ERR "4201 Not implemented" RET_CRLF);
+  return(-1);
   return(0);
 }
 
