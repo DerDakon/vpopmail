@@ -4,7 +4,7 @@
  */
 
 /*
- * $Id: vqmaillocal.c,v 1.3.2.1 2004-09-22 15:20:15 tomcollins Exp $
+ * $Id: vqmaillocal.c,v 1.3.2.2 2006-11-26 18:55:53 tomcollins Exp $
  * Copyright (C) 2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -672,7 +672,7 @@ void run_command(char *prog)
      exit(-1);
   }
 
-  wait(&wstat);
+  waitpid(child,&wstat,0);
 
 }
 
