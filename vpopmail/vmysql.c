@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.10 2006-06-29 19:20:27 tomcollins Exp $
+ * $Id: vmysql.c,v 1.15.2.11 2006-11-28 00:24:49 tomcollins Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1598,6 +1598,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
     }
 
     if (mysql_num_rows(res_read) == 0) {
+        mysql_free_result(res_read);
         /* this should not be a fatal error: upgrading gets extremly annoying elsewise. */
         /*fprintf(stderr, "vmysql: can't find limits for domain '%s', using defaults.\n", domain);
         return -1;*/

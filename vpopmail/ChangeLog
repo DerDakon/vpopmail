@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
+	Tijs Zwinkels
+	- vmysql: add missing mysql_free_result to fix mem leak.
+
 	Tom Collins
 	- vdelivermail: Add missing loop check.
 	- vchangepw: Minor changes to Peter's error checking. [1573277]
