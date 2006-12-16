@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.13 2006-06-29 19:14:04 tomcollins Exp $
+ * $Id: vpopmail.h,v 1.7.2.14 2006-12-16 08:52:59 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -240,3 +240,10 @@ void vsqlerror( FILE *f, char *comment );
 //  Error handling
 extern char sqlerr[MAX_BUFF];
 extern char *last_query;
+
+#ifdef ONCHANGE_SCRIPT
+/* onchange function */
+extern char onchange_buf[MAX_BUFF];
+extern int allow_onchange;
+int call_onchange();
+#endif
