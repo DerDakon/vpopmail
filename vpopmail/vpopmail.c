@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.32 2006-12-16 08:52:59 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.33 2006-12-16 20:46:37 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -303,8 +303,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 #ifdef ONCHANGE_SCRIPT
   allow_onchange = 1;
   /* tell other programs that data has changed */
-  snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
-  call_onchange ( "add_domain" ) ;
+  snprintf ( onchange_buf, MAX_BUFF, "%s", domain );
+  call_onchange ( "add_domain" );
   allow_onchange = 0;
 #endif
 
@@ -427,11 +427,11 @@ int vdeldomain( char *domain )
 #ifdef ONCHANGE_SCRIPT
      /* tell other programs that data has changed */
      if( 0 == strcmp( domain_to_del, domain )) {
-        snprintf ( onchange_buf , MAX_BUFF , "%s" , domain ) ;
+        snprintf ( onchange_buf, MAX_BUFF, "%s", domain );
      } else {
-        snprintf ( onchange_buf , MAX_BUFF , "%s alias of %s" , domain_to_del, domain ) ;
+        snprintf ( onchange_buf, MAX_BUFF, "%s alias of %s", domain_to_del, domain );
      }
-     call_onchange ( "del_domain" ) ;
+     call_onchange ( "del_domain" );
 #endif
 
     /* call the auth module to delete the domain from the storage */
@@ -735,8 +735,8 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 #ifdef ONCHANGE_SCRIPT
   allow_onchange = temp_onchange;
   /* tell other programs that data has changed */
-  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , username , domain ) ;
-  call_onchange ( "add_user" ) ;
+  snprintf ( onchange_buf, MAX_BUFF, "%s@%s", username, domain );
+  call_onchange ( "add_user" );
   allow_onchange = 1;
 #endif
 
@@ -1160,7 +1160,7 @@ int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount )
 
 /*
  * delete a domain from the users/assign file
- * input : lots ;)
+ * input : lots;)
  *
  * output : 0 = success no aliases
  *          less than error = failure
@@ -1600,8 +1600,8 @@ int vdeluser( char *user, char *domain )
 
 #ifdef ONCHANGE_SCRIPT
   /* tell other programs that data has changed */
-  snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , user , domain ) ;
-  call_onchange ( "del_user" ) ;
+  snprintf ( onchange_buf, MAX_BUFF, "%s@%s", user, domain );
+  call_onchange ( "del_user" );
 #endif
 
   /* del the user from the auth system */
@@ -3542,8 +3542,8 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
 
 #ifdef ONCHANGE_SCRIPT
   /* tell other programs that data has changed */
-  snprintf ( onchange_buf , MAX_BUFF , "%s" , alias_domain ) ;
-  call_onchange ( "add_alias_domain" ) ;
+  snprintf ( onchange_buf, MAX_BUFF, "%s %S", alias_domain, real_domain );
+  call_onchange ( "add_alias_domain" );
 #endif
 
   return(VA_SUCCESS);
@@ -3888,15 +3888,15 @@ char onchange_buf[MAX_BUFF];
 int allow_onchange=1;
 int call_onchange ( const char *cmd )
 {
-	char path[MAX_BUFF] ;
-	int pid ;
+	char path[MAX_BUFF];
+	int pid;
 
         if( !allow_onchange )  {
            return(0);
            }
 
 	/* build the name */
-	snprintf ( path, sizeof(path), "%s/etc/onchange", VPOPMAILDIR ) ;
+	snprintf ( path, sizeof(path), "%s/etc/onchange", VPOPMAILDIR );
 
 	/* if it doesn't exist, we're done */
 	if( access(path,F_OK) ) { 
@@ -3911,19 +3911,19 @@ int call_onchange ( const char *cmd )
            }
 
 	/* okay, let's do it */
-	pid = vfork() ;
+	pid = vfork();
 	if ( 0 == pid )
 	{
-		execl ( path , "onchange" , cmd , onchange_buf , NULL ) ;
+		execl ( path, "onchange", cmd, onchange_buf, NULL );
            	fprintf(stderr, "ONCHANGE script %s unable to fork.\n", path);
 	        return(0);
 	}
 	else if ( pid > 0 )
-		wait ( &pid ) ;
+		wait ( &pid );
 	else
            	fprintf(stderr, "ONCHANGE script %s failed.\n", path);
 	        return(0);
 
-	return(0) ;
+	return(0);
 }
 #endif
