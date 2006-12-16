@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
+	John Simpson
+	- onchange - call a script when users or domains are changed
+          see README.onchange.
+
 	Tijs Zwinkels
 	- vmysql: add missing mysql_free_result to fix mem leak.
 
