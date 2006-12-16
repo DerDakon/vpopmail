@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.31 2006-12-16 08:11:45 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.32 2006-12-16 08:52:59 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -101,7 +101,6 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
  char *aliases[1];
  int aliascount=0;
- 
  
 #ifdef ONCHANGE_SCRIPT
   /*  Don't execute any implied onchange in called functions  */
