@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12.2.4 2006-06-29 06:19:05 tomcollins Exp $
+ * $Id: vcdb.c,v 1.12.2.5 2006-12-16 08:11:45 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12.2.4 2006-06-29 06:19:05 tomcollins Exp $
+** $Id: vcdb.c,v 1.12.2.5 2006-12-16 08:11:45 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -655,6 +655,14 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 #ifdef SQWEBMAIL_PASS
 	tmpstr = vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
+#endif
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
 #endif
 
     return(0);

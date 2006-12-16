@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9.2.3 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vsybase.c,v 1.9.2.4 2006-12-16 08:11:45 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -577,6 +577,14 @@ int vauth_setpw_size( struct vqpasswd *inpw, char *domain, int site_size)
 #ifdef SQWEBMAIL_PASS
 	tmpstr = vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
+#endif
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
+       call_onchange ( "mod_user" ) ;
+       }
 #endif
 
 	return(0);
