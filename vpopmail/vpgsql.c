@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.20.2.11 2006-12-16 08:11:45 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.20.2.12 2006-12-16 20:46:37 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -658,8 +658,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s", inpw->pw_name, domain );
+       call_onchange ( "mod_user" );
        }
 #endif
 
@@ -1007,7 +1007,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     vdir->level_index[1] = atoi( PQgetvalue( pgres, 0, 13 ) );
     vdir->level_index[2] = atoi( PQgetvalue( pgres, 0, 14 ) );
 
-    strncpy(vdir->the_dir, PQgetvalue( pgres, 0, 15 ) , MAX_DIR_NAME);
+    strncpy(vdir->the_dir, PQgetvalue( pgres, 0, 15 ), MAX_DIR_NAME);
   }
   PQclear(pgres);
   if ( found == 0 ) {
@@ -1364,8 +1364,8 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line ) ;
-       call_onchange ( "valias_add" ) ;
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
+       call_onchange ( "valias_add" );
        }
 #endif
 
@@ -1384,8 +1384,8 @@ int valias_delete( char *alias, char *domain)
 #ifdef ONCHANGE_SCRIPT
   if( allow_onchange ) {
      /* tell other programs that data has changed */
-     snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , alias , domain ) ;
-     call_onchange ( "valias_delete" ) ;
+     snprintf ( onchange_buf, MAX_BUFF, "%s@%s", alias, domain );
+     call_onchange ( "valias_delete" );
      }
 #endif
 
@@ -1420,8 +1420,8 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 #ifdef ONCHANGE_SCRIPT
   if( allow_onchange ) {
      /* tell other programs that data has changed */
-     snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
-     call_onchange ( "valias_remove" ) ;
+     snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line);
+     call_onchange ( "valias_remove" );
      }
 #endif
 
@@ -1453,8 +1453,8 @@ int valias_delete_domain( char *domain)
 #ifdef ONCHANGE_SCRIPT
   if( allow_onchange ) {
      /* tell other programs that data has changed */
-     snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
-     call_onchange ( "valias_delete_domain" ) ;
+     snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line);
+     call_onchange ( "valias_delete_domain" );
      }
 #endif
 

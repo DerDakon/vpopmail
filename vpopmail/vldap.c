@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.15.2.2 2006-12-16 08:11:45 rwidmer Exp $
+ * $Id: vldap.c,v 1.15.2.3 2006-12-16 20:46:36 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -914,8 +914,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
        /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , inpw->pw_name , domain ) ;
-       call_onchange ( "mod_user" ) ;
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s", inpw->pw_name, domain );
+       call_onchange ( "mod_user" );
        }
 #endif
 
