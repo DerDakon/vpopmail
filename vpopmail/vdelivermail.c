@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.10 2006-11-26 18:55:52 tomcollins Exp $
+ * $Id: vdelivermail.c,v 1.11.2.11 2006-12-17 07:02:24 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ int CurrentQuotaSizeFd;
 #ifdef QMAIL_EXT
 /* the User with '-' and following chars out if any */
 char TheUserExt[AUTH_SIZE]; 
+char TheExt[AUTH_SIZE];
 #endif
 
 #define FILE_SIZE 156
@@ -218,6 +219,11 @@ void get_arguments(int argc, char **argv)
 
     if ( is_username_valid(TheUserExt) != 0 ) {
         vexit(EXIT_BOUNCE);
+    }
+
+    strncpy(TheExt, &TheUser[i+1], AUTH_SIZE);
+    for (i = 0; (TheExt[i] != 0); i++) {
+      if (TheExt[i] == '.') TheExt[i] = ':';
     }
 
 #endif
@@ -706,15 +712,35 @@ int check_forward_deliver(char *dir)
    
     chdir(dir);
 
+#ifdef QMAIL_EXT
     /* format the file name */
-    if ( (fs = fopen(".qmail","r")) == NULL ) {
+    if (strlen(TheExt)) {
+        strcpy(tmpbuf,".qmail-");
+        strcat(tmpbuf,TheExt);
+        if ( (fs = fopen(tmpbuf,"r")) == NULL ) {
+            for (i=strlen(TheExt);i>=0;--i) {
+                if (!i || TheExt[i-1]=='-') {
+                    strcpy(tmpbuf,".qmail-");
+                    strncat(tmpbuf,TheExt,i);
+                    strcat(tmpbuf,"default");
+                    if ( (fs = fopen(tmpbuf,"r")) != NULL) {
+                        break;
+                    }
+                }
+            }
+        }
+    } else {
+        fs = fopen(".qmail","r");
+    }
+#else
+    fs = fopen(".qmail","r");
+#endif
 
+    /* no .qmail file at all */
+    if (fs == NULL ) {
         /* no file, so just return */
         return(-1);
     }
-
-    /* format a simple loop checker name */
-    snprintf(tmpbuf, sizeof(tmpbuf), "%s@%s", TheUser, TheDomain);
 
     /* read the file, line by line */
     while ( fgets(qmail_line, sizeof(qmail_line), fs ) != NULL ) {
@@ -727,14 +753,6 @@ int check_forward_deliver(char *dir)
         for(i=0;qmail_line[i]!=0;++i) {
             if (qmail_line[i] == '\n') qmail_line[i] = 0;
         }
-
-        /* simple loop check, if they are sending it to themselves
-         * then skip this line
-         */
-        if ( strcmp( qmail_line, tmpbuf) == 0 ) continue;
-        /* check for &user@example.com as well */
-        if ((*qmail_line == '&') && (strcmp (qmail_line + 1, tmpbuf) == 0))
-            continue;
 
         deliver_mail(qmail_line, "");
 
