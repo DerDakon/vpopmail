@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.11 2006-12-17 07:02:24 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.11.2.12 2006-12-17 07:56:52 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -510,6 +510,7 @@ void deliver_mail(char *address, char *quota)
  FILE *fs;
  char tmp_file[256];
  char maildirquota[80];
+ char *email;
 
     /* This is a comment, ignore it */
     if ( *address == '#' ) return;
@@ -608,15 +609,19 @@ void deliver_mail(char *address, char *quota)
         }
 #endif
 
+        /* Get the email address from the maildir */
+        email = maildir_to_email(address);
+
         /* Set the Delivered-To: header */
-        if ( strcmp( address, bounce) == 0 ) {
+        if ( strcmp( address, bounce) == 0 ||
+             strcmp( email, "") == 0 ) {
             snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s@%s\n", getenv("RPLINE"), 
                  TheUser, TheDomain);
         } else {
             snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s\n", getenv("RPLINE"), 
-                maildir_to_email(address));
+                email);
         }
     
         switch (deliver_to_maildir (address, DeliveredTo, 0, message_size)) {
