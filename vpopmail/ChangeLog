@@ -6,6 +6,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	John Simpson
 	- onchange - call a script when users or domains are changed
           see README.onchange.
+        - cslogin - Compact and silent login options for vpopmaild
+          note: don't blame John for problems in this, I changed a
+          lot to make it fit with other changes. rww
 
 	Tijs Zwinkels
 	- vmysql: add missing mysql_free_result to fix mem leak.
