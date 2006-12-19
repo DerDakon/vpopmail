@@ -1,6 +1,5 @@
-#ifndef VALIAS 
 /*
- * $Id: vpalias.c,v 1.6.2.13 2006-12-17 07:56:52 rwidmer Exp $
+ * $Id: vpalias.c,v 1.6.2.14 2006-12-19 21:02:47 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,6 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+#include "config.h"
+#ifndef VALIAS 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
 
@@ -112,17 +112,13 @@ char *valias_select_next()
 
 int valias_insert( char *alias, char *domain, char *alias_line)
 {
- int cntr = 0, i;
+ int i;
  char *tmpstr;
-// char Dir[156];
- char qmail[156];
- char tmpqmail[156];
- char tmpalias[156];
+ char Dir[156];
  char *p;
  uid_t uid;
  gid_t gid;
  FILE *fs;
- FILE *tmpfs;
 
     if ( alias == NULL ) return(VA_NULL_POINTER);
     if ( domain == NULL ) return(VA_NULL_POINTER);
@@ -131,54 +127,26 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(alias_line) >= MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
 
-    if ((tmpstr = vget_assign(domain, qmail, sizeof(qmail), &uid, &gid )) == NULL) {
+    if ((tmpstr = vget_assign(domain, Dir, sizeof(Dir), &uid, &gid )) == NULL) {
 	printf("invalid domain, not in qmail assign file\n");
 	return(-1);
     }
 
-    // copy across the directory
-    strncpy(tmpqmail, qmail, sizeof(tmpqmail));
-
     // create dotqmail filename, converting '.' to ':' as we go
-    strncat(qmail, "/.qmail-", sizeof(qmail)-strlen(qmail)-1);
-    i = strlen(qmail);
-    for (p = alias; (i < (int)sizeof(qmail) - 1) && (*p != '\0'); p++)
-      qmail[i++] = (*p == '.' ? ':' : *p);
-    qmail[i] = '\0';
-
-    // create tmp dotqmail filename, converting '.' to ':' as we go
-    strncat(tmpqmail, "/.tmp.qmail-", sizeof(tmpqmail)-strlen(tmpqmail)-1);
-    i = strlen(tmpqmail);
-    for (p = alias; (i < (int)sizeof(tmpqmail) - 1) && (*p != '\0'); p++)
-      tmpqmail[i++] = (*p == '.' ? ':' : *p);
-    tmpqmail[i] = '\0';
-
-    fs = fopen(qmail, "r");
-    if ( (tmpfs = fopen(tmpqmail, "w")) == NULL ) {
-	fclose(fs);
+    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
+    i = strlen(Dir);
+    for (p = alias; (i < (int)sizeof(Dir) - 1) && (*p != '\0'); p++)
+      Dir[i++] = (*p == '.' ? ':' : *p);
+    Dir[i] = '\0';
+	
+    if ( (fs = fopen(Dir, "a")) == NULL ) {
 	return(-1);
     }
+    chmod(Dir,0600);
+    chown(Dir,uid,gid);
 
-    chmod(tmpqmail,0600);
-    chown(tmpqmail,uid,gid);
-
-    // add on a newline for inserting
-    snprintf(tmpalias, sizeof(tmpalias), "%s\n", insert_alias_line);
-
-    // loop thru copying across the alias lines
-    if ( fs != NULL ) {
-	while ( fgets(alias_line, sizeof(alias_line), fs) != NULL ) {
-            fputs(alias_line, tmpfs);
-	    cntr++;
-        }
-	fclose(fs);
-	unlink(qmail);
-    }
-
-    fputs(tmpalias, tmpfs);
-    fclose(tmpfs);
-    link(tmpqmail, qmail);
-    unlink(tmpqmail);
+    fprintf(fs, "%s\n", alias_line);
+    fclose(fs);
 
 #ifdef ONCHANGE_SCRIPT
     if( allow_onchange ) {
@@ -191,78 +159,13 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *remove_alias_line )
+int valias_remove( char *alias, char *domain, char *alias_line)
 {
- int cntr = 0, i;
- char *tmpstr;
- char qmail[156];
- char tmpqmail[156];
- char tmpalias[156];
- char *p;
- uid_t uid;
- gid_t gid;
- FILE *fs;
- FILE *tmpfs;
-
-    if ( alias == NULL ) return(VA_NULL_POINTER);
-    if ( domain == NULL ) return(VA_NULL_POINTER);
-    if ( alias_line == NULL ) return(VA_NULL_POINTER);
-    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-    if ( strlen(alias_line) >= MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
-
-    if ((tmpstr = vget_assign(domain, qmail, sizeof(qmail), &uid, &gid )) == NULL) {
-	printf("invalid domain, not in qmail assign file\n");
-	return(-1);
-    }
-
-    // copy across the directory
-    strncpy(tmpqmail, qmail, sizeof(tmpqmail));
-
-    // create dotqmail filename, converting '.' to ':' as we go
-    strncat(qmail, "/.qmail-", sizeof(qmail)-strlen(qmail)-1);
-    i = strlen(qmail);
-    for (p = alias; (i < (int)sizeof(qmail) - 1) && (*p != '\0'); p++)
-      qmail[i++] = (*p == '.' ? ':' : *p);
-    qmail[i] = '\0';
-
-    // create tmp dotqmail filename, converting '.' to ':' as we go
-    strncat(tmpqmail, "/.tmp.qmail-", sizeof(tmpqmail)-strlen(tmpqmail)-1);
-    i = strlen(tmpqmail);
-    for (p = alias; (i < (int)sizeof(tmpqmail) - 1) && (*p != '\0'); p++)
-      tmpqmail[i++] = (*p == '.' ? ':' : *p);
-    tmpqmail[i] = '\0';
-
-    fs = fopen(qmail, "r");
-    if ( (tmpfs = fopen(tmpqmail, "w")) == NULL ) {
-	fclose(fs);
-	return(-1);
-    }
-    chmod(tmpqmail,0600);
-    chown(tmpqmail,uid,gid);
-
-    // add on a newline for comparing
-    snprintf(tmpalias, sizeof(tmpalias), "%s\n", remove_alias_line);
-
-    // loop thru copying across the alias lines
-    if ( fs != NULL ) {
-	while ( fgets(alias_line, sizeof(alias_line), fs) != NULL ) {
-	    if ( strcmp(alias_line, tmpalias) != 0) {
-		fputs(alias_line, tmpfs);
-		cntr++;
-	    }
-	}
-	fclose(fs);
-	unlink(qmail);
-    }
-
-    fclose(tmpfs);
-    if ( cntr > 0 ) link(tmpqmail, qmail);
-    unlink(tmpqmail);
-    return(0);
+  fprintf (stderr, "Error: valias_remove() not implemented for non-SQL backends.\n");
+  return -1;
 }
 
-int valias_delete( char *alias, char *domain )
+int valias_delete( char *alias, char *domain)
 {
  char *tmpstr;
  char Dir[156];
