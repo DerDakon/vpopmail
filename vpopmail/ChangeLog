@@ -3,7 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
-        Drew
+	Drew
 	- add .qmail-extension ability to vdelivermail
 	- mods to Delivered-To: header to support .qmail-extension
 
@@ -22,17 +22,17 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vchangepw: Minor changes to Peter's error checking. [1573277]
 
 	Rick Widmer
-        - Multiple changes to vpopmaild:
-	    Add rename_file command.
-       	    Expert mode works in vmoduser.     
-	    Commands that are not yet implemented say so.
-            Blank input lines are not an error in vpopmaild.
-            Separate help before and after login in vpopmaild.
-    	    Allow 3 tries to login to vpopmaild.
-	    Clean up if add_user fails because of bad user data.
-	    Add termination code (.) to get_lastauth return.
-	    Number the error messages (XXX) in vpopmaild
-            If invalid option is sent in set_limits, show warning
+	- Multiple changes to vpopmaild:
+	  Add rename_file command.
+	  Expert mode works in vmoduser.     
+	  Commands that are not yet implemented say so.
+	  Blank input lines are not an error in vpopmaild.
+	  Separate help before and after login in vpopmaild.
+	  Allow 3 tries to login to vpopmaild.
+	  Clean up if add_user fails because of bad user data.
+	  Add termination code (.) to get_lastauth return.
+	  Number the error messages (XXX) in vpopmaild
+	  If invalid option is sent in set_limits, show warning
 	- Add various patches from others listed below:
 
 	Peter Pentchev (roamer)
