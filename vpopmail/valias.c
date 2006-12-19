@@ -1,5 +1,5 @@
 /*
- * $Id: valias.c,v 1.3.2.3 2006-12-17 07:56:52 rwidmer Exp $
+ * $Id: valias.c,v 1.3.2.4 2006-12-19 21:02:47 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,9 +37,8 @@ char AliasLine[MAX_BUFF];
 
 #define VALIAS_SELECT 0
 #define VALIAS_INSERT 1
-#define VALIAS_REMOVE 2
-#define VALIAS_DELETE 3
-#define VALIAS_NAMES  4
+#define VALIAS_DELETE 2
+#define VALIAS_NAMES  3
 
 int AliasAction;
 int AliasExists;
@@ -117,23 +116,6 @@ int main(int argc, char *argv[])
 		}
 		break;
 
-	case VALIAS_REMOVE:
-		/* check to see if it exists */
-		AliasExists = 0;
-		tmpalias = valias_select( Alias, Domain );
-		while (tmpalias != NULL) {
-			if (strcmp (tmpalias, AliasLine) == 0) AliasExists = 1;
-			tmpalias = valias_select_next();
-		}
-		if (AliasExists) {
-			valias_remove (Alias, Domain, AliasLine );
-		} else {
-			fprintf (stderr, "Error: alias %s -> %s does not exist.\n",
-				Email, AliasLine);
-			vexit(-1);
-		}
-		break;
-
 	case VALIAS_DELETE:
 		valias_delete( Alias, Domain );
 		break;
@@ -154,7 +136,6 @@ void usage()
 	printf("         -s ( show aliases, can use just domain )\n");
 	printf("         -d ( delete alias )\n");
 	printf("         -i alias_line (insert alias line)\n");
-	printf("         -r alias_line (remove alias line)\n");
 	printf("\n");
 	printf("Example: valias -i fred@inter7.com bob@inter7.com\n");
 	printf("         (adds alias from bob@inter7.com to fred@inter7.com\n");
@@ -173,7 +154,7 @@ void get_options(int argc,char **argv)
 	memset(AliasLine, 0, sizeof(AliasLine));
 	AliasAction = VALIAS_SELECT;
 
-    	while( (c=getopt(argc,argv,"vnsr:di:")) != -1 ) {
+    	while( (c=getopt(argc,argv,"vnsdi:")) != -1 ) {
 		switch(c) {
 		case 'v':
 			printf("version: %s\n", VERSION);
@@ -183,10 +164,6 @@ void get_options(int argc,char **argv)
 			break;
 		case 's':
 			AliasAction = VALIAS_SELECT;
-			break;
-		case 'r':
-			AliasAction = VALIAS_REMOVE;
-			snprintf(AliasLine, sizeof(AliasLine), "%s", optarg);
 			break;
 		case 'd':
 			AliasAction = VALIAS_DELETE;
