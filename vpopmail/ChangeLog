@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
+        Drew
+	- add .qmail-extension ability to vdelivermail
+	- mods to Delivered-To: header to support .qmail-extension
+
 	John Simpson
 	- onchange - call a script when users or domains are changed
           see README.onchange.
