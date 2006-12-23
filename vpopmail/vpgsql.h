@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.h,v 1.4.2.3 2006-05-07 18:36:19 tomcollins Exp $
+ * $Id: vpgsql.h,v 1.4.2.4 2006-12-23 21:36:40 rwidmer Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #ifdef MANY_DOMAINS
 #ifdef CLEAR_PASS
 #define TABLE_LAYOUT "pw_name varchar(32) NOT NULL, \
-pw_domain varchar(64) NOT NULL, \
+pw_domain varchar(96) NOT NULL, \
 pw_passwd varchar(40), \
 pw_uid int4, pw_gid int4, \
 pw_gecos varchar(48), \
@@ -44,7 +44,7 @@ pw_clear_passwd varchar(16), \
 PRIMARY KEY(\"pw_domain\", \"pw_name\")"
 #else
 #define TABLE_LAYOUT "pw_name varchar(32) NOT NULL, \
-pw_domain varchar(64) NOT NULL, \
+pw_domain varchar(96) NOT NULL, \
 pw_passwd varchar(40), \
 pw_uid int4, pw_gid int4, \
 pw_gecos varchar(48), \
@@ -78,7 +78,7 @@ timestamp bigint DEFAULT 0 NOT NULL, PRIMARY KEY (ip_addr)"
 
 #define LASTAUTH_TABLE_LAYOUT \
 "userid varchar(32) NOT NULL, \
-domain varchar(64) NOT NULL,\
+domain varchar(96) NOT NULL,\
 remote_ip varchar(18) NOT NULL,  \
 timestamp bigint default 0 NOT NULL, \
 PRIMARY key (userid, domain)"
@@ -200,10 +200,10 @@ pw_shell = '%s' WHERE pw_name = '%s' "
 #endif
 
 #ifdef IP_ALIAS_DOMAINS
-#define IP_ALIAS_TABLE_LAYOUT "ip_addr varchar(18) NOT NULL, domain varchar(64), PRIMARY KEY (ip_addr)"
+#define IP_ALIAS_TABLE_LAYOUT "ip_addr varchar(18) NOT NULL, domain varchar(96), PRIMARY KEY (ip_addr)"
 #endif
 
-#define DIR_CONTROL_TABLE_LAYOUT "domain varchar(64) NOT NULL, cur_users int4, \
+#define DIR_CONTROL_TABLE_LAYOUT "domain varchar(96) NOT NULL, cur_users int4, \
 level_cur int4, level_max int4, \
 level_start0 int4, level_start1 int4, level_start2 int4, \
 level_end0 int4, level_end1 int4, level_end2 int4, \
@@ -219,7 +219,7 @@ level_mod0, level_mod1, level_mod2, \
 level_index0, level_index1, level_index2, the_dir"
 
 #define VALIAS_TABLE_LAYOUT "alias varchar(32) NOT NULL, \
-domain varchar(64) NOT NULL, \
+domain varchar(96) NOT NULL, \
 valias_line varchar(160) NOT NULL"
 #define VALIAS_INDEX_LAYOUT "(alias, domain)"
 #endif
@@ -227,7 +227,7 @@ valias_line varchar(160) NOT NULL"
 #ifdef ENABLE_SQL_LOGGING
 #define VLOG_TABLE_LAYOUT "id serial, \
       userid char(32), passwd CHAR(32), \
-      domain CHAR(64), logon VARCHAR(200), \
+      domain CHAR(96), logon VARCHAR(200), \
       remoteip char(18), message VARCHAR(255), \
       timestamp bigint default 0 NOT NULL, error INT, \
       INDEX user_idx (user), \

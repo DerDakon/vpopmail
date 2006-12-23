@@ -5,6 +5,20 @@ into the vpopmail libraries.  These include QmailAdmin, qmail-smtpd (if
 you have the chkuser patch applied), Courier-IMAP etc.
 
 
+Upgrading to vpopmail-5.4.18
+----------------------------
+
+For all SQL back ends you must change the length of the domain or 
+pw_domain field from 64 to 96 characters to reflect the maximum size 
+allowed in vpopmail.
+
+If you are storing limits in mysql you must add the following items to 
+the limits table:
+
+  disable_spamassassasin  tinyint(1) NOT NULL DEFAULT 0
+  delete_spam             tinyint(1) NOT NULL DEFAULT 0
+
+
 Upgrading to vpopmail-5.4
 -------------------------
 

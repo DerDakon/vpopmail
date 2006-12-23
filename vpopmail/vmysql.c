@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.13 2006-12-16 20:46:36 rwidmer Exp $
+ * $Id: vmysql.c,v 1.15.2.14 2006-12-23 21:36:39 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1621,8 +1621,9 @@ int vget_limits(const char *domain, struct vlimits *limits)
         "maxmsgcount, defaultquota, defaultmaxmsgcount, "
         "disable_pop, disable_imap, disable_dialup, "
         "disable_passwordchanging, disable_webmail, disable_relay, "
-        "disable_smtp, perm_account, perm_alias, perm_forward, "
-        "perm_autoresponder, perm_maillist, perm_quota, perm_defaultquota \n"
+        "disable_smtp, disable_spamassassin, delete_spam, perm_account, "
+        "perm_alias, perm_forward, perm_autoresponder, perm_maillist, "
+        "perm_quota, perm_defaultquota \n"
         "FROM limits \n"
         "WHERE domain = '%s'", domain);
 
@@ -1648,7 +1649,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
         return vlimits_read_limits_file (VLIMITS_DEFAULT_FILE, limits);
 
     } else if ((row = mysql_fetch_row(res_read)) != NULL) {
-        int perm = atol(row[20]);
+        int perm = atol(row[22]);
 
         limits->maxpopaccounts = atoi(row[0]);
         limits->maxaliases = atoi(row[1]);
@@ -1666,17 +1667,19 @@ int vget_limits(const char *domain, struct vlimits *limits)
         limits->disable_webmail = atoi(row[13]);
         limits->disable_relay = atoi(row[14]);
         limits->disable_smtp = atoi(row[15]);
-        limits->perm_account = atoi(row[16]);
-        limits->perm_alias = atoi(row[17]);
-        limits->perm_forward = atoi(row[18]);
-        limits->perm_autoresponder = atoi(row[19]);
+        limits->disable_spamassassin = atoi(row[16]);
+        limits->delete_spam = atoi(row[17]);
+        limits->perm_account = atoi(row[18]);
+        limits->perm_alias = atoi(row[19]);
+        limits->perm_forward = atoi(row[20]);
+        limits->perm_autoresponder = atoi(row[21]);
         limits->perm_maillist = perm & VLIMIT_DISABLE_ALL;
         perm >>= VLIMIT_DISABLE_BITS;
         limits->perm_maillist_users = perm & VLIMIT_DISABLE_ALL;
         perm >>= VLIMIT_DISABLE_BITS;
         limits->perm_maillist_moderators = perm & VLIMIT_DISABLE_ALL;
-        limits->perm_quota = atoi(row[21]);
-        limits->perm_defaultquota = atoi(row[22]);
+        limits->perm_quota = atoi(row[23]);
+        limits->perm_defaultquota = atoi(row[24]);
     }
     mysql_free_result(res_read);
 
@@ -1694,10 +1697,11 @@ int vset_limits(const char *domain, const struct vlimits *limits)
         "diskquota, maxmsgcount, defaultquota, defaultmaxmsgcount, "
         "disable_pop, disable_imap, disable_dialup, "
         "disable_passwordchanging, disable_webmail, disable_relay, "
-        "disable_smtp, perm_account, perm_alias, perm_forward, "
-        "perm_autoresponder, perm_maillist, perm_quota, perm_defaultquota) \n"
+        "disable_smtp, disable_spamassassin, delete_spam, perm_account, "
+        "perm_alias, perm_forward, perm_autoresponder, perm_maillist, "
+        "perm_quota, perm_defaultquota) \n"
         "VALUES \n"
-        "('%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+        "('%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
         domain,
         limits->maxpopaccounts,
         limits->maxaliases,
@@ -1715,6 +1719,8 @@ int vset_limits(const char *domain, const struct vlimits *limits)
         limits->disable_webmail,
         limits->disable_relay,
         limits->disable_smtp,
+        limits->disable_spamassassin,
+        limits->delete_spam,
         limits->perm_account,
         limits->perm_alias,
         limits->perm_forward,
