@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.35 2006-04-16 10:54:52 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.36 2006-12-23 20:30:45 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1361,11 +1361,11 @@ int valias_delete( char *alias, char *domain)
   if ( (err=vauth_open()) != 0 ) return(err);
 
 #ifdef ONCHANGE_SCRIPT
-    if( allow_onchange ) {
-       /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , alias , domain ) ;
-       call_onchange ( "valias_delete" ) ;
-       }
+  if( allow_onchange ) {
+     /* tell other programs that data has changed */
+     snprintf ( onchange_buf , MAX_BUFF , "%s@%s" , alias , domain ) ;
+     call_onchange ( "valias_delete" ) ;
+     }
 #endif
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -1398,11 +1398,11 @@ int valias_remove( char *alias, char *domain, char *alias_line)
   if ( (err=vauth_open()) != 0 ) return(err);
 
 #ifdef ONCHANGE_SCRIPT
-    if( allow_onchange ) {
-       /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
-       call_onchange ( "valias_remove" ) ;
-       }
+  if( allow_onchange ) {
+     /* tell other programs that data has changed */
+     snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
+     call_onchange ( "valias_remove" ) ;
+     }
 #endif
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -1431,11 +1431,11 @@ int valias_delete_domain( char *domain)
   if ( (err=vauth_open()) != 0 ) return(err);
 
 #ifdef ONCHANGE_SCRIPT
-    if( allow_onchange ) {
-       /* tell other programs that data has changed */
-       snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
-       call_onchange ( "valias_delete_domain" ) ;
-       }
+  if( allow_onchange ) {
+     /* tell other programs that data has changed */
+     snprintf ( onchange_buf , MAX_BUFF , "%s@%s - %s" , alias , domain , alias_line) ;
+     call_onchange ( "valias_delete_domain" ) ;
+     }
 #endif
 
   qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
