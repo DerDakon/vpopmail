@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
+        Joshua Megerman
+        - SQL backend fixes - NOTE: Requires database changes.  
+          See UPGRADE for 5.4.18.  [1619489]
+
 	Drew
 	- add .qmail-extension ability to vdelivermail
 	- mods to Delivered-To: header to support .qmail-extension
