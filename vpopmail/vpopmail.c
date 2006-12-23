@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.33 2006-12-16 20:46:37 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.34 2006-12-23 23:48:00 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2979,6 +2979,13 @@ int vsqwebmail_pass( char *dir, char *crypted, uid_t uid, gid_t gid )
  */
 int open_smtp_relay()
 {
+
+//  If user's address is listed in tcp.smpt file - skip update.
+
+  if (check_static_relay()) {
+    return(0);
+  }
+
 #ifdef USE_SQL
 
 int result;
@@ -3166,6 +3173,91 @@ long unsigned tcprules_open()
   tcprules_fdm = pim[1]; close(pim[0]);
 
   return(pid);
+}
+#endif /* POP_AUTH_OPEN_RELAY */
+
+/************************************************************************/
+
+#ifdef POP_AUTH_OPEN_RELAY 
+/* check_static_relay() looks to see if the remote IP address is in the
+ * TCP_RULES file, and if so returns true.  Used to not update the relay
+ * table with IP addresses that are already covered by another rule.
+ */
+
+
+//    Would this be faster checking the cdb file?
+
+
+int check_static_relay()
+{
+  FILE *fs;
+  char tmpbuf1[MAX_BUFF];
+  int found = 0;
+  char *ipaddr, *p, *q;
+  unsigned char i, j, k = 0;
+
+  /* get the remote IP address as a string */
+  ipaddr = get_remote_ip();
+
+  /* open the tcp.smtp file and read in the static rules - these addresses
+   * are handled by tcprules and not the relay table */
+  fs = fopen(TCP_FILE, "r");
+  if ( fs != NULL ) {
+    /* read each entry and compare it to the remote IP address */
+    while (( fgets(tmpbuf1, sizeof(tmpbuf1), fs ) != NULL ) && (!found)){
+      /* start by comparing the first part for ain exact or substring match */
+      if ( p = strchr(tmpbuf1, ':') ) {
+        *p = '\0';
+	if ( !(strncmp(ipaddr, tmpbuf1, strlen(tmpbuf1))) ) {
+          /* we have a match */
+          found = 1;
+        } else {
+          /* no match so far - is this a range statement? */
+          q = strstr(tmpbuf1, '-');
+          if (q) {
+            /* figure out what octet the range is for */
+            for (p = tmpbuf1; *p; p++) {
+              if (*p == '.') k++;
+            }
+            if (k) {
+              /* not the first octet - back up the IP address to the correct octet for matching */
+              for (i = (4 - k); i; i--) {
+                for (p = (ipaddr = strlen(ipaddr)); *p != '.'; p--);
+              }
+              *p = 0;
+              if ( !(strncmp(ipaddr, tmpbuf1, strlen(ipaddr)))) {
+                k = atoi(p+1);
+                j = atoi(q+1);
+                if (j < k) continue; /* above the top of the range */
+                *q = 0;
+                for ( ; *q != '.'; q--);
+                i = atoi(q+1);
+                if (i <= k) {
+                  /* octet is inside the range */
+                  found = 1;
+                }
+              }
+            } else {
+              /* range is in the first octet */
+              k = atoi(ipaddr);
+              j = atoi(q+1);
+              if (j < k) continue; /* above the top of the range */
+              *q = 0;
+              for ( ; *q != '.'; q--);
+              i = atoi(q+1);
+              if (i <= k) {
+                /* octet is inside the range */
+                found = 1;
+              }
+            }
+          }
+	}
+      }
+    }
+    fclose(fs);
+  }
+
+  return(found);
 }
 #endif /* POP_AUTH_OPEN_RELAY */
 
