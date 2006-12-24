@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.34 2006-12-23 23:48:00 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.35 2006-12-24 01:28:49 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3634,7 +3634,7 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
 
 #ifdef ONCHANGE_SCRIPT
   /* tell other programs that data has changed */
-  snprintf ( onchange_buf, MAX_BUFF, "%s %S", alias_domain, real_domain );
+  snprintf ( onchange_buf, MAX_BUFF, "%s %s", alias_domain, real_domain );
   call_onchange ( "add_alias_domain" );
 #endif
 
