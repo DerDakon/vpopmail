@@ -3,7 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.18 - unreleased
 
-        Joshua Megerman
+        Joshua Megerman (offsides)
         - SQL backend fixes - NOTE: Requires database changes.  
           See UPGRADE for 5.4.18.  [1619489]
         - MySQL Tablename Backquotes - Add back quotes around table
@@ -30,7 +30,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- vdelivermail: Add missing loop check.
 	- vchangepw: Minor changes to Peter's error checking. [1573277]
 
-	Rick Widmer
+	Rick Widmer  (rwidmer)
 	- Multiple changes to vpopmaild:
 	  Add rename_file command.
 	  Expert mode works in vmoduser.     

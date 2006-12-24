@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.12 2006-12-17 07:56:52 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.11.2.13 2006-12-24 01:28:49 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -710,10 +710,13 @@ void deliver_mail(char *address, char *quota)
 int check_forward_deliver(char *dir)
 {
  static char qmail_line[500];
- char tmpbuf[500];
  FILE *fs;
  int i;
  int return_value = 0;
+
+#ifdef QMAIL_EXT
+ char tmpbuf[500];
+#endif
    
     chdir(dir);
 
