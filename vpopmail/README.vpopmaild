@@ -1,53 +1,252 @@
-To run as daemon:
-tcpserver -vHRD 0 89 ./vpopmaild
+Vpopmaild provides a way for authorized clients to perform most of the 
+tasks you can do with the vpopmail command line tools, without having 
+to ssh into the server and run them by hand.  We are not yet at a point 
+where every function available in vqadmin and qmailadmin is available 
+from the daemon, but that is the plan.
 
-Then as client
-telnet localhost 89
+This documentation is still rough, but it is a start.  It is a 
+combination of the original information provided by Ken Jones, the 
+original author of vpopmaild, a list of functions available by Rick 
+Widmer and some pages from John Simpson's qmail web site:
 
-Or to run on the command line for testing
-./vpopmaild
-
-First login. example:
-login postmaster@example.com password
-
-Then for list of commands:
-help
+  http://qmail.jms1.net/
 
 
+If you are looking for step by step instructions for setting up a qmail +
+vpopmail site that includes the daemon, try Bill Shupp's toaster:
 
-There is a PHP object to work with this daemon available at
+   http://shupp.org/toaster/
+
+
+Another source of information on the daemain is Inter7's qmail
+wiki:
+
+  http://qmailwiki.inter7.com/Vpopmaild
+
+
+
+The most basic capability of vpopmaild is to verify whether or not a
+given email address and password are correct.  This can be done with 
+the slogin command.  Basically, if the slogin command succeeds, the 
+address and password are valid. If not, then they are not valid.  You 
+should quit or exit the daemon before you close the connection.
+
+Once you are logged in your personal rights will control which commands 
+you can use, and how much of the mail system you can control.  The 
+daemon supports creating and deleting domains only for system 
+administrators.  Creating addresses, aliasas and such within a domain 
+for system and domain administrators.  Anyone can change their password,
+set up a forward or vacation message.  (Try help from various users.)
+
+
+There are at least two projects to replace qmailadmin using the daemon.
+Rick Widmer has one on SourceForge called pmailadmin.  Currently only
+the daemon interface and system library are operational.
 
    http://pmailadmin.sourceforge.net/
 
+Bill Shupp has announced a project, it is currently only available
+if you email the author.
 
-This is very rough, but it is a start for documentation on the daemon.
-(Rick)
+
+There are three sections to the rest of this document:
+
+  1: Using the service
+
+  2: Command List
+
+  3: Installing the Daemon
+
+  4: Bitmap Values
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 --------------------------------------------------------------------
+--------------------------------------------------------------------
 
-                  V p o p m a i l d   c o m m a n d s
+1 :   U s i n g   t h e   s e r v i c e 
+
+
+
+If you don't yet have the daemon running, skip down to section 3, 
+Installing the Daemon, and use one of the options to start the daemon.
+Once the service is running, you can test it by telnetting to localhost
+port 89. This is a sample of what it looks like when running as a service
+on port 89.
+
+  $ telnet localhost 89
+  Trying 127.0.0.1...
+  Connected to 127.0.0.1.
+  Escape character is '^]'.
+  +OK
+  login userid@domain.xyz p@ssw3rd
+  +OK+
+  vpopmail_dir /home/vpopmail
+  domain_dir /home/vpopmail/domains/domain.xyz
+  uid 89
+  gid 89
+  name userid
+  comment userid
+  quota NOQUOTA
+  user_dir /home/vpopmail/domains/domain.xyz/userid
+  encrypted_password $1$ZXWVRRi9$X.ZdqlNURS32jD4YdkFkq0
+  clear_text_password
+  no_password_change 0
+  no_pop 0
+  no_webmail 0
+  no_imap 0
+  bounce_mail 0
+  no_relay 0
+  no_dialup 0
+  user_flag_0 0
+  user_flag_1 0
+  user_flag_2 0
+  user_flag_3 0
+  no_smtp 0
+  domain_admin_privileges 0
+  override_domain_limits 0
+  no_spamassassin 0
+  delete_spam 0
+  system_admin_privileges 0
+  .
+  quit
+  +OK
+  Connection closed by foreign host.
+
+As you can see, when you successfully log into the service, it shows
+you pretty much everything about the account you are logged into.  The
+clogin command returns the same information, but does not decode the
+gid_flags bitmap.  This reduces the amount of data transferred by about
+60%.  Think Compact Login.  It does this for all commands that return
+bitmap values for the entire session.  If you are writing a program to 
+access the daemon, it is probably easier to decode the bitmap than the
+lines of text.  The bit values are listed in section 4 near the end of
+this file.
+
+
+  $ telnet 127.0.0.1 89
+  Trying 127.0.0.1...
+  Connected to 127.0.0.1.
+  Escape character is '^]'.
+  +OK
+  clogin userid@domain.xyz p@ssw3rd
+  +OK+
+  vpopmail_dir /home/vpopmail
+  domain_dir /home/vpopmail/domains/domain.xyz
+  uid 89
+  gid 89
+  name userid
+  comment userid
+  quota NOQUOTA
+  user_dir /home/vpopmail/domains/domain.xyz/userid
+  encrypted_password $1$ZXWVRRi9$X.ZdqlNURS32jD4YdkFkq0
+  clear_text_password
+  gidflags 196608
+  .
+  quit
+  +OK
+  Connection closed by foreign host.
+
+
+When all you need to know is if the current login is valid, use the slogin
+command.  Think Silent Login.  All this returns is +OK if the user exists
+and the password is valid or -ERR if either is incorrect.  You should send
+the quit command before you disconnect from the service.
+
+  $ telnet 127.0.0.1 89
+  Trying 127.0.0.1...
+  Connected to 127.0.0.1.
+  Escape character is '^]'.
+  +OK
+  login userid@domain.xyz p@ssw3rd
+  +OK
+  quit
+  +OK
+  Connection closed by foreign host.
+
+
+A few things are worth mentioning here...
+
+The help command will show you a list of all of the commands that vpopmaild
+you have permission to use.  Help can be used before or aftter login.  There
+are three kinds of users with increasing commands that they can use.
+
+If the domain_admin_privileges flag is set to 1, you are able to administer 
+any mailbox within the domain of your account (i.e. if you are logged in as
+postmaster@domain.xyz you will be able to create, delete, and modify 
+mailboxes within the domain.xyz domain.
+
+If the system_admin_privileges flag is set to 1, you are able to administer 
+any mailbox on the system, plus list, add, remove, and otherwise administer 
+entire domains.
+
+The various flags associated with each account are manipulated using the 
+mod_user command within the service, or using the vmoduser command line 
+program. For example, to set the domain_admin_privileges flag for an 
+account, you can use the following command:
+
+As root...
+
+  # vmoduser -a postmaster@domain.xyz
+
+You can run vmoduser by itself to see the list of flags which can be set. 
+Note that some of the flags may not have any effect on your system, 
+depending on how vpopmail was compiled.
+
+Be very careful with the -S option (which sets the system_admin_privileges 
+flag.)  If you are going to have user with system admin rights, you might
+want to create a domain with an illegal name like  illegal.xyz  vpopmaild 
+will allow you to login, but there is no way to send email to this domain.
+
+  #  vadddomain illegal.xyz postmaster-password
+  #  vmoduser -S postmaster@illegal.xyz
+
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+2 :    C o m m a n d s 
+
+
+
+consider ordering commands from lesser rights to more rights.
+
+NOTE: mod_user is the one with the breakdown of the gidflage bitmap.
 
 
 --------------------------------------------------------------------
 
-login user@domain.ext password  [compact]
+login user@domain.ext password  - verbose user/domain attributes
+clogin user@domain.ext password - compact user/domain attributes
+slogin user@domain.ext password - silent, just return success or 
+                                  failure of login
 
 Rights required: Must be a valid email address.
 
-Action: Verify the username and password of the person desiring to
-        login, and set their access rights.
+Action:	Verify the username and password of the persion desiring to
+	login, and set their access rights.
 
-	If the compact option is given, bitmap values are returned
-        as a single numeric value instead of a line for each bit
-        used.  This reduces data transfer, but requires the client
-        to split up the bitmap.
+	For the "login" command, a successful login will return a
+	full list of the user's information.
 
+	For the "clogin" command, a successful login wil return a
+	compact version of the user's information- bitmap values
+	are returned as a single numeric value instead of a line
+	for each bit used. This reduces data transfer, but requires
+	the client to split up the bitmap.
+
+	For the "slogin" command, a successful login only returns
+	the "+OK " response, with no additional information. This
+	is useful in cases where the client does not need to know
+	anything other than whether or not the login attempt was
+	successful (i.e. for the SMTP AUTH command.)
 
 --------------------------------------------------------------------
 
-add_user user@domain.ext password long_name
+add_user user@domain.ext password
 
 Rights required: SA_ADMIN, or QA_ADMIN
 
@@ -170,7 +369,7 @@ clear_text_password - The password in clear text.
 
 
 The following values are returned as the character '1' or '0'. '1'
-says the field is active - for example, an active no_password_change field
+says the field is active which, for example an active no_password_change
 means the user can not change passwords.
 
 no_password_change, no_pop, no_webmail, no_imap, bounce_mail, no_relay,
@@ -414,7 +613,7 @@ list_domains [page lines_per_page]
 Rights required: SA_ADMIN
 
 Action:  List all domains on the system, and their parent domain.
-If the optional page is given, lines_per_page must also be specified.
+If the optional page is given, lines_per_page must be specified also.
 When both are given, the data is broken up into pages with lines_per_page
 lines on each.  The page returned is specified by page.
 
@@ -642,7 +841,7 @@ Action:  Modify an ezmlm mailing list.  Not implemented yet.
 
 --------------------------------------------------------------------
 
-quit
+quit, exit, q
 
 Rights required: Any
 
@@ -652,24 +851,120 @@ Action:  Shutdown the daemon.  You should always call this before
 
 --------------------------------------------------------------------
 
-int help()
+help()
 
 Rights required: Any
 
-Action:  Display help on the daemon.  It does not, but should limit
-         the actions listed to the abilities of the current user.  If
-         no user is logged in, it should only display login, help and 
-         quit.  Maybe it shouldn't show anything...
+Action:	Display a list of the commands currently available to the
+	client. The list will adjust itself to match the access
+	rights of the userid with which the client is logged in.
+	If the client is not logged in yet, only the "login",
+	"clogin", "slogin", "help", and "quit" commands are shown.
 
-         Consider only showing commands available to the current
-         user.
 
---------------------------------------------------------------------
 
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 --------------------------------------------------------------------
+--------------------------------------------------------------------
+
+
+3 :    R u n n i n g   v p o p m a i l d
+
+
+For a simple quick test, just run the daemon at the command line.
+
+  ./vpopmaild
+
+
+To run under tcpserver temporaraly from the command line:
+
+  tcpserver -vHRD 0 89 ./vpopmaild
+
+
+Running vpopmaild under daemontools is the only way to run it as a
+mission critical service.
+
+There is one important difference between this script and a "generic" 
+script which usually sets up a service listening on IP address "0", or 
+listening on every interface on the server. This is a MAJOR security 
+hole- allowing clients to connect across the network allows somebody 
+with a packet sniffer to watch every byte which goes across the wire- 
+including passwords. My script sets up a service which only listens 
+on 127.0.0.1, which on most systems is the "localhost" interface- which 
+means that the packets never physically leave the machine, and 
+therefore cannot be "sniffed" by other machines.
+
+Setting up the service
+
+I have written a simple "run" script for a vpopmaild service. This is
+the actual script which is running the service on my own server. Note that
+the commands below assume that your daemontools services are physically
+running in the /var/service directory (which is where they are on my server.)
+If you keep your services somewhere else, or want to set up your own service 
+directory somewhere, that works as well- just make sure that the physical 
+location is not under /service or you will not be able to reliably stop the 
+service when needed.
+
+As root...
+
+  # mkdir -m 1755 /var/service/vpopmaild
+  # cd /var/service/vpopmaild
+
+Copy the following lines into a file named run in the directory you
+just created.  Don't include the  --- lines in the file, they just 
+show the beginning and end of the file.
+
+---------------------------------------------------------------------
+#!/bin/sh
+exec 2>&1
+exec env - PATH="/usr/bin:/bin:/usr/local/bin" \
+     tcpserver -vHRD 127.0.0.1 89 ~vpoppmail/bin/vpopmaild
+---------------------------------------------------------------------
+
+  # chmod 755 run
+  # mkdir -m 755 log
+  # cd log
+
+Copy the following lines into a file named run in the directory you
+just created.
+
+---------------------------------------------------------------------
+#!/bin/sh
+VQ="/var/qmail"
+exec env - PATH="$VQ/bin:/usr/local/bin:/usr/bin:/bin" \
+     multilog t n1024 s1048576 ./mail \
+     '-*' '+*ver: status:*' =lstatus
+---------------------------------------------------------------------
+
+  # chmod 755 run
+  # ln -s /var/service/vpopmaild /service/
+
+Wait a few seconds...
+
+  # svstat /service/vpopmaild
+  /service/vpopmaild: up (pid 22457) 7 seconds<br/>
+  /service/vpopmaild/log: up (pid 22460) 7 seconds
+
+
+
+Using the service
+
+Once the service is running, you can test it by telnetting to localhost
+port 89.  Go back to the section on Running the deamon for an example 
+session.
+
+
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+4 :     B i t m a p   d e f i n i t i o n  
+
+
 
 This appeared early in the discussion leading to the daemon, so
 until I find a better place for it, I'll add it here.  The important
@@ -731,4 +1026,24 @@ incoming mail through spamassassin.
 with --enable-spamasssassin=y setting this flag
 will delete all email above the users required_hits
 preference.
+
+
+==============================================================================
+The original readme from Ken:
+
+To run as daemon:
+tcpserver -vHRD 0 89 ./vpopmaild
+
+Then as client
+telnet localhost 89
+
+Or to run on the command line for testing
+./vpopmaild
+
+First login. example:
+login postmaster@example.com password
+
+Then for list of commands:
+help
+
 
