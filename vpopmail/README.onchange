@@ -17,19 +17,19 @@ on the command line to indicate what was changed.  Your script should
 check the cmd value to determine what has happened and act accordingly.
 
 
-function called		cmd		arg1		arg2		
-----------------------	------------	-----------	----------
+function called         cmd               arg1            arg2		
+----------------------  ------------      -----------     ----------
 
-vadddomain()		add_domain	domain
-vdeldomain()		del_domain	domain
-vadduser()		add_user	user@domain
-vdeluser()		del_user	user@domain
-vaddaliasdomain()	add_alias_domain domain		real_domain
-vauth_setpw		mod_user	user@domain
-valias_insert 		insert_alias	user@domain	alias_line
-valias_remove		remove_alias	user@domain	alias_line
-valias_delete		del_alias	user@domain
-valias_delete_domain()	del_all_alias	domain
+vadddomain()            add_domain        domain
+vdeldomain()            del_domain        domain
+vadduser()              add_user          user@domain
+vdeluser()              del_user          user@domain
+vaddaliasdomain()       add_alias_domain  domain          real_domain
+vauth_setpw             mod_user          user@domain
+valias_insert           insert_alias      user@domain     alias_line
+valias_remove           remove_alias      user@domain     alias_line
+valias_delete           del_alias         user@domain
+valias_delete_domain()  del_all_alias     domain
 
 
 
@@ -37,7 +37,6 @@ The program, daemon command or function call that triggered the onchange
 script will not return until the script ends.  That means that you should
 keep the run time of the script down, or have the script trigger any 
 long running process.
-
 
 This is based on the onchange patch by John Simpson, used to support
 his validrcptto.cdb patch.  Robin Bowes made the suggestion to return  
