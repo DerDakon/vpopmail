@@ -49,7 +49,7 @@ Bill Shupp has announced a project, it is currently only available
 if you email the author.
 
 
-There are three sections to the rest of this document:
+There are four sections to the rest of this document:
 
   1: Using the service
 
@@ -167,9 +167,13 @@ the quit command before you disconnect from the service.
 
 A few things are worth mentioning here...
 
-The help command will show you a list of all of the commands that vpopmaild
-you have permission to use.  Help can be used before or aftter login.  There
-are three kinds of users with increasing commands that they can use.
+The help command will show you a list of all of the commands that you have 
+permission to use.  Help can be used before or after login.  There are 
+three kinds of users with increasing commands that they can use.
+
+A simple user can change their password, create forwards and mail robots, 
+and maintain a set of .vpopmail-extension files similar to the .qmail-extension
+capability of qmail-local.
 
 If the domain_admin_privileges flag is set to 1, you are able to administer 
 any mailbox within the domain of your account (i.e. if you are logged in as
