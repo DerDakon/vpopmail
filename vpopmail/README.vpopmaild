@@ -13,7 +13,7 @@ Widmer and some pages from John Simpson's qmail web site:
 
 
 If you are looking for step by step instructions for setting up a qmail +
-vpopmail site that includes the daemon, try Bill Shupp's toaster:
+vpopmail server that includes the daemon, try Bill Shupp's toaster:
 
    http://shupp.org/toaster/
 
@@ -69,7 +69,7 @@ There are four sections to the rest of this document:
 
 
 If you don't yet have the daemon running, skip down to section 3, 
-Installing the Daemon, and use one of the options to start the daemon.
+Installing the Daemon, and use one of those options to start the daemon.
 Once the service is running, you can test it by telnetting to localhost
 port 89. This is a sample of what it looks like when running as a service
 on port 89.
@@ -124,7 +124,7 @@ lines of text.  The bit values are listed in section 4 near the end of
 this file.
 
 
-  $ telnet 127.0.0.1 89
+  $ telnet localhost 89
   Trying 127.0.0.1...
   Connected to 127.0.0.1.
   Escape character is '^]'.
@@ -557,11 +557,11 @@ their own domain.  USER can only work within their home directory.
 
 Action:  Write lines to a file.
 
-Directory can be specified as a real path starting at root, as a domain
-name, or as an email address.  When a domain name is specified, that
+Filename can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, it
 is replaced by the path to the domain directory for that domain.  When 
 an email address is specified, that starts at the home directory for 
-that email address.
+the email address.
 
 File contents are sent, one line sent to the daemon for each line
 to add to the file.  After the last line send a line containing only
@@ -570,18 +570,18 @@ a period '.' to mark the end of file.
 
 --------------------------------------------------------------------
 
-int stat_file()
+stat_file filename
 
 Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
 their own domain.  USER can only work within their home directory.
 
 Action: Stat a file.
 
-Directory can be specified as a real path starting at root, as a domain
-name, or as an email address.  When a domain name is specified, that
+Filename can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, it
 is replaced by the path to the domain directory for that domain.  When 
 an email address is specified, that starts at the home directory for 
-that email address.
+the email address.
 
 Currently only the UID of the owner of the file is returned if it exists
 or an error (2202) is returned.  It seems to me this should be extended 
@@ -591,18 +591,18 @@ last mod, last change.
 
 --------------------------------------------------------------------
 
-int read_file()
+read_file filename
 
 Rights required: SA_ADMIN, QA_ADMIN or USER.  QA_ADMIN can only work within
 their own domain.  USER can only work within their home directory.
 
 Action:  Read lines from a file.
 
-Directory can be specified as a real path starting at root, as a domain
-name, or as an email address.  When a domain name is specified, that
+Filename can be specified as a real path starting at root, as a domain
+name, or as an email address.  When a domain name is specified, it
 is replaced by the path to the domain directory for that domain.  When 
 an email address is specified, that starts at the home directory for 
-that email address.
+the email address.
 
 File contents are received, one line from the daemon for each line
 in the file.  After the last line of the file a line containing only
@@ -808,14 +808,14 @@ user logged in.
 
 --------------------------------------------------------------------
 
-int get_lastauthip()     --    D E L E T E D ! 
+get_lastauthip     --    D E L E T E D ! 
 
-Merged with get_lastauth(), use it instead.  
+Merged with get_lastauth, use it instead.  
 
 
 --------------------------------------------------------------------
 
-int add_list()
+add_list
 
 Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
                  its home domain.
@@ -825,7 +825,7 @@ Action:  Add an ezmlm mailing list.  Not implemented yet.
 
 --------------------------------------------------------------------
 
-int del_list()
+del_list
 
 Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
                  its home domain.
@@ -835,7 +835,7 @@ Action:  Delete an ezmlm mailing list.  Not implemented yet.
 
 --------------------------------------------------------------------
 
-int mod_list()
+mod_list
 
 Rights required: SA_ADMIN, or QA_ADMIN.  QA_ADMIN can only work in
                  its home domain.
@@ -855,7 +855,7 @@ Action:  Shutdown the daemon.  You should always call this before
 
 --------------------------------------------------------------------
 
-help()
+help
 
 Rights required: Any
 
@@ -879,12 +879,16 @@ Action:	Display a list of the commands currently available to the
 
 For a simple quick test, just run the daemon at the command line.
 
-  ./vpopmaild
+As root...
+
+  # ./vpopmaild
 
 
-To run under tcpserver temporaraly from the command line:
+To run under tcpserver temporarily from the command line:
 
-  tcpserver -vHRD 0 89 ./vpopmaild
+As root...
+
+  # tcpserver -vHRD 0 89 ./vpopmaild
 
 
 Running vpopmaild under daemontools is the only way to run it as a
@@ -895,20 +899,18 @@ script which usually sets up a service listening on IP address "0", or
 listening on every interface on the server. This is a MAJOR security 
 hole- allowing clients to connect across the network allows somebody 
 with a packet sniffer to watch every byte which goes across the wire- 
-including passwords. My script sets up a service which only listens 
+including passwords. This script sets up a service which only listens 
 on 127.0.0.1, which on most systems is the "localhost" interface- which 
 means that the packets never physically leave the machine, and 
 therefore cannot be "sniffed" by other machines.
 
 Setting up the service
 
-I have written a simple "run" script for a vpopmaild service. This is
-the actual script which is running the service on my own server. Note that
-the commands below assume that your daemontools services are physically
-running in the /var/service directory (which is where they are on my server.)
-If you keep your services somewhere else, or want to set up your own service 
-directory somewhere, that works as well- just make sure that the physical 
-location is not under /service or you will not be able to reliably stop the 
+Note that the commands below assume that your daemontools services are 
+physically running in the /var/service directory.  If you keep your 
+services somewhere else, or want to set up your own service directory 
+somewhere, that works as well- just make sure that the physical location 
+is not under /service or you will not be able to reliably stop the 
 service when needed.
 
 As root...
@@ -948,7 +950,7 @@ exec env - PATH="$VQ/bin:/usr/local/bin:/usr/bin:/bin" \
 Wait a few seconds...
 
   # svstat /service/vpopmaild
-  /service/vpopmaild: up (pid 22457) 7 seconds<br/>
+  /service/vpopmaild: up (pid 22457) 7 seconds
   /service/vpopmaild/log: up (pid 22460) 7 seconds
 
 
