@@ -9,8 +9,6 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         - MySQL Tablename Backquotes - Add back quotes around table
           names so MySQL will allow names that start with a digit.
           [1619491]
-        - Don't update the relay CDB for statically covered addresses
-          [1619532]
 
 	Drew
 	- add .qmail-extension ability to vdelivermail
