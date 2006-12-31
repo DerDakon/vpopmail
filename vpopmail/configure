@@ -856,6 +856,7 @@ Optional Features:
   --enable-sqwebmail-pass    Store a copy of the user's password in the the user's maildir for use by pre-v3 sqwebmail.
   --enable-qmail-ext         Enable qmail email address extension support.
   --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table.
+  --enable-onchange-script   Enable onchange script. See README.onchange for more info.
   --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).
   --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.
   --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.
@@ -5743,6 +5744,47 @@ _ACEOF
 echo "${ECHO_T}no" >&6
         ;;
 esac
+
+#----------------------------------------------------------------------
+
+echo "$as_me:$LINENO: checking whether onchange script is enabled" >&5
+echo $ECHO_N "checking whether onchange script is enabled... $ECHO_C" >&6
+# Check whether --enable-onchange-script or --disable-onchange-script was given.
+if test "${enable_onchange_script+set}" = set; then
+  enableval="$enable_onchange_script"
+  ENABLE_ONCHANGE_SCRIPT=$enableval
+else
+
+                        ENABLE_ONCHANGE_SCRIPT=0
+
+
+fi;
+
+case $ENABLE_ONCHANGE_SCRIPT in
+  0*|n*|N*)
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      ;;
+  *)
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+      ENABLE_ONCHANGE_SCRIPT=1
+
+cat >>confdefs.h <<_ACEOF
+#define ONCHANGE_SCRIPT $ENABLE_ONCHANGE_SCRIPT
+_ACEOF
+
+      ;;
+esac
+
+
+cat >>confdefs.h <<_ACEOF
+#define ONCHANGE_SCRIPT $ENABLE_ONCHANGE_SCRIPT
+_ACEOF
+
+
+#----------------------------------------------------------------------
+
 
 #----------------------------------------------------------------------
 #  -- domain quotas disabled until they actually work again --
