@@ -1,6 +1,11 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.19 - unreleased
+        Rick WIdmer
+        - update to aclocal 1.9.5, automake 1.9.5, autoconf 2.59 to match my system
+
+
 5.4.18 - released 30-Dec-06
 
         Joshua Megerman (offsides)
