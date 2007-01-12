@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.14 2006-12-19 21:02:47 rwidmer Exp $
+ * $Id: vpalias.c,v 1.6.2.15 2007-01-12 16:28:51 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -190,6 +190,8 @@ int valias_delete( char *alias, char *domain)
        snprintf ( onchange_buf, MAX_BUFF, "%s@%s", alias, domain );
        call_onchange ( "valias_delete" );
        }
+
+
 #endif
 
     strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
