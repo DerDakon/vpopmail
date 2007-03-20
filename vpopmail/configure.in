@@ -839,13 +839,13 @@ AC_ARG_ENABLE(onchange-script,
 )
 
 case $ENABLE_ONCHANGE_SCRIPT in
-  0*|n*|N*)
-      AC_MSG_RESULT(no)
-      ;;
-  *)
+  1*|y*|Y*)
       AC_MSG_RESULT(yes)
       ENABLE_ONCHANGE_SCRIPT=1
       AC_DEFINE_UNQUOTED(ONCHANGE_SCRIPT,$ENABLE_ONCHANGE_SCRIPT,"")
+      ;;
+  *)
+      AC_MSG_RESULT(no)
       ;;
 esac
 
@@ -1552,6 +1552,16 @@ case $IPALIAS in
 esac
 
 
+case $ENABLE_ONCHANGE_SCRIPT in
+  1*|y*|Y*)
+    echo "   onchange script = ON  --enable-onchange-script"
+    ;;
+  *)
+    echo "   onchange script = OFF --disable-onchange-script (default)"
+    ;;
+esac
+
+
 #case $ENABLE_DOMAIN_QUOTAS in
 #  1*|y*|Y*)
 #    echo "     domain quotas = ON  --enable-domainquotas"
@@ -1564,7 +1574,7 @@ esac
 
 case $AUTH_MODULE in
   cd*|Cd*|CD*)
-    echo "       auth module = cdb  --enable-auth-module=cdb (default)"
+    echo "       auth module = cdb --enable-auth-module=cdb (default)"
     ;;
 
   my*|My*|MY*)

@@ -6,6 +6,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         - update to aclocal 1.9.5, automake 1.9.5, autoconf 2.59 to match my system
         - Don't set LocalPort to a real port number so the default case has a chance 
           to identify how vchkpw was called.
+	- ./configure tells status of onchange script setting
+
+        Bill Shupp
+	- enable-onchange-script defaults to no.  
+	  NOTE: Still need to supress error message if file not found.
 
 5.4.18 - released 30-Dec-06
 
