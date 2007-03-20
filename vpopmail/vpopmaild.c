@@ -1952,18 +1952,13 @@ list_alias()
 
   if (strstr(Email, "@") == NULL) {
     tmpalias = valias_select_all(Alias, Email);
-    if (tmpalias == NULL) {
-      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK);
-    } else {
-      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
-      wait_write();
+    snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+    wait_write();
       
-      while (tmpalias != NULL) {
-        snprintf(WriteBuf, sizeof(WriteBuf), "%s@%s %s" RET_CRLF, Alias, Email, tmpalias);
-        wait_write();
-        tmpalias = valias_select_all_next(Alias);
-      }
-      snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+    while (tmpalias != NULL) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s@%s %s" RET_CRLF, Alias, Email, tmpalias);
+      wait_write();
+      tmpalias = valias_select_all_next(Alias);
     }
   } else {
     tmpalias = valias_select(Alias, Domain);
@@ -1978,10 +1973,10 @@ list_alias()
         wait_write();
         tmpalias = valias_select_next(Alias);
       }
-      snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
     }
   }
 
+  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
   return(0);
 }
 
