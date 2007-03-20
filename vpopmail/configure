@@ -6386,11 +6386,7 @@ else
 fi;
 
 case $ENABLE_ONCHANGE_SCRIPT in
-  0*|n*|N*)
-      echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-      ;;
-  *)
+  1*|y*|Y*)
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
       ENABLE_ONCHANGE_SCRIPT=1
@@ -6399,6 +6395,10 @@ cat >>confdefs.h <<_ACEOF
 #define ONCHANGE_SCRIPT $ENABLE_ONCHANGE_SCRIPT
 _ACEOF
 
+      ;;
+  *)
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
       ;;
 esac
 
@@ -9071,6 +9071,16 @@ case $IPALIAS in
 esac
 
 
+case $ENABLE_ONCHANGE_SCRIPT in
+  1*|y*|Y*)
+    echo "   onchange script = ON  --enable-onchange-script"
+    ;;
+  *)
+    echo "   onchange script = OFF --disable-onchange-script (default)"
+    ;;
+esac
+
+
 #case $ENABLE_DOMAIN_QUOTAS in
 #  1*|y*|Y*)
 #    echo "     domain quotas = ON  --enable-domainquotas"
@@ -9083,7 +9093,7 @@ esac
 
 case $AUTH_MODULE in
   cd*|Cd*|CD*)
-    echo "       auth module = cdb  --enable-auth-module=cdb (default)"
+    echo "       auth module = cdb --enable-auth-module=cdb (default)"
     ;;
 
   my*|My*|MY*)
