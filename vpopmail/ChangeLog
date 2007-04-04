@@ -7,6 +7,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         - Don't set LocalPort to a real port number so the default case has a chance 
           to identify how vchkpw was called.
 	- ./configure tells status of onchange script setting
+	- Fix rights problem with alias commands.  -  thanks Alessio Cecchi
 
         Bill Shupp
 	- enable-onchange-script defaults to no.  

@@ -183,15 +183,15 @@ func_t Functions[] = {
 {2, "user_count", user_count, "domain <crlf>" },
 {2, "list_users", list_users, "domain [page per_page]<crlf>" },
 {2, "list_users", list_users, "domain<crlf>" },
-{2, "list_alias", list_alias, "domain<crlf>" },
 {2, "list_lists", list_lists, "domain<crlf>" },
 {1, "mod_user", mod_user, "user@domain (option lines)<crlf>.<crlf>" },
 {1, "get_lastauth", get_lastauth, "user@domain<crlf>" },
 
-{1, "Alias", NULL, NULL},
-{1, "add_alias", add_alias, "user@domain user@otherdomain<crlf>" },
-{1, "remove_alias", remove_alias, "user@domain user@otherdomain<crlf>" },
-{1, "delete_alias", delete_alias, "user@domain<crlf>" },
+{2, "Alias", NULL, NULL},
+{2, "add_alias", add_alias, "user@domain user@otherdomain<crlf>" },
+{2, "delete_alias", delete_alias, "user@domain<crlf>" },
+{2, "list_alias", list_alias, "domain<crlf>" },
+{2, "remove_alias", remove_alias, "user@domain user@otherdomain<crlf>" },
 
 {1, "File System", NULL, NULL},
 {1, "mk_dir", mk_dir, "/full/path/to/dir<crlf>" },
@@ -975,28 +975,45 @@ int add_alias()
   char *alias, *alias_line;
   char Email[256], Domain[256];
 
-  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0901 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0902 source email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0902 alias name required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0903 invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0903 invalid alias name supplied" RET_CRLF);
+    return(-1);
+  }
+
+  /* not system administrator and domain administrator - must be in their own domain */
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN)) { 
+
+    /* if not their domain, reject */
+    if ( strcmp(TheDomain,Domain)!= 0 )  {
+      snprintf(WriteBuf,sizeof(WriteBuf),
+        RET_ERR "0904 not authorized for domain" RET_CRLF);
+      return(-1);
+    } 
+
+  /* not system admin so kick them out */
+  } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),
+      RET_ERR "0905 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0904 alias line required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0906 alias line required" RET_CRLF);
     return(-1);
   }
 
   if (valias_insert(Email, Domain, alias_line) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0905 alias insertion failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0907 alias insertion failed" RET_CRLF);
     return(-1);
   }
 
@@ -1009,28 +1026,45 @@ int remove_alias()
   char *alias, *alias_line;
   char Email[256], Domain[256];
 
-  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1001 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1002 source email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1002 alias name required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1003 invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1003 invalid alias name supplied" RET_CRLF);
+    return(-1);
+  }
+
+  /* not system administrator and domain administrator - must be in their own domain */
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN)) { 
+
+    /* if not their domain, reject */
+    if ( strcmp(TheDomain,Domain)!= 0 )  {
+      snprintf(WriteBuf,sizeof(WriteBuf),
+        RET_ERR "1004 not authorized for domain" RET_CRLF);
+      return(-1);
+    } 
+
+  /* not system admin so kick them out */
+  } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),
+      RET_ERR "1005 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1004 alias line required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1006 alias line required" RET_CRLF);
     return(-1);
   }
 
   if (valias_remove(Email, Domain, alias_line) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1005 alias removal failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1007 alias removal failed" RET_CRLF);
     return(-1);
   }
 
@@ -1043,23 +1077,40 @@ int delete_alias()
   char *alias;
   char Email[256], Domain[256];
 
-  if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
+  if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1101 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1102 email required" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1102 alias name required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1103 invalid source e-mail supplied" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1103 invalid alias name supplied" RET_CRLF);
+    return(-1);
+  }
+
+  /* not system administrator and domain administrator - must be in their own domain */
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN)) { 
+
+    /* if not their domain, reject */
+    if ( strcmp(TheDomain,Domain)!= 0 )  {
+      snprintf(WriteBuf,sizeof(WriteBuf),
+        RET_ERR "1104 not authorized for domain" RET_CRLF);
+      return(-1);
+    } 
+
+  /* not system admin so kick them out */
+  } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),
+      RET_ERR "1105 not authorized" RET_CRLF);
     return(-1);
   }
 
   if (valias_delete(Email, Domain) != 0) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1104 alias deletion failed" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "1106 alias deletion failed" RET_CRLF);
     return(-1);
   }
 
@@ -1947,6 +1998,23 @@ list_alias()
   snprintf(Email, sizeof(Email), "%s", domain);
   if (parse_email(Email, Alias, Domain, sizeof(Alias)) != 0) {
     snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "2803 invalid domain or e-mail" RET_CRLF);
+    return(-1);
+  }
+
+  /* not system administrator and domain administrator - must be in their own domain */
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN)) { 
+
+    /* if not their domain, reject */
+    if ( strcmp(TheDomain,domain)!= 0 )  {
+      snprintf(WriteBuf,sizeof(WriteBuf),
+        RET_ERR "2804 not authorized for domain" RET_CRLF);
+      return(-1);
+    } 
+
+  /* not system admin so kick them out */
+  } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
+    snprintf(WriteBuf,sizeof(WriteBuf),
+      RET_ERR "2805 not authorized" RET_CRLF);
     return(-1);
   }
 
