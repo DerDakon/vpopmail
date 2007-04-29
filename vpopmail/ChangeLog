@@ -13,6 +13,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- enable-onchange-script defaults to no.  
 	  NOTE: Still need to supress error message if file not found.
         - Fix bug in output format of list_alias
+	- Remove unneeded AC_DEFINE_UNQUOTED from ONCHANGE_SCRIPT in configure
 
 5.4.18 - released 30-Dec-06
 
