@@ -190,6 +190,12 @@
 #undef LOG_NAME
 
 /* "" */
+#undef MAILDROP
+
+/* "" */
+#undef MAILDROP_PROG
+
+/* "" */
 #undef MAKE_SEEKABLE
 
 /* "" */
@@ -260,6 +266,12 @@
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
+
+/* "" */
+#undef SPAMASSASSIN
+
+/* "" */
+#undef SPAMC_PROG
 
 /* "" */
 #undef SQWEBMAIL_PASS

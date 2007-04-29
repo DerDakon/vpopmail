@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.24 2006-04-16 03:42:00 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.25 2007-04-29 21:18:21 shupp Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -123,6 +123,7 @@
 #define DELETE_SPAM  0x8000
 #define SA_ADMIN     0x10000
 #define SA_EXPERT    0x20000
+#define NO_MAILDROP  0x40000
 
 
 extern int OptimizeAddDomain;

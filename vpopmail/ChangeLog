@@ -8,6 +8,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         Rick Widmer
         - Sync to 5.4.16 this includes the following entries from the 5.4 changelog
 
+5.4.19 - unreleased
+        Bill Shupp
+        - Port remaining spamassassin code from 5.5 branch to 5.4.18.
+        - Add new --enable-maildrop option, and new NO_MAILDROP bit flag. 
+        - New Documentation: README.maildrop, README.spamassassin
+
 5.4.16 - unreleased
 
 	Michael Krieger

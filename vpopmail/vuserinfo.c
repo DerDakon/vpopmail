@@ -1,5 +1,5 @@
 /*
- * $Id: vuserinfo.c,v 1.13 2006-04-08 10:29:21 rwidmer Exp $
+ * $Id: vuserinfo.c,v 1.14 2007-04-29 21:18:21 shupp Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -297,6 +297,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
             display_limit (mypw, NO_RELAY,       "user not allowed to relay mail");
             display_limit (mypw, NO_SPAMASSASSIN,"spamassassin processing disabled");
             display_limit (mypw, DELETE_SPAM,    "delete spam");
+            display_limit (mypw, NO_MAILDROP,    "maildrop processing disabled");
             display_limit (mypw, NO_DIALUP,      "no dialup flag has been set");
             display_limit (mypw, BOUNCE_MAIL,    "mail will be bounced back to sender");
             display_limit (mypw, QA_ADMIN,       "has qmailadmin administrator access");

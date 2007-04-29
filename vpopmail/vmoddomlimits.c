@@ -1,5 +1,5 @@
 /*
- * $Id: vmoddomlimits.c,v 1.13 2004-12-28 00:31:06 rwidmer Exp $
+ * $Id: vmoddomlimits.c,v 1.14 2007-04-29 21:18:21 shupp Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -163,6 +163,10 @@ int main(int argc, char *argv[])
                 printf("  DEL_SPAM\n");
                 strncat(OptionString, "x", sizeof(OptionString)-strlen(OptionString)-1);
             }
+            if (limits.disable_maildrop != 0) {
+                printf("  NO_MAILDROP\n");
+                strncat(OptionString, "m", sizeof(OptionString)-strlen(OptionString)-1);
+            }
             printf("Flags (for commandline): %s\n", OptionString);
             printf("Flags for non postmaster accounts:");
             printf("\n  pop account:            ");
@@ -251,6 +255,7 @@ int main(int argc, char *argv[])
             limits.disable_relay = 0;
             limits.disable_spamassassin = 0;
             limits.delete_spam = 0;
+            limits.disable_maildrop = 0;
             for (i=0; i<(int)strlen(GidFlagString); i++) {
                 switch(GidFlagString[i]) {
                     case 'u': limits.disable_dialup = 1; break;
@@ -262,6 +267,7 @@ int main(int argc, char *argv[])
                     case 'r': limits.disable_relay = 1; break;
                     case 'c': limits.disable_spamassassin = 1; break;
                     case 'x': limits.delete_spam = 1; break;
+                    case 'm': limits.disable_maildrop = 1; break;
                 }
             }
         }
@@ -411,6 +417,7 @@ void usage()
     printf("            r ( set no external relay flag )\n");
     printf("            c ( set no spamassasssin flag )\n");
     printf("            x ( set delete spam flag )\n");
+    printf("            m ( set no maildrop flag )\n");
 
     
     printf("the following options are bit flags for non postmaster admins\n");
