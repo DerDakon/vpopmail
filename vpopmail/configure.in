@@ -849,8 +849,6 @@ case $ENABLE_ONCHANGE_SCRIPT in
       ;;
 esac
 
-AC_DEFINE_UNQUOTED(ONCHANGE_SCRIPT,$ENABLE_ONCHANGE_SCRIPT,"")
-
 #----------------------------------------------------------------------
 
 
