@@ -15,6 +15,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
         - Fix bug in output format of list_alias
 	- Remove unneeded AC_DEFINE_UNQUOTED from ONCHANGE_SCRIPT in configure
 
+	Fabio Busatto
+	- #include <stdio.h> at top of vpopmail.h
+
 5.4.18 - released 30-Dec-06
 
         Joshua Megerman (offsides)
