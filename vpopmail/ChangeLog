@@ -14,6 +14,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	  NOTE: Still need to supress error message if file not found.
         - Fix bug in output format of list_alias
 	- Remove unneeded AC_DEFINE_UNQUOTED from ONCHANGE_SCRIPT in configure
+    - Port remaining spamassassin code from 5.5 branch to stable-5_4.
+    - Add new --enable-maildrop option, and new NO_MAILDROP bit flag. 
+    - New Documentation: README.maildrop, README.spamassassin
+    - Sample maildroprc files for both 1.x and 2.x (maildrop/*)
 
 	Fabio Busatto
 	- #include <stdio.h> at top of vpopmail.h

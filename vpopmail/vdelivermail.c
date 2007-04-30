@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.11.2.13 2006-12-24 01:28:49 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.11.2.14 2007-04-30 05:56:06 shupp Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,7 @@
 #ifdef MAKE_SEEKABLE
 #include "seek.h"
 #endif
+#include "vlimits.h"
 
 /* Globals */
 #define AUTH_SIZE 300
@@ -67,6 +68,13 @@ char TheExt[AUTH_SIZE];
 
 #define FILE_SIZE 156
 char loop_buf[FILE_SIZE];
+
+#ifdef SPAMASSASSIN
+int  InHeaders = 1;
+int is_spam();
+#endif
+int  DeleteMail = 0;
+int  local = 1;
 
 #define MSG_BUF_SIZE 5000
 char msgbuf[MSG_BUF_SIZE];
@@ -343,18 +351,85 @@ pid_t qmail_inject_open(char *address)
     return(pid);
 }
 
-int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerlen)
+int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerlen, char *address)
 {
   char msgbuf[4096];
   ssize_t file_count;
+  struct vlimits limits;
+#ifdef SPAMASSASSIN
+  long unsigned pid;
+  int  pim[2];
+#endif
+#ifdef MAILDROP
+  char maildrop_command[256];
+#endif
 
     /* write the Return-Path: and Delivered-To: headers */
     if (headerlen > 0) {
         if (write(write_fd, extra_headers, headerlen) != headerlen) return -1;
     }
+
+    /* fork the SpamAssassin client - based on work by Alex Dupre */
+    if(local==1) {
+      vget_limits(TheDomain, &limits);
+      if ( vpw==NULL ) {
+        parse_email(address, TheUser, TheDomain, AUTH_SIZE);
+        vpw=vauth_getpw(TheUser, TheDomain);
+      }
+#ifdef SPAMASSASSIN
+      if ( limits.disable_spamassassin==0 && vpw!=NULL &&
+           !(vpw->pw_gid & NO_SPAMASSASSIN) ) {
+
+        if (!pipe(pim)) {
+          pid = vfork();
+          switch (pid) {
+           case -1:
+            close(pim[0]);
+            close(pim[1]);
+            break;
+           case 0:
+            close(pim[0]);
+            dup2(pim[1], 1);
+            close(pim[1]);
+            if (execl(SPAMC_PROG, SPAMC_PROG, "-f", "-u",
+                 address, 0) == -1) {
+              while ((file_count = read(0, msgbuf, MSG_BUF_SIZE)) > 0) {
+                write(1, msgbuf, file_count);
+              }
+              _exit(0);
+            }
+          }
+          close(pim[1]);
+          dup2(pim[0], 0);
+          close(pim[0]);
+        }
+    }
+#endif
+
+#ifdef MAILDROP
+      if ( limits.disable_maildrop==0 && vpw!=NULL &&
+           !(vpw->pw_gid & NO_MAILDROP) ) {
+	sprintf(maildrop_command, "| preline %s", MAILDROP_PROG);
+	run_command(maildrop_command);
+	DeleteMail = 1;
+	return(0);
+      }
+#endif
+    }
+
     
     /* read it in chunks and write it to the new file */
     while ((file_count = read(read_fd, msgbuf, sizeof(msgbuf))) > 0) {
+#ifdef SPAMASSASSIN
+        if ( local==1 && InHeaders==1 &&
+             (limits.delete_spam==1 || vpw->pw_gid & DELETE_SPAM) ) {
+          printf("check is_spam\n");
+          if (is_spam(msgbuf) == 1) {
+            DeleteMail = 1;
+            return(0);
+          }
+        }
+#endif
         if ( write(write_fd, msgbuf, file_count) == -1 ) return -1;
     }
     
@@ -444,7 +519,8 @@ int deliver_to_maildir (
         return(-2);
     }
 
-    if (fdcopy (write_fd, read_fd, extra_headers, headerlen) != 0) {
+    local = 1;
+    if (fdcopy(write_fd, read_fd, extra_headers, headerlen, maildir_to_email(maildir)) != 0) {
         /* Did the write fail because we were over quota? */
         if ( errno == EDQUOT ) {
             close(write_fd);
@@ -471,6 +547,14 @@ int deliver_to_maildir (
 #endif
 #endif
         close (write_fd) == 0 ) {
+
+	if(DeleteMail == 1) {
+	    if (unlink(local_file_tmp) != 0) {
+                printf("unlink failed %s errno = %d\n", local_file_tmp, errno);
+                return(errno);
+            }
+            return(0);
+	}
 
         /* if this succeeds link the file to the new directory */
         if ( link( local_file_tmp, local_file_new ) == 0 ) {
@@ -511,6 +595,9 @@ void deliver_mail(char *address, char *quota)
  char tmp_file[256];
  char maildirquota[80];
  char *email;
+#ifdef MAILDROP
+ struct vlimits limits;
+#endif
 
     /* This is a comment, ignore it */
     if ( *address == '#' ) return;
@@ -551,6 +638,15 @@ void deliver_mail(char *address, char *quota)
         }
         
         /* if the user has a quota set */
+#ifdef MAILDROP
+       vget_limits(TheDomain, &limits);
+       if ( vpw==NULL ) {
+         parse_email(maildir_to_email(address), TheUser, TheDomain, AUTH_SIZE);
+         vpw=vauth_getpw(TheUser, TheDomain);
+       }
+       if ( vpw!=NULL && (limits.disable_spamassassin==1 ||
+           (vpw->pw_gid & NO_MAILDROP)) ) {
+#endif
         if ( strncmp(quota, "NOQUOTA", 2) != 0 ) {
 
             /* If the user is over their quota, return it back
@@ -583,6 +679,9 @@ void deliver_mail(char *address, char *quota)
                 deliver_quota_warning(address, format_maildirquota(quota));
             }
         }
+#ifdef MAILDROP
+      }
+#endif
 
 #ifdef DOMAIN_QUOTAS
     /* bk: check domain quota */
@@ -679,7 +778,8 @@ void deliver_mail(char *address, char *quota)
           "%sDelivered-To: %s", getenv("RPLINE"), dtline);
       }
       
-      if (fdcopy (fdm, 0, DeliveredTo, strlen(DeliveredTo)) != 0) {
+      local = 0;
+      if (fdcopy (fdm, 0, DeliveredTo, strlen(DeliveredTo), address) != 0) {
           printf ("write to qmail-inject failed: %d\n", errno);
           close(fdm);
           waitpid(inject_pid,&child,0);
@@ -1100,3 +1200,57 @@ int is_loop_match( const char *dt, const char *address)
 
     return (strcasecmp (compare, (dt+14)) == 0);
 }
+
+#ifdef SPAMASSASSIN
+/* Check for a spam message
+ *  * This is done by checking for a matching line
+ *   * in the email headers for X-Spam-Level: which
+ *    * we put in each spam email
+ *     *
+ *      * Return 1 if spam
+ *       * Return 0 if not spam
+ *        * Return -1 on error
+ *         */
+int is_spam(char *spambuf)
+{
+ int i,j,k;
+ int found;
+
+    for(i=0,j=0;spambuf[i]!=0;++i) {
+
+       /* found a line */
+       if (spambuf[i]=='\n' || spambuf[i]=='\r' ) {
+
+         /* check for blank line, end of headers */
+         for(k=j,found=0;k<i;++k) {
+           switch(spambuf[k]) {
+             /* skip blank spaces and new lines */
+             case ' ':
+             case '\n':
+             case '\t':
+             case '\r':
+               break;
+
+             /* found a non blank, so we are still
+              * in the headers
+              */
+             default:
+               /* set the found non blank char flag */
+               found = 1;
+               break;
+           }
+         }
+         if ( found == 0 ) {
+           InHeaders=0;
+           return(0);
+         }
+
+         /* still in the headers check for spam header */
+         if ( strncmp(&spambuf[j], "X-Spam-Flag: YES", 16 ) == 0 ) return(1);
+
+         if (spambuf[i+1]!=0) j=i+1;
+       }
+     }
+     return(0);
+}
+#endif

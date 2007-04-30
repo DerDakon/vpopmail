@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.10.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vlimits.c,v 1.10.2.3 2007-04-30 05:56:06 shupp Exp $
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -145,6 +145,9 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
                 limits->delete_spam = 1;
             }
 
+            if (!strcmp(s1, "disable_maildrop")) {
+                limits->disable_maildrop = 1;
+            }
 
             if (!strcmp(s1, "perm_account")) {
                 if ((s2 = strtok(NULL, TOKENS)) == NULL)
@@ -226,6 +229,7 @@ int vlimits_write_limits_file(const char *dir, const struct vlimits *limits)
         if (limits->disable_smtp) fprintf(fs, "disable_smtp\n");
         if (limits->disable_spamassassin) fprintf(fs, "disable_spamassassin\n");
         if (limits->delete_spam) fprintf(fs, "delete_spam\n");
+        if (limits->disable_maildrop) fprintf(fs, "disable_maildrop\n");
         fprintf(fs, "perm_account: %d\n", limits->perm_account);
         fprintf(fs, "perm_alias: %d\n", limits->perm_alias);
         fprintf(fs, "perm_forward: %d\n", limits->perm_forward);
@@ -272,6 +276,9 @@ int vlimits_get_flag_mask(struct vlimits *limits)
     }
     if (limits->delete_spam != 0) {
         mask |= DELETE_SPAM;
+    }
+    if (limits->disable_maildrop != 0) {
+        mask |= NO_MAILDROP;
     }
 
     return mask;
