@@ -27,6 +27,7 @@ maxmailinglists		-1
 #disable_webmail
 #disable_spamassassin
 #delete_spam
+#disable_maildrop
 
 
 # Set bitflags on account management for non-postmaster admins.

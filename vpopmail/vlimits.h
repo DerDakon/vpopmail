@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.h,v 1.6.2.1 2005-12-08 06:10:36 tomcollins Exp $
+ * $Id: vlimits.h,v 1.6.2.2 2007-04-30 05:56:06 shupp Exp $
  * handle domain limits in both file and mysql tables
  * Brian Kolaci <bk@galaxy.net>
  */
@@ -39,6 +39,7 @@ struct vlimits {
       short     disable_smtp;
       short     disable_spamassassin;
       short     delete_spam;
+      short     disable_maildrop;
 
       /* the following permissions are for non-postmaster admins */
       short     perm_account;

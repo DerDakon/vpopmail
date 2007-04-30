@@ -736,6 +736,12 @@ int mod_user()
       } else if ( atoi(value) == 0 ) {
         tmpvpw->pw_gid &= ~DELETE_SPAM;
       }
+    } else if ( strcmp(param,"no_maildrop") == 0 ) {
+      if ( atoi(value) == 1 ) {
+        tmpvpw->pw_gid |= NO_MAILDROP;
+      } else if ( atoi(value) == 0 ) {
+        tmpvpw->pw_gid &= ~NO_MAILDROP;
+      }
     }
   }
 
@@ -920,6 +926,12 @@ void send_user_info(struct vqpasswd *tmpvpw)
       snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 1" RET_CRLF);
     } else {
       snprintf(WriteBuf, sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
+    }
+    wait_write();
+    if ( tmpvpw->pw_gid & NO_MAILDROP ) {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_maildrop 1" RET_CRLF);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "no_maildrop 0" RET_CRLF);
     }
     wait_write();
     if ( tmpvpw->pw_gid & SA_ADMIN ) {
@@ -2380,6 +2392,12 @@ int get_limits()
     snprintf(WriteBuf,sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
   wait_write();
 
+  if (mylimits.disable_maildrop) 
+    snprintf(WriteBuf,sizeof(WriteBuf), "disable_maildrop 1" RET_CRLF);
+  else 
+    snprintf(WriteBuf,sizeof(WriteBuf), "disable_maildrop 0" RET_CRLF);
+  wait_write();
+
   snprintf(WriteBuf,sizeof(WriteBuf), "perm_account %d" RET_CRLF, 
     mylimits.perm_account); wait_write();
   snprintf(WriteBuf,sizeof(WriteBuf), "perm_alias %d" RET_CRLF, 
@@ -2479,6 +2497,8 @@ int set_limits()
       mylimits.disable_spamassassin = atoi(value);
     } else if ( strcmp(param,"delete_spam") == 0 ) {
       mylimits.delete_spam = atoi(value);
+    } else if ( strcmp(param,"disable_maildrop") == 0 ) {
+      mylimits.disable_maildrop = atoi(value);
     } else if ( strcmp(param,"perm_account") == 0 ) {
       mylimits.perm_account = atoi(value);
     } else if ( strcmp(param,"perm_alias") == 0 ) {

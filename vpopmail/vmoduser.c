@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.5 2006-11-26 18:55:52 tomcollins Exp $
+ * $Id: vmoduser.c,v 1.3.2.6 2007-04-30 05:56:06 shupp Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -149,6 +149,7 @@ void usage()
     printf("         -E ( grant expert privileges - edit .qmail files )\n");
     printf("         -f ( disable spamassassin)\n");
     printf("         -F ( delete spam)\n");
+    printf("         -m ( disable maildrop)\n");
     printf("  [The following flags aren't used directly by vpopmail but are]\n");
     printf("  [included for other programs that share the user database.]\n");
     printf("         -u ( set no dialup flag )\n");
@@ -178,7 +179,7 @@ void get_options(int argc,char **argv)
     NoMakeIndex = 0;
 
     errflag = 0;
-    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFSE")) != -1 ) {
+    while( (c=getopt(argc,argv,"D:avunxc:q:dpswibro0123he:C:fFSEm")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -259,6 +260,9 @@ void get_options(int argc,char **argv)
                 break;
             case 'F':
                 GidFlag |= DELETE_SPAM;
+                break;
+            case 'm':
+                GidFlag |= NO_MAILDROP;
                 break;
             case 'h':
                 usage();
