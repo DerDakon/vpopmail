@@ -875,6 +875,10 @@ Optional Features:
   --enable-qmail-ext         Enable qmail email address extension support.
   --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table.
   --enable-onchange-script   Enable onchange script. See README.onchange for more info.
+  --enable-spamassassin      Enable spamassassin. See  README.spamassassin for more info.
+  --enable-spamc-prog=PATH   Full path to spamc program /usr/{local/}bin/spamc.
+  --enable-maildrop          Enable maildrop. See  README.maildrop for more info.
+  --enable-maildrop-prog=PATH    Full path to maildrop program /usr/{local/}bin/maildrop.
   --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).
   --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.
   --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.
@@ -6402,14 +6406,164 @@ echo "${ECHO_T}no" >&6
       ;;
 esac
 
-
-cat >>confdefs.h <<_ACEOF
-#define ONCHANGE_SCRIPT $ENABLE_ONCHANGE_SCRIPT
-_ACEOF
+#----------------------------------------------------------------------
 
 
 #----------------------------------------------------------------------
 
+echo "$as_me:$LINENO: checking whether spamassassin is enabled" >&5
+echo $ECHO_N "checking whether spamassassin is enabled... $ECHO_C" >&6
+# Check whether --enable-spamassassin or --disable-spamassassin was given.
+if test "${enable_spamassassin+set}" = set; then
+  enableval="$enable_spamassassin"
+  ENABLE_SPAMASSASSIN=$enableval
+else
+
+                        ENABLE_SPAMASSASSIN=0
+
+
+fi;
+
+case $ENABLE_SPAMASSASSIN in
+  0*|n*|N*)
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      ;;
+  *)
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+      ENABLE_SPAMASSASSIN=1
+
+cat >>confdefs.h <<_ACEOF
+#define SPAMASSASSIN $ENABLE_SPAMASSASSIN
+_ACEOF
+
+
+    echo "$as_me:$LINENO: checking whether we can locate the spamc program" >&5
+echo $ECHO_N "checking whether we can locate the spamc program... $ECHO_C" >&6
+    for f in /usr/bin/spamc /usr/local/bin/spamc
+    do
+        if test -f $f
+        then
+            spamc_prog=$f
+            break
+        fi
+    done
+    # Check whether --enable-spamc-prog or --disable-spamc-prog was given.
+if test "${enable_spamc_prog+set}" = set; then
+  enableval="$enable_spamc_prog"
+  spamc_prog="$enableval"
+else
+
+            if test "$spamc_prog" = ""
+            then
+                echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+                { { echo "$as_me:$LINENO: error: Unable to find your spamc prog, specify --enable-spamc-prog." >&5
+echo "$as_me: error: Unable to find your spamc prog, specify --enable-spamc-prog." >&2;}
+   { (exit 1); exit 1; }; }
+            fi
+
+
+fi;
+
+    if test ! -f "$spamc_prog"
+    then
+        echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+        { { echo "$as_me:$LINENO: error: Unable to find your spamc program, specify --enable-spamc-prog=/full/path/to/spamc" >&5
+echo "$as_me: error: Unable to find your spamc program, specify --enable-spamc-prog=/full/path/to/spamc" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+cat >>confdefs.h <<_ACEOF
+#define SPAMC_PROG "$spamc_prog"
+_ACEOF
+
+
+      ;;
+esac
+
+#----------------------------------------------------------------------
+
+echo "$as_me:$LINENO: checking whether maildrop is enabled" >&5
+echo $ECHO_N "checking whether maildrop is enabled... $ECHO_C" >&6
+# Check whether --enable-maildrop or --disable-maildrop was given.
+if test "${enable_maildrop+set}" = set; then
+  enableval="$enable_maildrop"
+  ENABLE_MAILDROP=$enableval
+else
+
+                        ENABLE_MAILDROP=0
+
+
+fi;
+
+case $ENABLE_MAILDROP in
+  0*|n*|N*)
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      ;;
+  *)
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+      ENABLE_MAILDROP=1
+
+cat >>confdefs.h <<_ACEOF
+#define MAILDROP $ENABLE_MAILDROP
+_ACEOF
+
+
+    echo "$as_me:$LINENO: checking whether we can locate the maildrop program" >&5
+echo $ECHO_N "checking whether we can locate the maildrop program... $ECHO_C" >&6
+    for f in /usr/bin/maildrop /usr/local/bin/maildrop
+    do
+        if test -f $f
+        then
+            maildrop_prog=$f
+            break
+        fi
+    done
+    # Check whether --enable-maildrop-prog or --disable-maildrop-prog was given.
+if test "${enable_maildrop_prog+set}" = set; then
+  enableval="$enable_maildrop_prog"
+  maildrop_prog="$enableval"
+else
+
+            if test "$maildrop_prog" = ""
+            then
+                echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+                { { echo "$as_me:$LINENO: error: Unable to find your maildrop prog, specify --enable-maildrop-prog." >&5
+echo "$as_me: error: Unable to find your maildrop prog, specify --enable-maildrop-prog." >&2;}
+   { (exit 1); exit 1; }; }
+            fi
+
+
+fi;
+
+    if test ! -f "$maildrop_prog"
+    then
+        echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+        { { echo "$as_me:$LINENO: error: Unable to find your maildrop program, specify --enable-maildrop-prog=/full/path/to/maildrop" >&5
+echo "$as_me: error: Unable to find your maildrop program, specify --enable-maildrop-prog=/full/path/to/maildrop" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+cat >>confdefs.h <<_ACEOF
+#define MAILDROP_PROG "$maildrop_prog"
+_ACEOF
+
+
+      ;;
+esac
 
 #----------------------------------------------------------------------
 #  -- domain quotas disabled until they actually work again --
@@ -9180,20 +9334,16 @@ esac
 
 case $ENABLE_LOGGING in
   1*|y*|Y*)
-    echo "        pop syslog = show successful and failed login attempts"
-    echo "                     --enable-logging=y"
+    echo "        pop syslog = show successful and failed login attempts --enable-logging=y"
     ;;
   2*|e*|E*)
-    echo "        pop syslog = show only failed attempts"
-    echo "                     --enable-logging=e (default)"
+    echo "        pop syslog = show only failed attempts --enable-logging=e (default)"
     ;;
   3*|p*|P*)
-    echo "        pop syslog = show failed attempts with clear text password"
-    echo "                     --enable-logging=p"
+    echo "        pop syslog = show failed attempts with clear text password --enable-logging=p"
     ;;
   4*|v*|V*)
-    echo "        pop syslog = log success and errors including passwords"
-    echo "                     --enable-logging=v"
+    echo "        pop syslog = log success and errors including passwords --enable-logging=v"
     ;;
   *)
     echo "        pop syslog = OFF"
@@ -9220,6 +9370,24 @@ then
     echo "one domain per SQL table     = --disable-many-domains"
   fi
 fi
+
+case $ENABLE_SPAMASSASSIN in
+  1*|y*|Y*)
+    echo "      spamassassin = ON  --enable-spamassassin"
+    ;;
+  *)
+    echo "      spamassassin = OFF --disable-spamassassin (default)"
+    ;;
+esac
+
+case $ENABLE_MAILDROP in
+  1*|y*|Y*)
+    echo "          maildrop = ON  --enable-maildrop"
+    ;;
+  *)
+    echo "          maildrop = OFF --disable-maildrop (default)"
+    ;;
+esac
 
 echo "${CC} -O2" > cdb/conf-cc
 echo "${CC} -s" > cdb/conf-ld

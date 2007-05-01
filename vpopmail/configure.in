@@ -1765,20 +1765,16 @@ esac
 
 case $ENABLE_LOGGING in
   1*|y*|Y*)
-    echo "        pop syslog = show successful and failed login attempts"
-    echo "                     --enable-logging=y"
+    echo "        pop syslog = show successful and failed login attempts --enable-logging=y"
     ;;
   2*|e*|E*)
-    echo "        pop syslog = show only failed attempts"
-    echo "                     --enable-logging=e (default)"
+    echo "        pop syslog = show only failed attempts --enable-logging=e (default)"
     ;;
   3*|p*|P*)
-    echo "        pop syslog = show failed attempts with clear text password"
-    echo "                     --enable-logging=p"
+    echo "        pop syslog = show failed attempts with clear text password --enable-logging=p"
     ;;
   4*|v*|V*)
-    echo "        pop syslog = log success and errors including passwords"
-    echo "                     --enable-logging=v"
+    echo "        pop syslog = log success and errors including passwords --enable-logging=v"
     ;;
   *)
     echo "        pop syslog = OFF"

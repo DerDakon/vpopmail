@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.36 2006-12-30 09:46:13 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.37 2007-05-01 02:49:07 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1996,7 +1996,7 @@ int update_file(char *filename, char *update_line, int file_type )
 //             cur_domain, new_domain, x );
 
     if( ( x=strncmp(prv_domain, cur_domain, MAX_BUFF)) > 0  ) {
-      fprintf( stderr, "Entry is out of order: %s\n", cur_domain );
+//      fprintf( stderr, "%s entry is out of order: %s  -- will sort file\n", filename, cur_domain );
       needsort=1;
     }
 
@@ -2032,7 +2032,10 @@ int update_file(char *filename, char *update_line, int file_type )
 #endif
 
   count ++;   //  increment count because of the entry we added.
-  if( needsort ) sort_file(filename, count, file_type);
+  if( needsort ) {
+    fprintf( stderr, "NOTICE: Out of order entries found in %s\n   Sorting...\n\n", filename );
+    sort_file(filename, count, file_type);
+    }
 
   return(0);
 }
