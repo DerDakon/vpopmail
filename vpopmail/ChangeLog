@@ -8,16 +8,18 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
           to identify how vchkpw was called.
 	- ./configure tells status of onchange script setting
 	- Fix rights problem with alias commands.  -  thanks Alessio Cecchi
+	- Only report out of order entries when sorting files once per file
+	- make pop syslog ./configure setting report itself like the rest of the choices
 
         Bill Shupp
 	- enable-onchange-script defaults to no.  
 	  NOTE: Still need to supress error message if file not found.
         - Fix bug in output format of list_alias
 	- Remove unneeded AC_DEFINE_UNQUOTED from ONCHANGE_SCRIPT in configure
-    - Port remaining spamassassin code from 5.5 branch to stable-5_4.
-    - Add new --enable-maildrop option, and new NO_MAILDROP bit flag. 
-    - New Documentation: README.maildrop, README.spamassassin
-    - Sample maildroprc files for both 1.x and 2.x (maildrop/*)
+	- Port remaining spamassassin code from 5.5 branch to stable-5_4.
+	- Add new --enable-maildrop option, and new NO_MAILDROP bit flag. 
+	- New Documentation: README.maildrop, README.spamassassin
+	- Sample maildroprc files for both 1.x and 2.x (maildrop/*)
 
 	Fabio Busatto
 	- #include <stdio.h> at top of vpopmail.h
