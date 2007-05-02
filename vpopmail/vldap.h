@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.h,v 1.3.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: vldap.h,v 1.3.2.2 2007-05-02 02:14:50 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/* NOTE: From of vpopmail 5.4.15, LDAP connection info is stored in
+   ~vpopmail/etc/vpopmail.ldap.  The format of the file is as follows:
+   
+   ldap server|ldap port|ldap user|ldap password|ldap basedn
+   
+   Comments (lines starting with '#') are allowed. 
+   
+   Port should be the actual port.
+   
+   For example:
+   
+   # This is the LDAP configuration file for vpopmail.
+   localhost|389|cn=vpopmailuser, o=vpopmail|vpoppasswd|o=vpopmail
+   
+ */
+
 int ldapversion = 3;
 
 void *safe_malloc (size_t siz);
@@ -28,11 +44,11 @@ int compose_dn (char **dn, char *domain);
 #ifndef VPOPMAIL_LDAP_H
 #define VPOPMAIL_LDAP_H
 
-#define VLDAP_SERVER "localhost"
-#define VLDAP_PORT LDAP_PORT
-#define VLDAP_USER "cn=vpopmailuser, o=vpopmail"
-#define VLDAP_PASSWORD "vpoppasswd"
-#define VLDAP_BASEDN "o=vpopmail"
+char *VLDAP_SERVER;
+int VLDAP_PORT = LDAP_PORT;
+char *VLDAP_USER;
+char *VLDAP_PASSWORD;
+char *VLDAP_BASEDN;
 
 static char *vldap_attrs[] = {
   "name",
