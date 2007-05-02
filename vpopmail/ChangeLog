@@ -24,6 +24,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Fabio Busatto
 	- #include <stdio.h> at top of vpopmail.h
 
+
+	blaze_cs
+	- Ldap back end reads config parms from a file at runtime.
+
 5.4.18 - released 30-Dec-06
 
         Joshua Megerman (offsides)

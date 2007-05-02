@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.15.2.3 2006-12-16 20:46:36 rwidmer Exp $
+ * $Id: vldap.c,v 1.15.2.4 2007-05-02 02:14:50 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -68,6 +68,57 @@ char *ldap_fields[NUM_LDAP_FIELDS] = {
 
 /***************************************************************************/
 
+/* 
+ * get ldap connection info
+ */
+int load_connection_info() {
+    FILE *fp;
+    char conn_info[256];
+    char config[256];
+    int eof;
+    static int loaded = 0;
+    char *port;
+    char delimiters[] = "|\n";
+    char *conf_read;
+
+    if (loaded) return 0;
+    loaded = 1;
+
+    sprintf(config, "%s/etc/%s", VPOPMAILDIR, "vpopmail.ldap");
+
+    fp = fopen(config, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "vldap: can't read settings from %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
+    }
+    
+    /* skip comments and blank lines */
+    do {
+        eof = (fgets (conn_info, sizeof(conn_info), fp) == NULL);
+    } while (!eof && ((*conn_info == '#') || (*conn_info == '\n')));
+
+    if (eof) {
+        /* no valid data read, return error */
+        fprintf(stderr, "vldap: no valid settings in %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
+    }
+
+    conf_read = strdup(conn_info);
+    VLDAP_SERVER = strtok(conf_read, delimiters);
+    if (VLDAP_SERVER == NULL) return VA_PARSE_ERROR;
+    port = strtok(NULL, delimiters);
+    if (port == NULL) return VA_PARSE_ERROR;
+    VLDAP_PORT = atoi(port);
+    VLDAP_USER = strtok(NULL, delimiters);
+    if (VLDAP_USER == NULL) return VA_PARSE_ERROR;
+    VLDAP_PASSWORD = strtok(NULL, delimiters);
+    if (VLDAP_PASSWORD == NULL) return VA_PARSE_ERROR;
+    VLDAP_BASEDN = strtok(NULL, delimiters);
+    if (VLDAP_BASEDN == NULL) return VA_PARSE_ERROR;
+    
+    return 0;
+}
+
 struct vqpasswd *vauth_getpw(char *user, char *domain) {
     int ret = 0;
     size_t len = 0;
@@ -90,6 +141,14 @@ struct vqpasswd *vauth_getpw(char *user, char *domain) {
         return(NULL);
     }
 
+    /* connect to the ldap server (if we havent already got a connection open) */
+    if (ld == NULL ) {
+        if (ldap_connect() != 0) {
+            safe_free((void **) &filter);
+            return NULL;
+        }
+    }
+
     /* take a given domain, and set dn to be this format :
      * ou=somedomain.com,o=vpopmail
      */
@@ -103,14 +162,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain) {
     filter = (char *)safe_malloc(len);
     memset((char *)filter, 0, len);
     snprintf(filter, len, "(&(objectclass=qmailUser)(uid=%s))", user);
-
-    /* connect to the ldap server (if we havent already got a connection open) */
-    if (ld == NULL ) {
-        if (ldap_connect() != 0) {
-            safe_free((void **) &filter);
-            return NULL;
-        }
-    }
 
     /* perform an ldap search
      * int ldap_search_s(ld, base, scope, filter, attrs, attrsonly, res)
@@ -345,6 +396,14 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
 
         memset((char *)filter, 0, len);
 
+        /* connect to the ldap server if we havent already done so */
+        if (ld == NULL ) {
+            if (ldap_connect() != 0) {
+                safe_free((void **) &filter);
+                return NULL;
+            }
+        }
+
         /* set basedn to be of the format :
          *   ou=somedomain,o=vpopmail
          */
@@ -354,14 +413,6 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
         }
 
         snprintf(filter, len, "(objectclass=qmailUser)");
-
-        /* connect to the ldap server if we havent already done so */
-        if (ld == NULL ) {
-            if (ldap_connect() != 0) {
-                safe_free((void **) &filter);
-                return NULL;
-            }
-        }
 
         /* perform the lookup for all users in a given domain */
         ret = ldap_search_s(ld, basedn, LDAP_SCOPE_SUBTREE,
@@ -1381,9 +1432,11 @@ int compose_dn (char **dn, char *domain) {
 
 int ldap_connect () {
     int ret = 0;
+    
     /* Set verror here and unset it when successful, is ok, because if one of these
     three steps fail the whole auth_connection failed */
-    verrori = VA_NO_AUTH_CONNECTION;
+    verrori = load_connection_info();
+    if (verrori) return -1;
 
     ld = ldap_init(VLDAP_SERVER, VLDAP_PORT);
     if (ld == NULL) {

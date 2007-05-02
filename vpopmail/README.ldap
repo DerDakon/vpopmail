@@ -7,6 +7,22 @@ system on a production server.
 
 --------------------------------------------------------------------------
 
+2006/Jun/30 : Pavel Vinogradov <blaze.cs@gmail.com>
+
+    Now LDAP connection info is stored in ~vpopmail/etc/vpopmail.ldap.  
+The format of the file is as follows:
+   
+   ldap server|ldap port|ldap user|ldap password|ldap basedn
+   
+Comments (lines starting with '#') are allowed. 
+Port should be the actual port.
+   
+For example:
+   
+# This is the LDAP configuration file for vpopmail.
+localhost|389|cn=vpopmailuser, o=vpopmail|vpoppasswd|o=vpopmail
+
+
 2003/Dec/29 : Michael Bowe <mbowe@pipeline.com.au>
 
 A QUICK GUIDE TO VPOPMAIL WITH LDAP
@@ -81,14 +97,11 @@ Download/configure/compile vpopmail
 
   Setup the LDAP support in the vpopmail sources
 
-    vi vldap.h
-      #define VLDAP_SERVER "localhost"
-      #define VLDAP_PORT LDAP_PORT
-      #define VLDAP_USER "cn=vpopmailuser, o=vpopmail"
-      #define VLDAP_PASSWORD "vpoppasswd"
-      #define VLDAP_BASEDN "o=vpopmail"
+    echo "localhost|389|cn=vpopmailuser, o=vpopmail|vpoppasswd|o=vpopmail" > ~vpopmail/etc/vpopmail.ldap
+    chown vpopmail.vchkpw ~vpopmail/etc/vpopmail.ldap
+    chmod 640 ~vpopmail/etc/vpopmail.ldap
 
-  Compile vpopmail
+  Compile vpopmail with options like this
 
     ./configure --enable-auth-module=ldap
     make

@@ -1,3 +1,12 @@
+If you are considering roaming users, you should seriously consider smtp-auth.
+Linux users can follow Bill Shupp's toaster, and I believe Matt Simerson's toaster
+supports smtp-auth for BSD.
+
+Rick Widmer  20070502
+
+
+========================================================================================
+
 November 2003 : Michael Bowe <mbowe@pipeline.com.au>
 
 VPOPMAIL ROAMING USERS
