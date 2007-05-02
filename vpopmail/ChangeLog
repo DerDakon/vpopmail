@@ -26,7 +26,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 
 	blaze_cs
-	- Ldap back end reads config parms from a file at runtime.
+	- Ldap back end reads config parms from a file at runtime. [1056529][1476647]
 
 5.4.18 - released 30-Dec-06
 
@@ -72,7 +72,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Peter Pentchev (roamer)
 	- Various sanity checks and minor optimizations [1573292]
 	- Fix child handling - waitpid and sys/wait.h [1573288]
-	- Dynamicallly allocate sortdata[] in vpopmail.c [1573287]
+	- Dynamicallly allocate sortdata[] in vpopmail.c [1573287][1596259]
 	- Include ctype.h in the PostgreSQL backend [1573284]
 	- Set SHELL in vdelivermail before executing external programs [1573280]
 	- Some more error checking in vchangepw [1573277]
