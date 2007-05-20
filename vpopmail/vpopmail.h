@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.16 2007-04-30 05:56:06 shupp Exp $
+ * $Id: vpopmail.h,v 1.7.2.17 2007-05-20 23:33:43 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -96,6 +96,16 @@
 #define VA_NULL_POINTER                 -33
 #define VA_INVALID_EMAIL_CHAR           -34
 #define VA_PARSE_ERROR                  -35
+#define VA_PARSE_ERROR01                -45
+#define VA_PARSE_ERROR02                -46
+#define VA_PARSE_ERROR03                -47
+#define VA_PARSE_ERROR04                -48
+#define VA_PARSE_ERROR05                -49
+#define VA_PARSE_ERROR06                -50
+#define VA_PARSE_ERROR07                -51
+#define VA_PARSE_ERROR08                -52
+#define VA_PARSE_ERROR09                -53
+#define VA_PARSE_ERROR10                -54
 #define VA_CANNOT_READ_LIMITS           -36
 #define VA_CANNOT_READ_ASSIGN           -37
 #define VA_CANNOT_OPEN_DATABASE         -38

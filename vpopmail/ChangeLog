@@ -10,6 +10,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix rights problem with alias commands.  -  thanks Alessio Cecchi
 	- Only report out of order entries when sorting files once per file
 	- make pop syslog ./configure setting report itself like the rest of the choices
+	- Make error messages more consistant (P/O checking Jonathan's bug report)
 
         Bill Shupp
 	- enable-onchange-script defaults to no.  

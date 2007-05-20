@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.12.2.6 2006-12-16 20:46:36 rwidmer Exp $
+ * $Id: vcdb.c,v 1.12.2.7 2007-05-20 23:33:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.12.2.6 2006-12-16 20:46:36 rwidmer Exp $
+** $Id: vcdb.c,v 1.12.2.7 2007-05-20 23:33:42 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -44,13 +44,6 @@
 #include "vlimits.h"
 
 #define TOKENS " \n"
-
-//  Variables to control debug output
-#ifdef VPOPMAIL_DEBUG
-int show_trace=0;
-int show_query=0;
-int dump_data=0;
-#endif
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );

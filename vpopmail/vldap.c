@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.15.2.4 2007-05-02 02:14:50 rwidmer Exp $
+ * $Id: vldap.c,v 1.15.2.5 2007-05-20 23:33:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,13 +33,6 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "vldap.h"
-
-//  Variables to control debug output
-#ifdef VPOPMAIL_DEBUG
-int show_trace=0;
-int show_query=0;
-int dump_data=0;
-#endif
 
 LDAP *ld = NULL;
 LDAPMessage *glm = NULL;

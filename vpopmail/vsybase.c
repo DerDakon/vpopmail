@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9.2.5 2006-12-16 20:46:37 rwidmer Exp $
+ * $Id: vsybase.c,v 1.9.2.6 2007-05-20 23:33:43 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,13 +30,6 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "vsybase.h"
-
-//  Variables to control debug output
-#ifdef VPOPMAIL_DEBUG
-int show_trace=0;
-int show_query=0;
-int dump_data=0;
-#endif
 
 static int is_open = 0;
 static LOGINREC *login;

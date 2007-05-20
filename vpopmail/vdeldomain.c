@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.2.2.3 2006-11-26 18:55:52 tomcollins Exp $
+ * $Id: vdeldomain.c,v 1.2.2.4 2007-05-20 23:33:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,10 +55,10 @@ int main(int argc, char *argv[])
 	entry = get_domain_entries( Domain );
 	if (entry==NULL) {
 		if( verrori ) {
-			printf("Can't get domain entries - %s\n", verror( verrori ));
+			printf("Error: Can't get domain entries - %s\n", verror( verrori ));
 			vexit(verrori);
 		} else {
-			printf("Invalid domain name\n");
+			printf("Error: Domain does not exist\n");
 			vexit(VA_DOMAIN_DOES_NOT_EXIST);
 		}
 	}
