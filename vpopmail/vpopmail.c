@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.37 2007-05-01 02:49:07 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.38 2007-05-20 23:33:43 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,12 @@
 #include "vlimits.h"
 #include "maildirquota.h"
 
+
+#ifdef VPOPMAIL_DEBUG
+int show_trace=0;
+int show_query=0;
+int dump_data=0;
+#endif
 
 #ifdef POP_AUTH_OPEN_RELAY
 /* keep a output pipe to tcp.smtp file */
@@ -1579,11 +1585,6 @@ int vdeluser( char *user, char *domain )
   lowerit(user);
   lowerit(domain);
 
-  /* see if the user exists in the authentication system */
-  if ((mypw = vauth_getpw(user, domain)) == NULL) { 
-    return(VA_USER_DOES_NOT_EXIST);
-  }
-
   /* backup the dir where the vdeluser was run from */
   getcwd(calling_dir, sizeof(calling_dir));
 
@@ -1596,6 +1597,11 @@ int vdeluser( char *user, char *domain )
   if ( chdir(Dir) != 0 ) {
     chdir(calling_dir);
     return(VA_BAD_D_DIR);
+  }
+
+  /* see if the user exists in the authentication system */
+  if ((mypw = vauth_getpw(user, domain)) == NULL) { 
+    return(VA_USER_DOES_NOT_EXIST);
   }
 
 #ifdef ONCHANGE_SCRIPT
@@ -2534,11 +2540,11 @@ char *verror(int va_err )
    case VA_BAD_V_DIR:
     return("Unable to chdir to vpopmail/" DOMAINS_DIR "/domain directory");
    case VA_EXIST_U_DIR:
-    return("User's directory already exists?");
+    return("User's directory already exists");
    case VA_BAD_U_DIR2:
     return("Unable to chdir to user's directory");
    case VA_SUBDIR_CREATION:
-    return("Creation of user's subdirectories failed?");
+    return("Creation of user's subdirectories failed");
    case VA_USER_DOES_NOT_EXIST:
     return("User does not exist");
    case VA_DOMAIN_DOES_NOT_EXIST:
@@ -2588,7 +2594,27 @@ char *verror(int va_err )
    case VA_INVALID_EMAIL_CHAR:
     return("invalid email character");
    case VA_PARSE_ERROR:
-    return("error parsing data");
+    return("parsing database configuration file");
+   case VA_PARSE_ERROR01:
+    return("parsing database configuration file - update server");
+   case VA_PARSE_ERROR02:
+    return("parsing database configuration file - update port");
+   case VA_PARSE_ERROR03:
+    return("parsing database configuration file - update user");
+   case VA_PARSE_ERROR04:
+    return("parsing database configuration file - update password");
+   case VA_PARSE_ERROR05:
+    return("parsing database configuration file - update database");
+   case VA_PARSE_ERROR06:
+    return("parsing database configuration file - readonly server");
+   case VA_PARSE_ERROR07:
+    return("parsing database configuration file - readonly port");
+   case VA_PARSE_ERROR08:
+    return("parsing database configuration file - readonly user");
+   case VA_PARSE_ERROR09:
+    return("parsing database configuration file - readonly password");
+   case VA_PARSE_ERROR10:
+    return("parsing database configuration file - readonly database");
    case VA_CANNOT_READ_LIMITS:
     return("can't read domain limits");
    case VA_CANNOT_READ_ASSIGN:

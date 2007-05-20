@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.14 2006-12-23 21:36:39 rwidmer Exp $
+ * $Id: vmysql.c,v 1.15.2.15 2007-05-20 23:33:42 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -95,6 +95,8 @@ void vcreate_valias_table();
 void vcreate_lastauth_table();
 #endif
 
+
+/************************************************************************/
 /* 
  * get mysql connection info
  */
@@ -132,16 +134,16 @@ int load_connection_info() {
 
     conf_read = strdup(conn_info);
     MYSQL_READ_SERVER = strtok(conf_read, delimiters);
-    if (MYSQL_READ_SERVER == NULL) return VA_PARSE_ERROR;
+    if (MYSQL_READ_SERVER == NULL) return VA_PARSE_ERROR01;
     port = strtok(NULL, delimiters);
-    if (port == NULL) return VA_PARSE_ERROR;
+    if (port == NULL) return VA_PARSE_ERROR02;
     MYSQL_READ_PORT = atoi(port);
     MYSQL_READ_USER = strtok(NULL, delimiters);
-    if (MYSQL_READ_USER == NULL) return VA_PARSE_ERROR;
+    if (MYSQL_READ_USER == NULL) return VA_PARSE_ERROR03;
     MYSQL_READ_PASSWD = strtok(NULL, delimiters);
-    if (MYSQL_READ_PASSWD == NULL) return VA_PARSE_ERROR;
+    if (MYSQL_READ_PASSWD == NULL) return VA_PARSE_ERROR04;
     MYSQL_READ_DATABASE = strtok(NULL, delimiters);
-    if (MYSQL_READ_DATABASE == NULL) return VA_PARSE_ERROR;
+    if (MYSQL_READ_DATABASE == NULL) return VA_PARSE_ERROR05;
     
     /* skip comments and blank lines */
     do {
@@ -158,19 +160,19 @@ int load_connection_info() {
     } else {
         conf_update = strdup(conn_info);
         MYSQL_UPDATE_SERVER = strtok(conf_update, delimiters);
-        if (MYSQL_UPDATE_SERVER == NULL) return VA_PARSE_ERROR;
+        if (MYSQL_UPDATE_SERVER == NULL) return VA_PARSE_ERROR06;
         port = strtok(NULL, delimiters);
-        if (port == NULL) return VA_PARSE_ERROR;
+        if (port == NULL) return VA_PARSE_ERROR07;
         MYSQL_UPDATE_PORT = atoi(port);
         MYSQL_UPDATE_USER = strtok(NULL, delimiters);
-        if (MYSQL_UPDATE_USER == NULL) return VA_PARSE_ERROR;
+        if (MYSQL_UPDATE_USER == NULL) return VA_PARSE_ERROR08;
         MYSQL_UPDATE_PASSWD = strtok(NULL, delimiters);
-        if (MYSQL_UPDATE_PASSWD == NULL) return VA_PARSE_ERROR;
+        if (MYSQL_UPDATE_PASSWD == NULL) return VA_PARSE_ERROR09;
         MYSQL_UPDATE_DATABASE = strtok(NULL, delimiters);
-        if (MYSQL_UPDATE_DATABASE == NULL) return VA_PARSE_ERROR;
+        if (MYSQL_UPDATE_DATABASE == NULL) return VA_PARSE_ERROR10;
     }
 
-/* useful debugging info
+/* useful debugging info  
     fprintf(stderr, "read settings: server:%s port:%d user:%s pw:%s db:%s\n",
         MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
         MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
@@ -181,6 +183,8 @@ int load_connection_info() {
     return 0;
 }
 
+
+/************************************************************************/
 /* 
  * Open a connection to mysql for updates
  */
@@ -231,10 +235,12 @@ int vauth_open_update()
     return(0);
 }
 
-#ifdef MYSQL_REPLICATION
+
+/************************************************************************/
 /*
  * Open a connection to the database for read-only queries
  */
+#ifdef MYSQL_REPLICATION
 int vauth_open_read()
 {
     /* if we are already connected, just return */
@@ -264,23 +270,12 @@ int vauth_open_read()
 #define vauth_open_read vauth_open_update
 #endif
 
+
+/************************************************************************/
 //  Make vauth_open_read answer for vauth_open, so that function
 //  can be called to test the database.
 
 int vauth_open( int will_update ) {
-
-#ifdef VPOPMAIL_DEBUG
-show_trace = ( getenv("VPSHOW_TRACE") != NULL);
-show_query = ( getenv("VPSHOW_QUERY") != NULL);
-dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
-#endif
-
-#ifdef VPOPMAIL_DEBUG
-    if( show_trace ) {
-        fprintf( stderr, "vauth_open()\n");
-    }
-#endif 
-
 
 if( will_update ) {
     return( vauth_open_update());
@@ -325,6 +320,8 @@ int vauth_open_read_getall()
     return(0);
 }
 
+
+/************************************************************************/
 int vauth_create_table (char *table, char *layout, int showerror)
 {
   int err;
@@ -342,6 +339,8 @@ int vauth_create_table (char *table, char *layout, int showerror)
   }
 }
  
+
+/************************************************************************/
 int vauth_adddomain( char *domain )
 {
 #ifndef MANY_DOMAINS
@@ -354,6 +353,8 @@ int vauth_adddomain( char *domain )
 #endif
 }
 
+
+/************************************************************************/
 int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
     char *dir, int apop )
 {
@@ -422,6 +423,8 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 
 }
 
+
+/************************************************************************/
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
  char *domstr;
@@ -544,6 +547,9 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  * - delete domain's limit's entries
  * - delete domain's vlog entries ( If defined with ENABLE_SQL_LOGGING )
  */
+
+
+/************************************************************************/
 int vauth_deldomain( char *domain )
 {
  char *tmpstr;
@@ -591,6 +597,8 @@ int vauth_deldomain( char *domain )
     return(0);
 }
 
+
+/************************************************************************/
 int vauth_deluser( char *user, char *domain )
 {
  char *tmpstr;
@@ -672,6 +680,8 @@ int vauth_setquota( char *username, char *domain, char *quota)
     return(0);
 }
 
+
+/************************************************************************/
 struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 {
  char *domstr = NULL;
@@ -754,6 +764,8 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     return(NULL);
 }
 
+
+/************************************************************************/
 void vauth_end_getall()
 {
     if ( res_read_getall != NULL ) {
@@ -763,6 +775,8 @@ void vauth_end_getall()
 
 }
 
+
+/************************************************************************/
 char *vauth_munch_domain( char *domain )
 {
  int i;
@@ -780,6 +794,8 @@ char *vauth_munch_domain( char *domain )
     return(tmpbuf);
 }
 
+
+/************************************************************************/
 int vauth_setpw( struct vqpasswd *inpw, char *domain )
 {
  char *tmpstr;
@@ -843,6 +859,8 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     return(0);
 }
 
+
+/************************************************************************/
 #ifdef POP_AUTH_OPEN_RELAY
 int vopen_smtp_relay()
 {
@@ -875,6 +893,8 @@ int vopen_smtp_relay()
     return rows == 1;
 }
 
+
+/************************************************************************/
 void vupdate_rules(int fdm)
 {
     if (vauth_open_read() != 0) return;
@@ -899,6 +919,8 @@ void vupdate_rules(int fdm)
 
 }
 
+
+/************************************************************************/
 void vclear_open_smtp(time_t clear_minutes, time_t mytime)
 {
  time_t delete_time;
@@ -915,6 +937,8 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
     }
 }
 
+
+/************************************************************************/
 void vcreate_relay_table()
 {
   vauth_create_table ("relay", RELAY_TABLE_LAYOUT, 1);
@@ -927,6 +951,8 @@ int vmkpasswd( char *domain )
     return(0);
 }
 
+
+/************************************************************************/
 void vclose()
 {
     if (read_open == 1 ) {
@@ -943,6 +969,8 @@ void vclose()
     }
 }
 
+
+/************************************************************************/
 #ifdef IP_ALIAS_DOMAINS
 void vcreate_ip_map_table()
 {
@@ -950,6 +978,8 @@ void vcreate_ip_map_table()
   return;
 }
 
+
+/************************************************************************/
 int vget_ip_map( char *ip, char *domain, int domain_size)
 {
  int ret = -1;
@@ -976,6 +1006,8 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
     return(ret);
 }
 
+
+/************************************************************************/
 int vadd_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
@@ -994,6 +1026,8 @@ int vadd_ip_map( char *ip, char *domain)
     return(0);
 }
 
+
+/************************************************************************/
 int vdel_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
@@ -1009,6 +1043,8 @@ int vdel_ip_map( char *ip, char *domain)
     return(0);
 }
 
+
+/************************************************************************/
 int vshow_ip_map( int first, char *ip, char *domain )
 {
  static int more = 0;
@@ -1053,6 +1089,8 @@ int vshow_ip_map( int first, char *ip, char *domain )
 }
 #endif
 
+
+/************************************************************************/
 int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  int found = 0;
@@ -1120,6 +1158,8 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
+
+/************************************************************************/
 int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
     if ( vauth_open_update() != 0 ) return(-1);
@@ -1155,6 +1195,8 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     return(0);
 }
 
+
+/************************************************************************/
 void vcreate_dir_control(char *domain)
 {
   if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1)) return;
@@ -1182,6 +1224,8 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
     }
 }
 
+
+/************************************************************************/
 int vdel_dir_control(char *domain)
 {
  int err;
@@ -1202,6 +1246,8 @@ int vdel_dir_control(char *domain)
     return(0);
 }
 
+
+/************************************************************************/
 #ifdef ENABLE_AUTH_LOGGING
 int vset_lastauth(char *user, char *domain, char *remoteip )
 {
@@ -1221,6 +1267,8 @@ remote_ip='%s', timestamp=%lu", user, domain, remoteip, time(NULL));
     return(0);
 }
 
+
+/************************************************************************/
 time_t vget_lastauth(struct vqpasswd *pw, char *domain)
 {
  int err;
@@ -1247,6 +1295,8 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     return(mytime);
 }
 
+
+/************************************************************************/
 char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[100];
@@ -1271,6 +1321,8 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     return(tmpbuf);
 }
 
+
+/************************************************************************/
 void vcreate_lastauth_table()
 {
   vauth_create_table ("lastauth", LASTAUTH_TABLE_LAYOUT, 1);
@@ -1281,6 +1333,8 @@ void vcreate_lastauth_table()
 #ifdef VALIAS
 struct linklist *valias_current = NULL;
 
+
+/************************************************************************/
 char *valias_select( char *alias, char *domain )
 {
  int err;
@@ -1316,6 +1370,8 @@ where alias = '%s' and domain = '%s'", alias, domain );
     else return(valias_current->data);
 }
 
+
+/************************************************************************/
 char *valias_select_next()
 {
     if (valias_current == NULL) return NULL;
@@ -1326,6 +1382,8 @@ char *valias_select_next()
     else return valias_current->data;
 }
 
+
+/************************************************************************/
 int valias_insert( char *alias, char *domain, char *alias_line)
 {
  int err;
@@ -1356,6 +1414,8 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
+
+/************************************************************************/
 int valias_remove( char *alias, char *domain, char *alias_line)
 {
  int err;
@@ -1384,6 +1444,8 @@ and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
     return(0);
 }
 
+
+/************************************************************************/
 int valias_delete( char *alias, char *domain)
 {
  int err;
@@ -1413,6 +1475,8 @@ and domain = '%s'", alias, domain );
     return(0);
 }
 
+
+/************************************************************************/
 int valias_delete_domain( char *domain)
 {
  int err;
@@ -1441,11 +1505,15 @@ int valias_delete_domain( char *domain)
     return(0);
 }
 
+
+/************************************************************************/
 void vcreate_valias_table()
 {
   vauth_create_table ("valias", VALIAS_TABLE_LAYOUT, 1);
 }
 
+
+/************************************************************************/
 char *valias_select_all( char *alias, char *domain )
 {
  int err;
@@ -1481,6 +1549,8 @@ char *valias_select_all( char *alias, char *domain )
     }
 }
 
+
+/************************************************************************/
 char *valias_select_all_next(char *alias)
 {
     if (valias_current == NULL) return NULL;
@@ -1570,6 +1640,8 @@ void valias_select_names_end() {
 
 #endif
 
+
+/************************************************************************/
 #ifdef ENABLE_SQL_LOGGING
 int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, 
   char *TheName, char *IpAddr, char *LogLine) 
@@ -1597,6 +1669,8 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass,
 }
 
 
+
+/************************************************************************/
 void vcreate_vlog_table()
 {
   vauth_create_table ("vlog", VLOG_TABLE_LAYOUT, 1);
@@ -1686,6 +1760,8 @@ int vget_limits(const char *domain, struct vlimits *limits)
     return 0;
 }
 
+
+/************************************************************************/
 int vset_limits(const char *domain, const struct vlimits *limits)
 {
     if (vauth_open_update() != 0)
@@ -1742,6 +1818,8 @@ int vset_limits(const char *domain, const struct vlimits *limits)
     return 0;
 }
 
+
+/************************************************************************/
 int vdel_limits(const char *domain)
 {
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM limits WHERE domain = '%s'", domain);
@@ -1753,6 +1831,8 @@ int vdel_limits(const char *domain)
 
 #endif
 
+
+/************************************************************************/
 int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {
   if ( vpw == NULL ) return(-1);
