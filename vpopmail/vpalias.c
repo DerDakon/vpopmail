@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.15 2007-01-12 16:28:51 rwidmer Exp $
+ * $Id: vpalias.c,v 1.6.2.16 2007-05-20 09:04:59 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,6 +81,7 @@ char *valias_select( char *alias, char *domain )
 	printf("invalid domain, not in qmail assign file\n");
 	return(NULL);
     }
+
     /* need to convert '.' to ':' */
     i = snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-", tmpstr);
     for (p = alias; (i < (int)sizeof(tmpbuf) - 1) && (*p != '\0'); p++)

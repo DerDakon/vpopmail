@@ -2030,6 +2030,7 @@ list_alias()
     return(-1);
   }
 
+  /*  print all aliases  */
   if (strstr(Email, "@") == NULL) {
     tmpalias = valias_select_all(Alias, Email);
     snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
@@ -2040,6 +2041,8 @@ list_alias()
       wait_write();
       tmpalias = valias_select_all_next(Alias);
     }
+
+  /*  print a single email address  */ 
   } else {
     tmpalias = valias_select(Alias, Domain);
     if (tmpalias == NULL) {
