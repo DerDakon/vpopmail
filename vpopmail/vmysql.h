@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.h,v 1.2.2.3 2006-12-23 23:09:27 rwidmer Exp $
+ * $Id: vmysql.h,v 1.2.2.4 2007-05-21 07:13:01 rwidmer Exp $
  * Copyright (C) 1999 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,12 +43,14 @@
 
 char *MYSQL_READ_SERVER;
 int MYSQL_READ_PORT;
+char *MYSQL_READ_SOCKET;
 char *MYSQL_READ_USER;
 char *MYSQL_READ_PASSWD;
 char *MYSQL_READ_DATABASE;
 
 char *MYSQL_UPDATE_SERVER;
 int MYSQL_UPDATE_PORT;
+char *MYSQL_UPDATE_SOCKET;
 char *MYSQL_UPDATE_USER;
 char *MYSQL_UPDATE_PASSWD;
 int MYSQL_UPDATE_VPORT;

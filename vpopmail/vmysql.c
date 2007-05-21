@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.15 2007-05-20 23:33:42 rwidmer Exp $
+ * $Id: vmysql.c,v 1.15.2.16 2007-05-21 07:13:01 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -106,7 +106,6 @@ int load_connection_info() {
     char config[256];
     int eof;
     static int loaded = 0;
-    char *port;
     char delimiters[] = "|\n";
     char *conf_read, *conf_update;
 
@@ -135,9 +134,14 @@ int load_connection_info() {
     conf_read = strdup(conn_info);
     MYSQL_READ_SERVER = strtok(conf_read, delimiters);
     if (MYSQL_READ_SERVER == NULL) return VA_PARSE_ERROR01;
-    port = strtok(NULL, delimiters);
-    if (port == NULL) return VA_PARSE_ERROR02;
-    MYSQL_READ_PORT = atoi(port);
+    MYSQL_READ_SOCKET = strtok(NULL, delimiters);
+    if (MYSQL_READ_SOCKET == NULL) return VA_PARSE_ERROR;
+ 
+    if (MYSQL_READ_SOCKET[0] != '/') {
+       MYSQL_READ_PORT = atoi(MYSQL_READ_SOCKET);
+       MYSQL_READ_SOCKET = NULL;
+       }
+
     MYSQL_READ_USER = strtok(NULL, delimiters);
     if (MYSQL_READ_USER == NULL) return VA_PARSE_ERROR03;
     MYSQL_READ_PASSWD = strtok(NULL, delimiters);
@@ -157,13 +161,20 @@ int load_connection_info() {
         MYSQL_UPDATE_USER = MYSQL_READ_USER;
         MYSQL_UPDATE_PASSWD = MYSQL_READ_PASSWD;
         MYSQL_UPDATE_DATABASE = MYSQL_READ_DATABASE;
+  	MYSQL_UPDATE_SOCKET = MYSQL_READ_SOCKET;
     } else {
         conf_update = strdup(conn_info);
         MYSQL_UPDATE_SERVER = strtok(conf_update, delimiters);
         if (MYSQL_UPDATE_SERVER == NULL) return VA_PARSE_ERROR06;
-        port = strtok(NULL, delimiters);
-        if (port == NULL) return VA_PARSE_ERROR07;
-        MYSQL_UPDATE_PORT = atoi(port);
+  
+  	MYSQL_READ_SOCKET = strtok(NULL, delimiters);
+  	if (MYSQL_READ_SOCKET == NULL) return VA_PARSE_ERROR;
+  
+  	if (MYSQL_READ_SOCKET[0] != '/') {
+  	    MYSQL_READ_PORT = atoi(MYSQL_READ_SOCKET);
+  	    MYSQL_READ_SOCKET = NULL;
+  	}
+  
         MYSQL_UPDATE_USER = strtok(NULL, delimiters);
         if (MYSQL_UPDATE_USER == NULL) return VA_PARSE_ERROR08;
         MYSQL_UPDATE_PASSWD = strtok(NULL, delimiters);
@@ -204,7 +215,7 @@ int vauth_open_update()
     /* Try to connect to the mysql update server */
     if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
 			     MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
-			     NULL, 0))) {
+			     MYSQL_UPDATE_SOCKET, 0))) {
       
       /* if we can not connect, report a error and return */
       verrori = VA_NO_AUTH_CONNECTION;
@@ -253,11 +264,11 @@ int vauth_open_read()
     mysql_init(&mysql_read);
     if (!(mysql_real_connect(&mysql_read, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
-            MYSQL_READ_PORT, NULL, 0))) {
+            MYSQL_READ_PORT, MYSQL_READ_SOCKET, 0))) {
         /* we could not connect, at least try the update server */
         if (!(mysql_real_connect(&mysql_read, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE,
-            MYSQL_READ_PORT, NULL, 0))) {
+            MYSQL_READ_PORT, MYSQL_UPDATE_SOCKET, 0))) {
             verrori = VA_NO_AUTH_CONNECTION;
             return( VA_NO_AUTH_CONNECTION );
         }
