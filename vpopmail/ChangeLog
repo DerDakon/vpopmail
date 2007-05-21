@@ -32,6 +32,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
         Stoyan Marinov (smarinov)
 	- add %m$t style for SQL queries format string [1236349]
+	- connect to mysql with a unix socket  [1437085]
 
 
 5.4.18 - released 30-Dec-06
