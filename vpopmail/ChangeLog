@@ -11,7 +11,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Only report out of order entries when sorting files once per file
 	- make pop syslog ./configure setting report itself like the rest of the choices
 	- Make error messages more consistant (P/O checking Jonathan's bug report)
-        - Do not allow delete of catchall address within account. (Who suggested this?)
+
+        Harm van Tilborg, Quinn Comendant
+        - Do not allow delete of catchall address within account. [1511531]
 
         Bill Shupp
 	- enable-onchange-script defaults to no.  
