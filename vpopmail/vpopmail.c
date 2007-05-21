@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.38 2007-05-20 23:33:43 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.39 2007-05-21 05:04:04 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1548,6 +1548,134 @@ int vpasswd( char *username, char *domain, char *password, int apop )
 
 /************************************************************************/
 
+void trim( char *s )  {
+
+//  trim spaces and tabs from beginning
+int i=0, j, k;
+
+while(( s[i]==' ')||(s[i]=='\t')) {
+   i++;
+   }
+
+k = strlen(s) - i - 1; 
+
+if( i>0 ) {
+   for( j=0; j<k; j++ )  {
+      s[j] = s[j+i];
+      }
+
+   s[j] = '\0';
+   }
+
+//  trim spaces and tabs from end
+i = strlen(s) - 1;
+while(( s[i] == ' ' ) || ( s[i] == '\t' )) {
+   i--;
+   }
+
+if( i < strlen(s) - 1 ) {
+   s[i+1] = '\0';
+   }
+}
+
+
+
+/************************************************************************/
+
+
+int isCatchall( char *user, char *domain, char *dir )   {
+
+ //  This might not be the easiest way to do this...
+
+ char *default_action;
+ char *position;
+ char *name;
+ char email[MAX_BUFF];
+ int i, pos;
+
+  //  get the first line of the .qmail-default file
+  snprintf( email, MAX_BUFF, "default" );
+  default_action = valias_select( email, domain );
+
+  snprintf( email, MAX_BUFF, "%s@%s", user, domain );
+//  fprintf( stderr, "email: %s  default action: %s\ndir: %s\n", email, default_action, dir );
+
+  //  Make sure .qmail_default file contains a reference to vdelivermail
+  if( ( position = strstr( default_action, "vdelivermail" )) == NULL ) {
+//    fprintf( stderr, ".qmail_default file does not include vdelivermail. %s\n", position );
+    return 0;
+    }
+
+  //  Make sure .qmail_default file continues with ''
+  if( ( position = strstr( default_action, "''" )) == NULL  ) {
+//    fprintf( stderr, ".qmail_default file missing ''. %s\n", position );
+    return 0;
+    }
+
+  //  Make sure there is a space after ''
+  if( ( position = strstr( position, " " )) == NULL  ) {
+//    fprintf( stderr, ".qmail_default does not have space after ''. %s\n", position );
+    return 0;
+    }
+
+  //  Remove spaces / tabs
+  trim( position );
+
+//  fprintf( stderr, "Default action for non-existant addresses: |%s|\n", position );
+
+  if( strstr( position, "bounce-no-mailbox" ) != NULL )  {
+    //  don't do anything for this default action
+//    fprintf( stderr, "Default is Bounce No Mailbox\n" );
+    }
+
+  else if( strstr( position, "delete-no-mailbox" ) != NULL ) {
+    //  don't do anything for this default action
+    //fprintf( stderr, "Default is Delete No Mailbox\n" );
+    }
+
+  else if( '/' == position[0] ) {
+    //  it is a Maildir
+//    fprintf( stderr, "Maildir - %s\n", position );
+    if( strstr( position, dir ) != NULL ) {
+//      fprintf( stderr, "part of correct domain sub directory\n" );
+      position = strrchr( position, '/' );
+//      fprintf( stderr, "position: %s\n", position );
+      for( i=0; i<strlen( position )-1; i++ ) {
+        position[i] = position[i+1];
+        }
+      position[i] = 0;
+
+//      fprintf( stderr, "position: %s\n", position );
+
+      if( strcmp( user, position ) == 0 ) {
+//        fprintf( stderr, "%s is the catchall account by path\n", position );
+        return( 1 );
+        }
+      }
+    }
+
+  else if(( pos = strcspn( position, "@" ))) {
+    //  it is a forward
+    name = strtok( position, "@" );
+    position = strtok( NULL, "@" );
+//    fprintf( stderr, "Forward - name: %s  domain: %s\n", name, position );
+    if( ( strcmp( user, name ) == 0 ) && ( strcmp( position, domain ) == 0 ) ) {
+//      fprintf( stderr, "%s is the catchall account by forward", position );
+      return( 1 );
+      }
+    }
+
+  else {
+    fprintf( stderr, "unknown .qmail-default contents %s\n", position );
+    }
+
+return 0;
+
+}
+
+
+/************************************************************************/
+
 /*
  * delete a user from a virtual domain password file
  */
@@ -1603,6 +1731,11 @@ int vdeluser( char *user, char *domain )
   if ((mypw = vauth_getpw(user, domain)) == NULL) { 
     return(VA_USER_DOES_NOT_EXIST);
   }
+
+  /* Make sure we are not the email address of the catchall account */
+  if ( isCatchall( user, domain, Dir )) {
+    return(VA_CANNOT_DELETE_CATCHALL);
+    }
 
 #ifdef ONCHANGE_SCRIPT
   /* tell other programs that data has changed */
@@ -2619,6 +2752,8 @@ char *verror(int va_err )
     return("can't read domain limits");
    case VA_CANNOT_READ_ASSIGN:
     return("can't read users/assign file");
+   case VA_CANNOT_DELETE_CATCHALL:
+    return("can't delete catchall account");
    default:
     return("Unknown error");
   }
