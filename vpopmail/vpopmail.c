@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.39 2007-05-21 05:04:04 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.28.2.40 2007-05-21 06:22:14 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -3929,6 +3929,9 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	char *b;       /* current position in output buffer */
 	char n[20];    /* buffer to hold string representation of number */
 	
+        int argn = 0;  /* used for numbered arguments */
+        char argstr[10];
+
 	char *s;       /* pointer to string to insert */
 
 	if (buffer == NULL && size > 0) return -1;
@@ -3978,8 +3981,41 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 					s = va_arg (ap, char *);
 					break;
 					
-				default:
-					strcpy (n, "*");
+                                default:
+                                        argn = 0;
+                                        while ((*f >= '0') && (*f <= '9')) {
+                                          argn = argn * 10 + atoi(f);
+                                          f++;
+                                        }
+                                        if ((argn > 0) && (*f == '$')) {
+                                          f++;
+                                          if (*f == 'l') {
+                                            f++;
+                                            switch (*f) {
+                                              case 'i':
+                                                snprintf(argstr, sizeof(argstr), "%%%d$ld", argn);
+                                                break;
+ 
+                                              case 'u':
+                                                snprintf(argstr, sizeof(argstr), "%%%d$lu", argn);
+                                                break;
+ 
+                                              default:
+                                                snprintf(argstr, sizeof(argstr), "%%%d$l%c", argn, *f);
+                                            }
+                                          } else {
+                                            snprintf(argstr, sizeof(argstr), "%%%d$%c", argn, *f);
+                                          }
+                                          vsprintf(s, argstr, ap);
+                                        } else if(argn > 0) {
+                                          while (argn > 10) {
+                                            argn = argn / 10;
+                                            f--;
+                                          }
+                                          strcpy (n, "*");
+                                        }
+
+
 			}
 			while (*s != '\0') {
 				if (strchr (ESCAPE_CHARS, *s) != NULL) {
