@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.7.2.17 2007-05-20 23:33:43 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.7.2.18 2007-05-21 05:04:05 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -115,6 +115,7 @@
 #define VA_INVALID_OPEN_MODE            -42
 #define VA_CANNOT_CREATE_DATABASE       -43
 #define VA_CANNOT_CREATE_TABLE          -44
+#define VA_CANNOT_DELETE_CATCHALL       -55
 
 
 /* gid flags */
