@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.14 2007-05-22 03:58:59 rwidmer Exp $
+ * $Id: vadduser.c,v 1.15 2007-05-22 04:49:27 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,6 +72,18 @@ int main(int argc,char **argv)
       printf("Only full email addresses should be used\n");
       vexit(-1);
     }
+
+    //  make sure domain already exists
+    if( vget_assign( Domain, NULL, 0, NULL, NULL ) == NULL ) {
+        printf( "Error: Domain does not exist\n" );
+        vexit(-1);
+        }
+
+    //  make sure user does not already exist
+    if(( vpw = vauth_getpw( User, Domain )) != NULL ) {
+        printf( "Error: User already exists\n" );
+        vexit( -1 );
+        }
 
     /* if the comment field is blank, use the user name */
     if ( Gecos[0] == 0 ) {
