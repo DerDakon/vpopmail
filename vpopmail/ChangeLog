@@ -2,6 +2,14 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.20 - unreleased
+	Rick Widmer
+	- Make vadduser check that domain exists and user does not exist
+	  before prompting for password.
+
+	Remo Mattei
+	- Change upgrade script to use pw_domain instead of domain in example code
+	  to change domain name field lengths.
+
 
 5.4.19 - released 21-May-2007
 	Rick Widmer
