@@ -1,24 +1,26 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.20 - unreleased
+
 5.4.19 - released 21-May-2007
-        Rick Widmer
-        - update to aclocal 1.9.5, automake 1.9.5, autoconf 2.59 to match my system
-        - Don't set LocalPort to a real port number so the default case has a chance 
-          to identify how vchkpw was called.
+	Rick Widmer
+	- update to aclocal 1.9.5, automake 1.9.5, autoconf 2.59 to match my system
+	- Don't set LocalPort to a real port number so the default case has a chance 
+	  to identify how vchkpw was called.
 	- ./configure tells status of onchange script setting
 	- Fix rights problem with alias commands.  -  thanks Alessio Cecchi
 	- Only report out of order entries when sorting files once per file
 	- make pop syslog ./configure setting report itself like the rest of the choices
 	- Make error messages more consistant (P/O checking Jonathan's bug report)
 
-        Harm van Tilborg, Quinn Comendant
-        - Do not allow delete of catchall address within account. [1511531]
+	Harm van Tilborg, Quinn Comendant
+	- Do not allow delete of catchall address within account. [1511531]
 
-        Bill Shupp
+	Bill Shupp
 	- enable-onchange-script defaults to no.  
 	  NOTE: Still need to supress error message if file not found.
-        - Fix bug in output format of list_alias
+	- Fix bug in output format of list_alias
 	- Remove unneeded AC_DEFINE_UNQUOTED from ONCHANGE_SCRIPT in configure
 	- Port remaining spamassassin code from 5.5 branch to stable-5_4.
 	- Add new --enable-maildrop option, and new NO_MAILDROP bit flag. 
