@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.11.2.7 2007-01-12 16:28:51 rwidmer Exp $
+ * $Id: vchkpw.c,v 1.19 2007-05-22 03:59:00 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

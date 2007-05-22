@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.28.2.40 2007-05-21 06:22:14 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.54 2007-05-22 03:59:01 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

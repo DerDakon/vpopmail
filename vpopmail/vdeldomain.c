@@ -1,5 +1,5 @@
 /*
- * $Id: vdeldomain.c,v 1.2.2.4 2007-05-20 23:33:42 rwidmer Exp $
+ * $Id: vdeldomain.c,v 1.11 2007-05-22 03:59:00 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

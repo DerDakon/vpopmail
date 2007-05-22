@@ -4,7 +4,7 @@
  */
 
 /*
- * $Id: vqmaillocal.c,v 1.3.2.2 2006-11-26 18:55:53 tomcollins Exp $
+ * $Id: vqmaillocal.c,v 1.9 2007-05-22 03:59:02 rwidmer Exp $
  * Copyright (C) 2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

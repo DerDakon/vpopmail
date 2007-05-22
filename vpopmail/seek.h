@@ -1,5 +1,5 @@
 /*
- * $Id: seek.h,v 1.2 2003-10-20 18:59:57 tomcollins Exp $
+ * $Id: seek.h,v 1.4 2007-05-22 03:58:59 rwidmer Exp $
  *
  * Copyright (c) 1987 University of Maryland Computer Science Department.
  * All rights reserved.

@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.7.2.4 2006-01-17 19:08:34 tomcollins Exp $
+ * $Id: maildirquota.c,v 1.13 2007-05-22 03:58:59 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,4 +1,4 @@
-/* $Id: hmac_md5.c,v 1.2.2.1 2005-07-12 14:57:03 tomcollins Exp $ */
+/* $Id: hmac_md5.c,v 1.5 2007-05-22 03:58:58 rwidmer Exp $ */
 
 #include "global.h"
 #include "md5.h"

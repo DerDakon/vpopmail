@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.15.2.16 2007-05-21 07:13:01 rwidmer Exp $
+ * $Id: vmysql.c,v 1.34 2007-05-22 03:59:01 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

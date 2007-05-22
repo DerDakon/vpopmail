@@ -1,5 +1,5 @@
 /*
- * $Id: file_lock.h,v 1.2.2.1 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: file_lock.h,v 1.6 2007-05-22 03:58:58 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
