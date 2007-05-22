@@ -1,5 +1,5 @@
 /*
- * $Id: voracle.h,v 1.4 2004-12-27 08:13:13 rwidmer Exp $
+ * $Id: voracle.h,v 1.5 2007-05-22 01:51:57 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 #ifdef MANY_DOMAINS
 #ifdef CLEAR_PASS
 #define TABLE_LAYOUT "pw_name char(32) not null, \
-pw_domain char(64) not NULL, \
+pw_domain char(96) not NULL, \
 pw_passwd char(40), \
 pw_uid int, pw_gid int, \
 pw_gecos char(48), \
@@ -45,7 +45,7 @@ pw_clear_passwd char(16), \
 primary key (pw_name, pw_domain ) "
 #else
 #define TABLE_LAYOUT "pw_name char(32) not null, \
-pw_domain char(64) not null, \
+pw_domain char(96) not null, \
 pw_passwd char(40), \
 pw_uid int, pw_gid int, \
 pw_gecos char(48), \
@@ -79,7 +79,7 @@ timestamp char(12), primary key (ip_addr)"
 
 #define LASTAUTH_TABLE_LAYOUT \
 "pw_user char(32) NOT NULL, \
-pw_domain char(64) NOT NULL,\
+pw_domain char(96) NOT NULL,\
 remote_ip char(18) not null,  \
 timestamp int default 0 NOT NULL, \
 primary key (pw_user, pw_domain)"
@@ -212,10 +212,10 @@ where pw_name = '%s' "
 #endif
 
 #ifdef IP_ALIAS_DOMAINS
-#define IP_ALIAS_TABLE_LAYOUT "ip_addr char(18) not null, domain char(64),  primary key(ip_addr)"
+#define IP_ALIAS_TABLE_LAYOUT "ip_addr char(18) not null, domain char(96),  primary key(ip_addr)"
 #endif
 
-#define DIR_CONTROL_TABLE_LAYOUT "domain char(64) not null, cur_users int, \
+#define DIR_CONTROL_TABLE_LAYOUT "domain char(96) not null, cur_users int, \
 level_cur int, level_max int, \
 level_start0 int, level_start1 int, level_start2 int, \
 level_end0 int, level_end1 int, level_end2 int, \
@@ -231,7 +231,7 @@ level_mod0, level_mod1, level_mod2, \
 level_index0, level_index1, level_index2, the_dir"
 
 #define VALIAS_TABLE_LAYOUT "alias char(32) not null, \
-domain char(64) not null, \
+domain char(96) not null, \
 valias_line varchar(255) not null "
 
 #endif
@@ -239,7 +239,7 @@ valias_line varchar(255) not null "
 #ifdef ENABLE_SQL_LOGGING
 #define VLOG_TABLE_LAYOUT "id BIGINT PRIMARY KEY AUTO_INCREMENT, \
       user char(32), passwd CHAR(32), \
-      domain CHAR(64), logon VARCHAR(200), \
+      domain CHAR(96), logon VARCHAR(200), \
       remoteip char(18), message VARCHAR(255), \
       timestamp int default 0 NOT NULL, error INT, \
       INDEX user_idx (user), \
@@ -248,7 +248,7 @@ valias_line varchar(255) not null "
 #endif
 
 #ifdef ENABLE_ORACLE_LIMITS
-#define LIMITS_TABLE_LAYOUT "domain CHAR(64) PRIMARY KEY, \
+#define LIMITS_TABLE_LAYOUT "domain CHAR(96) PRIMARY KEY, \
       maxpopaccounts          INT(10) NOT NULL DEFAULT -1, \
       maxaliases              INT(10) NOT NULL DEFAULT -1, \
       maxforwards             INT(10) NOT NULL DEFAULT -1, \
