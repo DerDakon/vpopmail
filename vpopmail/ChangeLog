@@ -7,6 +7,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.5.1 - unreleased  
         Rick Widmer
         - Sync to 5.4.16 this includes the following entries from the 5.4 changelog
+        - Expand domain name from 64 to 96
+ 	- mark this branch obsolete
 
 5.4.19 - unreleased
         Bill Shupp
