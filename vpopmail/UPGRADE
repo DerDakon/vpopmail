@@ -26,14 +26,14 @@ the 'vpopmail' table with one for each of your domain tables.  Also, the
 ip_alias_map, vlog and limits tables only exist if various configuration
 options are enabled, so they may or may not be relevant on your system.
 
-ALTER TABLE `dir_control` CHANGE `domain` `domain` CHAR(96) NOT NULL;
-ALTER TABLE `ip_alias_map` CHANGE domain domain CHAR(96) NOT NULL;
-ALTER TABLE `lastauth` CHANGE domain domain CHAR(96) NOT NULL;
-ALTER TABLE `valias` CHANGE domain domain CHAR(96) NOT NULL;
-ALTER TABLE `vlog` CHANGE domain domain CHAR(96) NOT NULL;
-ALTER TABLE `vpopmail` CHANGE domain domain CHAR(96) NOT NULL;
+ALTER TABLE `dir_control` CHANGE `pw_domain` `pw_domain` CHAR(96) NOT NULL;
+ALTER TABLE `ip_alias_map` CHANGE pw_domain pw_domain CHAR(96) NOT NULL;
+ALTER TABLE `lastauth` CHANGE pw_domain pw_domain CHAR(96) NOT NULL;
+ALTER TABLE `valias` CHANGE pw_domain pw_domain CHAR(96) NOT NULL;
+ALTER TABLE `vlog` CHANGE pw_domain pw_domain CHAR(96) NOT NULL;
+ALTER TABLE `vpopmail` CHANGE pw_domain pw_domain CHAR(96) NOT NULL;
 
-ALTER TABLE `limits` CHANGE domain domain CHAR(96) NOT NULL,
+ALTER TABLE `limits` CHANGE pw_domain pw_domain CHAR(96) NOT NULL,
       ADD `disable_spamassassin` TINYINT(1) DEFAULT '0' NOT NULL AFTER `disable_smtp`,
       ADD `delete_spam` TINYINT(1) DEFAULT '0' NOT NULL AFTER `disable_spamassassin`;
 
