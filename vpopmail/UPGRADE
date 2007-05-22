@@ -5,6 +5,38 @@ into the vpopmail libraries.  These include QmailAdmin, qmail-smtpd (if
 you have the chkuser patch applied), Courier-IMAP etc.
 
 
+Upgrading to vpopmail-5.4.18
+----------------------------
+
+For all SQL back ends you must change the length of the domain or 
+pw_domain field from 64 to 96 characters to reflect the maximum size 
+allowed in vpopmail.
+
+If you are storing limits in mysql you must add the following items to 
+the limits table:
+
+  disable_spamassassasin  tinyint(1) NOT NULL DEFAULT 0
+  delete_spam             tinyint(1) NOT NULL DEFAULT 0
+
+
+
+The following assumes --enable-many-domains (the default) is used.  If you
+use --disable-many-domains then you need to replace the alter command for
+the 'vpopmail' table with one for each of your domain tables.  Also, the
+ip_alias_map, vlog and limits tables only exist if various configuration
+options are enabled, so they may or may not be relevant on your system.
+
+ALTER TABLE `dir_control` CHANGE `domain` `domain` CHAR(96) NOT NULL;
+ALTER TABLE `ip_alias_map` CHANGE domain domain CHAR(96) NOT NULL;
+ALTER TABLE `lastauth` CHANGE domain domain CHAR(96) NOT NULL;
+ALTER TABLE `valias` CHANGE domain domain CHAR(96) NOT NULL;
+ALTER TABLE `vlog` CHANGE domain domain CHAR(96) NOT NULL;
+ALTER TABLE `vpopmail` CHANGE domain domain CHAR(96) NOT NULL;
+
+ALTER TABLE `limits` CHANGE domain domain CHAR(96) NOT NULL,
+      ADD `disable_spamassassin` TINYINT(1) DEFAULT '0' NOT NULL AFTER `disable_smtp`,
+      ADD `delete_spam` TINYINT(1) DEFAULT '0' NOT NULL AFTER `disable_spamassassin`;
+
 Upgrading to vpopmail-5.4
 -------------------------
 
