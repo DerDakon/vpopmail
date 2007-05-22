@@ -1,5 +1,5 @@
 /*
- * $Id: md5.h,v 1.2.2.3 2005-02-21 07:19:51 tomcollins Exp $
+ * $Id: md5.h,v 1.7 2007-05-22 03:58:59 rwidmer Exp $
  * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or

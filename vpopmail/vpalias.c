@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.6.2.16 2007-05-20 09:04:59 rwidmer Exp $
+ * $Id: vpalias.c,v 1.15 2007-05-22 03:59:01 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

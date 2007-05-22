@@ -1,5 +1,5 @@
 /*
- * $Id: bigdir.c,v 1.2 2003-10-20 18:59:56 tomcollins Exp $
+ * $Id: bigdir.c,v 1.5 2007-05-22 03:58:58 rwidmer Exp $
  * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

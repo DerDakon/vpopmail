@@ -1,5 +1,5 @@
 /*
- * $Id: dotqmail2valias.c,v 1.1.2.2 2006-01-17 18:50:22 tomcollins Exp $
+ * $Id: dotqmail2valias.c,v 1.8 2007-05-22 03:58:58 rwidmer Exp $
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *

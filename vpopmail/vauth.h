@@ -1,5 +1,5 @@
 /*
- * $Id: vauth.h,v 1.3.2.4 2005-12-08 06:10:36 tomcollins Exp $
+ * $Id: vauth.h,v 1.11 2007-05-22 03:58:59 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.9.2.6 2007-05-20 23:33:43 rwidmer Exp $
+ * $Id: vsybase.c,v 1.19 2007-05-22 03:59:02 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

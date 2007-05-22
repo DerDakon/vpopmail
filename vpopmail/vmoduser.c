@@ -1,5 +1,5 @@
 /*
- * $Id: vmoduser.c,v 1.3.2.6 2007-04-30 05:56:06 shupp Exp $
+ * $Id: vmoduser.c,v 1.15 2007-05-22 03:59:01 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

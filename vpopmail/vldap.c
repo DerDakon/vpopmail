@@ -1,5 +1,5 @@
 /*
- * $Id: vldap.c,v 1.15.2.5 2007-05-20 23:33:42 rwidmer Exp $
+ * $Id: vldap.c,v 1.22 2007-05-22 03:59:00 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
