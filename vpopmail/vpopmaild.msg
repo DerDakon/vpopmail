@@ -1,4 +1,4 @@
-//   Don't translate these   "  You can add, and renumber as long as 
+//   Don't translate these defines You can add, and renumber as long as 
 //   they match the order of the array below.  The defines must
 //   match the ones in the source code.
 //
@@ -42,10 +42,10 @@
 
 
 
-
 //  Translate just this array, but not the comments
 
 const char *ErrorMessages[] = {
+   "Dummy entry so it starts with 1",                 //  dummy entry...
    "Can't open authentication database",              //  CANT_OPEN_AUTH       1 
    "Too many actions before login",                   //  TOO_MANY_ACTION      2 
    "Read Timeout",                                    //  RD_TIMEOUT           3 

@@ -49,7 +49,7 @@ Bill Shupp has announced a project, it is currently only available
 if you email the author.
 
 
-There are four sections to the rest of this document:
+There are five sections to the rest of this document:
 
   1: Using the service
 
@@ -58,6 +58,8 @@ There are four sections to the rest of this document:
   3: Installing the Daemon
 
   4: Bitmap Values
+
+  5: Interpreting Errors
 
 --------------------------------------------------------------------
 --------------------------------------------------------------------
@@ -1053,3 +1055,28 @@ Then for list of commands:
 help
 
 
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+5 :     E r r o r    M e s s a g e    F o r m a t
+
+
+Error messages are in the form  ERR- major.minor message  
+
+Major is the error code that identifies what kind of error has been encountered,
+and determines which message is displayed.  Minor is a number that identifies
+which test within the source code triggered the error message.  The last two 
+digits should indicate the error number within a function, and the rest should 
+identify which function the failure happened in.  You can search the source 
+code with this value to find the point where an error happened.
+
+
+The actual error messages are stored in the file vpopmaild.msg for easy translation.
+Once there are other language files, I'll create a directory to store the various
+language files, and use a symlink to select a language.  Error messages are set
+at comile time.
+
+0.X represents a message passed up from fpopmaild primitives, and does not otherwise
+follow the standard error reporting structure.  (yet?)
