@@ -28,6 +28,9 @@
 #include "vauth.h"
 #include "vlimits.h"
 
+
+#include "vpopmaild.msg"
+
 /* two responses */
 #define RET_OK "+OK \r\n"
 #define RET_OK_MORE "+OK+\r\n"
