@@ -3,42 +3,42 @@
 //   match the ones in the source code.
 //
 
-#define CANT_OPEN_AUTH       1   // Can't open authentication database
-#define TOO_MANY_ACTION      2   // Too many actions before login
-#define RD_TIMEOUT           3   // Read Timeout
-#define INVALID_COMMAND      4   // Invalid Command
-#define TOO_MANY_LOGIN       5   // Too many invalid login attempts
-#define EMAIL_REQD           6   // Email Address Required
-#define PASSWORD_REQD        7   // Password Required
-#define INVALID_LOGIN        8   // Invalid Login
-#define NOT_AUTHORIZED       9   // Not Authorized
-#define INVALID_EMAIL       10   // Invalid Email Address
-#define NOT_AUTH_DOMAIN     11   // Not Authorized for domain
-#define NO_USER             12   // User does not exist
-#define DOMAIN_REQD         13   // Domain Required
-#define ALIAS_REQD          14   // Alias Name Required
-#define INVALID_ALIAS       15   // Invalid Alias Name Supplied
-#define ALIAS_LINE_REQD     16   // Alias Line Required
-#define ALIAS_INSERT_FAIL   17   // Alias Insertion Failed
-#define ALIAS_REMOVE_FAIL   18   // Alias Removal Failed
-#define ALIAS_DELETE_FAIL   19   // Alias Deletion Failed
-#define INVALID_DIR_DOTDOT  20   // Invalid Directory.  .. not allowed in path
-#define INVALID_DIR_PCT     21   // Invalid Directory.  % not allowed in path
-#define INVALID_DIR_SLASH   22   // Invalid Directory.  Do you need a trailing '/'?
-#define INVALID_DIR_AT      23   // Invalid Directory. Found / before @
-#define INVALID_DIR_PARSE   24   // Invalid Directory. Can't parse email address
-#define INVALID_DIR_UNK     25   // Invalid Directory. Unknown email address
-#define UNAUTH_DIR          26   // Unauthorized Directory.
-#define DIR_REQD            27   // Directory Required.
-#define SOURCE_REQD         28   // Source File Name Required
-#define DEST_REQD           29   // Destination File Name Required
-#define FNAME_REQD          30   // Filename Required
-#define NO_OPEN_ASSIGN      31   // Could not open assign file
-#define IP_REQD             32   // IP Required
-#define NOT_AVAIL           33   // Not Available
-#define NO_GET_LIMITS       34   // Could not get limits
-#define NO_SET_LIMITS       35   // Could not set limits
-#define NOT_IMPLEMENT	    36   // Not implemented yet
+#define ERR_CANT_OPEN_AUTH       1   // Can't open authentication database
+#define ERR_TOO_MANY_ACTION      2   // Too many actions before login
+#define ERR_RD_TIMEOUT           3   // Read Timeout
+#define ERR_INVALID_COMMAND      4   // Invalid Command
+#define ERR_TOO_MANY_LOGIN       5   // Too many invalid login attempts
+#define ERR_EMAIL_REQD           6   // Email Address Required
+#define ERR_PASSWORD_REQD        7   // Password Required
+#define ERR_INVALID_LOGIN        8   // Invalid Login
+#define ERR_NOT_AUTHORIZED       9   // Not Authorized
+#define ERR_INVALID_EMAIL       10   // Invalid Email Address
+#define ERR_NOT_AUTH_DOMAIN     11   // Not Authorized for domain
+#define ERR_NO_USER             12   // User does not exist
+#define ERR_DOMAIN_REQD         13   // Domain Required
+#define ERR_ALIAS_REQD          14   // Alias Name Required
+#define ERR_INVALID_ALIAS       15   // Invalid Alias Name Supplied
+#define ERR_ALIAS_LINE_REQD     16   // Alias Line Required
+#define ERR_ALIAS_INSERT_FAIL   17   // Alias Insertion Failed
+#define ERR_ALIAS_REMOVE_FAIL   18   // Alias Removal Failed
+#define ERR_ALIAS_DELETE_FAIL   19   // Alias Deletion Failed
+#define ERR_INVALID_DIR_DOTDOT  20   // Invalid Directory.  .. not allowed in path
+#define ERR_INVALID_DIR_PCT     21   // Invalid Directory.  % not allowed in path
+#define ERR_INVALID_DIR_SLASH   22   // Invalid Directory.  Do you need a trailing '/'?
+#define ERR_INVALID_DIR_AT      23   // Invalid Directory. Found / before @
+#define ERR_INVALID_DIR_PARSE   24   // Invalid Directory. Can't parse email address
+#define ERR_INVALID_DIR_UNK     25   // Invalid Directory. Unknown email address
+#define ERR_UNAUTH_DIR          26   // Unauthorized Directory.
+#define ERR_DIR_REQD            27   // Directory Required.
+#define ERR_SOURCE_REQD         28   // Source File Name Required
+#define ERR_DEST_REQD           29   // Destination File Name Required
+#define ERR_FNAME_REQD          30   // Filename Required
+#define ERR_NO_OPEN_ASSIGN      31   // Could not open assign file
+#define ERR_IP_REQD             32   // IP Required
+#define ERR_NOT_AVAIL           33   // Not Available
+#define ERR_NO_GET_LIMITS       34   // Could not get limits
+#define ERR_NO_SET_LIMITS       35   // Could not set limits
+#define ERR_NOT_IMPLEMENT	    36   // Not implemented yet
 
 
 

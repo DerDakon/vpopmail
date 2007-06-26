@@ -285,7 +285,7 @@ int main(int argc, char **argv)
   int attempts = 0;
 
   if( vauth_open( 1 )) {
-    show_error( CANT_OPEN_AUTH, 101 );
+    show_error( ERR_CANT_OPEN_AUTH, 101 );
     wait_write();
     exit( -1 );
   }
@@ -298,7 +298,7 @@ int main(int argc, char **argv)
     attempts ++;
 
     if ( attempts > LOGIN_ACTIVITY ) {
-      show_error( TOO_MANY_ACTION, 102 );
+      show_error( ERR_TOO_MANY_LOGIN, 102 );
       wait_write();
       exit(-1);
     } 
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
 
     //  Read size < 0 means timeout  -- fatal
     if ( read_size < 0 ) {
-      show_error( RD_TIMEOUT, 103 );
+      show_error( ERR_RD_TIMEOUT, 103 );
       wait_write();
       exit(-1);
     } 
@@ -328,7 +328,7 @@ int main(int argc, char **argv)
     }
 
     if ( found == 0 ) {
-      show_error( INVALID_COMMAND, 104 );
+      show_error( ERR_INVALID_COMMAND, 104 );
     }
 
     if( -1 == status )  {  //  missing login parm 
@@ -339,7 +339,7 @@ int main(int argc, char **argv)
       failures ++;
       if( failures > LOGIN_FAILURES ) {   //  too many failures
         wait_write();
-        show_error( TOO_MANY_LOGIN, 105 );
+        show_error( ERR_TOO_MANY_LOGIN, 105 );
         wait_write();
         vclose();
         exit(-1);
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 
     read_size = wait_read();
     if ( read_size < 0 ) {
-      show_error( RD_TIMEOUT, 106 );
+      show_error( ERR_RD_TIMEOUT, 106 );
       wait_write();
       vclose();
       exit(-1);
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
     }
 
     if ( found == 0 ) {
-      show_error( INVALID_COMMAND, 107 );
+      show_error( ERR_INVALID_COMMAND, 107 );
     }
     wait_write();
   }
@@ -394,27 +394,27 @@ int login()
 //  return values:  0 = valid   -1 = missing parm warning  -2 = invalid login
 
   if ((email=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 203 );
+    show_error( ERR_EMAIL_REQD, 203 );
     return(-1);
   }
 
   if ((pass=strtok(NULL,PASS_TOKENS))==NULL) {
-    show_error( PASSWORD_REQD, 204 );
+    show_error( ERR_PASSWORD_REQD, 204 );
     return(-1);
   }
 
   if ( parse_email( email, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_LOGIN, 205 );
+    show_error( ERR_INVALID_LOGIN, 205 );
     return(-2); 
   }
 
   if ((tmpvpw = vauth_getpw(TheUser, TheDomain))==NULL) {
-    show_error( INVALID_LOGIN, 206 );
+    show_error( ERR_INVALID_LOGIN, 206 );
     return(-2);
   }
 
   if ( vauth_crypt(TheUser, TheDomain, pass, tmpvpw) != 0 ) {
-    show_error( INVALID_LOGIN, 207 );
+    show_error( ERR_INVALID_LOGIN, 207 );
     return(-2);
   } 
 
@@ -481,28 +481,28 @@ int add_user()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 301 );
+    show_error( ERR_NOT_AUTHORIZED, 301 );
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 302 );
+    show_error( ERR_EMAIL_REQD, 302 );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_EMAIL, 303 );
+    show_error( ERR_INVALID_EMAIL, 303 );
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 304 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 304 );
     return(-1);
   }
 
   if ((password=strtok(NULL,PASS_TOKENS))==NULL) {
-    show_error( PASSWORD_REQD, 305 );
+    show_error( ERR_PASSWORD_REQD, 305 );
     return(-1);
   }
 
@@ -520,23 +520,23 @@ int del_user()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 401 );
+    show_error( ERR_NOT_AUTHORIZED, 401 );
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 402 );
+    show_error( ERR_EMAIL_REQD, 402 );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_EMAIL, 403 );
+    show_error( ERR_INVALID_EMAIL, 403 );
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-      show_error( NOT_AUTHORIZED, 404 );
+      show_error( ERR_NOT_AUTHORIZED, 404 );
     return(-1);
   }
 
@@ -560,12 +560,12 @@ int mod_user()
  int   can_override = 0;
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 501 );
+    show_error( ERR_EMAIL_REQD, 501 );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_EMAIL, 502 );
+    show_error( ERR_INVALID_EMAIL, 502 );
     return(-1);
   } 
 
@@ -574,7 +574,7 @@ int mod_user()
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,TmpDomain)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 503 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 503 );
       return(-1);
     } 
 
@@ -586,7 +586,7 @@ int mod_user()
 
     /* if not their account, reject */
     if ( strcmp(TheDomain,TmpDomain)!= 0 || strcmp(TheUser,TmpUser)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 504 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 504 );
       return(-1);
     }
   }
@@ -595,7 +595,7 @@ int mod_user()
 
   /* get the current user information */
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    show_error( NO_USER, 505 );
+    show_error( ERR_NO_USER, 505 );
     while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL && 
           strcmp(ReadBuf, ".\n") != 0 );
     return(-1);
@@ -740,28 +740,28 @@ int user_info()
  char *email_address;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 601 );
+    show_error( ERR_NOT_AUTHORIZED, 601 );
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 602 );
+    show_error( ERR_EMAIL_REQD, 602 );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_EMAIL, 603 );
+    show_error( ERR_INVALID_EMAIL, 603 );
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 604 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 604 );
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    show_error( NO_USER, 605 );
+    show_error( ERR_NO_USER, 605 );
     return(-1);
   } 
 
@@ -928,17 +928,17 @@ int add_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 801 );
+    show_error( ERR_NOT_AUTHORIZED, 801 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 802 );
+    show_error( ERR_DOMAIN_REQD, 802 );
     return(-1);
   }
 
   if ((password=strtok(NULL,PASS_TOKENS))==NULL) {
-    show_error( PASSWORD_REQD, 803 );
+    show_error( ERR_PASSWORD_REQD, 803 );
     return(-1);
   }
 
@@ -963,17 +963,17 @@ int add_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    show_error( NOT_AUTHORIZED, 901 );
+    show_error( ERR_NOT_AUTHORIZED, 901 );
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    show_error( ALIAS_REQD, 902 );
+    show_error( ERR_ALIAS_REQD, 902 );
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    show_error( INVALID_ALIAS, 903 );
+    show_error( ERR_INVALID_ALIAS, 903 );
     return(-1);
   }
 
@@ -982,23 +982,23 @@ int add_alias()
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,Domain)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 904 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 904 );
       return(-1);
     } 
 
   /* not system admin so kick them out */
   } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 905 );
+    show_error( ERR_NOT_AUTHORIZED, 905 );
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    show_error( ALIAS_LINE_REQD, 906 );
+    show_error( ERR_ALIAS_LINE_REQD, 906 );
     return(-1);
   }
 
   if (valias_insert(Email, Domain, alias_line) != 0) {
-    show_error( ALIAS_INSERT_FAIL, 907 );
+    show_error( ERR_ALIAS_INSERT_FAIL, 907 );
     return(-1);
   }
 
@@ -1012,17 +1012,17 @@ int remove_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    show_error( NOT_AUTHORIZED, 1001 );
+    show_error( ERR_NOT_AUTHORIZED, 1001 );
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    show_error( ALIAS_REQD, 1002 );
+    show_error( ERR_ALIAS_REQD, 1002 );
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    show_error( INVALID_ALIAS, 1003 );
+    show_error( ERR_INVALID_ALIAS, 1003 );
     return(-1);
   }
 
@@ -1031,23 +1031,23 @@ int remove_alias()
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,Domain)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 1004 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 1004 );
       return(-1);
     } 
 
   /* not system admin so kick them out */
   } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 1005 );
+    show_error( ERR_NOT_AUTHORIZED, 1005 );
     return(-1);
   }
 
   if ((alias_line=strtok(NULL, "\n"))==NULL) {
-    show_error( ALIAS_LINE_REQD, 1006 );
+    show_error( ERR_ALIAS_LINE_REQD, 1006 );
     return(-1);
   }
 
   if (valias_remove(Email, Domain, alias_line) != 0) {
-    show_error( ALIAS_REMOVE_FAIL, 1007 );
+    show_error( ERR_ALIAS_REMOVE_FAIL, 1007 );
     return(-1);
   }
 
@@ -1061,17 +1061,17 @@ int delete_alias()
   char Email[256], Domain[256];
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    show_error( NOT_AUTHORIZED, 1101 );
+    show_error( ERR_NOT_AUTHORIZED, 1101 );
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    show_error( ALIAS_REQD, 1102 );
+    show_error( ERR_ALIAS_REQD, 1102 );
     return(-1);
   }
 
   if (parse_email(alias, Email, Domain, sizeof(Email)) != 0) {
-    show_error( INVALID_ALIAS, 1103 );
+    show_error( ERR_INVALID_ALIAS, 1103 );
     return(-1);
   }
 
@@ -1080,18 +1080,18 @@ int delete_alias()
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,Domain)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 1104 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 1104 );
       return(-1);
     } 
 
   /* not system admin so kick them out */
   } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 1105 );
+    show_error( ERR_NOT_AUTHORIZED, 1105 );
     return(-1);
   }
 
   if (valias_delete(Email, Domain) != 0) {
-    show_error( ALIAS_DELETE_FAIL, 1106 );
+    show_error( ERR_ALIAS_DELETE_FAIL, 1106 );
     return(-1);
   }
 
@@ -1116,17 +1116,17 @@ int add_alias_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 1201 );
+    show_error( ERR_NOT_AUTHORIZED, 1201 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 1202 );
+    show_error( ERR_DOMAIN_REQD, 1202 );
     return(-1);
   }
 
   if ((alias=strtok(NULL,TOKENS))==NULL) {
-    show_error( ALIAS_REQD, 1203 );
+    show_error( ERR_ALIAS_REQD, 1203 );
     return(-1);
   }
 
@@ -1147,12 +1147,12 @@ int del_domain()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 1301 );
+    show_error( ERR_NOT_AUTHORIZED, 1301 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 1302 );
+    show_error( ERR_DOMAIN_REQD, 1302 );
     return(-1);
   }
 
@@ -1176,12 +1176,12 @@ int dom_info()
  int  i, aliascount=0;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 1401 );
+    show_error( ERR_NOT_AUTHORIZED, 1401 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 1402 );
+    show_error( ERR_DOMAIN_REQD, 1402 );
     return(-1);
   }
 
@@ -1260,13 +1260,13 @@ int validate_path(char *newpath, char *path)
 
   /* check for fake out path */
   if ( strstr(path,"..") != NULL ) {
-    show_error( INVALID_DIR_DOTDOT, 1501 );
+    show_error( ERR_INVALID_DIR_DOTDOT, 1501 );
     return(1);
   }
 
   /* check for fake out path */
   if ( strstr(path,"%") != NULL ) {
-    show_error( INVALID_DIR_PCT, 1502 );
+    show_error( ERR_INVALID_DIR_PCT, 1502 );
     return(2);
   }
 
@@ -1276,7 +1276,7 @@ int validate_path(char *newpath, char *path)
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
-      show_error( INVALID_DIR_SLASH, 1503 );
+      show_error( ERR_INVALID_DIR_SLASH, 1503 );
       return(3);
     }
     atsign = strchr(path,'@');
@@ -1284,7 +1284,7 @@ int validate_path(char *newpath, char *path)
     /* possible email address */
     if ( atsign != NULL ) {
       if ( atsign > slash ) {
-        show_error( INVALID_DIR_AT, 1504 );
+        show_error( ERR_INVALID_DIR_AT, 1504 );
         return(4);
       }
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
@@ -1293,12 +1293,12 @@ int validate_path(char *newpath, char *path)
       theemail[i] = 0;
 
       if ( parse_email( theemail, theuser, thedomain, 256) != 0 ) {
-        show_error( INVALID_DIR_PARSE, 1505 );
+        show_error( ERR_INVALID_DIR_PARSE, 1505 );
         return(5);
       } 
 
       if ((myvpw = vauth_getpw(theuser, thedomain))==NULL) {
-        show_error( INVALID_DIR_UNK, 1506 );
+        show_error( ERR_INVALID_DIR_UNK, 1506 );
         return(6);
       }
 
@@ -1306,7 +1306,7 @@ int validate_path(char *newpath, char *path)
       /* limit domain admins to their domains */
       if ( AuthVpw.pw_gid & QA_ADMIN ) {
         if ( strncmp(TheDomain,thedomain,strlen(TheDomain))!=0 ) {
-          show_error( NOT_AUTH_DOMAIN, 1507 );
+          show_error( ERR_NOT_AUTH_DOMAIN, 1507 );
           return(7);
         }
 
@@ -1314,7 +1314,7 @@ int validate_path(char *newpath, char *path)
       } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ){
         if ( strcmp(TheUser, theuser) != 0 || 
              strcmp(TheDomain, thedomain) != 0 ) {
-          show_error( NO_USER, 1508 );
+          show_error( ERR_NO_USER, 1508 );
           return(8);
         }
       }
@@ -1326,7 +1326,7 @@ int validate_path(char *newpath, char *path)
       }
       thedomain[i] = 0;
       if ( vget_assign(thedomain, thedir,sizeof(thedir),NULL,NULL) == NULL ) {
-        show_error( NOT_AUTH_DOMAIN, 1509 );
+        show_error( ERR_NOT_AUTH_DOMAIN, 1509 );
         return(9);
       } 
       snprintf(newpath, MAXPATH, thedir);
@@ -1336,17 +1336,17 @@ int validate_path(char *newpath, char *path)
 
   if ( AuthVpw.pw_gid & SA_ADMIN ) { 
     if ( strncmp(TheVpopmailDomains, newpath, strlen(TheVpopmailDomains))!=0 ) {
-      show_error( UNAUTH_DIR, 1510 );
+      show_error( ERR_UNAUTH_DIR, 1510 );
       return(10);
     }
   } else if ( AuthVpw.pw_gid & QA_ADMIN ) {
     if ( strncmp(TheDomainDir, newpath, strlen(TheDomainDir)) !=0 ) {
-      show_error( UNAUTH_DIR, 1511 );
+      show_error( ERR_UNAUTH_DIR, 1511 );
       return(11);
     }
   } else {
     if ( strncmp(TheUserDir, newpath, strlen(TheUserDir))!=0 ) {
-      show_error( UNAUTH_DIR, 1512 );
+      show_error( ERR_UNAUTH_DIR, 1512 );
       return(12);
     }
   }
@@ -1360,7 +1360,7 @@ int mk_dir()
 
   /* must supply directory parameter */
   if ((olddir=strtok(NULL,TOKENS))==NULL) {
-    show_error( DIR_REQD, 1601 );
+    show_error( ERR_DIR_REQD, 1601 );
     return(-1);
   }
 
@@ -1393,7 +1393,7 @@ int rm_dir()
 
   /* must supply directory parameter */
   if ((olddir=strtok(NULL,TOKENS))==NULL) {
-    show_error( DIR_REQD, 1701 );
+    show_error( ERR_DIR_REQD, 1701 );
     return(-1);
   }
 
@@ -1419,7 +1419,7 @@ int list_dir()
 
   /* must supply directory parameter */
   if ((olddir=strtok(NULL,TOKENS))==NULL) {
-    show_error( DIR_REQD, 1801 );
+    show_error( ERR_DIR_REQD, 1801 );
     return(-1);
   }
 
@@ -1485,12 +1485,12 @@ int rename_file()
   char *source, *dest;
 
   if ((source=strtok(NULL,TOKENS))==NULL) {
-    show_error( SOURCE_REQD, 3801 );
+    show_error( ERR_SOURCE_REQD, 3801 );
     return(-1);
   }
 
   if ((dest=strtok(NULL,TOKENS))==NULL) {
-    show_error( DEST_REQD, 3801 );
+    show_error( ERR_DEST_REQD, 3801 );
     return(-1);
   }
 
@@ -1520,7 +1520,7 @@ int rm_file()
 
   /* must supply directory parameter */
   if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
-    show_error( FNAME_REQD, 1901 );
+    show_error( ERR_FNAME_REQD, 1901 );
     return(-1);
   }
 
@@ -1546,7 +1546,7 @@ int write_file()
 
   /* must supply directory parameter */
   if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
-    show_error( FNAME_REQD, 2001 );
+    show_error( ERR_FNAME_REQD, 2001 );
     return(-1);
   }
 
@@ -1579,7 +1579,7 @@ int read_file()
 
   /* must supply directory parameter */
   if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
-    show_error( FNAME_REQD, 2101 );
+    show_error( ERR_FNAME_REQD, 2101 );
     return(-1);
   }
 
@@ -1622,7 +1622,7 @@ int stat_file()
 
   /* must supply directory parameter */
   if ((oldfilename=strtok(NULL,TOKENS))==NULL) {
-    show_error( FNAME_REQD, 2201 );
+    show_error( ERR_FNAME_REQD, 2201 );
     return(-1);
   }
 
@@ -1653,7 +1653,7 @@ int list_domains()
  int end;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2301 );
+    show_error( ERR_NOT_AUTHORIZED, 2301 );
     return(-1);
   }
 
@@ -1676,7 +1676,7 @@ int list_domains()
 
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
-    show_error( NO_OPEN_ASSIGN, 2302 );
+    show_error( ERR_NO_OPEN_ASSIGN, 2302 );
     return(-1);
   }
 
@@ -1720,12 +1720,12 @@ int find_domain()
   per_page = 0;
  
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2401 );
+    show_error( ERR_NOT_AUTHORIZED, 2401 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 2402 );
+    show_error( ERR_DOMAIN_REQD, 2402 );
     return(-1);
   }
 
@@ -1735,7 +1735,7 @@ int find_domain()
 
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
-    show_error( NO_OPEN_ASSIGN, 2403 );
+    show_error( ERR_NO_OPEN_ASSIGN, 2403 );
     return(-1);
   }
 
@@ -1777,14 +1777,14 @@ int domain_count()
  int count;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2501 );
+    show_error( ERR_NOT_AUTHORIZED, 2501 );
     return(-1);
   }
 
 
   entry=get_domain_entries( "" );
   if ( entry == NULL ) {
-    show_error( NO_OPEN_ASSIGN, 2502 );
+    show_error( ERR_NO_OPEN_ASSIGN, 2502 );
     return(-1);
   }
 
@@ -1812,24 +1812,24 @@ int user_count()
   int count;
  
    if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-     show_error( NOT_AUTHORIZED, 2601 );
+     show_error( ERR_NOT_AUTHORIZED, 2601 );
      return(-1);
    }
  
    if ((domain=strtok(NULL,TOKENS))==NULL) {
-     show_error( DOMAIN_REQD, 2602 );
+     show_error( ERR_DOMAIN_REQD, 2602 );
      return(-1);
    }
  
    if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) &&
          (strcmp(TheDomain,domain))!=0 ) {
-     show_error( NOT_AUTH_DOMAIN, 2603 );
+     show_error( ERR_NOT_AUTH_DOMAIN, 2603 );
      return(-1);
    }
  
    if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) &&
          (strcmp(TheDomain,domain))!=0 ) {
-     show_error( NOT_AUTH_DOMAIN, 2604 );
+     show_error( ERR_NOT_AUTH_DOMAIN, 2604 );
      return(-1);
    }
  
@@ -1862,18 +1862,18 @@ int list_users()
  int end;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2701 );
+    show_error( ERR_NOT_AUTHORIZED, 2701 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 2702 );
+    show_error( ERR_EMAIL_REQD, 2702 );
     return(-1);
   }
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 2703 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 2703 );
     return(-1);
   }
 
@@ -1895,7 +1895,7 @@ int list_users()
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 2704 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 2704 );
     return(-1);
   }
 
@@ -1939,12 +1939,12 @@ list_alias()
   char Alias[256], Email[256], Domain[256];
  
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    show_error( NOT_AUTHORIZED, 2801 );
+    show_error( ERR_NOT_AUTHORIZED, 2801 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 2802 );
+    show_error( ERR_DOMAIN_REQD, 2802 );
     return(-1);
   }
 
@@ -1955,7 +1955,7 @@ list_alias()
 
   snprintf(Email, sizeof(Email), "%s", domain);
   if (parse_email(Email, Alias, Domain, sizeof(Alias)) != 0) {
-    show_error( INVALID_EMAIL, 2803 );
+    show_error( ERR_INVALID_EMAIL, 2803 );
     return(-1);
   }
 
@@ -1964,13 +1964,13 @@ list_alias()
 
     /* if not their domain, reject */
     if ( strcmp(TheDomain,domain)!= 0 )  {
-      show_error( NOT_AUTH_DOMAIN, 2804 );
+      show_error( ERR_NOT_AUTH_DOMAIN, 2804 );
       return(-1);
     } 
 
   /* not system admin so kick them out */
   } else if ( !(AuthVpw.pw_gid&SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2805 );
+    show_error( ERR_NOT_AUTHORIZED, 2805 );
     return(-1);
   }
 
@@ -2024,23 +2024,23 @@ int list_lists()
  static char tmpbuf[1024];
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 2901 );
+    show_error( ERR_NOT_AUTHORIZED, 2901 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 2902 );
+    show_error( ERR_EMAIL_REQD, 2902 );
     return(-1);
   }
 
   if ( !(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
         (strcmp(TheDomain,domain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 2903 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 2903 );
     return(-1);
   }
 
   if ( (vget_assign(domain,thedir,sizeof(thedir),NULL,NULL)) == NULL ) {
-    show_error( NOT_AUTH_DOMAIN, 2904 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 2904 );
     return(-1);
   }
 
@@ -2107,12 +2107,12 @@ int get_ip_map()
  static char  tmpdomain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3001 );
+    show_error( ERR_NOT_AUTHORIZED, 3001 );
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    show_error( IP_REQUIRED, 3002 );
+    show_error( ERR_IP_REQUIRED, 3002 );
     return(-1);
   }
 
@@ -2129,7 +2129,7 @@ int get_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  show_error( NOT_AVAIL, 3004 );
+  show_error( ERR_NOT_AVAIL, 3004 );
 #endif
   
   return(0);
@@ -2142,22 +2142,22 @@ int add_ip_map()
  char *domain;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3101 );
+    show_error( ERR_NOT_AUTHORIZED, 3101 );
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    show_error( IP_REQD, 3102 );
+    show_error( ERR_IP_REQD, 3102 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 3103 );
+    show_error( ERR_DOMAIN_REQD, 3103 );
     return(-1);
   }
 
   if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
-    show_error( INVALID_DOMAIN, 3104 );
+    show_error( ERR_INVALID_DOMAIN, 3104 );
     return(-1);
   }
 
@@ -2168,7 +2168,7 @@ int add_ip_map()
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 #else
-  show_error( NOT_AVAIL, 3106 );
+  show_error( ERR_NOT_AVAIL, 3106 );
 #endif
   return(0);
 }
@@ -2180,17 +2180,17 @@ int del_ip_map()
  char *domain;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3201 );
+    show_error( ERR_NOT_AUTHORIZED, 3201 );
     return(-1);
   }
 
   if ((ip=strtok(NULL,TOKENS))==NULL) {
-    show_error( IP_REQUIRED, 3202 );
+    show_error( ERR_IP_REQUIRED, 3202 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 3203 );
+    show_error( ERR_DOMAIN_REQD, 3203 );
     return(-1);
   }
 
@@ -2202,7 +2202,7 @@ int del_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
 
 #else
-  show_error( NOT_AVAIL, 3205 );
+  show_error( ERR_NOT_AVAIL, 3205 );
 #endif
   return(0);
 }
@@ -2215,7 +2215,7 @@ int show_ip_map()
  static char r_domain[256];
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3301 );
+    show_error( ERR_NOT_AUTHORIZED, 3301 );
     return(-1);
   }
 
@@ -2232,7 +2232,7 @@ int show_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
 
 #else
-  show_error( NOT_AVAIL, 3302 );
+  show_error( ERR_NOT_AVAIL, 3302 );
 #endif
   return(0);
 }
@@ -2244,17 +2244,17 @@ int get_limits()
  struct vlimits mylimits;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3401 );
+    show_error( ERR_NOT_AUTHORIZED, 3401 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 3402 );
+    show_error( ERR_DOMAIN_REQD, 3402 );
     return(-1);
   }
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
-    show_error( NO_GET_LIMITS, 3403 );
+    show_error( ERR_NO_GET_LIMITS, 3403 );
     return(-1);
   }
 
@@ -2374,7 +2374,7 @@ int set_limits()
   char *value;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3501 );
+    show_error( ERR_NOT_AUTHORIZED, 3501 );
     return(-1);
   }
 
@@ -2382,14 +2382,14 @@ int set_limits()
   wait_write();
 
   if ((param=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 3502 );
+    show_error( ERR_DOMAIN_REQD, 3502 );
     return(-1);
   }
 
   snprintf(domain,sizeof(domain), param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
-    show_error( NO_GET_LIMITS, 3505 );
+    show_error( ERR_NO_GET_LIMITS, 3505 );
     return(-1);
   }
 
@@ -2469,7 +2469,7 @@ int set_limits()
   }
 
   if ( vset_limits(domain,&mylimits) < 0 ) {
-    show_error( NO_SET_LIMITS, 3504 );
+    show_error( ERR_NO_SET_LIMITS, 3504 );
   } else {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
   }
@@ -2482,12 +2482,12 @@ int del_limits()
  int   ret;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3601 );
+    show_error( ERR_NOT_AUTHORIZED, 3601 );
     return(-1);
   }
 
   if ((domain=strtok(NULL,TOKENS))==NULL) {
-    show_error( DOMAIN_REQD, 3602 );
+    show_error( ERR_DOMAIN_REQD, 3602 );
     return(-1);
   }
 
@@ -2506,28 +2506,28 @@ int get_lastauth()
  char *email_address;
 
   if ( !(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN) ) {
-    show_error( NOT_AUTHORIZED, 3701 );
+    show_error( ERR_NOT_AUTHORIZED, 3701 );
     return(-1);
   }
 
   if ((email_address=strtok(NULL,TOKENS))==NULL) {
-    show_error( EMAIL_REQD, 3702 );
+    show_error( ERR_EMAIL_REQD, 3702 );
     return(-1);
   }
 
   if ( parse_email( email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0 ) {
-    show_error( INVALID_EMAIL, 3703 );
+    show_error( ERR_INVALID_EMAIL, 3703 );
     return(-1);
   } 
 
   if (!(AuthVpw.pw_gid&SA_ADMIN) && (AuthVpw.pw_gid&QA_ADMIN) && 
        (strcmp(TheDomain,TmpDomain))!=0 ) {
-    show_error( NOT_AUTH_DOMAIN, 3704 );
+    show_error( ERR_NOT_AUTH_DOMAIN, 3704 );
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain))==NULL) {
-    show_error( NO_USER, 3705 );
+    show_error( ERR_NO_USER, 3705 );
     return(-1);
   } 
 
@@ -2553,19 +2553,19 @@ int get_lastauth()
 
 int add_list()
 {
-  show_error( NOT_IMPLEMENT, 4001 );
+  show_error( ERR_NOT_IMPLEMENT, 4001 );
   return(-1);
 }
 
 int del_list()
 {
-  show_error( NOT_IMPLEMENT, 4101 );
+  show_error( ERR_NOT_IMPLEMENT, 4101 );
   return(-1);
 }
 
 int mod_list()
 {
-  show_error( NOT_IMPLEMENT, 4201 );
+  show_error( ERR_NOT_IMPLEMENT, 4201 );
   return(-1);
 }
 
