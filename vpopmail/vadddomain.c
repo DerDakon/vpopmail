@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.10 2007-05-22 03:58:59 rwidmer Exp $
+ * $Id: vadddomain.c,v 1.11 2007-07-13 22:21:01 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -133,6 +133,12 @@ void usage()
 	printf("         -r[len] (generate a len (default 8) char random postmaster password)\n");
 	printf("\n");
 	printf(" [*] omit @-sign to deliver directly into user's Maildir: '-e postmaster'\n");
+        printf("\n");
+        printf("Special bounce messages supported by vdeliver mail:\n");
+        printf("   vadddomain -b delete example.com [password]  -  delete all mail to non-existant accounts\n");
+        printr("   vadddomain -b bounce-no-mailbox example.com [password] - bounce them \n");
+        printf("   vadddimain -b someone@somewhere.com example.com [password] - sent to another address\n");
+        printf("   vadddomain -b /path/to/Maildir example.com [password] - sent to a Maildir\n");
 }
 
 void get_options(int argc,char **argv)
