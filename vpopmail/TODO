@@ -1,0 +1,5 @@
+Need to support -x option in vadddomain that sets the delete option when
+the qmail-default is created.
+
+vadddomain may not actually support Bounce. I see where it is set, but not 
+where it is used.

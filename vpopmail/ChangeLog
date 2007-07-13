@@ -7,7 +7,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 	Rick Widmer
 	- Make vadduser check that domain exists and user does not exist
-	  before prompting for password.
+	  before prompting for password
+	- Add TODO file to record stuff I don't want to forget
+	- Add README.vdelivermail 
+	- Add examples for delete and bounce-no-mailbox to help on vadddomain
 
 	Remo Mattei
 	- Change upgrade script to use pw_domain instead of domain in example code
