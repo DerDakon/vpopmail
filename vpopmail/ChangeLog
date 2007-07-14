@@ -16,6 +16,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Change upgrade script to use pw_domain instead of domain in example code
 	  to change domain name field lengths.
 
+	John Simpson, Joshua Megerman, Adam Sloan
+	- Fix bad exit if script exists but can not be executed
+	- Fix missing onchange on delete of alias domain
+
+
 5.4.19 - released 21-May-2007
 	Rick Widmer
 	- update to aclocal 1.9.5, automake 1.9.5, autoconf 2.59 to match my system

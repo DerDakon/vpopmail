@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.54 2007-05-22 03:59:01 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.55 2007-07-14 04:37:15 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -379,6 +379,12 @@ int vdeldomain( char *domain )
       */
      aliases[aliascount++] = strdup( domain_to_del );
 
+#ifdef ONCHANGE_SCRIPT
+     /* tell other programs that data has changed */
+     snprintf ( onchange_buf, MAX_BUFF, "%s alias of %s", domain_to_del, domain );
+     call_onchange ( "del_domain" );
+#endif
+
   } else {
     /* this is an NOT aliased domain....
    * (aliased domains dont have any filestructure of their own)
@@ -432,11 +438,7 @@ int vdeldomain( char *domain )
 
 #ifdef ONCHANGE_SCRIPT
      /* tell other programs that data has changed */
-     if( 0 == strcmp( domain_to_del, domain )) {
-        snprintf ( onchange_buf, MAX_BUFF, "%s", domain );
-     } else {
-        snprintf ( onchange_buf, MAX_BUFF, "%s alias of %s", domain_to_del, domain );
-     }
+     snprintf ( onchange_buf, MAX_BUFF, "%s", domain );
      call_onchange ( "del_domain" );
 #endif
 
@@ -4084,13 +4086,18 @@ struct linklist * linklist_del (struct linklist *list) {
  * John Simpson <jms1@jms1.net> 2005-01-22
  *
  * 2006-03-30 jms1 - added command line parameters for external program
+ *
+ * 2007-01-09 jms1 - cleanup, now returns onchange script exit code,
+ *   error messages are now accurate.
+ *
+ * 2007-07-14 jms1 - suppressing "ONCHANGE script not found" message.
  */
 char onchange_buf[MAX_BUFF];
 int allow_onchange=1;
 int call_onchange ( const char *cmd )
 {
 	char path[MAX_BUFF];
-	int pid;
+	int pid, rv;
 
         if( !allow_onchange )  {
            return(0);
@@ -4101,7 +4108,6 @@ int call_onchange ( const char *cmd )
 
 	/* if it doesn't exist, we're done */
 	if( access(path,F_OK) ) { 
-           fprintf(stderr, "ONCHANGE script %s not found.\n", path);
            return(0);
            }
 
@@ -4116,15 +4122,16 @@ int call_onchange ( const char *cmd )
 	if ( 0 == pid )
 	{
 		execl ( path, "onchange", cmd, onchange_buf, NULL );
-           	fprintf(stderr, "ONCHANGE script %s unable to fork.\n", path);
-	        return(0);
+           	fprintf(stderr, "ONCHANGE script %s unable to exec.\n", path);
+	        return(0); /* would "_exit(-1)" make more sense here ??? */
 	}
 	else if ( pid > 0 )
-		wait ( &pid );
-	else
-           	fprintf(stderr, "ONCHANGE script %s failed.\n", path);
-	        return(0);
+	{
+		wait(&rv);
+		return(rv);
+	}
 
+	fprintf(stderr, "ONCHANGE script %s unable to fork.\n", path);
 	return(0);
 }
 #endif
