@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.11 2007-07-13 22:21:01 rwidmer Exp $
+ * $Id: vadddomain.c,v 1.12 2007-07-14 04:37:15 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -136,7 +136,7 @@ void usage()
         printf("\n");
         printf("Special bounce messages supported by vdeliver mail:\n");
         printf("   vadddomain -b delete example.com [password]  -  delete all mail to non-existant accounts\n");
-        printr("   vadddomain -b bounce-no-mailbox example.com [password] - bounce them \n");
+        printf("   vadddomain -b bounce-no-mailbox example.com [password] - bounce them \n");
         printf("   vadddimain -b someone@somewhere.com example.com [password] - sent to another address\n");
         printf("   vadddomain -b /path/to/Maildir example.com [password] - sent to a Maildir\n");
 }
