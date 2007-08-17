@@ -1,5 +1,5 @@
 /*
- * $Id: vcdb.c,v 1.25 2007-05-22 03:58:59 rwidmer Exp $
+ * $Id: vcdb.c,v 1.26 2007-08-17 22:49:23 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.25 2007-05-22 03:58:59 rwidmer Exp $
+** $Id: vcdb.c,v 1.26 2007-08-17 22:49:23 rwidmer Exp $
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998
@@ -352,6 +352,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 		fclose(fsv);
 		fsv = NULL;
 	}
+    if(tmpwd) vlimits_setflags(tmpwd,domain) ;
     return(tmpwd);
 }
 

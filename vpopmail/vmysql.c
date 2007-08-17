@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.34 2007-05-22 03:59:01 rwidmer Exp $
+ * $Id: vmysql.c,v 1.35 2007-08-17 22:49:23 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -767,6 +767,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         }
 #endif
         more = 1;
+        vlimits_setflags(&vpw,domain);
         return(&vpw);
     }
     more = 0;

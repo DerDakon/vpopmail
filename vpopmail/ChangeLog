@@ -20,6 +20,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix bad exit if script exists but can not be executed
 	- Fix missing onchange on delete of alias domain
 
+	John Simpson
+	- Bug fix for vuserifo - vlimits
+	
 
 5.4.19 - released 21-May-2007
 	Rick Widmer
