@@ -1,3 +1,14 @@
+NOTE:  New commands added to daemon, with no mention in the help yet...
+
+get_user_size user@example.com
+
+get_domain_size domain
+
+
+
+==========================================================================
+
+
 Vpopmaild provides a way for authorized clients to perform most of the 
 tasks you can do with the vpopmail command line tools, without having 
 to ssh into the server and run them by hand.  We are not yet at a point 
