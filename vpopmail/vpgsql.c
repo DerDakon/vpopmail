@@ -1,5 +1,5 @@
 /*
- * $Id: vpgsql.c,v 1.38 2007-05-22 03:59:01 rwidmer Exp $
+ * $Id: vpgsql.c,v 1.39 2007-08-17 22:49:23 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -575,6 +575,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     }
 #endif
     ctuple++;
+    vlimits_setflags(&vpw,domain);
     return(&vpw);
 }
 

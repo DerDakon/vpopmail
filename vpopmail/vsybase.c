@@ -1,5 +1,5 @@
 /*
- * $Id: vsybase.c,v 1.19 2007-05-22 03:59:02 rwidmer Exp $
+ * $Id: vsybase.c,v 1.20 2007-08-17 22:49:24 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -494,6 +494,7 @@ struct vqpasswd *vauth_getall_size(char *domain, int first, int sortit, int site
 		strncpy(pwent.pw_dir,dbretdata(dbproc,6),SMALL_BUFF);
 		strncpy(pwent.pw_shell, dbretdata(dbproc,7),SMALL_BUFF);
 		more = 1;
+		vlimits_setflags(&pwent,domain);
 		return(&pwent);
 	}
 	more = 0;
