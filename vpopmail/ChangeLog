@@ -23,6 +23,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	John Simpson
 	- Bug fix for vuserifo - vlimits
 	
+	Harm van Tilborg
+	- Add support to vpopmaild to retrieve used storage sizes of domains or users
+
 
 5.4.19 - released 21-May-2007
 	Rick Widmer

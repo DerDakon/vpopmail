@@ -113,6 +113,8 @@ int get_lastauth();
 int add_list();
 int del_list();
 int mod_list();
+int get_user_size();
+int get_domain_size();
 int quit();
 int login_help();
 int help();
@@ -179,6 +181,7 @@ func_t Functions[] = {
 {2, "get_limits", get_limits, "domain<crlf>" },
 {3, "set_limits", set_limits, "domain (option lines)<crlf>.<crlf>"},
 {3, "del_limits", del_limits, "domain<crlf>" },
+{2, "get_domain_size", get_domain_size, "domain<crlf>" },
 
 {1, "User", NULL, NULL},
 {2, "add_user", add_user, "user@domain password<crlf>" },
@@ -189,6 +192,7 @@ func_t Functions[] = {
 {2, "list_lists", list_lists, "domain<crlf>" },
 {1, "mod_user", mod_user, "user@domain (option lines)<crlf>.<crlf>" },
 {1, "get_lastauth", get_lastauth, "user@domain<crlf>" },
+{1, "get_user_size", get_user_size, "user@domain<crlf>" },
 
 {2, "Alias", NULL, NULL},
 {2, "add_alias", add_alias, "user@domain user@otherdomain<crlf>" },
@@ -2567,6 +2571,126 @@ int mod_list()
 {
   show_error( ERR_NOT_IMPLEMENT, 4201 );
   return(-1);
+}
+
+int get_user_size()
+{
+  char *email_address;
+  int ret, cnt;
+  long bytes;
+
+  if (!(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
+    snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "3801 not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((email_address = strtok(NULL, TOKENS)) == NULL) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3802 email_address required" RET_CRLF);
+    return(-1);
+  }
+
+  if (parse_email(email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3803 invalid email address" RET_CRLF);
+    return(-1);
+  }
+
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN) 
+    && (strcmp(TheDomain, TmpDomain) != 0)) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3804 not authorized for domain" RET_CRLF);
+    return(-1);
+  }
+
+  if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain)) == NULL) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3805 user does not exist" RET_CRLF);
+    return(-1);
+  }
+
+  bytes = 0;
+  cnt = 0;
+  if ((ret = readuserquota(tmpvpw->pw_dir, &bytes, &cnt)) != 0) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3806 unable to fetch size of user account" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "size %ld" RET_CRLF, bytes);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "count %d" RET_CRLF, cnt);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+
+  return(0);
+}
+
+int get_domain_size()
+{
+  char *domain, tmpdir[256];
+  int ret, cnt, first;
+  long bytes;
+  unsigned int totalcnt;
+  unsigned long long totalbytes;
+
+  if (!(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3901 not authorized" RET_CRLF);
+    return(-1);
+  }
+
+  if ((domain = strtok(NULL, TOKENS)) == NULL) {
+    snprintf(WriteBuf, sizeof(WriteBuf), 
+      RET_ERR "3902 domain required" RET_CRLF);
+    return(-1);
+  }
+
+  if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN) 
+    && (strcmp(TheDomain, domain) != 0)) {
+    snprintf(WriteBuf, sizeof(WriteBuf),
+      RET_ERR "3903 not authorized for domain" RET_CRLF);
+    return(-1);
+  }
+
+  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  wait_write();
+
+  totalbytes = 0;
+  totalcnt = 0;
+  first = 1;
+  while ((tmpvpw = vauth_getall(domain, first, 0)) != NULL) {
+    first = 0;
+    bytes = 0;
+    cnt = 0;
+    snprintf(tmpdir, sizeof(tmpdir), "%s/Maildir", tmpvpw->pw_dir);
+    if ((ret = readuserquota(tmpdir, &bytes, &cnt)) != 0) {
+      snprintf(WriteBuf, sizeof(WriteBuf), 
+        RET_ERR "3904 unable to fetch size of user accounts '%s'" RET_CRLF, tmpvpw->pw_name);
+      return(-1);
+    } else {
+      snprintf(WriteBuf, sizeof(WriteBuf), "user %s@%s" RET_CRLF, tmpvpw->pw_name, domain);
+      wait_write();
+      snprintf(WriteBuf, sizeof(WriteBuf), "size %ld" RET_CRLF, bytes);
+      wait_write();
+      snprintf(WriteBuf, sizeof(WriteBuf), "count %d" RET_CRLF, cnt);
+      wait_write();
+      totalbytes += (unsigned long)bytes;
+      totalcnt += (unsigned int)cnt;
+    }
+  }
+
+  snprintf(WriteBuf, sizeof(WriteBuf), "domain %s" RET_CRLF, domain);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "size %llu" RET_CRLF, totalbytes);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "count %u" RET_CRLF, totalcnt);
+  wait_write();
+  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+
+  return(0);
 }
 
 int quit()
