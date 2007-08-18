@@ -29,6 +29,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Vitali Malicky (coonardoo), Ismail Yenigul
 	- add ldap patch [1909348]
 
+	Ronnie Karstenberg (rkarstenberg)
+	- vdominfo crashes with a lot of aliased domains [1765534]
+
 
 5.4.19 - released 21-May-2007
 	Rick Widmer

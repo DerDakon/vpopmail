@@ -42,7 +42,7 @@ This is based on the onchange patch by John Simpson, used to support
 his validrcptto.cdb patch.  Robin Bowes made the suggestion to return  
 information on what was done.
 
-http://qmail.jms1.net/patches/vpopmail.shtml
+http://qmail.jms1.net/vpopmail
 
 
 
