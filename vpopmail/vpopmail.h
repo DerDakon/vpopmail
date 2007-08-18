@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.28 2007-08-17 22:54:54 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.29 2007-08-18 20:38:24 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 
 /* max buffer sizes */
 #define MAX_BUFF 300
-#define MAX_DOM_ALIAS 20
+#define MAX_DOM_ALIAS 100
 
 /* max field sizes */
 #define MAX_PW_NAME         32
