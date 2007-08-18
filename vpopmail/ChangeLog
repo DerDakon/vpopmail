@@ -26,6 +26,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Harm van Tilborg
 	- Add support to vpopmaild to retrieve used storage sizes of domains or users
 
+	Vitali Malicky (coonardoo), Ismail Yenigul
+	- add ldap patch [1909348]
+
 
 5.4.19 - released 21-May-2007
 	Rick Widmer

@@ -7,6 +7,128 @@ system on a production server.
 
 --------------------------------------------------------------------------
 
+So far this file is just a collection of everything that has ever been 
+written about ldap.  It would be nice for someone who is actually using
+it, or even better someone who has to figure it out for the first time,
+to go through this file and clean it up.  If you do, please send a copy
+to the vpopmail-devel@lists.sourceforge.net so it can be included in
+the next release...
+
+--------------------------------------------------------------------------
+
+README file from ldap patch [1609348]
+
+
+
+OS: FreeBSD devhost.kingdom.lan 6.0-RELEASE FreeBSD 6.0-RELEASE #0: Fri Nov 24 14:49:25 EET 2006
+    life@devhost.kingdom.lan:/usr/src/sys/i386/compile/DEVHOST  i386
+
+##########
+
+gcc:	Using built-in specs.
+	Configured with: FreeBSD/i386 system compiler
+	Thread model: posix
+	gcc version 3.4.4 [FreeBSD] 20050518
+
+##########
+
+LDAP: openldap-2.3.20
+
+##########
+
+OpenLdap Built:
+    LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib/sasl2:/usr/local/BerkeleyDB.4.3/lib"
+    LDFLAGS="-L/usr/local/lib -L/usr/local/lib/sasl2 -L/usr/local/BerkeleyDB.4.3/lib \
+             -R/usr/local/lib -R/usr/local/lib/sasl2 -R/usr/local/BerkeleyDB.4.3/lib" \
+    CPPFLAGS="-I/usr/local/include -I/usr/local/BerkeleyDB.4.3/include"
+ ./configure --prefix=/usr/local/ldap --enable-syslog --enable-local \
+ --with-threads --with-tls --with-multiple-precision --with-kerberos \
+ --enable-slapd=yes --enable-slurpd=yes --enable-cleartext=no --enable-crypt=yes \
+ --enable-lmpasswd=yes --enable-spasswd=yes --enable-rewrite=yes --enable-rlookups=yes \
+ --enable-wrappers=yes --enable-dnssrv=yes --enable-modules=yes \
+ --enable-ldap=yes --enable-ldbm=yes --enable-meta=yes --enable-monitor=yes \
+ --enable-null=yes --enable-passwd=yes --enable-perl=yes --enable-relay=yes \
+ --enable-shell=no --enable-sql=no --enable-overlays=yes --enable-dynamic=yes \
+ --with-dyngroup=yes --with-proxycache=yes \
+ --with-cyrus-sasl=yes --enable-spasswd=yes \
+ --enable-bdb=yes --enable-hdb=yes &&
+  make depend &&
+  make &&
+  make install &&
+
+##########
+
+vpopmail-5.4.17
+
+##########
+
+1. configure and configure.in
+    "-lresolv" is not used, thus replaced.
+    path to lib has been changed to "-L/usr/local/ldap/lib"
+    path to includes has been changed to "-I/usr/local/ldap/include"
+
+
+2. qmailUser.schema
+    the "qmailUser" objectClas is derived from "person" objectClass
+    so there MUST be both "cn" and "sn" objectClass'es.
+
+
+3. vauth.h
+    two struct members have been added to "struct vqpasswd"
+    for "cn" and "sn" objectClass'es
+	char *pw_cn;                  /* LDAP's "cn" demanded by "objectClass: qmailUser" */
+	char *pw_sn;                  /* LDAP's "sn" demanded by "objectClass: qmailUser" */
+
+
+4. vldap.h
+    two objectClass'es have been added to char *vldap_attrs[]
+    "cn",               /* LDAP's "cn" demanded by "objectClass: qmailUser" */
+    "sn",               /* LDAP's "cn" demanded by "objectClass: qmailUser" */
+
+
+5. vldap.c
+    NUM_LDAP_FIELDS constant has been given new values
+    char *ldap_fields[] has been added objectClass'es "cn" and "sn"
+	"cn",	/* 7 LDAP's "cn" demanded by "objectClass: qmailUser" */
+	"sn",	/* 8 LDAP's "cn" demanded by "objectClass: qmailUser" */
+
+    "cn" and "sn" objectClass'es have been added to char *ldap_fields[]
+	"cn",	/* 7 LDAP's "cn" demanded by "objectClass: qmailUser"           */
+	"sn",	/* 8 LDAP's "cn" demanded by "objectClass: qmailUser"           */
+
+    in function vauth_getpw() according to the above mentioned changes:
+	vals = ldap_get_values(ld, msg, "cn");
+	    ...
+	vals = ldap_get_values(ld, msg, "sn");
+	    ...
+    have been added
+
+    in function vauth_adduser() "cn" and "sn" values are processed
+        snprintf(common_name, sizeof(common_name), "%s@%s", user, domain);
+        lm[7]->mod_values[0] = safe_strdup(common_name); for "cn"
+        lm[8]->mod_values[0] = safe_strdup(gecos); for "sn"
+	
+
+    in function vauth_setpw() the same "cn" and "sn" values are processed
+	lm[7]->mod_values[0] = safe_strdup(inpw->pw_cn);            /* coonardoo@gmail.com */
+	lm[8]->mod_values[0] = safe_strdup(inpw->pw_sn);            /* coonardoo@gmail.com */
+
+
+    comments have been added for funtion safe_free() as for the warning:
+    "dereferencing type-punned pointer will break strict-aliasing rules"
+    that pops up during compilation. this warning doen't occur with gcc-2.91.* && gcc-4.0.2
+
+
+a shortened variant of slapd configuration of mine is given in the subdirectory ldap here.	
+
+###
+#EOF
+###
+
+
+
+--------------------------------------------------------------------------
+
 2006/Jun/30 : Pavel Vinogradov <blaze.cs@gmail.com>
 
     Now LDAP connection info is stored in ~vpopmail/etc/vpopmail.ldap.  

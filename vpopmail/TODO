@@ -3,3 +3,6 @@ the qmail-default is created.
 
 vadddomain may not actually support Bounce. I see where it is set, but not 
 where it is used.
+
+add .skel directories to the add domain process.  Allow directories to
+be specified at system and domain levels.
