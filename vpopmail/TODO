@@ -6,3 +6,12 @@ where it is used.
 
 add .skel directories to the add domain process.  Allow directories to
 be specified at system and domain levels.
+
+
+Consider enforcing MAX_DOM_ALIAS when adding aliases.  If it does not already exist
+consider adding a domain limit on how many aliases that is <= MAX_DOM_ALIAS.
+MAX_DOM_ALIAS controls the size of structures, and causes a stack overflow if
+too many aliases exist, currently there are no tests that protect against this.
+
+Look for various MAX_BUFF BUFF_SIZE declarations, including making qmailadmin use
+the same definitions as vpopmail.
