@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.20 - unreleased
+5.4.20 - Released 21-Aug-2007
 	Bill Shupp/Rick Widmer
 	- add show_error function to vpopmaild 
 
@@ -25,6 +25,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	
 	Harm van Tilborg
 	- Add support to vpopmaild to retrieve used storage sizes of domains or users
+	- mod_user did not respond +OK if command is valid
 
 	Vitali Malicky (coonardoo), Ismail Yenigul
 	- add ldap patch [1909348]

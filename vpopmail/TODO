@@ -15,3 +15,7 @@ too many aliases exist, currently there are no tests that protect against this.
 
 Look for various MAX_BUFF BUFF_SIZE declarations, including making qmailadmin use
 the same definitions as vpopmail.
+
+Found a possible "unexpected end of script headers" error in qmail.  vlimits is
+writing directly to stderr, and not returning an error code.  Look for similar
+problems in all of the code.
