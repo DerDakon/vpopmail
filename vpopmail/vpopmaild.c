@@ -611,6 +611,9 @@ int mod_user()
   }
   
 
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  wait_write();
+
   while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL ) {
     if ( ReadBuf[0]  == '.' ) break;
     if ( (param = strtok(ReadBuf,PARAM_TOKENS)) == NULL ) continue;
@@ -2382,9 +2385,6 @@ int set_limits()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
-  wait_write();
-
   if ((param=strtok(NULL,TOKENS))==NULL) {
     show_error( ERR_DOMAIN_REQD, 3502 );
     return(-1);
@@ -2396,6 +2396,9 @@ int set_limits()
     show_error( ERR_NO_GET_LIMITS, 3505 );
     return(-1);
   }
+
+  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  wait_write();
 
   while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL ) {
     if ( ReadBuf[0]  == '.' ) break;
