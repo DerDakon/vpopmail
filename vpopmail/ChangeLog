@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.21 - Unreleased
+5.4.21 - Released 06-Sep-2007
 	Joshua Mergeman, Alessio Cecchi
 	- fix bug in vpopmaild add_alias command
 
