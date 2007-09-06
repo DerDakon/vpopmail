@@ -1,6 +1,11 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.21 - Unreleased
+	Joshua Mergeman, Alessio Cecchi
+	- fix bug in vpopmaild add_alias command
+
+
 5.4.20 - Released 21-Aug-2007
 	Bill Shupp/Rick Widmer
 	- add show_error function to vpopmaild 

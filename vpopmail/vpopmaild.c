@@ -999,7 +999,7 @@ int add_alias()
     return(-1);
   }
 
-  if ((alias_line=strtok(NULL, "\n"))==NULL) {
+  if ((alias_line=strtok(NULL,TOKENS))==NULL) {
     show_error( ERR_ALIAS_LINE_REQD, 906 );
     return(-1);
   }
@@ -1048,7 +1048,7 @@ int remove_alias()
     return(-1);
   }
 
-  if ((alias_line=strtok(NULL, "\n"))==NULL) {
+  if ((alias_line=strtok(NULL,TOKENS))==NULL) {
     show_error( ERR_ALIAS_LINE_REQD, 1006 );
     return(-1);
   }
