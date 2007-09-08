@@ -212,8 +212,8 @@ func_t Functions[] = {
 
 {1, "IP Map", NULL, NULL},
 {1, "get_ip_map", get_ip_map, "domain<crlf>" },
-{3, "add_ip_map", add_ip_map, "domain ip<crlf>" },
-{3, "del_ip_map", del_ip_map, "domain<crlf>" },
+{3, "add_ip_map", add_ip_map, "ip domain<crlf>" },
+{3, "del_ip_map", del_ip_map, "ip domain<crlf>" },
 {3, "show_ip_map", show_ip_map, "domain<crlf>" },
 
 {2, "Mailing List", NULL, NULL},

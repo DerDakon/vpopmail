@@ -6,6 +6,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- segfault in vdeluser with MySQL back end
 	- invalid MySQL info in UPGRADE
 
+	Bill Shupp
+	- Missing ERR defines in vpopmaild.msg
+	- Fix help text for add_ip_map and del_ip_map in vpopmaild.c
+
 5.4.21 - Released 06-Sep-2007
 	Joshua Megerman, Alessio Cecchi
 	- fix bug in vpopmaild add_alias command

@@ -38,7 +38,9 @@
 #define ERR_NOT_AVAIL           33   // Not Available
 #define ERR_NO_GET_LIMITS       34   // Could not get limits
 #define ERR_NO_SET_LIMITS       35   // Could not set limits
-#define ERR_NOT_IMPLEMENT	    36   // Not implemented yet
+#define ERR_NOT_IMPLEMENT       36   // Not implemented yet
+#define ERR_IP_REQUIRED         37   // Not implemented yet
+#define ERR_INVALID_DOMAIN      38   // Not implemented yet
 
 
 
