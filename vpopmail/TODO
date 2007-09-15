@@ -29,3 +29,8 @@ when valias is enabled calls that return aliases should return both aliases
 stored in the database, and those stored in .qmail files at the domain level.
 When valiases are created, they should go into the database.  Need to provide
 an alternate call that lets you create a .qmail file if desired.
+
+When a database enabled valias call looks up an address it must look for a
+.qmail file first, and return its contents.  When it does an update, if a
+.qmail file exists, update it.  Same with delete.  Why?  qmail looks for the 
+.qmail files first, so if they exist - they win.
