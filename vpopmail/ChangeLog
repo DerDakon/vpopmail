@@ -3,12 +3,20 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.22 - unreleased
         Steve Cole
-	- segfault in vdeluser with MySQL back end
 	- invalid MySQL info in UPGRADE
 
 	Bill Shupp
 	- Missing ERR defines in vpopmaild.msg
 	- Fix help text for add_ip_map and del_ip_map in vpopmaild.c
+
+	Rick Widmer
+	- attack warnings in maildirquota by making some variables unsigned everywhere
+
+        Steve Cole, Rick Widmer
+	- segfault in vdeluser with MySQL back end.  Work around applied, and note
+	added to TODO about making database valias return .qmail files if they exist
+	which is the long term fix.
+
 
 5.4.21 - Released 06-Sep-2007
 	Joshua Megerman, Alessio Cecchi

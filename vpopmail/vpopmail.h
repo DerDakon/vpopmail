@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.29 2007-08-18 20:38:24 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.30 2007-09-15 10:28:28 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -216,7 +216,7 @@ char *date_header();
 char *get_remote_ip();
 char *maildir_to_email(const char *maildir);
 int qnprintf (char *buffer, size_t size, const char *format, ...);
-int readuserquota(const char* dir, long *sizep, int *cntp);
+int readuserquota(const char* dir, unsigned long *sizep, unsigned int *cntp);
 #ifndef HAVE_WARN
 #define warn(...) fprintf(stderr, __VA_ARGS__)
 #endif
