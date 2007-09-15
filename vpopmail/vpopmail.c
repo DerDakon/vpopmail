@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.55 2007-07-14 04:37:15 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.56 2007-09-15 10:28:28 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1602,6 +1602,14 @@ int isCatchall( char *user, char *domain, char *dir )   {
   snprintf( email, MAX_BUFF, "%s@%s", user, domain );
 //  fprintf( stderr, "email: %s  default action: %s\ndir: %s\n", email, default_action, dir );
 
+  fflush( stderr );
+
+  //  Make sure .qmail_default file contains a reference to vdelivermail
+  if( NULL == default_action ) {
+//    fprintf( stderr, ".qmail_default file not found.  is this a database?\n" );
+    return 0;
+    }
+
   //  Make sure .qmail_default file contains a reference to vdelivermail
   if( ( position = strstr( default_action, "vdelivermail" )) == NULL ) {
 //    fprintf( stderr, ".qmail_default file does not include vdelivermail. %s\n", position );
@@ -1623,7 +1631,7 @@ int isCatchall( char *user, char *domain, char *dir )   {
   //  Remove spaces / tabs
   trim( position );
 
-//  fprintf( stderr, "Default action for non-existant addresses: |%s|\n", position );
+// fprintf( stderr, "Default action for non-existant addresses: |%s|\n", position );
 
   if( strstr( position, "bounce-no-mailbox" ) != NULL )  {
     //  don't do anything for this default action
@@ -1632,7 +1640,7 @@ int isCatchall( char *user, char *domain, char *dir )   {
 
   else if( strstr( position, "delete-no-mailbox" ) != NULL ) {
     //  don't do anything for this default action
-    //fprintf( stderr, "Default is Delete No Mailbox\n" );
+//    fprintf( stderr, "Default is Delete No Mailbox\n" );
     }
 
   else if( '/' == position[0] ) {
@@ -1738,6 +1746,7 @@ int vdeluser( char *user, char *domain )
   if ( isCatchall( user, domain, Dir )) {
     return(VA_CANNOT_DELETE_CATCHALL);
     }
+
 
 #ifdef ONCHANGE_SCRIPT
   /* tell other programs that data has changed */

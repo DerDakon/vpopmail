@@ -1,4 +1,4 @@
-/* $Id: maildirquota.h,v 1.5 2007-05-22 03:58:59 rwidmer Exp $
+/* $Id: maildirquota.h,v 1.6 2007-09-15 10:28:28 rwidmer Exp $
    This is a composite of deliverquota's maildirquota.h, maildirmisc.h, and 
    numlib.h.  I only consolidated them to keep this patch to vpopmail  a bit 
    less intrusive.
@@ -12,8 +12,8 @@
    I"ve made the courier functions static.
    - Brian Kolaci
 */
-int readdomainquota(const char *dir, long *sizep, int *cntp);
-int readuserquota(const char* dir, long *sizep, int *cntp);
+int readdomainquota(const char *dir, unsigned long *sizep, unsigned int *cntp);
+int readuserquota(const char* dir, unsigned long *sizep, unsigned int *cntp);
 int domain_over_maildirquota(const char *userdir);
 int user_over_maildirquota(const char *dir, const char *quota);
 int vmaildir_readquota(const char *dir,	const char *quota);
@@ -45,7 +45,7 @@ int maildir_addquota(const char *,	/* Pointer to the maildir */
 extern "C" {
 #endif
 
-static const char maildirquota_h_rcsid[]="$Id: maildirquota.h,v 1.5 2007-05-22 03:58:59 rwidmer Exp $";
+static const char maildirquota_h_rcsid[]="$Id: maildirquota.h,v 1.6 2007-09-15 10:28:28 rwidmer Exp $";
 
 int maildir_checkquota(const char *,	/* Pointer to directory */
 	int *,	/* Initialized to -1, or opened descriptor for maildirsize */
@@ -84,7 +84,7 @@ int maildir_parsequota(const char *, unsigned long *);
 extern "C" {
 #endif
 
-static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h,v 1.5 2007-05-22 03:58:59 rwidmer Exp $";
+static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h,v 1.6 2007-09-15 10:28:28 rwidmer Exp $";
 
 /*
 **
@@ -235,7 +235,7 @@ int maildir_hasflag(const char *filename, char);
 extern "C" {
 #endif
 
-static const char numlib_h_rcsid[]="$Id: maildirquota.h,v 1.5 2007-05-22 03:58:59 rwidmer Exp $";
+static const char numlib_h_rcsid[]="$Id: maildirquota.h,v 1.6 2007-09-15 10:28:28 rwidmer Exp $";
 
 #define	NUMBUFSIZE	60
 

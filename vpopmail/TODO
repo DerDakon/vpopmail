@@ -19,3 +19,13 @@ the same definitions as vpopmail.
 Found a possible "unexpected end of script headers" error in qmail.  vlimits is
 writing directly to stderr, and not returning an error code.  Look for similar
 problems in all of the code.
+
+vadddomain has a -O option to optomize multiple adds.  vadduser needs a similar 
+option.  vadduser's option on cdb should inhibit creating the .cdb file until the
+last user is added when adding many users to a domain.  Also look at the cache
+question on one of the uses of OptomizeAddDomain that is commented out.
+
+when valias is enabled calls that return aliases should return both aliases
+stored in the database, and those stored in .qmail files at the domain level.
+When valiases are created, they should go into the database.  Need to provide
+an alternate call that lets you create a .qmail file if desired.
