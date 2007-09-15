@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.22 - unreleased
+5.4.22 - Released 15-Sep-2007
         Steve Cole
 	- invalid MySQL info in UPGRADE
 
@@ -12,7 +12,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Rick Widmer
 	- attack warnings in maildirquota by making some variables unsigned everywhere
 
-        Steve Cole, Rick Widmer
+        Steve Cole, Marcello Lupo, Japheth Cleaver,  Rick Widmer
 	- segfault in vdeluser with MySQL back end.  Work around applied, and note
 	added to TODO about making database valias return .qmail files if they exist
 	which is the long term fix.
