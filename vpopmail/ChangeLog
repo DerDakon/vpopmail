@@ -1,6 +1,11 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.23 - unreleased
+	Rick Widmer
+	- Upgrade build system to match my dev server
+
+
 5.4.22 - Released 15-Sep-2007
         Steve Cole
 	- invalid MySQL info in UPGRADE
