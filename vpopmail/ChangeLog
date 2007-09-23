@@ -4,6 +4,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.4.23 - unreleased
 	Rick Widmer
 	- Upgrade build system to match my dev server
+	- Revert maildirquota warnings change
 
 
 5.4.22 - Released 15-Sep-2007
