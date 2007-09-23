@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.14 2007-09-15 10:28:28 rwidmer Exp $
+ * $Id: maildirquota.c,v 1.15 2007-09-23 22:59:53 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,16 +37,16 @@
 #include "config.h"
 
 /* private functions - no name clashes with courier */
-static char *makenewmaildirsizename(const char *, int *);
-static int countcurnew(const char *, time_t *, unsigned long *, unsigned *);
-static int countsubdir(const char *, const char *,
-		time_t *, unsigned long *, unsigned *);
+static char *makenewmaildirsizename(const char *sizep, int *cntp );
+static int countcurnew(const char *dir, time_t *, off_t *sizep, unsigned *cntp );
+static int countsubdir(const char *dir, const char *,
+		time_t *, off_t *, unsigned *);
 static int statcurnew(const char *, time_t *);
 static int statsubdir(const char *, const char *, time_t *);
 static int doaddquota(const char *, int, const char *, long, int, int);
 static int docheckquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt, int *percentage);
-static int docount(const char *, time_t *, unsigned long *, unsigned *);
+static int docount(const char *, time_t *, off_t *, unsigned *);
 static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt);
 /* moved into maildirquota.h as non-static
@@ -75,7 +75,7 @@ char	*p;
 char	domain[256];
 unsigned long size = 0;
 unsigned long maxsize = 0;
-unsigned int	cnt = 0;
+int	cnt = 0;
 int	maxcnt = 0;
 struct vlimits limits;
 
@@ -115,7 +115,7 @@ struct vlimits limits;
         return 0;
 }
 
-int readdomainquota(const char *dir, unsigned long *sizep, unsigned int *cntp)
+int readdomainquota(const char *dir, long *sizep, int *cntp)
 {
 int tries;
 char	checkdir[256];
@@ -171,7 +171,7 @@ struct dirent *de;
 	return 0;
 }
 
-int wrapreaduserquota(const char* dir, unsigned long *sizep, unsigned int *cntp)
+int wrapreaduserquota(const char* dir, long *sizep, int *cntp)
 {
 time_t	tm;
 time_t	maxtime;
@@ -244,12 +244,12 @@ struct dirent *de;
 
 	return 0;
 }
-int readuserquota(const char* dir, unsigned long *sizep, unsigned int *cntp)
+int readuserquota(const char* dir, long *sizep, int *cntp)
 {
 	int retval;
-	unsigned long s;
+	off_t s;
 	
-	s = (unsigned long) *sizep;
+	s = ( off_t ) *sizep;
 	retval = wrapreaduserquota(dir, &s, cntp);
 	*sizep = (long) s;
 	return retval;
@@ -344,9 +344,9 @@ static int maildirsize_read(const char *filename,	/* The filename */
 	return (0);
 }
 
-static int qcalc(unsigned long s, unsigned n, const char *quota, int *percentage)
+static int qcalc(off_t s, unsigned n, const char *quota, int *percentage)
 {
-unsigned long i;
+off_t i;
 int	spercentage=0;
 int	npercentage=0;
 
@@ -395,7 +395,7 @@ int	npercentage=0;
 			x=1;
 			if (i > 20000000) x=1024;
 
-			npercentage = i ? ((unsigned long)n/x) * 100 / (i/x):100;
+			npercentage = i ? ((off_t)n/x) * 100 / (i/x):100;
 			break;
 		}
 	}
@@ -438,7 +438,7 @@ char	*checkfolder=(char *)malloc(strlen(dir)+sizeof("/maildirfolder"));
 char	*newmaildirsizename;
 struct stat stat_buf;
 int	maildirsize_fd = -1;
-unsigned long	maildirsize_size;
+off_t	maildirsize_size;
 unsigned maildirsize_cnt;
 unsigned maildirsize_nlines;
 int	n;
@@ -787,8 +787,7 @@ int	n;
 	return (n);
 }
 
-static int countcurnew(const char *dir, time_t *maxtime,
-	unsigned long *sizep, unsigned int *cntp)
+static int countcurnew(const char *dir, time_t *maxtime, off_t *sizep, unsigned int *cntp)
 {
 char	*p=(char *)malloc(strlen(dir)+5);
 int	n;
@@ -806,7 +805,7 @@ int	n;
 }
 
 static int countsubdir(const char *dir, const char *subdir, time_t *maxtime,
-	unsigned long *sizep, unsigned *cntp)
+	off_t *sizep, unsigned *cntp)
 {
 char	*p;
 int	n;
@@ -824,7 +823,8 @@ int	n;
 }
 
 static int docount(const char *dir, time_t *dirstamp,
-	unsigned long *sizep, unsigned *cntp)
+	off_t *sizep, unsigned *cntp)
+
 {
 struct	stat	stat_buf;
 char	*p;
