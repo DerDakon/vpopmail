@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.15 2007-09-23 22:59:53 rwidmer Exp $
+ * $Id: maildirquota.c,v 1.16 2007-09-29 22:02:46 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@ struct  stat    stat_buf;
 char	domdir[MAX_PW_DIR];
 char	*p;
 char	domain[256];
-unsigned long size = 0;
+long size = 0;
 unsigned long maxsize = 0;
 int	cnt = 0;
 int	maxcnt = 0;
@@ -171,7 +171,7 @@ struct dirent *de;
 	return 0;
 }
 
-int wrapreaduserquota(const char* dir, long *sizep, int *cntp)
+int wrapreaduserquota(const char* dir, long *sizep, unsigned int *cntp)
 {
 time_t	tm;
 time_t	maxtime;
@@ -248,10 +248,12 @@ int readuserquota(const char* dir, long *sizep, int *cntp)
 {
 	int retval;
 	off_t s;
-	
+        unsigned c;	
 	s = ( off_t ) *sizep;
-	retval = wrapreaduserquota(dir, &s, cntp);
+        c = *cntp;
+	retval = wrapreaduserquota(dir, &s, &c);
 	*sizep = (long) s;
+        *cntp = (int) c;
 	return retval;
 }
 
@@ -276,7 +278,7 @@ int     ret_value = 0;
 
 static int maildirsize_read(const char *filename,	/* The filename */
 	int *fdptr,	/* Keep the file descriptor open */
-	unsigned long *sizeptr,	/* Grand total of maildir size */
+	off_t *sizeptr,	/* Grand total of maildir size */
 	unsigned *cntptr, /* Grand total of message count */
 	unsigned *nlines, /* # of lines in maildirsize */
 	struct stat *statptr)	/* The stats on maildirsize */
