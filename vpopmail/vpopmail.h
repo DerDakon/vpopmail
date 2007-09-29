@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.31 2007-09-23 22:59:53 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.32 2007-09-29 23:17:35 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,14 +37,14 @@
 #define MAX_DOM_ALIAS 100
 
 /* max field sizes */
-#define MAX_PW_NAME         32
-#define MAX_PW_DOMAIN       96
-#define MAX_PW_PASS         40
-#define MAX_PW_GECOS        48
-#define MAX_PW_CLEAR_PASSWD 16
-#define MAX_PW_DIR         160
-#define MAX_PW_QUOTA        20
-#define MAX_ALIAS_LINE     160
+#define MAX_PW_NAME          32
+#define MAX_PW_DOMAIN        96
+#define MAX_PW_PASS         128
+#define MAX_PW_GECOS         48
+#define MAX_PW_CLEAR_PASSWD 128
+#define MAX_PW_DIR          160
+#define MAX_PW_QUOTA         20
+#define MAX_ALIAS_LINE      160
 
 #define ATCHARS "@%/"
 #define BOUNCE_ALL "bounce-no-mailbox"
