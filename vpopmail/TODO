@@ -34,3 +34,8 @@ When a database enabled valias call looks up an address it must look for a
 .qmail file first, and return its contents.  When it does an update, if a
 .qmail file exists, update it.  Same with delete.  Why?  qmail looks for the 
 .qmail files first, so if they exist - they win.
+
+Look at quota code for the possibility of something coming in as off_t and being
+processed with a 32 bit value.  All incoming off_t's must either stay off_t or
+go into a 64 bit value.  Check courier's imap program for code on this.  It should
+have a maildirquota.c file of its own.
