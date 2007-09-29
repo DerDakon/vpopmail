@@ -5,6 +5,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	Rick Widmer, Tom Collins
 	- fix off_t warnings in maildirquota.c when mysql back end is used.
 
+	John Simpson, Joshua Megerman
+	- extend maximum password length
+
+
 5.4.23 - Released 23-Sep-2007
 	Rick Widmer
 	- Upgrade build system to match my dev server  (SuSE 10.2)
