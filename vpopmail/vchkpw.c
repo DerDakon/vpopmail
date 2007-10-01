@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.19 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id: vchkpw.c,v 1.20 2007-10-01 06:59:55 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -92,8 +92,8 @@ void read_user_pass();
 void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
 void vchkpw_exit(int err);
 void run_command(char *prog);
-int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password);
-int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *clearpass);
+int authcram( char *response, char *challenge, char *password);
+int authapop( char *password, char *timestamp, char *clearpass);
 
 #define POP_CONN  0
 #define SMTP_CONN 1
@@ -737,14 +737,25 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 #endif
 }
 
-int authcram(unsigned char *response, unsigned char *challenge, unsigned char *password)
+int authcram( char *response, char *challenge, char *password)
 {
+   unsigned char *uchallenge;
+   unsigned char *upassword;
    unsigned char digest[16];
-   unsigned char digascii[33];
+   char digascii[33];
    unsigned char h;
    int j;
 
-   hmac_md5( challenge, strlen(challenge), password, strlen(password), digest);
+   uchallenge = malloc( strlen(challenge)+1);
+   memcpy( uchallenge, challenge, strlen( challenge ));
+
+   upassword = malloc( strlen(password)+1);
+   memcpy( upassword, password, strlen(password)+1);
+
+   hmac_md5( uchallenge, strlen(challenge), upassword, strlen(password), digest);
+
+   free( uchallenge );
+   free( upassword );
 
    digascii[32]=0;
    
@@ -759,18 +770,31 @@ int authcram(unsigned char *response, unsigned char *challenge, unsigned char *p
    return(strcmp(digascii,response));
 }
 
-int authapop(unsigned char *password, unsigned char *timestamp, unsigned char *clearpass)
+int authapop( char *password, char *timestamp, char *clearpass)
 {
   MD5_CTX context;
   unsigned char digest[16];
   char encrypted[16*2+1];
   char *s;
   int i;
- 
+
+  unsigned char *utimestamp;
+  unsigned char *uclearpass;
+
+  utimestamp = malloc( strlen( timestamp ));
+  memcpy( utimestamp, timestamp, strlen( timestamp ));
+
+  uclearpass = malloc( strlen( clearpass ));
+  memcpy( uclearpass, clearpass, strlen( clearpass ));
+
   MD5Init(&context);
-  MD5Update(&context, timestamp, strlen(timestamp));
-  MD5Update(&context, clearpass, strlen(clearpass));
+  MD5Update(&context, utimestamp, strlen(timestamp));
+  MD5Update(&context, uclearpass, strlen(clearpass));
   MD5Final(digest, &context);
+
+  free( utimestamp );
+  free( uclearpass );
+
   s = encrypted;
   for (i = 0; i < (int)sizeof(digest); ++i) {
     *s = hextab[digest[i]/16]; ++s;
