@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.8 2004-03-14 18:00:40 kbo Exp $
+ * $Id: maildirquota.c,v 1.8.2.1 2007-10-01 06:34:29 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,19 +38,22 @@
 
 /* private functions - no name clashes with courier */
 static char *makenewmaildirsizename(const char *, int *);
-static int countcurnew(const char *, time_t *, off_t *, unsigned *);
+static int countcurnew(const char *, time_t *, off_t *, int *);
 static int countsubdir(const char *, const char *,
-		time_t *, off_t *, unsigned *);
+		time_t *, off_t *, int *);
 static int statcurnew(const char *, time_t *);
 static int statsubdir(const char *, const char *, time_t *);
 static int doaddquota(const char *, int, const char *, long, int, int);
 static int docheckquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt, int *percentage);
-static int docount(const char *, time_t *, off_t *, unsigned *);
+static int docount(const char *, time_t *, off_t *, int *);
 static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
 	const char *quota_type, long xtra_size, int xtra_cnt);
+/*
 static int maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt);
+*/
+
 static int maildir_safeopen(const char *path, int mode, int perm);
 static char *str_pid_t(pid_t t, char *arg);
 static char *str_time_t(time_t t, char *arg);
@@ -71,7 +74,7 @@ struct  stat    stat_buf;
 char	domdir[MAX_PW_DIR];
 char	*p;
 char	domain[256];
-unsigned long size = 0;
+long    size = 0;
 unsigned long maxsize = 0;
 int	cnt = 0;
 int	maxcnt = 0;
@@ -300,7 +303,7 @@ char    quotawarnmsg[500];
 static int maildirsize_read(const char *filename,	/* The filename */
 	int *fdptr,	/* Keep the file descriptor open */
 	off_t *sizeptr,	/* Grand total of maildir size */
-	unsigned *cntptr, /* Grand total of message count */
+	int *cntptr, /* Grand total of message count */
 	unsigned *nlines, /* # of lines in maildirsize */
 	struct stat *statptr)	/* The stats on maildirsize */
 {
@@ -462,7 +465,7 @@ char	*newmaildirsizename;
 struct stat stat_buf;
 int	maildirsize_fd;
 off_t	maildirsize_size;
-unsigned maildirsize_cnt;
+int     maildirsize_cnt;
 unsigned maildirsize_nlines;
 int	n;
 time_t	tm;
@@ -614,7 +617,7 @@ struct dirent *de;
 		quota_type, percentage));
 }
 
-static int	maildir_addquota(const char *dir, int maildirsize_fd,
+int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
 	if (!quota_type || !*quota_type)	return (0);
@@ -810,7 +813,7 @@ int	n;
 }
 
 static int countcurnew(const char *dir, time_t *maxtime,
-	off_t *sizep, unsigned *cntp)
+	off_t *sizep, int *cntp)
 {
 char	*p=(char *)malloc(strlen(dir)+5);
 int	n;
@@ -828,7 +831,7 @@ int	n;
 }
 
 static int countsubdir(const char *dir, const char *subdir, time_t *maxtime,
-	off_t *sizep, unsigned *cntp)
+	off_t *sizep, int *cntp)
 {
 char	*p;
 int	n;
@@ -846,7 +849,7 @@ int	n;
 }
 
 static int docount(const char *dir, time_t *dirstamp,
-	off_t *sizep, unsigned *cntp)
+	off_t *sizep, int *cntp)
 {
 struct	stat	stat_buf;
 char	*p;
