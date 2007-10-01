@@ -1,5 +1,5 @@
 /*
- * $Id: vchkpw.c,v 1.20 2007-10-01 06:59:55 rwidmer Exp $
+ * $Id: vchkpw.c,v 1.21 2007-10-01 22:31:06 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -739,23 +739,12 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 
 int authcram( char *response, char *challenge, char *password)
 {
-   unsigned char *uchallenge;
-   unsigned char *upassword;
    unsigned char digest[16];
    char digascii[33];
    unsigned char h;
    int j;
 
-   uchallenge = malloc( strlen(challenge)+1);
-   memcpy( uchallenge, challenge, strlen( challenge ));
-
-   upassword = malloc( strlen(password)+1);
-   memcpy( upassword, password, strlen(password)+1);
-
-   hmac_md5( uchallenge, strlen(challenge), upassword, strlen(password), digest);
-
-   free( uchallenge );
-   free( upassword );
+   hmac_md5( (unsigned char *) challenge, strlen(challenge), (unsigned char *) password, strlen(password), digest);
 
    digascii[32]=0;
    
