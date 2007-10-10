@@ -51,7 +51,7 @@ When creating a domain you can use one of the following:
 
 In summary...  the .qmail-default of every virtual domain MUST contain ONLY a single 
 line that executes vdelivermail.  The ONLY place you should EVER call vdelivermail
-is from the .qmail-default directory of a vpopmail based virtual domain.  There are
+is from the .qmail-default file of a vpopmail based virtual domain.  There are
 four possible delivery options for non-existant mailboxes that must be the second
 parameter to vdelivermail.  The empty first parameter is required.
 
