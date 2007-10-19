@@ -1,6 +1,8 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.26 - unreleased
+
 5.4.25 - Released 9-Oct-2007
 	Rick Widmer, Tom Collins
 	- another try at signedness warnings in maildirquota and vchkpw
