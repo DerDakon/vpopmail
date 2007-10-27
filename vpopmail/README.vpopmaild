@@ -459,12 +459,13 @@ find_domain domain per_page
 
 Rights required: SA_ADMIN
 
-Action: Return the page number that the named domain appears on.
-This can be used when you are using list_domains with the optional 
-page and lines_per_page parameters.  If you list the page returned
-by find_domain, the desired domain will appear on that page. It 
-may not be at the top of the page.  The page positions are fixed.
-
+Action: Return the page number that the named domain appears on only if the
+domain exist.  Otherwise, just "." is returned.  This can be used when you are 
+using list_domains with the optional page and lines_per_page parameters.  If 
+you list the page returned by find_domain, the desired domain will appear on 
+that page. It may not be at the top of the page.  The page positions are fixed.
+If no per_page argument is given, it defaults to one item per_page.  Page 
+numbers start at 0.
 
 --------------------------------------------------------------------
 

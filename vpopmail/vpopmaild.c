@@ -172,7 +172,7 @@ func_t Functions[] = {
 {2, "Domain", NULL, NULL},
 {2, "user_info", user_info, "user_domain<crlf>" },
 {3, "list_domains", list_domains, "[page per_page]<crlf>" },
-{3, "find_domain", find_domain, "domain per-page<crlf>" },
+{3, "find_domain", find_domain, "domain [per-page]<crlf>" },
 {3, "domain_count", domain_count, "<crlf>" },
 {3, "add_alias_domain", add_alias_domain, "domain alias<crlf>" },
 {3, "add_domain", add_domain, "domain postmaster-password<crlf>" },
@@ -1764,7 +1764,8 @@ int find_domain()
   }
 
   if( miss ) {
-    page = 0;
+    snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+    return(0);
   } else if( per_page > 0 ) {
     page = ( count / per_page ) + 1;
   } else {
