@@ -465,7 +465,7 @@ using list_domains with the optional page and lines_per_page parameters.  If
 you list the page returned by find_domain, the desired domain will appear on 
 that page. It may not be at the top of the page.  The page positions are fixed.
 If no per_page argument is given, it defaults to one item per_page.  Page 
-numbers start at 0.
+numbers start at 1.
 
 --------------------------------------------------------------------
 

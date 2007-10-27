@@ -1769,7 +1769,7 @@ int find_domain()
   } else if( per_page > 0 ) {
     page = ( count / per_page ) + 1;
   } else {
-    page = count;
+    page = count + 1;
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf), "page %i" RET_CRLF, page );
