@@ -2,6 +2,11 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.26 - unreleased
+	Bill Shupp
+	- vpopmaild fix: find_domain should not list 'page 0' when a domain is not
+    found.  Instead, return "." only.  Also indicate in help that per_page is 
+    optional.
+    - update README.vpopmaild to reflect the above.
 
 5.4.25 - Released 9-Oct-2007
 	Rick Widmer, Tom Collins
