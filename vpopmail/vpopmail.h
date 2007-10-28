@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.32 2007-09-29 23:17:35 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.33 2007-10-28 08:59:40 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -140,24 +140,70 @@
 #define NO_MAILDROP  0x40000
 
 
+typedef struct domain_entry {
+        char    *domain;
+        char    *realdomain;
+        int             uid;
+        int             gid;
+        char    *path;
+        char    *aliases[MAX_DOM_ALIAS];
+} domain_entry;
+
+
 extern int OptimizeAddDomain;
 extern int NoMakeIndex;
 extern int verrori;
 
 /* functions */
+
+/* Alias Management */
+//  these may be in their own .h file...
+
+/* Domain Management */
 int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid);
+int vaddaliasdomain( char *alias_domain, char *real_domain);
 int vdeldomain( char *);
+domain_entry *get_domain_entries( const char *match_real );
+
+
+/*  User Management  */
 int vadduser( char *, char *, char *, char *, int);
-int vdeluser( char *, char *);
+void vgetpasswd( char *, char *, size_t);
 int vpasswd( char *, char *, char *, int);
+int vdeluser( char *, char *);
 int vsetuserquota( char *, char *, char * );
+char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid);
+void remove_maildirsize(char *dir);
+void update_maildirsize(char *domain, char *dir, char *quota);
+
+
+/*  Low level string support  */
+int parse_email( char *, char *, char *, int);
+char *vrandom_pass (char *buffer, int len);
+int is_username_valid( char *user );
+int is_domain_valid( char *domain );
+char *maildir_to_email(const char *maildir);
+
+
+/*  Operational Overhead  */
 int vexit(int err);
 int vexiterror( FILE *f, char *comment);
 
+
+/*  Utility Functions  */
+/*  Low Level File System Management  */
+int vdelfiles( char *);
+int r_chown( char *, uid_t, gid_t);
+
+
+/*  Misc Functions  */
+int vopen_smtp_relay();	
+char *get_remote_ip();
+
+
+/*  Not yet categorized  */
 char randltr(void);
 int mkpasswd3( char *, char *, int);
-void vgetpasswd( char *, char *, size_t);
-int vdelfiles( char *);
 int add_domain_assign( char *alias_domain, char *real_domain, 
                        char *dir, uid_t uid, gid_t gid);
 //int del_control( char *);
@@ -166,10 +212,8 @@ int del_domain_assign( char *aliasies[MAX_DOM_ALIAS], int aliascount,
                        char *real_domain,
                        char *dir, uid_t uid, gid_t gid);
 int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount);
-int r_chown( char *, uid_t, gid_t);
 int signal_process( char *, int );
 int update_newu();
-int parse_email( char *, char *, char *, int);
 int add_user_assign( char *, char *);
 int del_user_assign( char *);
 void lowerit( char *);
@@ -185,14 +229,12 @@ struct vqpasswd *vgetent(FILE *);
 int pw_comp(char *, char *, char *, int);
 char *default_domain();
 void vset_default_domain( char *);
-int vopen_smtp_relay();	
 void vupdate_rules(int);
 void vclear_open_smtp(time_t, time_t);
 char *verror(int);
 int vadddotqmail(char *alias, char *domain,... ); 
 int vdeldotqmail( char *alias, char *domain);
 int vget_real_domain(char *domain, int len );
-char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid);
 struct vqpasswd *vauth_user(char *user, char *domain, char *password, char *apop);
 int vmake_maildir(char *domain, char *dir);
 int vsqwebmail_pass( char *dir, char *crypted, uid_t uid, gid_t gid );
@@ -202,19 +244,11 @@ int vfd_copy(int,int);
 int vfd_move(int,int);
 int update_rules();
 char *vversion(char *);
-void remove_maildirsize(char *dir);
-void update_maildirsize(char *domain, char *dir, char *quota);
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain);
 char *vgen_pass(int len);
-char *vrandom_pass (char *buffer, int len);
 int vvalidchar( char inchar );
-int is_username_valid( char *user );
-int is_domain_valid( char *domain );
-int vaddaliasdomain( char *alias_domain, char *real_domain);
 char *format_maildirquota(const char *q);
 char *date_header();
-char *get_remote_ip();
-char *maildir_to_email(const char *maildir);
 int qnprintf (char *buffer, size_t size, const char *format, ...);
 int readuserquota(const char* dir, long *sizep, int *cntp);
 #ifndef HAVE_WARN
@@ -237,17 +271,6 @@ char *dec2hex(unsigned char *);
 
 
 #endif
-
-typedef struct domain_entry {
-        char    *domain;
-        char    *realdomain;
-        int             uid;
-        int             gid;
-        char    *path;
-        char    *aliases[MAX_DOM_ALIAS];
-} domain_entry;
-
-domain_entry *get_domain_entries( const char *match_real );
 
 void vsqlerror( FILE *f, char *comment );
 
