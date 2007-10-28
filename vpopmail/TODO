@@ -39,3 +39,5 @@ Look at quota code for the possibility of something coming in as off_t and being
 processed with a 32 bit value.  All incoming off_t's must either stay off_t or
 go into a 64 bit value.  Check courier's imap program for code on this.  It should
 have a maildirquota.c file of its own.
+
+SHA or MD5 checksums for the tarball.

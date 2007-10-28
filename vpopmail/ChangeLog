@@ -8,6 +8,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	optional.  find_domain page numbers consistently start at 1.
 	- update README.vpopmaild to reflect the above.
 
+	Rick Widmer
+	- Arrange vpopmail.h based on libvpopmail categories  (Start of v6 project)
+
+
 5.4.25 - Released 9-Oct-2007
 	Rick Widmer, Tom Collins
 	- another try at signedness warnings in maildirquota and vchkpw
