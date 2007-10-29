@@ -7,6 +7,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	found.  Instead, return "." only.  Also indicate in help that per_page is 
 	optional.  find_domain page numbers consistently start at 1.
 	- update README.vpopmaild to reflect the above.
+	- Get valias_remove() working for cdb module.
 
 	Rick Widmer
 	- Arrange vpopmail.h based on libvpopmail categories  (Start of v6 project)
