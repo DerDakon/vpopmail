@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.16 2007-10-29 05:12:48 shupp Exp $
+ * $Id: vpalias.c,v 1.17 2007-10-29 05:21:15 shupp Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -193,9 +193,6 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 
     DirNew = strcat(strcpy(malloc(8 + sizeof(Dir) + 4), Dir), ".new");
 
-    fprintf(stderr, "Dir: %s\n", Dir);
-    fprintf(stderr, "DirNew: %s\n", DirNew);
-
     if ( (fr = fopen(Dir, "r")) == NULL ) {
       free(DirNew);
       return(-1);
@@ -204,7 +201,6 @@ int valias_remove( char *alias, char *domain, char *alias_line)
       free(DirNew);
       return(-1);
     }
-    fprintf(stderr, "DirNew: %s\n", DirNew);
     chmod(Dir,0600);
     chown(Dir,uid,gid);
 
