@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.15 2007-05-22 03:59:01 rwidmer Exp $
+ * $Id: vpalias.c,v 1.16 2007-10-29 05:12:48 shupp Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -162,8 +162,73 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 
 int valias_remove( char *alias, char *domain, char *alias_line)
 {
-  fprintf (stderr, "Error: valias_remove() not implemented for non-SQL backends.\n");
-  return -1;
+ int i;
+ char *tmpstr;
+ char Dir[156];
+ char *p;
+ char LineBuf[512];
+ char *DirNew;
+ uid_t uid;
+ gid_t gid;
+ FILE *fr, *fw;
+
+    if ( alias == NULL ) return(VA_NULL_POINTER);
+    if ( domain == NULL ) return(VA_NULL_POINTER);
+    if ( alias_line == NULL ) return(VA_NULL_POINTER);
+    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+    if ( strlen(alias_line) >= MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
+
+    if ((tmpstr = vget_assign(domain, Dir, sizeof(Dir), &uid, &gid )) == NULL) {
+    printf("invalid domain, not in qmail assign file\n");
+    return(-1);
+    }
+
+    // create dotqmail filename, converting '.' to ':' as we go
+    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
+    i = strlen(Dir);
+    for (p = alias; (i < (int)sizeof(Dir) - 1) && (*p != '\0'); p++)
+      Dir[i++] = (*p == '.' ? ':' : *p);
+    Dir[i] = '\0';
+
+    DirNew = strcat(strcpy(malloc(8 + sizeof(Dir) + 4), Dir), ".new");
+
+    fprintf(stderr, "Dir: %s\n", Dir);
+    fprintf(stderr, "DirNew: %s\n", DirNew);
+
+    if ( (fr = fopen(Dir, "r")) == NULL ) {
+      free(DirNew);
+      return(-1);
+    }
+    if ( (fw = fopen(DirNew, "w+")) == NULL ) {
+      free(DirNew);
+      return(-1);
+    }
+    fprintf(stderr, "DirNew: %s\n", DirNew);
+    chmod(Dir,0600);
+    chown(Dir,uid,gid);
+
+    i = strlen(alias_line);
+    while (fgets(LineBuf, sizeof(LineBuf), fr)) {
+      if (strncmp(LineBuf, alias_line, i)) {
+        fputs(LineBuf, fw);
+      }
+    }
+
+    fclose(fr);
+    fclose(fw);
+    rename(DirNew, Dir);
+    free(DirNew);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
+       call_onchange ( "valias_remove" );
+       }
+#endif
+
+    return(0);
 }
 
 int valias_delete( char *alias, char *domain)
