@@ -10,7 +10,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Get valias_remove() working for cdb module.
 
 	Rick Widmer
-	- Arrange vpopmail.h based on libvpopmail categories  (Start of v6 project)
+	- Arrange vpopmail.h based on libvpopmail categories
+	- Add vlistlib library, vlist program to manage mail lists
 
 
 5.4.25 - Released 9-Oct-2007

@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.33 2007-10-28 08:59:40 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.34 2007-10-31 07:55:39 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -139,7 +139,26 @@
 #define SA_EXPERT    0x20000
 #define NO_MAILDROP  0x40000
 
+/*  Constants for vlistlib  */
+#define MAX_SORT_BLOCKS 1000
+#define SORT_TABLE_ENTRIES 1000
+#define MAX_OPTIONS 26
+#define MAX_FILE_NAME 512
+#define MAX_NAME 160
+#define EZMLMDIR "/usr/local/bin/ezmlm"
 
+#define POSTING_ANYONE 0
+#define POSTING_SPOB 1
+#define POSTING_SPOM 2
+#define POSTING_MPOB 3
+#define POSTING_MPOM 4
+
+#define REPLYTO_SENDER 1
+#define REPLYTO_LIST 2
+#define REPLYTO_ADDRESS 3
+
+
+/*   Domain entry  */
 typedef struct domain_entry {
         char    *domain;
         char    *realdomain;
@@ -149,6 +168,47 @@ typedef struct domain_entry {
         char    *aliases[MAX_DOM_ALIAS];
 } domain_entry;
 
+
+
+/*   Structure for mailing list data  */
+typedef struct listInfoType {
+   domain_entry *entry;
+   char Name[MAX_NAME];
+   int Posting;
+   int Access;
+   int Archive;
+   int DomainOnly;
+   int Prefix;
+   int ReplyTo;
+   int Digest;
+   int Edit;
+   int SubConf;
+   int Indexed;
+   int UnsubConf;
+   int Kill;
+   int RemoteSub;
+   int RemoteText;
+   int Public;
+   int Requests;
+   int Remote;
+   int SubMod;
+   int Trailer;
+   int Warn;
+   int Extra;
+   int SQLSupport;
+   int SQLPort;
+   char OwnerEmail[MAX_NAME];
+   char SQLHost[MAX_NAME];
+   char SQLUser[MAX_NAME];
+   char SQLPass[MAX_NAME];
+   char SQLBase[MAX_NAME];
+   char SQLTable[MAX_NAME];
+   char Dot[MAX_NAME];
+   char Dir[MAX_NAME];
+   char PrefixText[MAX_NAME];
+   char Domain[MAX_NAME];
+   char ReplyTo_Addr[MAX_NAME];
+} listInfoType;
 
 extern int OptimizeAddDomain;
 extern int NoMakeIndex;
@@ -176,6 +236,23 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid);
 void remove_maildirsize(char *dir);
 void update_maildirsize(char *domain, char *dir, char *quota);
 
+
+/* Mailing List Management */
+//  Subs = Subscribers.  I really don't want to write that out every time...
+int    listSubsDescription( listInfoType *LI, int mode, int size, char *description );
+int    listSubsCount(       listInfoType *LI, int mode );
+char **listSubsList(        listInfoType *LI, int mode, int page, int perPage );
+int    listSubsAdd(         listInfoType *LI, int mode, char *email ); 
+int    listSubsDel(         listInfoType *LI, int mode, char *email ); 
+
+int    listCount(      listInfoType *LI );
+char **listList(       listInfoType *LI, int page, int perPage );
+int    listGetOptions( listInfoType *LI, char *options, int maxOptions );
+int    listMake(       listInfoType *LI );
+int    listDelete(     listInfoType *LI );
+int    listInit(       listInfoType *LI, char *address, int isDomainOnly, int isCreating );
+int    listClose(      listInfoType *LI );
+void   listGetError( char *buff, const int size, const int status );
 
 /*  Low level string support  */
 int parse_email( char *, char *, char *, int);
