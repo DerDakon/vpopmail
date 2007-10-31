@@ -39,7 +39,6 @@
 
 #define READ_TIMEOUT 60
 #define MAX_TMP_BUFF 1024
-#define MAX_FILE_NAME 156
 
 #define TOKENS " \n\t\r"
 #define PASS_TOKENS "\n\r"

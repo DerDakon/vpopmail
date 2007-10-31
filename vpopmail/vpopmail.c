@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.57 2007-09-29 23:17:35 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.58 2007-10-31 07:55:39 rwidmer Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2029,7 +2029,7 @@ int sort_file(char *filename, int file_lines, int file_type )
   }
 
 //  fprintf( stderr, "\nSorting...\n\n" );
-  qsort(sortdata, count, sizeof( sortrec ), sort_check);
+qsort(sortdata, count, sizeof( sortrec ), sort_check);
 //  fprintf( stderr, "\nSort done.\n\n" );
 
   for(i=0;i<count;i++) {
