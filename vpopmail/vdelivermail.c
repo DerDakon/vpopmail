@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.19 2007-11-17 08:36:03 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.20 2007-11-17 09:07:27 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -895,9 +895,13 @@ void (*f)();
  */
 void run_command(char *prog)
 {
+
+#define MAX_ENV_BUFF 100
+
  int child;
  char *(args[4]);
  int wstat;
+ char envbuf[MAX_ENV_BUFF];
 
  while ((*prog == ' ') || (*prog == '|')) ++prog;
 
@@ -907,7 +911,9 @@ void run_command(char *prog)
      printf("Unable to fork: %d.", errno); 
      vexit(EXIT_DEFER);
    case 0:
-     putenv("SHELL", "/bin/sh", 1);
+     
+     snprintf( envbuf, sizeof(envbuf), "%s=%s", "SHELL", "/bin/sh");
+     putenv(envbuf);
      args[0] = "/bin/sh"; args[1] = "-c"; args[2] = prog; args[3] = 0;
      sig_catch(SIGPIPE,SIG_DFL);
      execv(*args,args);
