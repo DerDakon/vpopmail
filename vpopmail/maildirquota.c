@@ -1,5 +1,5 @@
 /*
- * $Id: maildirquota.c,v 1.18 2007-11-16 13:02:01 rwidmer Exp $
+ * $Id: maildirquota.c,v 1.19 2007-11-17 09:07:27 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,16 +38,16 @@
 
 /* private functions - no name clashes with courier */
 static char *makenewmaildirsizename(const char *, int *);
-static int countcurnew(const char *dir, time_t *maxtime, off_t *sizep, int *cntp)
-static int countsubdir(const char *dir, const char *subdir, time_t *maxtime,
-static int statcurnew(const char *dir, time_t *maxtimestamp)
-static int statsubdir(const char *dir, const char *subdir, time_t *maxtime)
-static int doaddquota(const char *dir, int maildirsize_fd,
-static int docheckquota(const char *dir, int *maildirsize_fdptr,
-	const char *quota_type, long xtra_size, int xtra_cnt, int *percentage);
-static int docount(const char *dir, time_t *dirstamp, off_t *sizep, int *cntp)
-static int maildir_checkquota(const char *dir, int *maildirsize_fdptr,
-	const char *quota_type, long xtra_size, int xtra_cnt);
+static int countcurnew(const char *dir, time_t *maxtime, off_t *sizep, int *cntp);
+static int countsubdir(const char *dir, const char *subdir, time_t *maxtime, off_t *sizep, int *cntp);
+static int statcurnew(const char *dir, time_t *maxtimestamp);
+static int statsubdir(const char *dir, const char *subdir, time_t *maxtime);
+static int doaddquota(const char *dir, int maildirsize_fd, const char *quota_type, 
+                      long maildirsize_size, int maildirsize_cnt, int isnew);
+static int docheckquota(const char *dir, int *maildirsize_fdptr, const char *quota_type, 
+                        long xtra_size, int xtra_cnt, int *percentage);
+static int docount(const char *dir, time_t *dirstamp, off_t *sizep, int *cntp);
+static int maildir_checkquota(const char *dir, int *maildirsize_fdptr, const char *quota_type, long xtra_size, int xtra_cnt);
 /*  moved into maildirquota.h as non-static
 static int maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt);
