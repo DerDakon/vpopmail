@@ -2,7 +2,11 @@ Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.27 - unreleased
+	Jeremy Kister, Rick Widmer, Tom Collins
+	- Solaris doesn't like setenv
 
+	Michael Johnson, Steve Cole, dhaval, Rick Widmer
+	- Another attempt at maildirquota
 
 
 5.4.26 - Released 3-Nov-2007
