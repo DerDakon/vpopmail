@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.20 2007-11-17 09:07:27 rwidmer Exp $
+ * $Id: vdelivermail.c,v 1.21 2007-11-18 05:15:19 rwidmer Exp $
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -901,7 +901,6 @@ void run_command(char *prog)
  int child;
  char *(args[4]);
  int wstat;
- char envbuf[MAX_ENV_BUFF];
 
  while ((*prog == ' ') || (*prog == '|')) ++prog;
 
@@ -912,8 +911,7 @@ void run_command(char *prog)
      vexit(EXIT_DEFER);
    case 0:
      
-     snprintf( envbuf, sizeof(envbuf), "%s=%s", "SHELL", "/bin/sh");
-     putenv(envbuf);
+     putenv("SHELL=/bin/sh");
      args[0] = "/bin/sh"; args[1] = "-c"; args[2] = prog; args[3] = 0;
      sig_catch(SIGPIPE,SIG_DFL);
      execv(*args,args);
