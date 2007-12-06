@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.35 2007-08-17 22:49:23 rwidmer Exp $
+ * $Id: vmysql.c,v 1.36 2007-12-06 01:45:29 rwidmer Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -167,12 +167,12 @@ int load_connection_info() {
         MYSQL_UPDATE_SERVER = strtok(conf_update, delimiters);
         if (MYSQL_UPDATE_SERVER == NULL) return VA_PARSE_ERROR06;
   
-  	MYSQL_READ_SOCKET = strtok(NULL, delimiters);
-  	if (MYSQL_READ_SOCKET == NULL) return VA_PARSE_ERROR;
+  	MYSQL_UPDATE_SOCKET = strtok(NULL, delimiters);
+  	if (MYSQL_UPDATE_SOCKET == NULL) return VA_PARSE_ERROR;
   
-  	if (MYSQL_READ_SOCKET[0] != '/') {
-  	    MYSQL_READ_PORT = atoi(MYSQL_READ_SOCKET);
-  	    MYSQL_READ_SOCKET = NULL;
+  	if (MYSQL_UPDATE_SOCKET[0] != '/') {
+  	    MYSQL_UPDATE_PORT = atoi(MYSQL_UPDATE_SOCKET);
+  	    MYSQL_UPDATE_SOCKET = NULL;
   	}
   
         MYSQL_UPDATE_USER = strtok(NULL, delimiters);

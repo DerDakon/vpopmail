@@ -41,3 +41,8 @@ go into a 64 bit value.  Check courier's imap program for code on this.  It shou
 have a maildirquota.c file of its own.
 
 SHA or MD5 checksums for the tarball.
+
+Version function that returns version number and summary of ./configure options.
+Suggested by Tren Blackburn
+
+
