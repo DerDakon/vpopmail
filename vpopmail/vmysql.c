@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.36 2007-12-06 01:45:29 rwidmer Exp $
+ * $Id: vmysql.c,v 1.37 2008-10-29 21:16:21 kbo Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -316,11 +316,11 @@ int vauth_open_read_getall()
     mysql_init(&mysql_read_getall);
     if (!(mysql_real_connect(&mysql_read_getall, MYSQL_READ_SERVER, 
             MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
-            MYSQL_READ_PORT, NULL, 0))) {
+            MYSQL_READ_PORT, MYSQL_READ_SOCKET, 0))) {
         /* we could not connect, at least try the update server */
         if (!(mysql_real_connect(&mysql_read_getall, MYSQL_UPDATE_SERVER, 
             MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE, 
-            MYSQL_UPDATE_PORT, NULL, 0))) {
+            MYSQL_UPDATE_PORT, MYSQL_UPDATE_SOCKET, 0))) {
             verrori = VA_NO_AUTH_CONNECTION;
             return(-1);
         }
