@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.15 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id: vdominfo.c,v 1.16 2009-01-14 19:37:09 volz0r Exp $
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,7 @@ int DisplayGid;
 int DisplayDir;
 int DisplayAll;
 int DisplayTotalUsers;
+int DisplayRealDomain;
 
 void usage();
 void get_options(int argc, char **argv);
@@ -92,11 +93,12 @@ void get_options(int argc, char **argv)
     DisplayDir = 0;
     DisplayTotalUsers = 0;
     DisplayAll = 1;
+	DisplayRealDomain = 0;
 
     memset(Domain, 0, sizeof(Domain));
 
     errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"vanugdt")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"vanugdtr")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -123,6 +125,10 @@ void get_options(int argc, char **argv)
                 break;
             case 'a':
                 DisplayAll = 1;
+                break;
+            case 'r':
+                DisplayRealDomain = 1;
+				DisplayAll = 0;
                 break;
             default:
                 errflag = 1;
@@ -169,6 +175,8 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
             printf("%lu\n",  vdir.cur_users);
             close_big_dir(realdomain,uid,gid);
         }
+
+		if ( DisplayRealDomain ) printf("%s\n", realdomain);
     }
 }
 
