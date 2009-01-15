@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.c,v 1.58 2007-10-31 07:55:39 rwidmer Exp $
+ * $Id: vpopmail.c,v 1.59 2009-01-15 15:31:23 volz0r Exp $
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1434,6 +1434,7 @@ int update_newu()
 
   pid=vfork();
   if ( pid==0){
+			  umask(022);
     execl(QMAILNEWU,"qmail-newu", NULL);
     exit(127);
   } else {
@@ -1764,6 +1765,8 @@ int vdeluser( char *user, char *domain )
     return (-1);
   }
 
+  /* write the information to backfill */
+  backfill(user, domain, mypw->pw_dir, 2);
   dec_dir_control(domain, uid, gid);
 
   /* remove the user's directory from the file system 
@@ -2364,9 +2367,13 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
   user_hash="";
 #ifdef USERS_BIG_DIR
   /* go into a user hash dir if required */
-  open_big_dir(domain, uid, gid);
-  user_hash = next_big_dir(uid, gid);
-  close_big_dir(domain, uid, gid);
+  if (!(user_hash = backfill(username, domain, 0, 1)))
+  {
+  	open_big_dir(domain, uid, gid);
+  	user_hash = next_big_dir(uid, gid);
+  	close_big_dir(domain, uid, gid);
+  } else
+	r_mkdir(user_hash, uid, gid);
   chdir(user_hash);
 #endif
   /* check the length of the dir path to make sure it is not too 

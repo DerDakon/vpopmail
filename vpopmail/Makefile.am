@@ -9,7 +9,7 @@ EXTRA_DIST=README.* cdb/* vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
 
 noinst_HEADERS=md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h vutil.h
 
-COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c vutil.c vlistlib.c
+COMMONSOURCES=vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c vutil.c vlistlib.c backfill.c
 
 CONFIG_CLEAN_FILES=vauth.c cdb/conf-cc cdb/conf-ld cdb/compile cdb/load
 
@@ -30,13 +30,16 @@ vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
  vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias \
- vpopmaild vlist
+ vpopmaild vlist authvchkpw
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
 
 vlist_SOURCES = vlist.c vlistlib.c vutil.c
 vlist_LDADD = libvpopmail.a @auth_libs@
+
+authvchkpw_SOURCES = authvchkpw.c hmac_md5.c
+authvchkpw_LDADD = libvpopmail.a @auth_libs@
 
 vpopmaild_SOURCES = vpopmaild.c
 vpopmaild_LDADD = libvpopmail.a @auth_libs@

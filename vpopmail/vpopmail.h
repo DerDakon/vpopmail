@@ -1,5 +1,5 @@
 /*
- * $Id: vpopmail.h,v 1.34 2007-10-31 07:55:39 rwidmer Exp $
+ * $Id: vpopmail.h,v 1.35 2009-01-15 15:31:23 volz0r Exp $
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -303,7 +303,6 @@ int compile_morercpthosts();
 char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid);
 int r_mkdir(char *, uid_t uid, gid_t gid);
 struct vqpasswd *vgetent(FILE *);
-int pw_comp(char *, char *, char *, int);
 char *default_domain();
 void vset_default_domain( char *);
 void vupdate_rules(int);
@@ -360,4 +359,8 @@ extern char *last_query;
 extern char onchange_buf[MAX_BUFF];
 extern int allow_onchange;
 int call_onchange();
+#endif
+
+#ifdef USERS_BIG_DIR
+char *backfill(char *, char *, char *, int);
 #endif

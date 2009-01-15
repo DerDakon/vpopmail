@@ -12,6 +12,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 	- Fix mixed up usage of MYSQL_UPDATE_* and MYSQL_READ_* in vmysql.c:load_connection_info()
 	This may need a tracker number attached.  I can't find it.
 
+    Manvendra Bhangui
+	- Added authvchkpw module for Courier-IMAP
+	- Added backfill patch [2507177]
 
 5.4.26 - Released 3-Nov-2007
 	Bill Shupp
