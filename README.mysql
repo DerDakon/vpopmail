@@ -299,8 +299,8 @@ There are some things you need to edit by hand to get it to work.
 1) Create a ~vpopmail/etc/vpopmail.mysql file and put these fields in 
 the file (replacing them with the actual information):
 
-read_server|read port|read_user|read_password|database_name
-update_server|update port|update_user|update_password|database_name
+read_server|read port or socket path|read_user|read_password|database_name
+update_server|update port or socket path|update_user|update_password|database_name
 
 For example:
 
