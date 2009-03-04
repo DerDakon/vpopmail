@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
+#include <fcntl.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
@@ -37,10 +38,269 @@ void vdefault_limits (struct vlimits *limits)
  */
 int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
 {
-    char buf[MAX_BUFF];
+    char buf[2048];
     char * s1;
     char * s2;
+#if 0
     FILE * fs;
+#endif
+	ssize_t rret = 0;
+	char *h = NULL, *t = NULL;
+	int fd = 0, in_bytes = 0;
+
+	fd = open(dir, O_RDONLY);
+	if (fd == -1)
+	   return -1;
+
+	in_bytes = 0;
+	h = t = buf;
+
+    while(1) {
+	   /*
+		  Read any more available data if buffer is not full
+		  and we haven't reached EOF
+	   */
+
+	  if ((fd != -1) && (in_bytes < sizeof(buf))) {
+		 rret = read(fd, (buf + in_bytes), (sizeof(buf) - in_bytes));
+
+		 /*
+			EOF or error
+		 */
+
+		 if (rret < 1) {
+			close(fd);
+			fd = -1;
+
+			/*
+			   Error occurred
+			*/
+
+			if (rret == -1)
+			   return -1;
+		 }
+
+		 else {
+			in_bytes += rret;
+			*(buf + in_bytes) = '\0';
+		 }
+	  }
+
+	  /*
+		 Find next line
+	  */
+
+	  for (; ((*h) && (h < (buf + in_bytes))); h++) {
+		 if ((*h == '\r') || (*h == '\n'))
+			break;
+	  }
+
+	  /*
+		 No newline found
+	  */
+
+	  if ((*h != '\n') && (*h != '\r')) {
+		 if (fd != -1) {
+			/*
+			   Out of space in buffer
+			*/
+
+			if (in_bytes >= sizeof(buf))
+			   break;
+
+			/*
+			   Make space in buffer
+			*/
+
+			memmove(buf, t, (h - buf));
+			in_bytes = (h - buf);
+			h = t = buf;
+
+			/*
+			   ..and begin again
+			*/
+
+			continue;
+		 }
+
+		 /*
+			Continue on and use remaining data then break out of loop
+		 */
+
+		 h = NULL;
+	  }
+
+	  else
+		 *h++ = '\0';
+
+	  /*
+		 Hand data to parser
+	  */
+
+	  if ((*t) && (*t != '#')) {
+		 /*
+			Seperate name and value
+		 */
+
+		 for (s1 = s2 = t; *s2; s2++) {
+			if ((*s2 == ' ') || (*s2 == '\t') || (*s2 == ':'))
+			   break;
+		 }
+
+		 if (*s2) {
+			*s2++ = '\0';
+
+			while((*s2 == ' ') || (*s2 == '\t') || (*s2 == ':'))
+			   s2++;
+		 }
+
+		 else
+			s2 = NULL;
+
+            if (!strcmp(s1, "maxpopaccounts")) {
+                if (s2)
+                limits->maxpopaccounts = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "maxaliases")) {
+                if (s2)
+                limits->maxaliases = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "maxforwards")) {
+                if (s2)
+                limits->maxforwards = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "maxautoresponders")) {
+                if (s2)
+                limits->maxautoresponders = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "maxmailinglists")) {
+                if (s2)
+                limits->maxmailinglists = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "quota")) {
+                if (s2)
+                limits->diskquota = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "maxmsgcount")) {
+                if (s2)
+                limits->maxmsgcount = atoi(s2);
+            }
+
+            if (!strcmp(s1, "default_quota")) {
+                if (s2)
+                limits->defaultquota = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "default_maxmsgcount")) {
+                if (s2)
+                limits->defaultmaxmsgcount = atoi(s2);
+            }
+
+			else if (!strcmp(s1, "disable_pop")) {
+                limits->disable_pop = 1;
+            }
+
+			else if (!strcmp(s1, "disable_imap")) {
+                limits->disable_imap = 1;
+            }
+
+			else if (!strcmp(s1, "disable_dialup")) {
+                limits->disable_dialup = 1;
+            }
+
+			else if (!strcmp(s1, "disable_password_changing")) {
+                limits->disable_passwordchanging = 1;
+            }
+
+			else if (!strcmp(s1, "disable_external_relay")) {
+                limits->disable_relay = 1;
+            }
+
+			else if (!strcmp(s1, "disable_smtp")) {
+                limits->disable_smtp = 1;
+            }
+
+			else if (!strcmp(s1, "disable_webmail")) {
+                limits->disable_webmail = 1;
+            }
+
+			else if (!strcmp(s1, "disable_spamassassin")) {
+                limits->disable_spamassassin = 1;
+            }
+
+			else if (!strcmp(s1, "delete_spam")) {
+                limits->delete_spam = 1;
+            }
+
+			else if (!strcmp(s1, "disable_maildrop")) {
+                limits->disable_maildrop = 1;
+            }
+
+			else if (!strcmp(s1, "perm_account")) {
+                if (s2)
+                limits->perm_account = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+
+			else if (!strcmp(s1, "perm_alias")) {
+                if (s2)
+                limits->perm_alias = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+
+			else if (!strcmp(s1, "perm_forward")) {
+                if (s2)
+                limits->perm_forward = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+
+			else if (!strcmp(s1, "perm_autoresponder")) {
+                if (s2)
+                limits->perm_autoresponder = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+
+			else if (!strcmp(s1, "perm_maillist")) {
+                unsigned long perm;
+                if (s2) {
+                perm = atol(s2);
+                limits->perm_maillist = perm & VLIMIT_DISABLE_ALL;
+                perm >>= VLIMIT_DISABLE_BITS;
+                limits->perm_maillist_users = perm & VLIMIT_DISABLE_ALL;
+                perm >>= VLIMIT_DISABLE_BITS;
+                limits->perm_maillist_moderators = perm & VLIMIT_DISABLE_ALL;
+				}
+            }
+
+			else if (!strcmp(s1, "perm_quota")) {
+                if (s2)
+                limits->perm_quota = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+
+			else if (!strcmp(s1, "perm_defaultquota")) {
+                if (s2)
+                limits->perm_defaultquota = atoi(s2) & VLIMIT_DISABLE_ALL;
+            }
+	  }
+
+	  if (h == NULL)
+		 break;
+
+	  /*
+		 Reset tail
+	  */
+
+	  t = h;
+    }
+
+	if (fd != -1)
+	   close(fd);
+
+	return 0;
+
+#if 0
 
     /* open the nominated limits file */
     if ((fs = fopen(dir, "r")) == NULL) return (-1);
@@ -199,6 +459,7 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
     }
     fclose(fs);
     return 0;
+#endif
 }
 
 /* Take the limits struct, and write it out as a .qmailadmin-limits
