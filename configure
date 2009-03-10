@@ -1339,7 +1339,7 @@ Optional Features:
   --enable-sql-logging       Enable authentication logging to MySQL/Postgres.
   --enable-mysql-limits      Use MySQL to store limits instead of .qmailadmin-limits files.
   --enable-mysql-replication Enable support for replicated MySQL auth servers.
-  --enable-valias            Store email aliases in SQL table instead of .qmail files.
+  --enable-valias            Store email aliases in SQL table or LDAP database instead of .qmail files.
   --disable-many-domains     Creates a table for each virtual domain instead of storing all users in a single table. Only valid for MySQL and PostgreSQL
 
 
@@ -8110,18 +8110,21 @@ case $VALIAS in
         { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
         if test "$USE_SQL" != 1
-        then
-                { { echo "$as_me:$LINENO: error: valias option is only supported in the SQL authentication modules" >&5
-echo "$as_me: error: valias option is only supported in the SQL authentication modules" >&2;}
+		 then
+		   if test "$USE_LDAP" != 1
+			then
+                { { echo "$as_me:$LINENO: error: valias option is only supported in the SQL and LDAP authentication modules" >&5
+echo "$as_me: error: valias option is only supported in the SQL and LDAP authentication modules" >&2;}
    { (exit 1); exit 1; }; }
-        else
+			fi
+		 fi
+
                 VALIAS=1
 
 cat >>confdefs.h <<_ACEOF
 #define VALIAS $VALIAS
 _ACEOF
 
-        fi
         ;;
   *)
         { echo "$as_me:$LINENO: result: no" >&5
