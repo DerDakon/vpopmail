@@ -1,4 +1,7 @@
-/* $Id$
+/* 
+   $Id$
+   Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+ 
    This is a composite of deliverquota's maildirquota.h, maildirmisc.h, and 
    numlib.h.  I only consolidated them to keep this patch to vpopmail  a bit 
    less intrusive.

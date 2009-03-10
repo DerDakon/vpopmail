@@ -1,5 +1,7 @@
 /*
  * $Id$
+ * Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+ *
  * handle domain limits in both file and mysql tables
  * Brian Kolaci <bk@galaxy.net>
  */

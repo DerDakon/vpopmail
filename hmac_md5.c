@@ -1,4 +1,7 @@
-/* $Id$ */
+/* 
+ * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
+*/
 
 #include "global.h"
 #include "md5.h"
