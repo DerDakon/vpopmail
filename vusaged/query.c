@@ -35,8 +35,7 @@
 int query_parse(void *handle, char *data, int len)
 {
    int ret = 0;
-   char *p = NULL;
-   storage_t uusage = 0, dusage = 0;
+   storage_t susage = 0, cusage = 0;
 
 #ifdef ASSERT_DEBUG
    assert(handle != NULL);
@@ -51,60 +50,65 @@ int query_parse(void *handle, char *data, int len)
 	  Default response 'Not monitored'
    */
 
-   uusage = dusage = -1;
+   susage = cusage = -1;
 
    /*
-	  Get user usage
+	  Domain counts
    */
 
-   uusage = user_get_usage(data);
+   if (*data == '@') {
+	  /*
+		 Currently we don't track domain message counts
+	  */
 
-   /*
-	  If user exists, get domain usage
-   */
-
-   if (uusage != -1) {
-	  for (p = data; *p; p++) {
-		 if (*p == '@')
-			break;
-	  }
-
-	  if (*p)
-		 dusage = domain_get_usage(p + 1);
+	  cusage = 0;
+	  susage = domain_get_usage(data + 1);
    }
 
    /*
-	  Put user in new user queue
+	  User counts
    */
 
-   else
-	  queue_check_newuser(data);
+   else {
+	  /*
+		 Get user counts
+	  */
+
+	  ret = user_get_use(data, &susage, &cusage);
+
+	  /*
+		 Put user in new user queue
+	  */
+
+	  if (ret == -1)
+		 queue_check_newuser(data);
+   }
 
    /*
 	  Convert to network byte order
    */
 
-   uusage = htonll(uusage);
-   dusage = htonll(dusage);
+   susage = htonll(susage);
+   cusage = htonll(cusage);
 
    /*
 	  Write response
    */
 
-   ret = packet_write(handle, &uusage, sizeof(uusage));
+   ret = packet_write(handle, &susage, sizeof(susage));
    if (!ret) {
 	  fprintf(stderr, "query_parse: packet_write failed\n");
 	  return 1;
    }
 
-   ret = packet_write(handle, &dusage, sizeof(dusage));
+   ret = packet_write(handle, &cusage, sizeof(cusage));
    if (!ret) {
 	  fprintf(stderr, "query_parse: packet_write failed\n");
 	  return 1;
    }
 
 #ifdef QUERY_DEBUG
-   printf("query: %s: user=%llu; domain=%llu\n", data, ntohll(uusage), ntohll(dusage));
+   printf("query: %s: size=%llu; count=%llu\n", data, ntohll(susage), ntohll(cusage));
 #endif
    return 1;
 }

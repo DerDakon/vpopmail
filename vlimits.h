@@ -1,5 +1,7 @@
 /*
- * $Id: vlimits.h,v 1.10 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id$
+ * Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+ *
  * handle domain limits in both file and mysql tables
  * Brian Kolaci <bk@galaxy.net>
  */

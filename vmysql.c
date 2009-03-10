@@ -1,6 +1,6 @@
 /*
- * $Id: vmysql.c,v 1.37 2008-10-29 21:16:21 kbo Exp $
- * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

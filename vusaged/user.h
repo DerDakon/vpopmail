@@ -47,6 +47,7 @@ typedef struct __user_ {
 user_t *user_get(const char *);
 storage_t user_usage(user_t *);
 storage_t user_get_usage(const char *);
+int user_get_use(const char *, storage_t *, storage_t *);
 int user_poll(user_t *);
 user_t *user_get_userlist(void);
 int user_verify(user_t *);

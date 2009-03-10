@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.4.27)
+AC_INIT(vpopmail,5.4.29)
 PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
 
@@ -959,26 +959,25 @@ case $ENABLE_MAILDROP in
 esac
 
 #----------------------------------------------------------------------
-#  -- domain quotas disabled until they actually work again --
-#AC_MSG_CHECKING(whether domainquotas is enabled)
-#AC_ARG_ENABLE(domainquotas,
-#        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
-#        ENABLE_DOMAIN_QUOTAS=$enableval,
-#                [
-#                        ENABLE_DOMAIN_QUOTAS=0
-#                ]
-#)
-#
-#case $ENABLE_DOMAIN_QUOTAS in
-#  0*|n*|N*)
-#      AC_MSG_RESULT(no)
-#      ;;
-#  *)
-#      AC_MSG_RESULT(yes)
-#      ENABLE_DOMAIN_QUOTAS=1
-#      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
-#      ;;
-#esac
+AC_MSG_CHECKING(whether domainquotas is enabled)
+AC_ARG_ENABLE(domainquotas,
+        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
+        ENABLE_DOMAIN_QUOTAS=$enableval,
+                [
+                        ENABLE_DOMAIN_QUOTAS=0
+                ]
+)
+
+case $ENABLE_DOMAIN_QUOTAS in
+  0*|n*|N*)
+      AC_MSG_RESULT(no)
+      ;;
+  *)
+      AC_MSG_RESULT(yes)
+      ENABLE_DOMAIN_QUOTAS=1
+      AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
+      ;;
+esac
 
 #----------------------------------------------------------------------
 
@@ -1389,7 +1388,7 @@ esac
 
 AC_MSG_CHECKING(whether valias is enabled)
 AC_ARG_ENABLE(valias,
-        [  --enable-valias            Store email aliases in SQL table instead of .qmail files.],
+        [  --enable-valias            Store email aliases in SQL table or LDAP database instead of .qmail files.],
         VALIAS=$enableval,
                 [
                         VALIAS=n
@@ -1400,12 +1399,15 @@ case $VALIAS in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
         if test "$USE_SQL" != 1
-        then
-                AC_MSG_ERROR(valias option is only supported in the SQL authentication modules)
-        else
+		 then
+		   if test "$USE_LDAP" != 1
+			then
+                AC_MSG_ERROR(valias option is only supported in the SQL and LDAP authentication modules)
+			fi
+		 fi
+
                 VALIAS=1
                 AC_DEFINE_UNQUOTED(VALIAS,$VALIAS,"")
-        fi
         ;;
   *)
         AC_MSG_RESULT(no)
@@ -1493,12 +1495,12 @@ AC_ARG_ENABLE(sybase, [],
     ]
 )
 
-AC_ARG_ENABLE(domainquotas, [],
-    [
-        AC_MSG_RESULT(yes)
-        AC_MSG_ERROR(--enable-domainquotas has been temporarily disabled since the domain quota code is broken.)
-    ]
-)
+#AC_ARG_ENABLE(domainquotas, [],
+#    [
+#        AC_MSG_RESULT(yes)
+#        AC_MSG_ERROR(--enable-domainquotas has been temporarily disabled since the domain quota code is broken.)
+#    ]
+#)
 
 AC_ARG_ENABLE(hardquota, [],
     [
@@ -1666,14 +1668,18 @@ case $ENABLE_ONCHANGE_SCRIPT in
 esac
 
 
-#case $ENABLE_DOMAIN_QUOTAS in
-#  1*|y*|Y*)
-#    echo "     domain quotas = ON  --enable-domainquotas"
-#    ;;
-#  *)
-#    echo "     domain quotas = OFF --disable-domainquotas (default)"
-#    ;;
-#esac
+case $ENABLE_DOMAIN_QUOTAS in
+  1*|y*|Y*)
+    echo "     domain quotas = ON  --enable-domainquotas"
+	echo ""
+	echo "                     *** Domain quotas should only be enabled ***"
+    echo "                     *** when using the vpopmail usage daemon ***"
+	echo ""
+    ;;
+  *)
+    echo "     domain quotas = OFF --disable-domainquotas (default)"
+    ;;
+esac
 
 
 case $AUTH_MODULE in

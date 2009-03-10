@@ -1,6 +1,6 @@
 /*
- * $Id: md5.h,v 1.7 2007-05-22 03:58:59 rwidmer Exp $
- * Copyright (C) 2000-2003 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 2000-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License  

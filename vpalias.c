@@ -1,6 +1,6 @@
 /*
- * $Id: vpalias.c,v 1.17 2007-10-29 05:21:15 shupp Exp $
- * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 2000-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

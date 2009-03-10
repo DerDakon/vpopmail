@@ -1,6 +1,6 @@
 /*
- * $Id: vsybase.c,v 1.20 2007-08-17 22:49:24 rwidmer Exp $
- * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

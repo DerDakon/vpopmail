@@ -1,6 +1,6 @@
 /*
- * $Id: vcdb.c,v 1.26 2007-08-17 22:49:23 rwidmer Exp $
- * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  */
 /******************************************************************************
 **
-** $Id: vcdb.c,v 1.26 2007-08-17 22:49:23 rwidmer Exp $
+** $Id$
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998

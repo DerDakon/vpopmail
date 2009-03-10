@@ -1,6 +1,6 @@
 /*
- * $Id: vuserinfo.c,v 1.16 2007-05-22 03:59:02 rwidmer Exp $
- * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
+ * $Id$
+ * Copyright (C) 2000-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

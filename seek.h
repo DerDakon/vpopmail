@@ -1,5 +1,6 @@
 /*
- * $Id: seek.h,v 1.4 2007-05-22 03:58:59 rwidmer Exp $
+ * $Id$
+ * Copyright (C) 2009 Inter7 Internet Technologies, Inc.
  *
  * Copyright (c) 1987 University of Maryland Computer Science Department.
  * All rights reserved.

@@ -1,5 +1,7 @@
 /*
- * $Log: not supported by cvs2svn $
+ * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
+ *
  * Revision 2.2  2008-08-24 17:43:44+05:30  Cprogrammer
  * added code to return error for password changes
  *
@@ -43,7 +45,7 @@
 #include "vauth.h"
 
 #ifndef lint
-static char     sccsid[] = "$Id: authvchkpw.c,v 1.1 2009-01-15 15:31:23 volz0r Exp $";
+static char     sccsid[] = "$Id$";
 #endif
 #ifdef AUTH_SIZE
 #undef AUTH_SIZE
