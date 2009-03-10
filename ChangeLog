@@ -4,6 +4,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.4.28 - Current
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient
+   - Added vusage client API to libvpopmail
+   - Added vusage daemon
+   - Updated quota code to talk to vusage daemon if available
+   - Fixed some backfill patch compilation issues
+   - Updated maildir_to_email to support paths that end in /Maildir as well as /Maildir/
 
 5.4.27 - Released 16-Jan-2009
 	Jeremy Kister, Rick Widmer, Tom Collins
