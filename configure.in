@@ -1389,7 +1389,7 @@ esac
 
 AC_MSG_CHECKING(whether valias is enabled)
 AC_ARG_ENABLE(valias,
-        [  --enable-valias            Store email aliases in SQL table instead of .qmail files.],
+        [  --enable-valias            Store email aliases in SQL table or LDAP database instead of .qmail files.],
         VALIAS=$enableval,
                 [
                         VALIAS=n
@@ -1400,12 +1400,15 @@ case $VALIAS in
   1*|y*|Y*)
         AC_MSG_RESULT(yes)
         if test "$USE_SQL" != 1
-        then
-                AC_MSG_ERROR(valias option is only supported in the SQL authentication modules)
-        else
+		 then
+		   if test "$USE_LDAP" != 1
+			then
+                AC_MSG_ERROR(valias option is only supported in the SQL and LDAP authentication modules)
+			fi
+		 fi
+
                 VALIAS=1
                 AC_DEFINE_UNQUOTED(VALIAS,$VALIAS,"")
-        fi
         ;;
   *)
         AC_MSG_RESULT(no)
