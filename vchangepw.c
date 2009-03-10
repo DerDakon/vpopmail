@@ -1,5 +1,5 @@
 /*
- * $Id: vchangepw.c,v 1.6 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id$
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 

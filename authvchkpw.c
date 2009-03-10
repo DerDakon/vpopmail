@@ -43,7 +43,7 @@
 #include "vauth.h"
 
 #ifndef lint
-static char     sccsid[] = "$Id: authvchkpw.c,v 1.1 2009-01-15 15:31:23 volz0r Exp $";
+static char     sccsid[] = "$Id$";
 #endif
 #ifdef AUTH_SIZE
 #undef AUTH_SIZE

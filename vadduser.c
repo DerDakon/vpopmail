@@ -1,5 +1,5 @@
 /*
- * $Id: vadduser.c,v 1.15 2007-05-22 04:49:27 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

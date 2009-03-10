@@ -1,5 +1,5 @@
 /*
- * $Id: vsetuserquota.c,v 1.10 2007-05-22 03:59:02 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

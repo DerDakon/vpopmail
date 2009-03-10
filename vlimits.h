@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.h,v 1.10 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id$
  * handle domain limits in both file and mysql tables
  * Brian Kolaci <bk@galaxy.net>
  */

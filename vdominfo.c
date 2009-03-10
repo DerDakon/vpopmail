@@ -1,5 +1,5 @@
 /*
- * $Id: vdominfo.c,v 1.16 2009-01-14 19:37:09 volz0r Exp $
+ * $Id$
  * Copyright (C) 2001-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

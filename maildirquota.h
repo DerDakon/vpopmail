@@ -1,4 +1,4 @@
-/* $Id: maildirquota.h,v 1.7 2007-09-23 22:59:53 rwidmer Exp $
+/* $Id$
    This is a composite of deliverquota's maildirquota.h, maildirmisc.h, and 
    numlib.h.  I only consolidated them to keep this patch to vpopmail  a bit 
    less intrusive.
@@ -45,7 +45,7 @@ int maildir_addquota(const char *,	/* Pointer to the maildir */
 extern "C" {
 #endif
 
-static const char maildirquota_h_rcsid[]="$Id: maildirquota.h,v 1.7 2007-09-23 22:59:53 rwidmer Exp $";
+static const char maildirquota_h_rcsid[]="$Id$";
 
 int maildir_checkquota(const char *,	/* Pointer to directory */
 	int *,	/* Initialized to -1, or opened descriptor for maildirsize */
@@ -84,7 +84,7 @@ int maildir_parsequota(const char *, unsigned long *);
 extern "C" {
 #endif
 
-static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h,v 1.7 2007-09-23 22:59:53 rwidmer Exp $";
+static const char maildirmisc_h_rcsid[]="$Id$";
 
 /*
 **
@@ -235,7 +235,7 @@ int maildir_hasflag(const char *filename, char);
 extern "C" {
 #endif
 
-static const char numlib_h_rcsid[]="$Id: maildirquota.h,v 1.7 2007-09-23 22:59:53 rwidmer Exp $";
+static const char numlib_h_rcsid[]="$Id$";
 
 #define	NUMBUFSIZE	60
 

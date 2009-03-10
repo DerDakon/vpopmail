@@ -1,5 +1,5 @@
 /*
- * $Id: vutil.h,v 1.1 2007-10-31 07:55:39 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
