@@ -31,23 +31,23 @@ int main(int argc, char *argv[])
    void *handle = NULL;
    int i = 0, ret = 0;
 #endif
-   storage_t uusage = 0, dusage = 0;
+   storage_t uusage = 0, musage = 0;
 
    if (argc < 2) {
-	  printf("Usage: %s <email> [...]\n", argv[0]);
+	  printf("Usage: %s <email|@domain> [...]\n", argv[0]);
 	  return 1;
    }
 
 #ifdef QUICK_QUERY
    for (i = 1; i < argc; i++) {
-	  ret = client_query_quick(argv[i], &uusage, &dusage);
+	  ret = client_query_quick(argv[i], &uusage, &musage);
 	  if (!ret)
 		 printf("client_query_quick failed\n");
 	  else {
 		 if (uusage == -1)
-			printf("No such user: %s\n", argv[i]);
+			printf("%s: No data available\n", argv[i]);
 		 else
-			printf("%s: %llu byte(s), domain: %llu byte(s)\n", argv[i], uusage, dusage);
+			printf("%s: %llu byte(s) in %llu message(s)\n", *(argv[i]) == '@' ? (argv[i] + 1) : argv[i], uusage, musage);
 	  }
    }
 #else
@@ -58,16 +58,16 @@ int main(int argc, char *argv[])
    }
 
    for (i = 1; i < argc; i++) {
-	  ret = client_query(handle, argv[i], strlen(argv[i]), &uusage, &dusage);
+	  ret = client_query(handle, argv[i], strlen(argv[i]), &uusage, &musage);
 	  if (!ret) {
 		 printf("client_query failed\n");
 		 continue;
 	  }
 
 	  if (uusage == -1)
-		 printf("No such user: %s\n", argv[i]);
+		 printf("%s: No data available\n", argv[i]);
 	  else
-		 printf("%s: %llu byte(s), domain: %llu byte(s)\n", argv[i], uusage, dusage);
+		 printf("%s: %llu byte(s) in %llu message(s)\n", *(argv[i]) == '@' ? (argv[i] + 1) : argv[i], uusage, musage);
    }
 
    client_close(handle);
