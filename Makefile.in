@@ -1105,6 +1105,19 @@ install-data-local:
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  doc/doc_html/*.* $(DESTDIR)@vpopmaildir@/doc/doc_html/
 
+   @echo ""
+   @echo "****************************************************"
+   @echo ""
+   @echo "     If you plan to use the vpopmail usage daemon"
+   @echo "     run the following commands:"
+   @echo ""
+   @echo "   cd vusaged && ./configure && make"
+   @echo ""
+   @echo "     Then follow the INSTALL file to install"
+   @echo ""
+   @echo "****************************************************"
+   @echo ""
+
 fix-priv:
 	if test -r $(MYSQLCONF); then \
 	  chown @vpopuser@  $(MYSQLCONF) ; \
