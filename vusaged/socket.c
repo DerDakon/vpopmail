@@ -266,7 +266,7 @@ int socket_init(config_t *config)
 			UID may be username
 		 */
 
-		 if (uid == -1) {
+		 if (uid <= 0) {
 			pw = getpwnam(str);
 			if (pw == NULL) {
 			   fprintf(stderr, "socket_init: invalid configuration: Socket::UID: %s\n", str);
@@ -289,7 +289,7 @@ int socket_init(config_t *config)
 
 		 gid = atoi(str);
 
-		 if (gid == -1) {
+		 if (gid <= 0) {
 			grp = getgrnam(str);
 			if (grp == NULL) {
 			   fprintf(stderr, "socket_init: invalid configuration: Socket::GID: %s\n", str);
