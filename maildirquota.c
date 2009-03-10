@@ -35,6 +35,9 @@
 #include "vlimits.h"
 #include "maildirquota.h"
 #include "config.h"
+#include "conf.h"
+#include "storage.h"
+#include "client.h"
 
 /* private functions - no name clashes with courier */
 static char *makenewmaildirsizename(const char *, int *);
@@ -57,13 +60,14 @@ static char *str_pid_t(pid_t t, char *arg);
 static char *str_time_t(time_t t, char *arg);
 static int maildir_parsequota(const char *n, unsigned long *s);
 
-
 #define  NUMBUFSIZE      60
 #define	MDQUOTA_SIZE	'S'	/* Total size of all messages in maildir */
 #define	MDQUOTA_BLOCKS	'B'	/* Total # of blocks for all messages in
 				maildir -- NOT IMPLEMENTED */
 #define	MDQUOTA_COUNT	'C'	/* Total number of messages in maildir */
 
+int quota_mtos(const char *, storage_t *, storage_t *);
+int quota_user_usage(const char *, storage_t *, storage_t *);
 
 /* bk: add domain limits functionality */
 int domain_over_maildirquota(const char *userdir)
@@ -74,9 +78,10 @@ char	*p;
 char	domain[256];
 long    size = 0;
 unsigned long maxsize = 0;
-int	cnt = 0;
+int	cnt = 0, ret = 0;
 int	maxcnt = 0;
 struct vlimits limits;
+   storage_t uusage = 0, dusage = 0;
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0)
@@ -104,7 +109,18 @@ struct vlimits limits;
 			return -1;
 
 		/* get the domain usage */
-		if (readdomainquota(domdir, &size, &cnt)) return -1;
+
+		 ret = client_query_quick(userdir, &uusage, &dusage);
+		 if (ret) {
+			if (dusage != -1) {
+			   if (dusage >= maxsize)
+				  return 1;
+			}
+
+			return 0;
+		 }
+
+		 if (readdomainquota(domdir, &size, &cnt)) return -1;
 
 		/* check if either quota (size/count) would be exceeded */
 		if (maxsize > 0 && (size + stat_buf.st_size) > maxsize) return 1;
@@ -429,14 +445,25 @@ int	npercentage=0;
 	return (0);
 }
 
-
 static int maildir_checkquota(const char *dir,
 	int *maildirsize_fdptr,
 	const char *quota_type,
 	long xtra_size,
 	int xtra_cnt)
 {
-int	dummy;
+int	dummy, ret = 0;
+
+   /*
+	  Ping the daemon
+   */
+
+   ret = client_query_quick(" ", NULL, NULL);
+   if (ret)
+      return vmaildir_readquota(dir, quota_type);
+
+   /*
+	  Fall back
+   */
 
 	return (docheckquota(dir, maildirsize_fdptr, quota_type,
 		xtra_size, xtra_cnt, &dummy));
@@ -444,8 +471,48 @@ int	dummy;
 
 int vmaildir_readquota(const char *dir, const char *quota_type)
 {
-int	percentage=0;
-int	fd=-1;
+   int	percentage=0;
+   int	fd=-1;
+   int ret = 0;
+   char *email = NULL;
+   storage_t uusage = 0, dusage = 0, usquota = 0, ucquota = 0;
+
+   /*
+	  Get user usage
+   */
+
+   email = maildir_to_email(dir);
+   ret = client_query_quick(email, &uusage, &dusage);
+   if (ret) {
+	  if (uusage != -1) {
+
+		 /*
+			Convert quota string to integers
+		 */
+
+		 quota_mtos(quota_type, &usquota, &ucquota);
+
+		 /*
+			Return percentage
+		 */
+
+		 fd = (int)((uusage/usquota) * 100);
+
+		 if (fd > 100)
+			fd = 100;
+
+		 if (fd < 0)
+			fd = 0;
+
+		 return fd;
+	  }
+
+	  return 0;
+   }
+
+   /*
+	  If usage daemon is not running, fall back on old methods
+   */
 
 	(void)docheckquota(dir, &fd, quota_type, 0, 0, &percentage);
 	if (fd >= 0)
@@ -621,6 +688,21 @@ struct dirent *de;
 int	maildir_addquota(const char *dir, int maildirsize_fd,
 	const char *quota_type, long maildirsize_size, int maildirsize_cnt)
 {
+   int ret = 0;
+
+   /*
+	  Ping the usage daemon
+	  If it's running, we're done here.
+   */
+
+   ret = client_query_quick(" ", NULL, NULL);
+   if (ret)
+	  return 0;
+
+   /*
+	  Fall back
+   */
+
 	if (!quota_type || !*quota_type)	return (0);
 	return (doaddquota(dir, maildirsize_fd, quota_type, maildirsize_size,
 			maildirsize_cnt, 0));
@@ -1001,3 +1083,110 @@ int     yes;
         }
         return (-1);
 }
+
+/*
+   Converts a Maildir++ quota to storage_t values
+   Does not perform full syntax checking on quota format
+*/
+
+int quota_mtos(const char *quota, storage_t *size, storage_t *count)
+{
+   storage_t ts = 0;
+   const char *h = NULL, *t = NULL;
+
+   if (quota == NULL)
+	  return 0;
+
+   /*
+	  Set default values
+   */
+
+   if (size != NULL)
+	  *size = 0;
+
+   if (count != NULL)
+	  *count = 0;
+
+   /*
+	  Parse out seperate Maildir++ parts
+   */
+
+   h = t = quota;
+
+   while(1) {
+	  if ((*h == ',') || (!(*h))) {
+		 switch(*(h - 1)) {
+			case 'S':
+			   if (size) {
+				  ts = strtoll(t, NULL, 10);
+				  if (ts != -1)
+					 *size = ts;
+
+				  size = NULL;
+			   }
+
+			   break;
+
+			case 'C':
+			   if (count) {
+				  ts = strtoll(t, NULL, 10);
+				  if (ts != -1)
+					 *count = ts;
+
+				  count = NULL;
+			   }
+
+			   break;
+
+			default:
+			   /*
+				  Default is type S
+			   */
+
+			   if ((!(*h)) && (size)) {
+				  ts = strtoll(t, NULL, 10);
+				  if (ts != -1)
+					 *size = ts;
+
+				  size = NULL;
+			   }
+
+			   /*
+				  Unknown type
+			   */
+
+			   break;
+		 }
+
+		 if (!(*h))
+			break;
+
+		 while(*h == ',')
+			h++;
+
+		 t = h;
+	  }
+
+	  else
+		 h++;
+   }
+
+   return 1;
+}
+
+/*
+   Returns disk usage information for user and user's domain from
+   the vpopmail usage daemon
+*/
+
+int quota_user_usage(const char *user, storage_t *uusage, storage_t *dusage)
+{
+   int ret = 0;
+
+   if ((user == NULL) || (uusage == NULL) || (dusage == NULL) || (!(*user)))
+	  return 0;
+
+   ret = client_query_quick(user, uusage, dusage);
+   return ret;
+}
+
