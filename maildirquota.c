@@ -75,13 +75,13 @@ int domain_over_maildirquota(const char *userdir)
 struct  stat    stat_buf;
 char	domdir[MAX_PW_DIR];
 char	*p;
-char	domain[256];
+char	domain[256], qb[256] = { 0 };
 long    size = 0;
 unsigned long maxsize = 0;
 int	cnt = 0, ret = 0;
 int	maxcnt = 0;
 struct vlimits limits;
-   storage_t uusage = 0, dusage = 0;
+   storage_t susage = 0, cusage = 0;
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0)
@@ -110,14 +110,23 @@ struct vlimits limits;
 
 		/* get the domain usage */
 
-		 ret = client_query_quick(userdir, &uusage, &dusage);
-		 if (ret) {
-			if (dusage != -1) {
-			   if (dusage >= maxsize)
-				  return 1;
-			}
+		 ret = strlen(domain);
 
-			return 0;
+		 if ((ret + 2) < sizeof(qb)) {
+			*qb = '@';
+			memcpy((qb + 1), domain, ret);
+			*(qb + ret + 1) = '\0';
+
+			ret = client_query_quick(qb, &susage, &cusage);
+			if (ret) {
+			   if ((susage + stat_buf.st_size) > maxsize)
+				  return 1;
+
+			   if ((maxcnt) && (cusage >= maxcnt))
+				  return 1;
+
+			   return 0;
+			}
 		 }
 
 		 if (readdomainquota(domdir, &size, &cnt)) return -1;
