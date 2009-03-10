@@ -764,6 +764,10 @@ int vauth_deldomain( char *domain ) {
         return -99;
     }
 
+#ifdef VALIAS
+	valias_delete_domain(domain);
+#endif
+
     return VA_SUCCESS;
 }
 
@@ -1499,3 +1503,658 @@ int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw) {
 
 /***************************************************************************/
 
+
+#ifdef VALIAS
+struct linklist *valias_current = NULL;
+
+
+/************************************************************************/
+char *valias_select( char *alias, char *domain )
+{
+ int err, len, ret, i = 0;
+ char filter[512] = { 0 }, dn[512] = { 0 };
+ struct linklist *temp_entry = NULL;
+ LDAPMessage *res = NULL, *msg = NULL;
+ char **aa = NULL, **di = NULL, *fields[] = { "aa", "di", NULL }, *p = NULL;
+
+    /* remove old entries as necessary */
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
+
+   if (ld == NULL) {
+	  err = ldap_connect(); 
+	  if (err)
+		 return NULL;
+   }
+
+   memset(filter, 0, sizeof(filter));
+   snprintf(filter, sizeof(filter), "(aa=%s@%s)", strcasecmp(alias, domain) ? alias : "*", domain);
+
+   memset(dn, 0, sizeof(dn));
+   snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
+                        filter, fields, 0, &res);
+
+    if (ret != LDAP_SUCCESS ) {
+        ldap_perror(ld,"Error");
+        return NULL;
+    }
+
+    /* grab a pointer to the 1st entry in the chain of search results */
+    msg = ldap_first_entry(ld, res);
+    if (msg == NULL) {
+        /* We had an error grabbing the pointer */
+        return NULL;
+    }
+
+    /* find out how many matches we found */
+    ret = ldap_count_entries(ld, msg);
+    if (ret == -1 ) {
+        /* an error occurred when counting the entries */
+        ldap_perror(ld,"Error");
+		ldap_msgfree(res);
+        return NULL;
+    }
+
+	while(msg) {
+	   aa = ldap_get_values(ld, msg, "aa");
+	   if (aa == NULL) {
+		  fprintf(stderr, "vldap: warning: no address entry\n");
+		  msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   di = ldap_get_values(ld, msg, "di");
+	   if (di == NULL) {
+		  fprintf(stderr, "vldap: warning: no delivery entries for '%s'\n", *aa);
+		  ldap_value_free(aa);
+	      msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   for (p = *aa; *p; p++) {
+		  if (*p == '@') {
+			 *p = '\0';
+			 break;
+		  }
+	   }
+
+	   for (i = 0; di[i]; i++) {
+		   temp_entry = linklist_add(temp_entry, di[i], "");
+			if (valias_current == NULL)
+			   valias_current = temp_entry;
+	   }
+
+	   ldap_value_free(aa);
+	   ldap_value_free(di);
+	   msg = ldap_next_entry(ld, msg);
+    }
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+		ldap_msgfree(res);
+        return(valias_current->data);
+    }
+}
+
+
+/************************************************************************/
+char *valias_select_next()
+{
+    if (valias_current == NULL) return NULL;
+
+    valias_current = linklist_del (valias_current);
+
+    if (valias_current == NULL) return NULL;
+    else return valias_current->data;
+}
+
+
+/************************************************************************/
+int valias_insert( char *alias, char *domain, char *alias_line)
+{
+ int err, ret = 0, mod = LDAP_MOD_ADD, i = 0;
+ LDAPMessage *msg = NULL, *res = NULL;
+ LDAPMod **lm = NULL;
+ char filter[512] = { 0 }, dn[512] = { 0 }, *fields[] = { "aa", NULL }, ud[512] = { 0 };
+
+   if (ld == NULL) {
+      if ( (err=ldap_connect()) != 0 )
+		 return(err);
+   }
+
+    while(*alias_line==' ' && *alias_line!=0) ++alias_line;
+
+	memset(ud, 0, sizeof(ud));
+	snprintf(ud, sizeof(ud), "%s@%s", alias, domain);
+
+	/*
+		 Check for existing entry to determine LDAP modification
+		 type
+    */
+
+	memset(dn, 0, sizeof(dn));
+	snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+	memset(filter, 0, sizeof(filter));
+	snprintf(filter, sizeof(filter), "aa=%s", ud);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
+                        filter, fields, 0, &res);
+
+    if (ret != LDAP_SUCCESS ) {
+        ldap_perror(ld,"Error");
+        return -1;
+    }
+
+    msg = ldap_first_entry(ld, res);
+
+    if (msg == NULL)
+	   mod = LDAP_MOD_ADD;
+	else
+	   mod = LDAP_MOD_REPLACE;
+
+	ldap_msgfree(res);
+
+	memset(dn, 0, sizeof(dn));
+	snprintf(dn, sizeof(dn), "aa=%s,ou=valias,%s", ud, VLDAP_BASEDN);
+
+	lm = malloc(sizeof(LDAPMod *) * 4);
+	if (lm == NULL) {
+	   fprintf(stderr, "vldap: malloc failed\n");
+	   return -1;
+	} 
+
+	for (i = 0; i < 3; i++) {
+	  lm[i] = malloc(sizeof(LDAPMod));
+	  if (lm[i] == NULL) {
+	     fprintf(stderr, "vldap: malloc failed\n");
+		 return -1;
+	  }
+
+	  memset(lm[i], 0, sizeof(LDAPMod));
+
+	  lm[i]->mod_op = mod;
+	  lm[i]->mod_values = malloc(sizeof(char *) * 2);
+	  lm[i]->mod_values[0] = NULL;
+	  lm[i]->mod_values[1] = NULL;
+    }
+
+    lm[0]->mod_type = safe_strdup("objectClass");
+	lm[0]->mod_values[0] = safe_strdup("valias");
+
+    lm[1]->mod_type = safe_strdup("aa");
+	lm[1]->mod_values[0] = safe_strdup(ud);
+
+    lm[2]->mod_op = LDAP_MOD_ADD;
+    lm[2]->mod_type = safe_strdup("di");
+	lm[2]->mod_values[0] = safe_strdup(alias_line);
+
+	lm[3] = NULL;
+
+	if (mod == LDAP_MOD_ADD)
+	  ret = ldap_add_s(ld, dn, lm);
+    else
+	   ret = ldap_modify_s(ld, dn, lm);
+
+	for (i = 0; i < 3; i++) { 
+	  free(lm[i]->mod_type);
+	  free(lm[i]->mod_values[1]);
+	  free(lm[i]);
+    }
+
+	free(lm);
+
+	if (ret != LDAP_SUCCESS) {
+        ldap_perror(ld,"Error");
+        return -1;
+    }
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
+       call_onchange ( "valias_insert" );
+       }
+#endif
+
+    return(0);
+}
+
+
+/************************************************************************/
+int valias_remove( char *alias, char *domain, char *alias_line)
+{
+ int err, ret = 0, i = 0;
+ LDAPMod **lm = NULL;
+ LDAPMessage *res = NULL, *msg = NULL;
+ char **di = NULL, *fields[] = { "di", NULL };
+ char ud[512] = { 0 }, dn[512] = { 0 }, filter[512] = { 0 };
+
+    if ( (err=ldap_connect()) != 0 ) return(err);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
+       call_onchange ( "valias_remove" );
+       }
+#endif
+
+	memset(ud, 0, sizeof(ud));
+	snprintf(ud, sizeof(ud), "%s@%s", alias, domain);
+
+	memset(dn, 0, sizeof(dn));
+	snprintf(dn, sizeof(dn), "aa=%s,ou=valias,%s", ud, VLDAP_BASEDN);
+
+	lm = malloc(sizeof(LDAPMod *) * 2);
+	if (lm == NULL) {
+	   fprintf(stderr, "vldap: malloc failed\n");
+	   return -1;
+	} 
+
+	for (i = 0; i < 1; i++) {
+	  lm[i] = malloc(sizeof(LDAPMod));
+	  if (lm[i] == NULL) {
+	     fprintf(stderr, "vldap: malloc failed\n");
+		 return -1;
+	  }
+
+	  memset(lm[i], 0, sizeof(LDAPMod));
+
+	  lm[i]->mod_op = LDAP_MOD_DELETE;
+	  lm[i]->mod_values = malloc(sizeof(char *) * 2);
+	  lm[i]->mod_values[0] = NULL;
+	  lm[i]->mod_values[1] = NULL;
+    }
+
+    lm[0]->mod_type = safe_strdup("di");
+	lm[0]->mod_values[0] = safe_strdup(alias_line);
+
+	lm[1] = NULL;
+
+    ret = ldap_modify_s(ld, dn, lm);
+
+	for (i = 0; i < 1; i++) { 
+	  free(lm[i]->mod_type);
+	  free(lm[i]->mod_values[0]);
+	  free(lm[i]);
+    }
+
+	free(lm);
+
+	if (ret != LDAP_SUCCESS) {
+        ldap_perror(ld,"Error");
+        return -1;
+    }
+
+	/*
+	    If there are no delivery instructions left, delete
+		entry entirely
+    */
+
+	memset(dn, 0, sizeof(dn));
+	snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+	memset(filter, 0, sizeof(filter));
+	snprintf(filter, sizeof(filter), "aa=%s", ud);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE, filter, fields, 0, &res);
+	if (ret != LDAP_SUCCESS) {
+	   ldap_perror(ld, "Error");
+	   return -1;
+    }
+
+    msg = ldap_first_entry(ld, res);
+	if (msg == NULL) {
+	   ldap_perror(ld, "Error");
+	   return -1;
+    }
+
+    ret = ldap_count_entries(ld, msg);
+	if (ret == -1) {
+	   ldap_perror(ld, "Error");
+	   return -1;
+    }
+
+	di = ldap_get_values(ld, msg, "di");
+	if ((di == NULL) || (di[0] == NULL)) {
+	   if (di)
+	      ldap_value_free(di);
+
+	   ldap_msgfree(res);
+	   return valias_delete(alias, domain);
+    }
+
+	ldap_value_free(di);
+	ldap_msgfree(res);
+    return(0);
+}
+
+
+/************************************************************************/
+int valias_delete( char *alias, char *domain)
+{
+ int err, ret = 0;
+ char ud[512] = { 0 }, dn[512] = { 0 };
+
+    if ( (err=ldap_connect()) != 0 ) return(err);
+
+#ifdef ONCHANGE_SCRIPT
+    if( allow_onchange ) {
+       /* tell other programs that data has changed */
+       snprintf ( onchange_buf, MAX_BUFF, "%s@%s", alias, domain );
+       call_onchange ( "valias_delete" );
+       }
+#endif
+
+	memset(ud, 0, sizeof(ud));
+	snprintf(ud, sizeof(ud), "%s@%s", alias, domain);
+
+	memset(dn, 0, sizeof(dn));
+	snprintf(dn, sizeof(dn), "aa=%s,ou=valias,%s", ud, VLDAP_BASEDN);
+
+    ret = ldap_delete_s(ld, dn);
+	if (ret != LDAP_SUCCESS) {
+        ldap_perror(ld,"Error");
+        return -1;
+    }
+
+    return(0);
+}
+
+
+/************************************************************************/
+int valias_delete_domain( char *domain)
+{
+ int err, ret;
+ char filter[512] = { 0 }, dn[512] = { 0 };
+ LDAPMessage *res = NULL, *msg = NULL;
+ char **aa = NULL, *fields[] = { "aa",  NULL }, *p = NULL;
+
+   if (ld == NULL) {
+	  err = ldap_connect(); 
+	  if (err)
+		 return 0;
+   }
+
+   memset(filter, 0, sizeof(filter));
+   snprintf(filter, sizeof(filter), "aa=*@%s", domain);
+
+   memset(dn, 0, sizeof(dn));
+   snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
+                        filter, fields, 0, &res);
+
+    if (ret != LDAP_SUCCESS ) {
+        ldap_perror(ld,"Error");
+        return 0;
+    }
+
+    msg = ldap_first_entry(ld, res);
+    if (msg == NULL) {
+		 ldap_msgfree(res);
+        return 0;
+    }
+
+    ret = ldap_count_entries(ld, msg);
+    if (ret == -1 ) {
+        ldap_perror(ld,"Error");
+		 ldap_msgfree(res);
+        return 0;
+    }
+
+	while(msg) {
+	   aa = ldap_get_values(ld, msg, "aa");
+	   if (aa == NULL) {
+		  fprintf(stderr, "vldap: warning: no address entry\n");
+	      msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   for (p = *aa; *p; p++) {
+		  if (*p == '@') {
+			 *p = '\0';
+			 break;
+		  }
+	   }
+
+	   ret = valias_delete(*aa, domain);
+	   if (ret == -1)
+		  fprintf(stderr, "vldap: valias_delete_domain: valias_delete(%s@%s) failed\n", *aa, domain);
+
+	   ldap_value_free(aa);
+	   msg = ldap_next_entry(ld, msg);
+    }
+
+    return(0);
+}
+
+/************************************************************************/
+char *valias_select_all( char *alias, char *domain )
+{
+ int err, len, ret, i = 0;
+ char filter[512] = { 0 }, dn[512] = { 0 };
+ struct linklist *temp_entry = NULL;
+ LDAPMessage *res = NULL, *msg = NULL;
+ char **aa = NULL, **di = NULL, *fields[] = { "aa", "di", NULL }, *p = NULL;
+
+   if (ld == NULL) {
+	  err = ldap_connect(); 
+	  if (err)
+		 return NULL;
+   }
+
+   memset(filter, 0, sizeof(filter));
+   snprintf(filter, sizeof(filter), "aa=%s@%s", strcasecmp(alias, domain) ? alias : "*", domain);
+
+   memset(dn, 0, sizeof(dn));
+   snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
+                        filter, fields, 0, &res);
+    if (ret != LDAP_SUCCESS ) {
+        ldap_perror(ld,"Error");
+        return NULL;
+    }
+
+            if ( ldap_sort_entries( ld, &res, "aa", &strcasecmp ) != 0)  {
+                ldap_perror(ld,"Error");
+                return NULL;
+            }
+
+    msg = ldap_first_entry(ld, res);
+    if (msg == NULL) {
+	    ldap_msgfree(res);
+        return NULL;
+    }
+
+    ret = ldap_count_entries(ld, msg);
+    if (ret == -1 ) {
+	    ldap_msgfree(res);
+        ldap_perror(ld,"Error");
+        return NULL;
+    }
+
+	while(msg) {
+	   aa = ldap_get_values(ld, msg, "aa");
+	   if (aa == NULL) {
+		  fprintf(stderr, "vldap: warning: no address entry\n");
+		  msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   di = ldap_get_values(ld, msg, "di");
+	   if (di == NULL) {
+		  fprintf(stderr, "vldap: warning: no delivery entries for '%s'\n", *aa);
+		  ldap_value_free(aa);
+	      msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   for (p = *aa; *p; p++) {
+		  if (*p == '@') {
+			 *p = '\0';
+			 break;
+		  }
+	   }
+
+	   for (i = 0; di[i]; i++) {
+		   temp_entry = linklist_add(temp_entry, di[i], *aa);
+		   if (valias_current == NULL)
+		      valias_current = temp_entry;
+	   }
+
+	   ldap_value_free(aa);
+	   ldap_value_free(di);
+	   msg = ldap_next_entry(ld, msg);
+    }
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+	    ldap_msgfree(res);
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
+}
+
+
+/************************************************************************/
+char *valias_select_all_next(char *alias)
+{
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+            
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
+}
+
+/************************************************************************
+ *
+ *  valias_select_names
+ */
+
+char *valias_select_names( char *alias, char *domain )
+{
+ int err, ret;
+ char filter[512] = { 0 }, dn[512] = { 0 };
+ struct linklist *temp_entry = NULL;
+ LDAPMessage *res = NULL, *msg = NULL;
+ char **aa = NULL,  *fields[] = { "aa",  NULL }, *p = NULL;
+
+   if (ld == NULL) {
+	  err = ldap_connect(); 
+	  if (err)
+		 return NULL;
+   }
+
+   /*
+	  Passed via alias
+   */
+
+   domain = alias;
+
+   memset(filter, 0, sizeof(filter));
+   snprintf(filter, sizeof(filter), "aa=*@%s", domain);
+
+   memset(dn, 0, sizeof(dn));
+   snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
+
+    while (valias_current != NULL)
+        valias_current = linklist_del (valias_current);
+
+    ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
+                        filter, fields, 0, &res);
+    if (ret != LDAP_SUCCESS ) {
+        ldap_perror(ld,"Error");
+        return NULL;
+    }
+
+            if ( ldap_sort_entries( ld, &res, "aa", &strcasecmp ) != 0)  {
+                ldap_perror(ld,"Error");
+				ldap_msgfree(res);
+                return NULL;
+            }
+
+    msg = ldap_first_entry(ld, res);
+    if (msg == NULL) {
+		 ldap_msgfree(res);
+        return NULL;
+    }
+
+    ret = ldap_count_entries(ld, msg);
+    if (ret == -1 ) {
+        ldap_perror(ld,"Error");
+		 ldap_msgfree(res);
+        return NULL;
+    }
+
+	while(msg) {
+	   aa = ldap_get_values(ld, msg, "aa");
+	   if (aa == NULL) {
+		  fprintf(stderr, "vldap: warning: no address entry\n");
+	      msg = ldap_next_entry(ld, msg);
+		  continue;
+	   }
+
+	   for (p = *aa; *p; p++) {
+		  if (*p == '@') {
+			 *p = '\0';
+			 break;
+		  }
+	   }
+
+	   temp_entry = linklist_add(temp_entry, *aa, *aa);
+	   if (valias_current == NULL)
+		  valias_current = temp_entry;
+
+	   ldap_value_free(aa);
+	   msg = ldap_next_entry(ld, msg);
+    }
+
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+		 ldap_msgfree(res);
+        return(valias_current->data);
+    }
+}
+
+/************************************************************************
+ *
+ *  valias_select_names_next
+ */
+
+char *valias_select_names_next(char *alias)
+{
+    if (valias_current == NULL) return NULL;
+    valias_current = linklist_del (valias_current);
+ 
+    if (valias_current == NULL) return NULL; /* no results */
+    else {
+        strcpy (alias, valias_current->d2);
+        return(valias_current->data);
+    }
+}
+
+
+/************************************************************************
+ *
+ *  valias_select_names_end
+ */
+
+void valias_select_names_end() {
+
+//  not needed by ldap
+
+}
+
+#endif
