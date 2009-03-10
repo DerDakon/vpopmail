@@ -9,6 +9,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
    - Updated quota code to talk to vusage daemon if available
    - Fixed some backfill patch compilation issues
    - Updated maildir_to_email to support paths that end in /Maildir as well as /Maildir/
+   - Added LDAP valias support
+   - Updated vusage API to return counts for both users and domains
+   - Updated domain quota enforcement to work when using vusage
+   - Re-enabled --enable-domainquotas (with warnings)
 
 5.4.27 - Released 16-Jan-2009
 	Jeremy Kister, Rick Widmer, Tom Collins
