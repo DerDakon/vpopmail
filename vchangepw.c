@@ -1,5 +1,7 @@
 /*
  * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
+ *
  * Modified version of vpasswd created by Rolf Eike Beer, November 2003
  *
  * Usage Note: 

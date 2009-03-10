@@ -1,10 +1,12 @@
 /*
  * $Id$
+ * Copyright (C) 2004-2009 Inter7 Internet Technologies, Inc.
+ *
  * Copyright (C) 2003-2004 Tom Collins
  * Initial version of this program sponsored by ACIS Pty Ltd.
  *
  * Based on "vconvert.c,v 1.2 2003/10/20 18:59:57" in vpopmail 5.4.
- * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

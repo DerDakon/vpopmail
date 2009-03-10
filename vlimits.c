@@ -1,8 +1,11 @@
 /*
  * $Id$
+ * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
+ *
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
