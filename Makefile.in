@@ -930,10 +930,24 @@ installdirs-am:
 	for dir in "$(DESTDIR)$(vpopmailbindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-recursive
+install: install-recursive vusage-msg
 install-exec: install-exec-recursive
 install-data: install-data-recursive
 uninstall: uninstall-recursive
+
+vusage-msg:
+	  @echo ""
+	  @echo "****************************************************"
+	  @echo ""
+	  @echo "     If you plan to use the vpopmail usage daemon"
+	  @echo "     run the following commands:"
+	  @echo ""
+	  @echo "   cd vusaged && ./configure && make"
+	  @echo ""
+	  @echo "     Then follow the INSTALL file to install"
+	  @echo ""
+	  @echo "****************************************************"
+	  @echo ""
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
@@ -1104,19 +1118,6 @@ install-data-local:
 
 	$(INSTALL) -o @vpopuser@ -m 0444 -g @vpopgroup@ \
 	  doc/doc_html/*.* $(DESTDIR)@vpopmaildir@/doc/doc_html/
-
-   @echo ""
-   @echo "****************************************************"
-   @echo ""
-   @echo "     If you plan to use the vpopmail usage daemon"
-   @echo "     run the following commands:"
-   @echo ""
-   @echo "   cd vusaged && ./configure && make"
-   @echo ""
-   @echo "     Then follow the INSTALL file to install"
-   @echo ""
-   @echo "****************************************************"
-   @echo ""
 
 fix-priv:
 	if test -r $(MYSQLCONF); then \
