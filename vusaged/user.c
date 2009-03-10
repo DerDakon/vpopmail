@@ -153,6 +153,29 @@ storage_t user_get_usage(const char *user)
 }
 
 /*
+   Look up a user and return size and counts
+*/
+
+int user_get_use(const char *user, storage_t *susage, storage_t *cusage)
+{
+   user_t *u = NULL;
+
+   u = cache_lookup(user);
+   if (u == NULL)
+	  return -1;
+
+   if ((susage == NULL) || (cusage == NULL))
+	  return 0;
+
+   if (u->userstore == NULL)
+	  return 0;
+
+   userstore_use(u->userstore, susage, cusage);
+   return 1;
+}
+
+
+/*
    Allocate a user structure and fill it
    This should only be called by the controller thread
    since vpopmail is not thread-safe
