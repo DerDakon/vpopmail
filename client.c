@@ -243,7 +243,7 @@ void *client_connect(void)
    Send query, return response
 */
 
-int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusage, storage_t *dusage)
+int client_query(void *vhandle, const char *entry, uint16_t len, storage_t *susage, storage_t *cusage)
 {
    int ret = 0;
    fd_set rfds;
@@ -251,11 +251,11 @@ int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusa
    char b[sizeof(storage_t) * 2] = { 0 };
    client_handle_t *handle = (client_handle_t *)vhandle;
 
-   if (uusage)
-	  *uusage = -1;
+   if (susage)
+	  *susage = -1;
 
-   if (dusage)
-	  *dusage = -1;
+   if (cusage)
+	  *cusage = -1;
 
    if (handle == NULL)
 	  return 0;
@@ -270,7 +270,7 @@ int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusa
 
    len = ntohs(len);
 
-   ret = write(handle->s, email, len);
+   ret = write(handle->s, entry, len);
    if (ret != len) {
 	  fprintf(stderr, "client_query: write failed: %d (%d)\n", ret, errno);
 	  return 0;
@@ -321,21 +321,21 @@ int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusa
 	  Copy buffer into variable space
    */
 
-   if (uusage)
-	  memcpy(uusage, b, sizeof(storage_t));
+   if (susage)
+	  memcpy(susage, b, sizeof(storage_t));
 
-   if (dusage)
-	  memcpy(dusage, (b + sizeof(storage_t)), sizeof(storage_t));
+   if (cusage)
+	  memcpy(cusage, (b + sizeof(storage_t)), sizeof(storage_t));
 
    /*
 	  Convert values to local byte order
    */
 
-   if (uusage)
-	  *uusage = ntohll(*uusage);
+   if (susage)
+	  *susage = ntohll(*susage);
 
-   if (dusage)
-	  *dusage = ntohll(*dusage);
+   if (cusage)
+	  *cusage = ntohll(*cusage);
 
    return 1;
 }
@@ -361,19 +361,19 @@ void client_close(void *vhandle)
    Quick and easy API call
 */
 
-int client_query_quick(const char *email, storage_t *uusage, storage_t *dusage)
+int client_query_quick(const char *entry, storage_t *susage, storage_t *cusage)
 {
    void *handle = NULL;
    int ret = 0;
 
-   if (email == NULL)
+   if (entry == NULL)
 	  return 0;
 
    handle = client_connect();
    if (!handle)
 	  return 0;
 
-   ret = client_query(handle, email, strlen(email), uusage, dusage);
+   ret = client_query(handle, entry, strlen(entry), susage, cusage);
 
    client_close(handle);
    return ret;
