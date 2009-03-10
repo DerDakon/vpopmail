@@ -345,7 +345,7 @@ void userstore_use(userstore_t *u, storage_t *usage, storage_t *count)
    assert(u != NULL);
 #endif
 
-   if ((usage == NULL) && (count == NULL))
+   if ((usage == NULL) || (count == NULL))
 	  return;
 
    pthread_mutex_lock(&u->m_usage);
