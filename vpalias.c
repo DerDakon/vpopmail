@@ -1,5 +1,5 @@
 /*
- * $Id: vpalias.c,v 1.17 2007-10-29 05:21:15 shupp Exp $
+ * $Id$
  * Copyright (C) 2000-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

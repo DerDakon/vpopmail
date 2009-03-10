@@ -1,5 +1,5 @@
 /*
- * $Id: clearopensmtp.c,v 1.9 2007-05-22 03:58:58 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

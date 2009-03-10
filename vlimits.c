@@ -1,5 +1,5 @@
 /*
- * $Id: vlimits.c,v 1.17 2007-05-22 03:59:00 rwidmer Exp $
+ * $Id$
  * handle domain limits in both file format
  * Brian Kolaci <bk@galaxy.net>
  */

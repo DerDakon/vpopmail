@@ -1,5 +1,5 @@
 /*
- * $Id: vmysql.c,v 1.37 2008-10-29 21:16:21 kbo Exp $
+ * $Id$
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

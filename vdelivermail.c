@@ -1,5 +1,5 @@
 /*
- * $Id: vdelivermail.c,v 1.21 2007-11-18 05:15:19 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2003 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify

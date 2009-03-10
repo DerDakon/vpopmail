@@ -1,5 +1,5 @@
 /*
- * $Id: vadddomain.c,v 1.12 2007-07-14 04:37:15 rwidmer Exp $
+ * $Id$
  * Copyright (C) 1999-2004 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
