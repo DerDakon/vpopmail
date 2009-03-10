@@ -251,8 +251,11 @@ int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusa
    char b[sizeof(storage_t) * 2] = { 0 };
    client_handle_t *handle = (client_handle_t *)vhandle;
 
-   *uusage = -1;
-   *dusage = -1;
+   if (uusage)
+	  *uusage = -1;
+
+   if (dusage)
+	  *dusage = -1;
 
    if (handle == NULL)
 	  return 0;
@@ -318,15 +321,21 @@ int client_query(void *vhandle, const char *email, uint16_t len, storage_t *uusa
 	  Copy buffer into variable space
    */
 
-   memcpy(uusage, b, sizeof(storage_t));
-   memcpy(dusage, (b + sizeof(storage_t)), sizeof(storage_t));
+   if (uusage)
+	  memcpy(uusage, b, sizeof(storage_t));
+
+   if (dusage)
+	  memcpy(dusage, (b + sizeof(storage_t)), sizeof(storage_t));
 
    /*
 	  Convert values to local byte order
    */
 
-   *uusage = ntohll(*uusage);
-   *dusage = ntohll(*dusage);
+   if (uusage)
+	  *uusage = ntohll(*uusage);
+
+   if (dusage)
+	  *dusage = ntohll(*dusage);
 
    return 1;
 }
@@ -356,6 +365,9 @@ int client_query_quick(const char *email, storage_t *uusage, storage_t *dusage)
 {
    void *handle = NULL;
    int ret = 0;
+
+   if (email == NULL)
+	  return 0;
 
    handle = client_connect();
    if (!handle)
