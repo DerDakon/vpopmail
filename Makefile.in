@@ -44,7 +44,8 @@ vpopmailbin_PROGRAMS = vchkpw$(EXEEXT) vdelivermail$(EXEEXT) \
 	valias$(EXEEXT) vuserinfo$(EXEEXT) vmkpasswd$(EXEEXT) \
 	vipmap$(EXEEXT) vdominfo$(EXEEXT) vconvert$(EXEEXT) \
 	vkill$(EXEEXT) vmoddomlimits$(EXEEXT) vchangepw$(EXEEXT) \
-	dotqmail2valias$(EXEEXT) vpopmaild$(EXEEXT) vlist$(EXEEXT)
+	dotqmail2valias$(EXEEXT) vpopmaild$(EXEEXT) vlist$(EXEEXT) \
+	vusagec$(EXEEXT)
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -71,12 +72,17 @@ am__objects_1 = libvpopmail_a-vpopmail.$(OBJEXT) \
 	libvpopmail_a-vpalias.$(OBJEXT) libvpopmail_a-seek.$(OBJEXT) \
 	libvpopmail_a-vlimits.$(OBJEXT) \
 	libvpopmail_a-maildirquota.$(OBJEXT) \
-	libvpopmail_a-vutil.$(OBJEXT) libvpopmail_a-vlistlib.$(OBJEXT)
+	libvpopmail_a-vutil.$(OBJEXT) libvpopmail_a-vlistlib.$(OBJEXT) \
+	libvpopmail_a-client.$(OBJEXT) libvpopmail_a-conf.$(OBJEXT) \
+	libvpopmail_a-ippp.$(OBJEXT) libvpopmail_a-backfill.$(OBJEXT)
 am_libvpopmail_a_OBJECTS = $(am__objects_1)
 libvpopmail_a_OBJECTS = $(am_libvpopmail_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(vpopmailbindir)"
 vpopmailbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(vpopmailbin_PROGRAMS)
+am_vusagec_OBJECTS = vusagec.$(OBJEXT)
+vusagec_OBJECTS = $(am_vusagec_OBJECTS)
+vusagec_DEPENDENCIES = libvpopmail.a
 am_clearopensmtp_OBJECTS = clearopensmtp.$(OBJEXT)
 clearopensmtp_OBJECTS = $(am_clearopensmtp_OBJECTS)
 clearopensmtp_DEPENDENCIES = libvpopmail.a
@@ -170,7 +176,7 @@ SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(vlist_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) \
 	$(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) \
 	$(vpopmaild_SOURCES) $(vsetuserquota_SOURCES) \
-	$(vuserinfo_SOURCES)
+	$(vuserinfo_SOURCES) $(vusagec_SOURCES)
 DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(dotqmail2valias_SOURCES) $(vaddaliasdomain_SOURCES) \
 	$(vadddomain_SOURCES) $(vadduser_SOURCES) $(valias_SOURCES) \
@@ -181,7 +187,7 @@ DIST_SOURCES = $(libvpopmail_a_SOURCES) $(clearopensmtp_SOURCES) \
 	$(vlist_SOURCES) $(vmkpasswd_SOURCES) $(vmoddomlimits_SOURCES) \
 	$(vmoduser_SOURCES) $(vpasswd_SOURCES) $(vpopbull_SOURCES) \
 	$(vpopmaild_SOURCES) $(vsetuserquota_SOURCES) \
-	$(vuserinfo_SOURCES)
+	$(vuserinfo_SOURCES) $(vusagec_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -310,7 +316,7 @@ vpopuser = @vpopuser@
 SUBDIRS = cdb
 EXTRA_DIST = README.* cdb/* vcdb.c vldap.c vmysql.c voracle.pc vpgsql.c vsybase.c
 noinst_HEADERS = md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h vcdb.h vldap.h vmysql.h voracle.h vpgsql.h vsybase.h vlog.h global.h hmac_md5.h seek.h vutil.h
-COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c vutil.c vlistlib.c
+COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c vutil.c vlistlib.c backfill.c client.c conf.c ippp.c
 CONFIG_CLEAN_FILES = vauth.c cdb/conf-cc cdb/conf-ld cdb/compile cdb/load
 MYSQLCONF = $(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS = $(DESTDIR)@vpopmaildir@/etc/vlimits.default
@@ -319,6 +325,8 @@ libvpopmail_a_SOURCES = $(COMMONSOURCES)
 libvpopmail_a_LIBADD = cdb/*.o
 libvpopmail_a_CFLAGS = -fPIC
 vpopmailbindir = @vpopmaildir@/bin
+vusagec_sources = vusagec.c client.c ippp.c conf.c
+vusagec_LDADD = libvpopmail.a @auth_libs@
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@
 vlist_SOURCES = vlist.c vlistlib.c vutil.c
@@ -458,6 +466,9 @@ clean-vpopmailbinPROGRAMS:
 clearopensmtp$(EXEEXT): $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES) 
 	@rm -f clearopensmtp$(EXEEXT)
 	$(LINK) $(clearopensmtp_OBJECTS) $(clearopensmtp_LDADD) $(LIBS)
+vusagec$(EXEEXT): $(vusagec_OBJECTS) $(vusagec_DEPENDENCIES)
+	@rm -f vusagec$(EXEEXT)
+	$(LINK) $(vusagec_OBJECTS) $(vusagec_LDADD) $(LIBS)
 dotqmail2valias$(EXEEXT): $(dotqmail2valias_OBJECTS) $(dotqmail2valias_DEPENDENCIES) 
 	@rm -f dotqmail2valias$(EXEEXT)
 	$(LINK) $(dotqmail2valias_OBJECTS) $(dotqmail2valias_LDADD) $(LIBS)
@@ -549,6 +560,12 @@ libvpopmail_a-vpopmail.o: vpopmail.c
 libvpopmail_a-vpopmail.obj: vpopmail.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-vpopmail.obj `if test -f 'vpopmail.c'; then $(CYGPATH_W) 'vpopmail.c'; else $(CYGPATH_W) '$(srcdir)/vpopmail.c'; fi`
 
+libvpopmail_a-backfill.o: backfill.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-backfill.o `test -f 'backfill.c' || echo '$(srcdir)/'`backfill.c
+
+libvpopmail_a-backfill.obj: backfill.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-backfill.obj `if test -f 'backfill.c'; then $(CYGPATH_W) 'backfill.c'; else $(CYGPATH_W) '$(srcdir)/backfill.c'; fi`
+
 libvpopmail_a-md5.o: md5.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-md5.o `test -f 'md5.c' || echo '$(srcdir)/'`md5.c
 
@@ -608,6 +625,25 @@ libvpopmail_a-vlistlib.o: vlistlib.c
 
 libvpopmail_a-vlistlib.obj: vlistlib.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-vlistlib.obj `if test -f 'vlistlib.c'; then $(CYGPATH_W) 'vlistlib.c'; else $(CYGPATH_W) '$(srcdir)/vlistlib.c'; fi`
+
+libvpopmail_a-conf.o: conf.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-conf.o `if test -f 'conf.c'; then $(CYGPATH_W) 'conf.c'; else $(CYGPATH_W) '$(srcdir)/conf.c'; fi`
+
+libvpopmail_a-conf.obj: conf.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-conf.obj `if test -f 'conf.c'; then $(CYGPATH_W) 'conf.c'; else $(CYGPATH_W) '$(srcdir)/conf.c'; fi`
+
+libvpopmail_a-ippp.o: ippp.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-ippp.o `if test -f 'ippp.c'; then $(CYGPATH_W) 'ippp.c'; else $(CYGPATH_W) '$(srcdir)/ippp.c'; fi`
+
+libvpopmail_a-ippp.obj: ippp.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-ippp.obj `if test -f 'ippp.c'; then $(CYGPATH_W) 'ippp.c'; else $(CYGPATH_W) '$(srcdir)/ippp.c'; fi`
+
+libvpopmail_a-client.o: client.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-client.o `if test -f 'client.c'; then $(CYGPATH_W) 'client.c'; else $(CYGPATH_W) '$(srcdir)/client.c'; fi`
+
+libvpopmail_a-client.obj: client.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvpopmail_a_CFLAGS) $(CFLAGS) -c -o libvpopmail_a-client.obj `if test -f 'client.c'; then $(CYGPATH_W) 'client.c'; else $(CYGPATH_W) '$(srcdir)/client.c'; fi`
+
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -1050,7 +1086,7 @@ install-data-local:
 	$(INSTALL) -o root -m 0444 \
 	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 
-	for include in vpopmail.h config.h vauth.h vlimits.h ; do \
+	for include in vpopmail.h config.h vauth.h vlimits.h storage.h client.h ; do \
 	    $(INSTALL) -o root -m 0444 $$include \
 		$(DESTDIR)@vpopmaildir@/include/ ; \
 	done
