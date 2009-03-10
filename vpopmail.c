@@ -3869,12 +3869,29 @@ char *maildir_to_email (const char *maildir)
 		pnt = strstr (pnt + 1, "/Maildir/");
 	} while (pnt != NULL);
 
-	if (last == pnt) {
+	if ((last == pnt) || (last == mdcopy)) {
 		/* no occurrences of "/Maildir/" in path */
-		free (mdcopy);
-		return "";
+
+	     /*
+		    Look for last occurrence of /Maildir\0
+		 */
+
+	     pnt = mdcopy;
+		 do {
+			last = pnt;
+			pnt = strstr(pnt + 1, "/Maildir");
+		 } while(pnt != NULL);
+
+	     for (pnt = last; *pnt; pnt++);
+
+		 if (strcmp(pnt - 8, "/Maildir")) {
+			free (mdcopy);
+			return "";
+		 }
+
+		 last = (pnt - 8);
 	}
-	
+
 	/* last points to /Maildir/ after username, so null terminate
 	 * username by changing the '/' to a NUL
 	 */
