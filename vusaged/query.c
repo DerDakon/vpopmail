@@ -56,14 +56,8 @@ int query_parse(void *handle, char *data, int len)
 	  Domain counts
    */
 
-   if (*data == '@') {
-	  /*
-		 Currently we don't track domain message counts
-	  */
-
-	  cusage = 0;
-	  susage = domain_get_usage(data + 1);
-   }
+   if (*data == '@')
+	  domain_get_use(data + 1, &susage, &cusage);
 
    /*
 	  User counts
