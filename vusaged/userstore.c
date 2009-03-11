@@ -547,5 +547,6 @@ static void userstore_free_directory(userstore_t *u)
 
    pthread_mutex_lock(&u->m_usage);
    u->usage = 0;
+   u->count = 0;
    pthread_mutex_unlock(&u->m_usage);
 }
