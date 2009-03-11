@@ -374,7 +374,7 @@ static void user_free(user_t *u)
 int user_poll(user_t *u)
 {
    int ret = 0;
-   storage_t before = 0, after = 0;
+   storage_t before = 0, cbefore = 0, after = 0, cafter = 0;
 
 #ifdef ASSERT_DEBUG
    assert(u != NULL);
@@ -397,7 +397,7 @@ int user_poll(user_t *u)
    */
 
    else {
-	  before = userstore_usage(u->userstore);
+	  userstore_use(u->userstore, &before, &cbefore);
 	  ret = userstore_poll(u->userstore);
    }
    
@@ -406,9 +406,9 @@ int user_poll(user_t *u)
    */
 
    if (u->userstore) {
-	  after = userstore_usage(u->userstore);
+	  userstore_use(u->userstore, &after, &cafter);
 
-	  ret = domain_update(u->domain, before, after);
+	  ret = domain_update(u->domain, before, after, cbefore, cafter);
 	  if (!ret)
 		 fprintf(stderr, "user_poll: domain_update failed\n");
    }
@@ -434,7 +434,7 @@ user_t *user_get_userlist(void)
 int user_verify(user_t *u)
 {
    int ret = 0;
-   storage_t usage = 0;
+   storage_t usage = 0, count = 0;
    char b[USER_MAX_USERNAME + DOMAIN_MAX_DOMAIN] = { 0 };
 
 #ifdef ASSERT_DEBUG
@@ -457,8 +457,8 @@ int user_verify(user_t *u)
 	  */
 
 	  if (u->userstore) {
-		 usage = userstore_usage(u->userstore);
-		 domain_update(u->domain, usage, 0);
+		 userstore_use(u->userstore, &usage, &count);
+		 domain_update(u->domain, usage, 0, count, 0);
 	  }
 
 	  /*
