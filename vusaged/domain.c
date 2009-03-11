@@ -24,6 +24,7 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
+#include <pthread.h>
 #include "storage.h"
 #include "cache.h"
 #include "domain.h"
@@ -73,6 +74,7 @@ domain_t *domain_load(const char *domain)
 	  return NULL;
    }
 
+   pthread_mutex_init(&d->m_usage, NULL);
    return d;
 }
 
@@ -85,6 +87,8 @@ void domain_free(domain_t *d)
 #ifdef ASSERT_DEBUG
    assert(d != NULL);
 #endif
+
+   pthread_mutex_destroy(&d->m_usage);
 
    if (d->domain)
 	  free(d->domain);
@@ -117,11 +121,17 @@ domain_t *domain_get(const char *domain)
 
 storage_t domain_usage(domain_t *d)
 {
+   storage_t usage;
+
 #ifdef ASSERT_DEBUG
    assert(d != NULL);
 #endif
 
-   return d->usage;
+   pthread_mutex_lock(&d->m_usage);
+   usage = d->usage;
+   pthread_mutex_unlock(&d->m_usage);
+
+   return usage;
 }
 
 /*
@@ -144,17 +154,50 @@ storage_t domain_get_usage(const char *domain)
 }
 
 /*
+   Return usage and count
+*/
+
+int domain_get_use(const char *domain, storage_t *usage, storage_t *count)
+{
+   domain_t *d = NULL;
+
+#ifdef ASSERT_DEBUG
+   assert(domain != NULL);
+   assert(usage != NULL);
+   assert(count != NULL);
+#endif
+
+   d = domain_get(domain);
+   if (d == NULL)
+	  return 0;
+
+   pthread_mutex_lock(&d->m_usage);
+
+   *usage = d->usage;
+   *count = d->count;
+
+   pthread_mutex_unlock(&d->m_usage);
+   return 1;
+}
+
+/*
    Express a change in estimated storage under a domain
 */
 
-int domain_update(domain_t *d, storage_t before, storage_t after)
+int domain_update(domain_t *d, storage_t before, storage_t after, storage_t cbefore, storage_t cafter)
 {
 #ifdef ASSERT_DEBUG
    assert(d != NULL);
 #endif
 
+   pthread_mutex_lock(&d->m_usage);
+
    d->usage -= before;
    d->usage += after;
 
+   d->count -= cbefore;
+   d->count += cafter;
+
+   pthread_mutex_unlock(&d->m_usage);
    return 1;
 }

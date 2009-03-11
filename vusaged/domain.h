@@ -21,6 +21,7 @@
 #ifndef __DOMAIN_H_
    #define __DOMAIN_H_
 
+#include <pthread.h>
 #include "storage.h"
 
 /*
@@ -35,7 +36,10 @@
 
 typedef struct __domain_ {
    char *domain;
-   storage_t usage;
+
+   storage_t usage,
+			 count;
+   pthread_mutex_t m_usage;
 } domain_t;
 
 domain_t *domain_load(const char *);
@@ -43,6 +47,7 @@ void domain_free(domain_t *);
 domain_t *domain_get(const char *);
 storage_t domain_usage(domain_t *);
 storage_t domain_get_usage(const char *);
-int domain_update(domain_t *, storage_t, storage_t);
+int domain_get_use(const char *, storage_t *, storage_t *);
+int domain_update(domain_t *, storage_t, storage_t, storage_t, storage_t);
 
 #endif
