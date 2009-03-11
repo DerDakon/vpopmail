@@ -329,6 +329,8 @@ int directory_poll(directory_t *d)
    count = 0;
 
    dir = opendir(d->directory);
+
+#if 0
    if (dir == NULL) {
 	  fprintf(stderr, "directory: %s: opendir failed\n", d->directory);
 
@@ -340,44 +342,48 @@ int directory_poll(directory_t *d)
 
 	  return 1;
    }
+#endif
 
-   for (e = readdir(dir); e; e = readdir(dir)) {
-	  /*
-		 Hidden files, current directory, and parent directory are not calculated
-	  */
+   if (dir) {
+	  for (e = readdir(dir); e; e = readdir(dir)) {
+		 /*
+			Hidden files, current directory, and parent directory are not calculated
+		 */
 
-	  if (*(e->d_name) == '.') {
-		 if (!directory_count_entry_size)
+		 if (*(e->d_name) == '.') {
+			if (!directory_count_entry_size)
+			   continue;
+
+			else if (*((e->d_name) + 1) != '\0')
+			   continue;
+		 }
+
+		 /*
+			Form temporary path and determine it's size
+		 */
+
+		 memset(b, 0, sizeof(b));
+		 ret = snprintf(b, sizeof(b), "%s/%s", d->directory, e->d_name);
+
+		 size = directory_filesize(b, ret);
+		 if (size == -1) {
+			fprintf(stderr, "directory: %s: directory_filesize failed\n", b);
 			continue;
+		 }
 
-		 else if (*((e->d_name) + 1) != '\0')
-			continue;
+		 storage += size;
+		 count++;
 	  }
 
-	  /*
-		 Form temporary path and determine it's size
-	  */
-
-	  memset(b, 0, sizeof(b));
-	  ret = snprintf(b, sizeof(b), "%s/%s", d->directory, e->d_name);
-
-	  size = directory_filesize(b, ret);
-	  if (size == -1) {
-		 fprintf(stderr, "directory: %s: directory_filesize failed\n", b);
-		 continue;
-	  }
-
-	  storage += size;
-	  count++;
+	  closedir(dir);
    }
-
-   closedir(dir);
 
    /*
 	  Update directory
    */
 
    memcpy(&d->st, &st, sizeof(struct stat));
+
    d->usage = storage;
    d->count = count;
 
