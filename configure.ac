@@ -1779,12 +1779,19 @@ AC_LANG_RESTORE
 
 ACX_PTHREAD()
 
+#
+# Set Makefile able to build vusaged
+#
+
+AC_SUBST(vusagedbuild, "vusaged/vusaged")
+
 if test x"$acx_pthread_ok" == xno
 then
    AC_MSG_WARN([===                                                       ===])
    AC_MSG_WARN([===               pthreads not found                      ===])
    AC_MSG_WARN([=== You will be unable to build the vpopmail usage daemon ===])
    AC_MSG_WARN([===                                                       ===])
+   AC_SUBST(vusagedbuild, "")
 fi
 
 #
@@ -1800,6 +1807,7 @@ then
    AC_MSG_WARN([===               libev not found                         ===])
    AC_MSG_WARN([=== You will be unable to build the vpopmail usage daemon ===])
    AC_MSG_WARN([===                                                       ===])
+   AC_SUBST(vusagedbuild, "")
 fi
 
 #----------------------------------------------------------------------
@@ -1887,8 +1895,7 @@ AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
 
-AC_OUTPUT(Makefile)
-AC_OUTPUT(vusaged/Makefile)
+AC_OUTPUT(Makefile vusaged/Makefile)
 
 #----------------------------------------------------------------------
 
