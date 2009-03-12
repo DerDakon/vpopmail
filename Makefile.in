@@ -271,9 +271,9 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
 # 
 
 clean:
-	rm -f *.o *.core core vauth.c $(BUILD_BINS) $(BUILD_LIBS)
+	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
 	(cd cdb;make clean)
 
 distclean: clean
-	rm -rf config.h Makefile autom4te.cache config.log config.status
+	rm -rf config.h Makefile autom4te.cache config.log config.status vauth.c
 	(cd cdb;make distclean)
