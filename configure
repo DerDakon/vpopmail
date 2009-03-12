@@ -1870,49 +1870,38 @@ IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
+ac_config_headers="$ac_config_headers config.h"
 
-CFLAGS=
-LDFLAGS=
+
+#
+# Set default compiler and linker flags
+#
+
 CFLAGS=""
 
 LDFLAGS=""
 
 
-# if test "$GCC" = yes ; then
-#   CXXFLAGS="$CXXFLAGS -Wall"
-#   CFLAGS="$CFLAGS -Wall"
-# fi
+#
+# Export package version
+#
 
-PACKAGE=$PACKAGE_NAME
-VERSION=$PACKAGE_VERSION
 
 cat >>confdefs.h <<_ACEOF
-#define PACKAGE "$PACKAGE"
+#define PACKAGE "$PACKAGE_NAME"
 _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define VERSION "$VERSION"
+#define VERSION "$VERSION_VERSION"
 _ACEOF
 
-
-#
-# Deprecated
-# AM_CONFIG_HEADER(config.h)
-#
-
-ac_config_headers="$ac_config_headers config.h"
-
-
-#
-# Obsolete
-# AM_INIT_AUTOMAKE()
-#
 
 #
 # Programs
 #
 
+AC_PROG_AR
 for ac_prog in gawk mawk nawk awk
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -4175,7 +4164,25 @@ done
 
 
 
-for ac_header in arpa/inet.h fcntl.h memory.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+for ac_header in arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -6081,7 +6088,37 @@ rm -f conftest.data
 
 
 
-for ac_func in bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+for ac_func in bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn chdir umask strtok strchr strstr close execv write read fopen fputs atoi atol malloc memset strcmp strncmp strcasecmp waitpid strncat strcpy fflush kill rename chmod free srand rand getenv gmtime
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -10692,7 +10729,7 @@ fi
 
 
 echo ""
-echo "           $PACKAGE $VERSION           "
+echo "           $PACKAGE_NAME $PACKAGE_VERSION"
 echo "            Current settings"
 echo "---------------------------------------"
 echo ""
