@@ -1,74 +1,104 @@
-dnl Process this file with autoconf to produce a configure script.
+#
+# $Id$
+# Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
+#
 
 AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.4.29)
-PACKAGE=$PACKAGE_NAME
-VERSION=$PACKAGE_VERSION
-
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE()
-
+AC_INIT(vpopmail,5.4.28)
 AC_CANONICAL_HOST
 
-#----------------------------------------------------------------------
+CFLAGS=
+LDFLAGS=
+AC_SUBST(CFLAGS, "")
+AC_SUBST(LDFLAGS, "")
 
-dnl Checks for programs.
+# if test "$GCC" = yes ; then
+#   CXXFLAGS="$CXXFLAGS -Wall"
+#   CFLAGS="$CFLAGS -Wall"
+# fi
+
+PACKAGE=$PACKAGE_NAME
+VERSION=$PACKAGE_VERSION
+AC_DEFINE_UNQUOTED(PACKAGE,"$PACKAGE","")
+AC_DEFINE_UNQUOTED(VERSION,"$VERSION","")
+
+#
+# Deprecated
+# AM_CONFIG_HEADER(config.h)
+#
+
+AC_CONFIG_HEADER(config.h)
+
+#
+# Obsolete
+# AM_INIT_AUTOMAKE()
+#
+
+#
+# Programs
+#
+
 AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-
-#AC_AIX
 AC_ISC_POSIX
 
-#----------------------------------------------------------------------
+#
+# Libraries
+#
 
 AC_CHECK_LIB(crypt, crypt)
-#AC_CHECK_LIB(nsl, gethostbyaddr)
-#AC_CHECK_LIB(socket, getsockname)
 
-#----------------------------------------------------------------------
+#
+# Headers
+#
 
-dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h memory.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
 
-#----------------------------------------------------------------------
+#
+# Compiler language support
+#
 
-# Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_TYPE_UID_T
 AC_C_INLINE
+
+#
+# Type definitions
+#
+
+AC_TYPE_UID_T
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-# AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_TYPE_SIGNAL
 AC_STRUCT_TM
 
-#----------------------------------------------------------------------
+#
+# Functions
+#
 
-# Checks for library functions.
-#AC_FUNC_CHOWN
+AC_FUNC_CHOWN
 AC_FUNC_CLOSEDIR_VOID
-#AC_FUNC_FORK
-#AC_FUNC_LSTAT
-#AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-#AC_FUNC_MALLOC
-#AC_FUNC_REALLOC
-AC_TYPE_SIGNAL
-#AC_FUNC_STAT
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
 
-#----------------------------------------------------------------------
+#
+# Operating system specific settings
+#
 
-AC_MSG_CHECKING(vpopmail configure options)
-AC_MSG_RESULT(ok)
+#
+# id command
+#
 
-#----------------------------------------------------------------------
+AC_MSG_CHECKING(id command syntax)
 
 case "$host" in
   *-*-sunos4.1.1*)
@@ -85,30 +115,13 @@ case "$host" in
     ;;
 esac
 
-#----------------------------------------------------------------------
+AC_MSG_RESULT($idcommand)
 
-AC_ARG_ENABLE(non-root-build,
-    [  --enable-non-root-build    Build vpopmail as a non-root user, only if you know what you are doing. see README.non-root],
-    idtest='false', idtest='true')
+#
+# ps command
+#
 
-#----------------------------------------------------------------------
-
-if $idtest && test `$idcommand` != "0"
-then
-  AC_MSG_WARN(=== vpopmail must be configured as root. ===)
-  AC_MSG_WARN(=== please switch to the root user and  ===)
-  AC_MSG_WARN(=== run ./configure. Thanks ===)
-  AC_MSG_ERROR(aborted.)
-fi
-
-#----------------------------------------------------------------------
-
-if test "$GCC" = yes ; then
-  CXXFLAGS="$CXXFLAGS -Wall"
-  CFLAGS="$CFLAGS -Wall"
-fi
-
-#----------------------------------------------------------------------
+AC_MSG_CHECKING(ps command syntax)
 
 case "$host" in
   *-*-sunos4.1.1*)
@@ -199,25 +212,63 @@ case "$host" in
         PS_COMMAND="ps axww"
     ;;
 esac
-AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
 
-#----------------------------------------------------------------------
+AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
+AC_MSG_RESULT($PS_COMMAND)
+
+#
+# Solaris system requires extra libraries
+#
+
+# XXX TODO extralibflags should just set LDFLAGS or the like
+
+AC_MSG_CHECKING(if we're building on Solaris)
 
 case "$host" in
   *-*-solaris*)
     extralibflags="-R$libdir -lm -lnsl -lsocket"
-    AC_MSG_WARN(Solaris install detected.  Using extralibflags for linking: $extralibflags)
+	AC_MSG_RESULT(yes)
+
+	#
+	# Check for Solaris libraries
+	#
+
+	AC_CHECK_LIB(m, sqrt)
+	AC_CHECK_LIB(nsl, gethostbyname)
+	AC_CHECK_LIB(socket, connect)
     ;;
   *)
+    AC_MSG_RESULT(no)
     extralibflags=""
     ;;
 esac
 
 #----------------------------------------------------------------------
 
+AC_ARG_ENABLE(non-root-build,
+    [  --enable-non-root-build    Build vpopmail as a non-root user, only if you know what you are doing. see README.non-root],
+    idtest='false', idtest='true')
+
+#----------------------------------------------------------------------
+
+if $idtest && test `$idcommand` != "0"
+then
+  AC_MSG_WARN(=== vpopmail must be configured as root. ===)
+  AC_MSG_WARN(=== please switch to the root user and  ===)
+  AC_MSG_WARN(=== run ./configure. Thanks ===)
+  AC_MSG_ERROR(aborted.)
+fi
+
+#
+# Locate the qmail directory
+#
+
 AC_MSG_CHECKING(whether we can locate the qmail directory)
+
+QMAIL_POSSIBLE_LOCATIONS="/var/qmail"
+
 qmaildir=""
-for f in /var/qmail
+for f in $QMAIL_POSSIBLE_LOCATIONS
 do
     if test -d $f
     then
@@ -237,7 +288,7 @@ AC_ARG_ENABLE(qmaildir,
     ]
 )
 
-AC_MSG_RESULT(yes)
+AC_MSG_RESULT($qmaildir)
 AC_DEFINE_UNQUOTED(QMAILDIR,"$qmaildir","")
 
 #----------------------------------------------------------------------
@@ -1051,8 +1102,8 @@ case $AUTH_MODULE in
     rm -rf vauth.c
     ln -sf vcdb.c vauth.c
     AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB,"")
-    authlib=""
-    AC_SUBST(authlib)
+    auth_libs=""
+    AC_SUBST(auth_libs)
     auth_inc="-Icdb"
     AC_SUBST(auth_inc)
     ;;
@@ -1830,5 +1881,5 @@ echo "${CC} -O2" > cdb/conf-cc
 echo "${CC} -s" > cdb/conf-ld
 
 echo ""
+echo "(Type 'make' to compile)"
 echo ""
-
