@@ -1,7 +1,11 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.28 - Current
+5.5.0 - Current
+  Matt Brookings
+  - Updated build scripts considerably
+
+5.4.28 - Released 10-Mar-2009
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient
    - Added vusage client API to libvpopmail
