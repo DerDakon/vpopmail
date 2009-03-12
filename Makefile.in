@@ -38,9 +38,9 @@ all: $(BUILD_LIBS) $(BUILD_BINS) post-compile
 # cdb library
 # 
 
-cdb: cdb/uint32.h cdb/cdbmake.h $(CDB_OBJECTS)
+cdb: $(CDB_OBJECTS)
 	(cd cdb;make)
-cdb/uint32.h:
+cdb/%.o:
 	(cd cdb;make)
 
 #
