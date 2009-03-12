@@ -57,9 +57,10 @@ warn-auto.sh conf-ld
 	chmod 755 load
 
 distclean: clean
+	rm -rf conf-cc conf-ld makelib load compile systype uint32.h
 
 clean: 
-	rm -rf *.o *.a uint32.h systype load compile makelib conf-cc conf-ld
+	rm -rf *.o *.a
 
 all: \
 cdb.a cdbmake.a 
