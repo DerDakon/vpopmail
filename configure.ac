@@ -1175,6 +1175,15 @@ case $AUTH_MODULE in
 
   ld*|Ld*|LD*)
     AC_MSG_RESULT(ldap)
+	AC_CHECK_HEADERS([ldap.h lber.h], [], [AC_MSG_ERROR(OpenLDAP headers not found)])
+
+	#
+	# XXX Not sure what to test for here
+	#
+	#AC_CHECK_LIB(ldap, ldap_connect, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
+	#AC_CHECK_LIB(lber, ber_alloc, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
+	#AC_CHECK_LIB(resolv, res_init, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
+
     USE_CDB=0
     USE_SQL=0
     USE_LDAP=1
@@ -1189,6 +1198,12 @@ case $AUTH_MODULE in
 
   or*|Or*|OR*)
     AC_MSG_RESULT(oracle)
+	AC_CHECK_HEADERS([sqlda.h sqlca.h sqlcpr.h], [], [AC_MSG_ERROR(Oracle headers not found)])
+
+	#
+	# XXX Not sure what functions the Oracle libraries export
+	#
+
     USE_CDB=0
     USE_SQL=1
     USE_ORACLE=1
@@ -1204,6 +1219,9 @@ case $AUTH_MODULE in
 
   sy*|Sy*|SY*)
     AC_MSG_RESULT(sybase)
+	AC_CHECK_HEADERS([sybfront.h sybdb.h], [], [AC_MSG_ERROR(Sybase headers not found)])
+	AC_CHECK_LIB(sybdb, dbopen, [], [AC_MSG_ERROR(Sybase libraries not found)])
+
     USE_CDB=0
     USE_SQL=1
     USE_SYBASE=1
