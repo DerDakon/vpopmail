@@ -435,8 +435,8 @@ int login()
   AuthVpw.pw_shell = strdup(tmpvpw->pw_shell);
   AuthVpw.pw_clear_passwd = strdup(tmpvpw->pw_clear_passwd);
 
-  snprintf( TheUserDir, sizeof(TheUserDir), AuthVpw.pw_dir);
-  snprintf( TheDomainDir, sizeof(TheDomainDir), 
+  snprintf( TheUserDir, sizeof(TheUserDir), "%s", AuthVpw.pw_dir);
+  snprintf( TheDomainDir, sizeof(TheDomainDir),  "%s",
     vget_assign(TheDomain,NULL,0,&uid,&gid));
   snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
     VPOPMAILDIR);
@@ -1279,7 +1279,7 @@ int validate_path(char *newpath, char *path)
 
   /* expand the path */
   if ( path[0] == '/' ) {
-    snprintf(newpath, MAXPATH, path);
+    snprintf(newpath, MAXPATH, "%s", path);
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
@@ -1325,7 +1325,7 @@ int validate_path(char *newpath, char *path)
           return(8);
         }
       }
-      snprintf(newpath, MAXPATH, myvpw->pw_dir);
+      snprintf(newpath, MAXPATH, "%s", myvpw->pw_dir);
       strncat(newpath, &path[i], MAXPATH );
     } else {     /*  may be domain name   */
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
@@ -1336,7 +1336,7 @@ int validate_path(char *newpath, char *path)
         show_error( ERR_NOT_AUTH_DOMAIN, 1509 );
         return(9);
       } 
-      snprintf(newpath, MAXPATH, thedir);
+      snprintf(newpath, MAXPATH, "%s", thedir);
       strncat(newpath, &path[i], MAXPATH );
     }
   }
@@ -1457,7 +1457,7 @@ int list_dir()
       printf("error on stat of %s\n", mydirent->d_name);
       exit(-1);
     }
-    snprintf( WriteBuf, sizeof(WriteBuf), mydirent->d_name);
+    snprintf( WriteBuf, sizeof(WriteBuf), "%s", mydirent->d_name);
     if ( S_ISREG(statbuf.st_mode ) ) {
       strncat(WriteBuf," file", sizeof(WriteBuf));
     } else if ( S_ISDIR(statbuf.st_mode ) ) {
@@ -2391,7 +2391,7 @@ int set_limits()
     return(-1);
   }
 
-  snprintf(domain,sizeof(domain), param);
+  snprintf(domain,sizeof(domain), "%s", param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
     show_error( ERR_NO_GET_LIMITS, 3505 );
