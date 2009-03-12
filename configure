@@ -686,6 +686,7 @@ PTHREAD_CC
 PTHREAD_LIBS
 PTHREAD_CFLAGS
 vusagedbuild
+VUSAGEDLIBS
 LTLIBOBJS'
 ac_subst_files=''
       ac_precious_vars='build_alias
@@ -9331,7 +9332,6 @@ fi
 
 done
 
-
 { echo "$as_me:$LINENO: checking for ev_loop_new in -lev" >&5
 echo $ECHO_N "checking for ev_loop_new in -lev... $ECHO_C" >&6; }
 if test "${ac_cv_lib_ev_ev_loop_new+set}" = set; then
@@ -9394,28 +9394,26 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_lib_ev_ev_loop_new" >&5
 echo "${ECHO_T}$ac_cv_lib_ev_ev_loop_new" >&6; }
 if test $ac_cv_lib_ev_ev_loop_new = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBEV 1
-_ACEOF
 
-  LIBS="-lev $LIBS"
-
-fi
+	  VUSAGEDLIBS="-lev"
 
 
-if test x"$ac_cv_lib_ev_ev_loop_new" == xno
-then
-   { echo "$as_me:$LINENO: WARNING: ===                                                       ===" >&5
+else
+
+	  { echo "$as_me:$LINENO: WARNING: ===                                                       ===" >&5
 echo "$as_me: WARNING: ===                                                       ===" >&2;}
-   { echo "$as_me:$LINENO: WARNING: ===               libev not found                         ===" >&5
+	  { echo "$as_me:$LINENO: WARNING: ===               libev not found                         ===" >&5
 echo "$as_me: WARNING: ===               libev not found                         ===" >&2;}
-   { echo "$as_me:$LINENO: WARNING: === You will be unable to build the vpopmail usage daemon ===" >&5
+	  { echo "$as_me:$LINENO: WARNING: === You will be unable to build the vpopmail usage daemon ===" >&5
 echo "$as_me: WARNING: === You will be unable to build the vpopmail usage daemon ===" >&2;}
-   { echo "$as_me:$LINENO: WARNING: ===                                                       ===" >&5
+	  { echo "$as_me:$LINENO: WARNING: ===                                                       ===" >&5
 echo "$as_me: WARNING: ===                                                       ===" >&2;}
-   vusagedbuild=""
+	  vusagedbuild=""
+
+
 
 fi
+
 
 #----------------------------------------------------------------------
 
@@ -10256,10 +10254,11 @@ PTHREAD_CC!$PTHREAD_CC$ac_delim
 PTHREAD_LIBS!$PTHREAD_LIBS$ac_delim
 PTHREAD_CFLAGS!$PTHREAD_CFLAGS$ac_delim
 vusagedbuild!$vusagedbuild$ac_delim
+VUSAGEDLIBS!$VUSAGEDLIBS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 74; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 75; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
