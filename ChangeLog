@@ -6,6 +6,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated build scripts considerably
   - Updated to build vusaged
   - Fixed some format string bugs
+  - Updated config code to use VPOPMAILDIR rather than getpwnam(vpopmail)
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
