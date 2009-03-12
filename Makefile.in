@@ -234,7 +234,7 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
 	@# Copy binaries, libraries and headers
 	@#
 	
-	for i in $(BUILD_BINS); do $(INSTALL) -o vpopmail -g vchkpw $${i} $(VPOPMAILDIR)/bin; chmod 711 $(VPOPMAILDIR)/bin/$${i}; done
+	for i in $(BUILD_BINS); do $(INSTALL) -s -o vpopmail -g vchkpw $${i} $(VPOPMAILDIR)/bin; chmod 711 $(VPOPMAILDIR)/bin/$${i}; done
 	for i in $(BUILD_LIBS); do $(INSTALL) $${i} $(VPOPMAILDIR)/lib; chmod 644 $(VPOPMAILDIR)/lib/$${i}; done
 	$(INSTALL) -m 444 config.h $(VPOPMAILDIR)/include/vpopmail_config.h
 	for i in $(INSTALL_HEADERS); do $(INSTALL) -m 444 $${i} $(VPOPMAILDIR)/include; done
