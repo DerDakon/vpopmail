@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include "conf.h"
+#include "config.h"
 
 int config_wait(char *);
 int config_begin_read(config_t *, char *);
@@ -64,18 +65,15 @@ config_t *config_begin(const char *filename)
 	  Try vpopmail/etc
    */
 
-   pw = getpwnam("vpopmail");
-   if (pw) {
-	  memset(b, 0, sizeof(b));
-	  snprintf(b, sizeof(b), "%s/etc/%s", pw->pw_dir, filename);
+   memset(b, 0, sizeof(b));
+   snprintf(b, sizeof(b), "%s/etc/%s", VPOPMAILDIR, filename);
 
-	  c = config_read(b);
-	  if (c) {
+   c = config_read(b);
+   if (c) {
 #ifdef CONFIG_DEBUG
-		 printf("config: using %s\n", b);
+	  printf("config: using %s\n", b);
 #endif
-		 return c;
-	  }
+	  return c;
    }
 
    /*
