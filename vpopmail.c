@@ -573,7 +573,7 @@ domain_entry *get_domain_entries (const char *match_real)
                 snprintf (linebuf, sizeof (linebuf), "%s/users/assign", QMAILDIR);
                 fs = fopen (linebuf, "r");
 
-                snprintf (match_buffer, sizeof (match_buffer), match_real);
+                snprintf (match_buffer, sizeof (match_buffer), "%s", match_real);
                 vget_assign(match_buffer,NULL,0,NULL,NULL);
         }
 
