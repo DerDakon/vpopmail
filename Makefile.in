@@ -130,7 +130,7 @@ clearopensmtp.o: $(DEPS) clearopensmtp.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 client.o: $(DEPS) client.c client.h storage.h conf.h ippp.h
 	$(CCC) -o $@ -c $*.c
-conf.o: $(DEPS) conf.c conf.h 
+conf.o: $(DEPS) conf.c conf.h config.h
 	$(CCC) -o $@ -c $*.c
 dotqmail2valias.o: $(DEPS) dotqmail2valias.c vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
