@@ -76,7 +76,7 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn chdir umask strtok strchr strstr close execv write read fopen fputs atoi atol malloc memset strcmp strncmp strcasecmp waitpid strncat strcpy fflush kill rename chmod free srand rand getenv gmtime])
+AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn chdir umask strtok strchr strstr close execv write read fopen fputs atoi atol malloc memset strcmp strncmp strcasecmp waitpid strncat strcpy fflush kill rename chmod free srand rand getenv gmtime strtoll])
 
 #
 # Operating system specific settings
