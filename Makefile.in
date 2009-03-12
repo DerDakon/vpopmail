@@ -244,7 +244,7 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
 	@#
 	
 	echo "-I$(VPOPMAILDIR)/include" > $(VPOPMAILDIR)/etc/inc_deps
-	echo "-L$(VPOPMAILDIR)/lib $(LIBS)" > $(VPOPMAILDIR)/etc/lib_deps
+	echo "-L$(VPOPMAILDIR)/lib $(LLIBS) -lvpopmail" > $(VPOPMAILDIR)/etc/lib_deps
 	
 	@#
 	@# Copy vusagec.conf
