@@ -1000,10 +1000,10 @@ esac
 #----------------------------------------------------------------------
 AC_MSG_CHECKING(whether domainquotas is enabled)
 AC_ARG_ENABLE(domainquotas,
-        [  --enable-domainquotas      Enable non-system domain quotas. See README.quotas for more info.],
+        [  --disable-domainquotas      Disable non-system domain quotas. See README.quotas for more info.],
         ENABLE_DOMAIN_QUOTAS=$enableval,
                 [
-                        ENABLE_DOMAIN_QUOTAS=0
+                        ENABLE_DOMAIN_QUOTAS=1
                 ]
 )
 
@@ -1872,13 +1872,6 @@ AC_ARG_ENABLE(sybase, [],
     ]
 )
 
-#AC_ARG_ENABLE(domainquotas, [],
-#    [
-#        AC_MSG_RESULT(yes)
-#        AC_MSG_ERROR(--enable-domainquotas has been temporarily disabled since the domain quota code is broken.)
-#    ]
-#)
-
 AC_ARG_ENABLE(hardquota, [],
     [
         AC_MSG_RESULT(yes)
@@ -2047,14 +2040,14 @@ esac
 
 case $ENABLE_DOMAIN_QUOTAS in
   1*|y*|Y*)
-    echo "     domain quotas = ON  --enable-domainquotas"
+    echo "     domain quotas = ON  --enable-domainquotas (default)"
 	echo ""
 	echo "                     *** Domain quotas should only be enabled ***"
     echo "                     *** when using the vpopmail usage daemon ***"
 	echo ""
     ;;
   *)
-    echo "     domain quotas = OFF --disable-domainquotas (default)"
+    echo "     domain quotas = OFF --disable-domainquotas"
     ;;
 esac
 
