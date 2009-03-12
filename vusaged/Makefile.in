@@ -6,7 +6,7 @@
 CC = @PTHREAD_CC@
 CFLAGS = -I..
 DEFS = $(CFLAGS) @PTHREAD_CFLAGS@
-LIBS = -L.. ../libvpopmail.a @auth_libs@ @LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @LIBS@
+LIBS = -L.. ../libvpopmail.a @auth_libs@ @VUSAGEDLIBS@ @LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @LIBS@
 INSTALL = install
 DEPS = Makefile
 BINS = vusaged
