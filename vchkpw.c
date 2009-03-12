@@ -689,20 +689,20 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
   if ( (verror == VLOG_ERROR_PASSWD) && 
        ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || 
          ENABLE_LOGGING==4 ) ) {
-    syslog(LOG_NOTICE,sysc(LogLine));
+    syslog(LOG_NOTICE,"%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_LOGON ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_ACCESS ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_AUTH && 
             ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
   }
 
 #ifdef ENABLE_SQL_LOGGING
