@@ -6,33 +6,21 @@
 AC_PREREQ([2.52])
 AC_INIT(vpopmail,5.5.0)
 AC_CANONICAL_HOST
-
-CFLAGS=
-LDFLAGS=
-AC_SUBST(CFLAGS, "")
-AC_SUBST(LDFLAGS, "")
-
-# if test "$GCC" = yes ; then
-#   CXXFLAGS="$CXXFLAGS -Wall"
-#   CFLAGS="$CFLAGS -Wall"
-# fi
-
-PACKAGE=$PACKAGE_NAME
-VERSION=$PACKAGE_VERSION
-AC_DEFINE_UNQUOTED(PACKAGE,"$PACKAGE","")
-AC_DEFINE_UNQUOTED(VERSION,"$VERSION","")
-
-#
-# Deprecated
-# AM_CONFIG_HEADER(config.h)
-#
-
 AC_CONFIG_HEADER(config.h)
 
 #
-# Obsolete
-# AM_INIT_AUTOMAKE()
+# Set default compiler and linker flags
 #
+
+AC_SUBST(CFLAGS, "")
+AC_SUBST(LDFLAGS, "")
+
+#
+# Export package version
+#
+
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE_NAME", "")
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION_VERSION", "")
 
 #
 # Programs
@@ -57,7 +45,7 @@ AC_CHECK_LIB(crypt, crypt)
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h memory.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h])
 
 #
 # Compiler language support
@@ -88,7 +76,7 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
+AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn chdir umask strtok strchr strstr close execv write read fopen fputs atoi atol malloc memset strcmp strncmp strcasecmp waitpid strncat strcpy fflush kill rename chmod free srand rand getenv gmtime])
 
 #
 # Operating system specific settings
@@ -1904,7 +1892,7 @@ AC_OUTPUT(Makefile vusaged/Makefile)
 
 
 echo ""
-echo "           $PACKAGE $VERSION           "
+echo "           $PACKAGE_NAME $PACKAGE_VERSION"
 echo "            Current settings"
 echo "---------------------------------------"
 echo ""
