@@ -1799,16 +1799,19 @@ fi
 #
 
 AC_CHECK_HEADERS(ev.h)
-AC_CHECK_LIB(ev, ev_loop_new)
+AC_CHECK_LIB(ev, ev_loop_new,
+   [
+	  AC_SUBST(VUSAGEDLIBS, "-lev")
+   ], 
 
-if test x"$ac_cv_lib_ev_ev_loop_new" == xno
-then
-   AC_MSG_WARN([===                                                       ===])
-   AC_MSG_WARN([===               libev not found                         ===])
-   AC_MSG_WARN([=== You will be unable to build the vpopmail usage daemon ===])
-   AC_MSG_WARN([===                                                       ===])
-   AC_SUBST(vusagedbuild, "")
-fi
+   [
+	  AC_MSG_WARN([===                                                       ===])
+	  AC_MSG_WARN([===               libev not found                         ===])
+	  AC_MSG_WARN([=== You will be unable to build the vpopmail usage daemon ===])
+	  AC_MSG_WARN([===                                                       ===])
+	  AC_SUBST(vusagedbuild, "")
+   ]
+)
 
 #----------------------------------------------------------------------
 
