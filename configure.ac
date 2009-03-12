@@ -4,7 +4,7 @@
 #
 
 AC_PREREQ([2.52])
-AC_INIT(vpopmail,5.4.28)
+AC_INIT(vpopmail,5.5.0)
 AC_CANONICAL_HOST
 
 CFLAGS=
