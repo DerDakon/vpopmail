@@ -4,6 +4,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 5.5.0 - Current
   Matt Brookings
   - Updated build scripts considerably
+  - Updated to build vusaged
+  - Fixed some format string bugs
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
