@@ -32,7 +32,7 @@ LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimit
 # Build
 #
 
-all: $(BUILD_LIBS) $(BUILD_BINS) vusaged/vusaged post-compile
+all: $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@ post-compile
 
 #
 # cdb library
