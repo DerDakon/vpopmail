@@ -32,7 +32,7 @@ LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimit
 # Build
 #
 
-all: $(BUILD_LIBS) $(BUILD_BINS) post-compile
+all: $(BUILD_LIBS) $(BUILD_BINS) vusaged/vusaged post-compile
 
 #
 # cdb library
@@ -42,6 +42,13 @@ cdb: $(CDB_OBJECTS)
 	(cd cdb;make)
 cdb/%.o:
 	(cd cdb;make)
+
+#
+# vusage daemon
+#
+
+vusaged/vusaged:
+	(cd vusaged;make)
 
 #
 # Library
@@ -259,6 +266,14 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
     fi
 	
 	@#
+	@# Install vusaged
+	@#
+	
+	if test -x vusaged/vusaged; then \
+	   (cd vusaged;make install); \
+    fi
+	
+	@#
 	@# Done
 	@#
 	
@@ -273,7 +288,9 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
 clean:
 	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
 	(cd cdb;make clean)
+	(cd vusaged;make clean)
 
 distclean: clean
 	rm -rf config.h Makefile autom4te.cache config.log config.status vauth.c
 	(cd cdb;make distclean)
+	(cd vusaged; make distclean)
