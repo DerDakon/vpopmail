@@ -38,6 +38,7 @@
 #include "conf.h"
 #include "storage.h"
 #include "client.h"
+#include "quota.h"
 
 /* private functions - no name clashes with courier */
 static char *makenewmaildirsizename(const char *, int *);
@@ -66,8 +67,6 @@ static int maildir_parsequota(const char *n, unsigned long *s);
 				maildir -- NOT IMPLEMENTED */
 #define	MDQUOTA_COUNT	'C'	/* Total number of messages in maildir */
 
-int quota_mtos(const char *, storage_t *, storage_t *);
-int quota_user_usage(const char *, storage_t *, storage_t *);
 
 /* bk: add domain limits functionality */
 int domain_over_maildirquota(const char *userdir)
@@ -82,6 +81,12 @@ int	cnt = 0, ret = 0;
 int	maxcnt = 0;
 struct vlimits limits;
    storage_t susage = 0, cusage = 0;
+
+   /*
+	  Old-style call
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0)
@@ -146,6 +151,11 @@ char	checkdir[256];
 DIR	*dirp;
 struct dirent *de;
 
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	if (dir == NULL || sizep == NULL || cntp == NULL)
 		return -1;
@@ -201,6 +211,12 @@ time_t	tm;
 time_t	maxtime;
 DIR	*dirp;
 struct dirent *de;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	maxtime=0;
 
@@ -285,6 +301,12 @@ struct  stat    stat_buf;
 int     quotafd = -1;
 int     ret_value = 0;
 
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
+
         //   stat file              is regular file                size > 0               what is q?
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) && stat_buf.st_size > 0 && *q)
         {       //   check the quota, and not again error
@@ -338,6 +360,12 @@ static int maildirsize_read(const char *filename,	/* The filename */
  unsigned l;
  int n;
  int first;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	if ((f=maildir_safeopen(filename, O_RDWR|O_APPEND, 0)) < 0)
 		return (-1);
@@ -463,6 +491,12 @@ static int maildir_checkquota(const char *dir,
 int	dummy, ret = 0;
 
    /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
+
+   /*
 	  Ping the daemon
    */
 
@@ -485,6 +519,12 @@ int vmaildir_readquota(const char *dir, const char *quota_type)
    int ret = 0;
    char *email = NULL;
    storage_t uusage = 0, dusage = 0, usquota = 0, ucquota = 0;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
    /*
 	  Get user usage
@@ -548,6 +588,12 @@ time_t	tm;
 time_t	maxtime;
 DIR	*dirp;
 struct dirent *de;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	if (checkfolder == 0)	return (-1);
 	*maildirsize_fdptr= -1;
@@ -700,6 +746,12 @@ int	maildir_addquota(const char *dir, int maildirsize_fd,
    int ret = 0;
 
    /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
+
+   /*
 	  Ping the usage daemon
 	  If it's running, we're done here.
    */
@@ -731,6 +783,12 @@ struct	iovec	iov[3];
 int	niov;
 struct	iovec	*p;
 int	n;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	niov=0;
 	if ( maildirsize_fd < 0)
@@ -843,6 +901,12 @@ struct	stat stat_buf;
 time_t	t;
 char	*p;
 int i;
+
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
 
 	hostname[0]=0;
 	hostname[sizeof(hostname)-1]=0;
@@ -1067,6 +1131,12 @@ static int maildir_parsequota(const char *n, unsigned long *s)
 const char *o;
 int     yes;
 
+   /*
+	  Old-style
+   */
+
+   fprintf(stderr, "warning: program using deprecated quota function\n");
+
         if ((o=strrchr(n, '/')) == 0)   o=n;
 
         for (; *o; o++)
@@ -1092,110 +1162,3 @@ int     yes;
         }
         return (-1);
 }
-
-/*
-   Converts a Maildir++ quota to storage_t values
-   Does not perform full syntax checking on quota format
-*/
-
-int quota_mtos(const char *quota, storage_t *size, storage_t *count)
-{
-   storage_t ts = 0;
-   const char *h = NULL, *t = NULL;
-
-   if (quota == NULL)
-	  return 0;
-
-   /*
-	  Set default values
-   */
-
-   if (size != NULL)
-	  *size = 0;
-
-   if (count != NULL)
-	  *count = 0;
-
-   /*
-	  Parse out seperate Maildir++ parts
-   */
-
-   h = t = quota;
-
-   while(1) {
-	  if ((*h == ',') || (!(*h))) {
-		 switch(*(h - 1)) {
-			case 'S':
-			   if (size) {
-				  ts = strtoll(t, NULL, 10);
-				  if (ts != -1)
-					 *size = ts;
-
-				  size = NULL;
-			   }
-
-			   break;
-
-			case 'C':
-			   if (count) {
-				  ts = strtoll(t, NULL, 10);
-				  if (ts != -1)
-					 *count = ts;
-
-				  count = NULL;
-			   }
-
-			   break;
-
-			default:
-			   /*
-				  Default is type S
-			   */
-
-			   if ((!(*h)) && (size)) {
-				  ts = strtoll(t, NULL, 10);
-				  if (ts != -1)
-					 *size = ts;
-
-				  size = NULL;
-			   }
-
-			   /*
-				  Unknown type
-			   */
-
-			   break;
-		 }
-
-		 if (!(*h))
-			break;
-
-		 while(*h == ',')
-			h++;
-
-		 t = h;
-	  }
-
-	  else
-		 h++;
-   }
-
-   return 1;
-}
-
-/*
-   Returns disk usage information for user and user's domain from
-   the vpopmail usage daemon
-*/
-
-int quota_user_usage(const char *user, storage_t *uusage, storage_t *dusage)
-{
-   int ret = 0;
-
-   if ((user == NULL) || (uusage == NULL) || (dusage == NULL) || (!(*user)))
-	  return 0;
-
-   ret = client_query_quick(user, uusage, dusage);
-   return ret;
-}
-
