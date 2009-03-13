@@ -344,8 +344,14 @@ void display_user(struct vqpasswd *mypw, char *domain)
         if ( DisplayQuotaUsage ) {
             snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
             if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
-                printf("%d%%\n", 
-                    vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
+			   usage = 0;
+
+			   memset(email, 0, sizeof(email));
+			   ret = user_domain_to_email(mypw->pw_name, domain, email, sizeof(email));
+			   if (ret)
+				  usage = quota_usage(email, mypw->pw_shell);
+
+                printf("%d%%\n",  usage);
             } else {
                 printf("%s\n", mypw->pw_shell);
             }
