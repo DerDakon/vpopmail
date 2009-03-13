@@ -1535,7 +1535,7 @@ int parse_email_safe(const char *email, char *user, int ulen, char *domain, int 
 	  if (len >= ulen)
 		 len = (ulen - 1);
 
-	  memcpy(user, p, len);
+	  memcpy(user, email, len);
 	  *(user + len) = '\0';
 	  lowerit(user);
 
@@ -1545,7 +1545,7 @@ int parse_email_safe(const char *email, char *user, int ulen, char *domain, int 
 
 	  ret = is_username_valid(user);
 	  if (ret) {
-		 fprintf(stderr, "user invalid %s\n", user);
+		 fprintf(stderr, "user is invalid %s\n", user);
 		 return 0;
 	  }
    }
@@ -1564,8 +1564,8 @@ int parse_email_safe(const char *email, char *user, int ulen, char *domain, int 
 		 if (len >= dlen)
 			len = (dlen - 1);
 
-		 memcpy(domain, (p + 1), dlen);
-		 *(domain + dlen) = '\0';
+		 memcpy(domain, (p + 1), len);
+		 *(domain + len) = '\0';
 	  }
 
 	  else
