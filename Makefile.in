@@ -222,6 +222,8 @@ post-compile:
 	@echo "(Type 'make install' to install)"
 	@echo
 
+install-strip: install
+
 install: $(BUILD_ALL)
 	@echo
 	@echo "Installing..."
@@ -286,7 +288,11 @@ install: $(BUILD_ALL)
 	@#
 	
 	@echo
-	@echo "vpopmail is installed"
+	@echo "-------------------------------------------------"
+	@echo "            vpopmail is installed"
+	@echo "  Be sure to install the vusaged startup script"
+	@echo "  located in vusaged/contrib/rc.vusaged"
+	@echo "-------------------------------------------------"
 	@echo
 
 #
