@@ -98,7 +98,7 @@ void run_command(char *prog);
 void checkuser(void);
 void usernotfound(void);
 int is_loop_match( const char *dt, const char *address);
-int deliver_quota_warning(const char *dir, const char *q);
+int deliver_quota_warning(const char *dir);
 
 
 /* print an error string and then exit
@@ -678,14 +678,13 @@ void deliver_mail(char *address, char *quota)
                     }
                     fclose(fs);
                 }
-                deliver_quota_warning(address, format_maildirquota(quota));
+                deliver_quota_warning(address);
                 vexiterr (EXIT_OVERQUOTA, "");
             }
             if (QUOTA_WARN_PERCENT >= 0 &&
-//                vmaildir_readquota(address, format_maildirquota(quota))
 			     quota_usage(email, quota)
                     >= QUOTA_WARN_PERCENT) {
-                deliver_quota_warning(address, format_maildirquota(quota));
+                deliver_quota_warning(address);
             }
         }
 #ifdef MAILDROP
@@ -719,7 +718,7 @@ void deliver_mail(char *address, char *quota)
                 }
                 fclose(fs);
             }
-            deliver_quota_warning(address, format_maildirquota(quota));
+            deliver_quota_warning(address);
             vexiterr (EXIT_OVERQUOTA, "");
         }
 #endif
@@ -1149,7 +1148,7 @@ void usernotfound()
  * -2 = system failure
  * -3 = mail is looping 
  */
-int deliver_quota_warning(const char *dir, const char *q)
+int deliver_quota_warning(const char *dir)
 {
  time_t tm;
  int fd, read_fd;
