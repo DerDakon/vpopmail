@@ -1897,7 +1897,7 @@ AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
 
-AC_OUTPUT(Makefile vusaged/Makefile)
+AC_OUTPUT(Makefile vusaged/Makefile vusaged/contrib/rc.vusaged)
 
 #----------------------------------------------------------------------
 
