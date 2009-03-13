@@ -162,6 +162,67 @@ int quota_compare(const char *email, const char *quota)
 }
 
 /*
+   Returns user quota usage percentage
+   This function should only be used for informational
+   purposes, it does not factor in domain usage
+*/
+
+int quota_usage(const char *email, const char *quota)
+{
+   int sp = 0, cp = 0, ret = 0;
+   storage_t squota = 0, cquota = 0, bytes = 0, count = 0;
+
+   sp = cp = 0;
+
+   /*
+	  Get usage
+   */
+
+   ret = client_query_quick(email, &bytes, &count);
+   if ((!ret) || (bytes == -1))
+	  return 0;
+
+   /*
+	  Parse quota
+   */
+
+   quota_mtos(quota, &squota, &cquota);
+
+   /*
+	  Calculate percentages
+   */
+
+   if (squota) {
+	  sp = (int)((float)((float)bytes / (float)squota) * (float)100);
+
+	  if (sp > 100)
+		 sp = 100;
+
+	  if (sp < 0)
+		 sp = 0;
+   }
+
+   if (cquota) {
+	  cp = (int)((float)((float)count / (float)cquota) * (float)100);
+
+	  if (cp > 100)
+		 cp = 100;
+
+	  if (cp < 0)
+		 cp = 0;
+   }
+
+   /*
+	  Return highest value
+   */
+
+   if (cp > sp)
+	  return cp;
+
+   return sp;
+}
+
+/*
    Converts a Maildir++ quota to storage_t values
    Does not perform full syntax checking on quota format
 */

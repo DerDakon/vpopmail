@@ -25,6 +25,7 @@
 
 int quota_check(const char *);
 int quota_compare(const char *, const char *);
+int quota_usage(const char *, const char *);
 int quota_mtos(const char *, storage_t *, storage_t *);
 
 #endif
