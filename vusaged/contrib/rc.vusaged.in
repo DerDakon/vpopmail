@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# $Id$
+# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+#
 # vusaged		Starts and stops the vpopmail usage daemon
 #
 # chkconfig: 345 80 30
