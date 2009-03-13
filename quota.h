@@ -28,6 +28,7 @@ int quota_check_domain(const char *);
 int quota_compare(const char *, const char *);
 int quota_usage(const char *, const char *);
 int quota_get_usage(const char *, storage_t *, storage_t *);
+int quota_percent(storage_t, storage_t, storage_t, storage_t);
 int quota_mtos(const char *, storage_t *, storage_t *);
 
 #endif
