@@ -563,11 +563,9 @@ int deliver_to_maildir (
                 /* not a critical error */
                 printf("unlink failed %s errno = %d\n", local_file_tmp, errno);
             }
-            if (*quota) maildir_addquota (maildir, -1, quota, msgsize, 1);
             return 0;
         } else if (rename(local_file_tmp, local_file_new) == 0) {
             /* file was successfully delivered */
-            if (*quota) maildir_addquota (maildir, -1, quota, msgsize, 1);
             return 0;
         } else {
             /* even rename failed, time to give up */
