@@ -1,4 +1,10 @@
-# MYSQL CONNECTION SETTINGS FOR VPOPMAIL
+#
+# $Id$
+# Copyright (C) 2001-2009 Inter7 Internet Technologies, Inc.
+#
+# MySQL connection information
+# Format:
+#         host|port or socket path|user|password|database
 #
 # Line 1 defines the connection to use for database reads,
 # Line 2 defines the connection to use for database updates/writes.
@@ -6,12 +12,5 @@
 # If you omit line 2, then the same settings will be
 # used for both read and write.
 #
-# settings for each line:
-# host|port|user|password|database
-#
+
 localhost|0|root|secret|vpopmail
-#
-# Note:
-#   The value of host may be either a hostname or an IP address.
-#   If host is 'localhost', then sockets (Unix) or named pipes (Windows)
-#   will be used instead of TCP/IP to connect to the server.
