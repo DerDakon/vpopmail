@@ -86,7 +86,7 @@ struct vlimits limits;
 	  Old-style call
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0)
@@ -155,7 +155,7 @@ struct dirent *de;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	if (dir == NULL || sizep == NULL || cntp == NULL)
 		return -1;
@@ -216,7 +216,7 @@ struct dirent *de;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	maxtime=0;
 
@@ -305,7 +305,7 @@ int     ret_value = 0;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
         //   stat file              is regular file                size > 0               what is q?
         if (fstat(0, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) && stat_buf.st_size > 0 && *q)
@@ -365,7 +365,7 @@ static int maildirsize_read(const char *filename,	/* The filename */
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	if ((f=maildir_safeopen(filename, O_RDWR|O_APPEND, 0)) < 0)
 		return (-1);
@@ -494,7 +494,7 @@ int	dummy, ret = 0;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
    /*
 	  Ping the daemon
@@ -524,7 +524,7 @@ int vmaildir_readquota(const char *dir, const char *quota_type)
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
    /*
 	  Get user usage
@@ -593,7 +593,7 @@ struct dirent *de;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	if (checkfolder == 0)	return (-1);
 	*maildirsize_fdptr= -1;
@@ -749,7 +749,7 @@ int	maildir_addquota(const char *dir, int maildirsize_fd,
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
    /*
 	  Ping the usage daemon
@@ -788,7 +788,7 @@ int	n;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	niov=0;
 	if ( maildirsize_fd < 0)
@@ -906,7 +906,7 @@ int i;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
 	hostname[0]=0;
 	hostname[sizeof(hostname)-1]=0;
@@ -1135,7 +1135,7 @@ int     yes;
 	  Old-style
    */
 
-   fprintf(stderr, "warning: program using deprecated quota function\n");
+   fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
 
         if ((o=strrchr(n, '/')) == 0)   o=n;
 
