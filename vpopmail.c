@@ -1507,6 +1507,87 @@ int parse_email(char *email, char *user, char *domain, int buff_size )
 /************************************************************************/
 
 /*
+   Does what the above function does safely, and without modifying
+   the original buffer
+
+   Returns 0 on error or 1 if successful
+*/
+
+int parse_email_safe(const char *email, char *user, int ulen, char *domain, int dlen)
+{
+   int ret = 0, len = 0;
+   const char *p = NULL;
+
+   if ((email == NULL) || (!(*email)))
+	  return 0;
+
+   for (p = email; *p; p++) {
+	  if (*p == '@')
+		 break;
+   }
+
+   /*
+	  Copy the user portion with truncation if required
+   */
+
+   if ((user) && (ulen > 0)) {
+	  len = (p - email);
+	  if (len >= ulen)
+		 len = (ulen - 1);
+
+	  memcpy(user, p, len);
+	  *(user + len) = '\0';
+	  lowerit(user);
+
+	  /*
+		 Check for valid user syntax
+	  */
+
+	  ret = is_username_valid(user);
+	  if (ret) {
+		 fprintf(stderr, "user invalid %s\n", user);
+		 return 0;
+	  }
+   }
+
+   if ((domain) && (dlen > 0)) {
+	  /*
+		 Default domain support
+	  */
+
+	  if (*p) {
+		 /*
+			Copy the domain portion with truncation if required
+		 */
+
+		 len = strlen((p + 1));
+		 if (len >= dlen)
+			len = (dlen - 1);
+
+		 memcpy(domain, (p + 1), dlen);
+		 *(domain + dlen) = '\0';
+	  }
+
+	  else
+		 vset_default_domain_safe(domain, dlen);
+
+	  lowerit(domain);
+
+	  /*
+		 Check for valid domain syntax
+	  */
+
+	  ret = is_domain_valid(domain);
+	  if (ret) {
+		 fprintf(stderr, "domain invalid %s\n", domain);
+		 return 0;
+	  }
+   }
+
+   return 1;
+}
+
+/*
  * update a users virtual password file entry with a different password
  */
 int vpasswd( char *username, char *domain, char *password, int apop )
@@ -2628,6 +2709,81 @@ void vset_default_domain( char *domain )
    * (plus 1 for the NULL)
    */
   snprintf(domain, MAX_PW_DOMAIN+1, "%s", DEFAULT_DOMAIN);
+}
+
+/*
+   Does what the above function does safely
+*/
+
+void vset_default_domain_safe(char *domain, int dlen) 
+{
+   int len = 0;
+   char *tmpstr = NULL, host[256] = { 0 };
+
+   if ((domain == NULL) || (dlen <= 0))
+	  return;
+
+   /*
+	  Don't work on a filled buffer
+	  
+	  Why? <matt@inter7.com>
+   */
+
+   if (*domain)
+	  return;
+
+   /*
+	  Check environment
+   */
+
+   tmpstr = getenv("VPOPMAIL_DOMAIN");
+   if ((tmpstr) && (*tmpstr)) {
+	  len = strlen(tmpstr);
+	  if (len >= dlen)
+		 len = (dlen - 1);
+
+	  memcpy(domain, tmpstr, len);
+	  *(domain + len) = '\0';
+
+	  return;
+   }
+
+#ifdef IP_ALIAS_DOMAINS
+   tmpstr = getenv("TCPLOCALIP");
+
+   /*
+	  We've dropped all support for Courier-IMAP, and so,
+	  no check for IPv6 here since tcpserver doesn't support
+	  it.
+   */
+
+   if (tmpstr) {
+	  ret = vget_ip_map(tmpstr, host, sizeof(host));
+	  if ((ret == 0) && (!(host_in_locals(host)))) {
+		 len = strlen(host);
+		 if (len >= dlen)
+			len = (dlen - 1);
+
+		 memcpy(domain, host, dlen);
+		 *(domain + dlen) = '\0';
+	  }
+   }
+#endif
+
+   /*
+	  Default domain
+   */
+
+   tmpstr = default_domain();
+   if ((tmpstr) && (*tmpstr)) {
+	  len = strlen(tmpstr);
+
+	  if (len >= dlen)
+		 len = (dlen - 1);
+
+	  memcpy(domain, tmpstr, len);
+	  *(domain + len) = '\0';
+   }
 }
 
 /************************************************************************/
@@ -4171,3 +4327,22 @@ int call_onchange ( const char *cmd )
 	return(0);
 }
 #endif
+
+/*
+   Return a vqpasswd structure based on an email
+   address.
+
+   This has been sorely needed
+*/
+
+struct vqpasswd *vauth_getpw_long(const char *email)
+{
+   int ret = 0;
+   char user[60] = { 0 }, domain[256] = { 0 };
+
+   ret = parse_email_safe(email, user, sizeof(user), domain, sizeof(domain));
+   if (!ret)
+	  return NULL;
+
+   return vauth_getpw(user, domain);
+}
