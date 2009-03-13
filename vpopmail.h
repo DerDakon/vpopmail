@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>		// for uid_t
+#include "vauth.h"
 
 /*  Enable expanded debug information.  Consider these for ./configure options  */
 //  Show entry and parms when hitting vpopmail library functions
@@ -256,6 +257,7 @@ void   listGetError( char *buff, const int size, const int status );
 
 /*  Low level string support  */
 int parse_email( char *, char *, char *, int);
+int parse_email_safe(const char *, char *, int, char *, int);
 char *vrandom_pass (char *buffer, int len);
 int is_username_valid( char *user );
 int is_domain_valid( char *domain );
@@ -305,6 +307,7 @@ int r_mkdir(char *, uid_t uid, gid_t gid);
 struct vqpasswd *vgetent(FILE *);
 char *default_domain();
 void vset_default_domain( char *);
+void vset_default_domain_safe(char *, int);
 void vupdate_rules(int);
 void vclear_open_smtp(time_t, time_t);
 char *verror(int);
@@ -364,3 +367,5 @@ int call_onchange();
 #ifdef USERS_BIG_DIR
 char *backfill(char *, char *, char *, int);
 #endif
+
+struct vqpasswd *vauth_getpw_long(const char *);
