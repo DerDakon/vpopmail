@@ -24,12 +24,39 @@
 #include "client.h"
 #include "storage.h"
 #include "vlimits.h"
+#include "vauth.h"
+#include "vpopmail.h"
 
 /*
-   Checks if a user or the user's domain is over quota
+   Looks up a user and checks it's quota and it's
+   domain's quota
 */
 
-int quota_check(const char *email, const char *quota)
+int quota_check(const char *email)
+{
+   struct vqpasswd *pw = NULL;
+
+   /*
+	  Look up the user
+   */
+
+   pw = vauth_getpw_long(email);
+   if (pw == NULL)
+	  return 0;
+
+   /*
+	  Return quota check
+   */
+
+   return quota_compare(email, pw->pw_shell);
+}
+
+/*
+   Compares if a user is over a provided quota, or
+   if the domain is over it's configured quota
+*/
+
+int quota_compare(const char *email, const char *quota)
 {
    int ret = 0;
    void *handle = NULL;
