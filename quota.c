@@ -162,6 +162,27 @@ int quota_compare(const char *email, const char *quota)
 }
 
 /*
+   Queries the usage server for usage values
+   Can return domain or user usage
+
+   Returns 1 if query successful and data was available for the record
+*/
+
+int quota_get_usage(const char *record, storage_t *bytes, storage_t *count)
+{
+   int ret = 0;
+
+   if ((record == NULL) || (bytes == NULL) || (count == NULL))
+	  return 0;
+
+   ret = client_query_quick(record, &bytes, &count);
+   if ((!ret) || (bytes == -1))
+	  return 0;
+
+   return 1;
+}
+
+/*
    Returns user quota usage percentage
    This function should only be used for informational
    purposes, it does not factor in domain usage
@@ -178,8 +199,8 @@ int quota_usage(const char *email, const char *quota)
 	  Get usage
    */
 
-   ret = client_query_quick(email, &bytes, &count);
-   if ((!ret) || (bytes == -1))
+   ret = quota_get_usage(email, &bytes, &count);
+   if (!ret)
 	  return 0;
 
    /*
