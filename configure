@@ -10117,7 +10117,7 @@ echo "${ECHO_T}no" >&6; }
 
 #----------------------------------------------------------------------
 
-ac_config_files="$ac_config_files Makefile vusaged/Makefile"
+ac_config_files="$ac_config_files Makefile vusaged/Makefile vusaged/contrib/rc.vusaged"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10675,6 +10675,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "vusaged/Makefile") CONFIG_FILES="$CONFIG_FILES vusaged/Makefile" ;;
+    "vusaged/contrib/rc.vusaged") CONFIG_FILES="$CONFIG_FILES vusaged/contrib/rc.vusaged" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
