@@ -52,6 +52,58 @@ int quota_check(const char *email)
 }
 
 /*
+   Looks up a domain quota and checks it's limits
+*/
+
+int quota_check_domain(const char *domain)
+{
+   int ret = 0;
+   char b[256] = { 0 };
+   struct vlimits vl;
+   storage_t bytes = 0, count = 0;
+
+   if (domain == NULL)
+	  return 0;
+
+   /*
+	  Get domain limits
+   */
+   
+   ret = vget_limits(domain, &vl);
+   if (ret)
+	  return 0;
+
+   /*
+	  Format domain query
+   */
+
+   ret = strlen(domain);
+   if (ret >= (sizeof(b) - 2))
+	  return 0;
+
+   *b = '@';
+   memcpy((b + 1), domain, ret);
+   *(b + ret + 1) = '\0';
+
+   /*
+	  Query
+   */
+
+   ret = client_query_quick(b, &bytes, &count);
+   if ((!ret) || (bytes == -1))
+	  return 0;
+
+   /*
+	  Compare
+   */
+
+   if ((bytes >= vl.diskquota) || (count >= vl.maxmsgcount))
+	  return 1;
+
+   return 0;
+}
+
+/*
    Compares if a user is over a provided quota, or
    if the domain is over it's configured quota
 
@@ -99,7 +151,7 @@ int quota_compare(const char *email, const char *quota)
 	  */
 
 	  if ((ret) && (usage != -1)) {
-		 if ((usage >= squota) || (count >= cquota)) {
+		 if (((squota) && (usage >= squota)) || ((cquota) && ((count >= cquota)))) {
 			client_close(handle);
 			return 1;
 		 }
@@ -158,7 +210,7 @@ int quota_compare(const char *email, const char *quota)
    */
 
    if ((ret) && (usage != -1)) {
-	  if ((usage >= vl.diskquota) || (count >= vl.maxmsgcount))
+	  if (((vl.diskquota) && (usage >= vl.diskquota)) || (((vl.maxmsgcount) && (count >= vl.maxmsgcount))))
 		 return 2;
    }
 
@@ -180,8 +232,10 @@ int quota_get_usage(const char *record, storage_t *bytes, storage_t *count)
 	  return 0;
 
    ret = client_query_quick(record, bytes, count);
-   if ((!ret) || (*bytes == -1))
+   if ((!ret) || (*bytes == -1)) {
+	  *bytes = *count = 0;
 	  return 0;
+   }
 
    return 1;
 }
