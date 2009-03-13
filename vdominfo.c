@@ -190,7 +190,9 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
 			quota_get_usage(b, &bytes, &count);
 		 }
 
-		 printf("usage:  %llu byte(s) in %llu file(s)\n", bytes, count);
+		 printf("usage:  %d%% (%llu byte(s) in %llu file(s))\n",
+			   quota_percent(bytes, count, (storage_t)((storage_t)vl.diskquota * ((storage_t)1000000)), vl.maxmsgcount),
+			   bytes, count);
 
     } else {
         if ( DisplayName ) {
