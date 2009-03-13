@@ -32,6 +32,8 @@
 #endif
 #include "vpopmail.h"
 #include "vauth.h"
+#include "quota.h"
+#include "storage.h"
 #include "maildirquota.h"
 
 
@@ -273,6 +275,7 @@ void display_lastlogin (struct vqpasswd *pw, char *domain)
 void display_user(struct vqpasswd *mypw, char *domain)
 {
    int ret = 0, usage = 0;
+   storage_t bytes = 0, count = 0, squota = 0, cquota = 0;
  char maildir[MAX_BUFF], email[512] = { 0 };
 
     if ( DisplayAll ) {
@@ -321,10 +324,13 @@ void display_user(struct vqpasswd *mypw, char *domain)
 
 		    memset(email, 0, sizeof(email));
 			ret = user_domain_to_email(mypw->pw_name, domain, email, sizeof(email));
-			if (ret)
-			   usage = quota_usage(email, mypw->pw_shell);
+			if (ret) {
+			   quota_get_usage(email, &bytes, &count);
+			   quota_mtos(mypw->pw_shell, &squota, &cquota);
+			   usage = quota_percent(bytes, count, squota, cquota);
+			}
 
-            printf("usage:     %d%%\n", usage);
+            printf("usage:     %d%% (%llu byte(s) in %llu file(s))\n", usage, bytes, count);
         } else {
             printf("usage:     %s\n", mypw->pw_shell);
         }
