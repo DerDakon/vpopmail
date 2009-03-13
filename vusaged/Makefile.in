@@ -54,7 +54,7 @@ clean:
 	rm -f *.o *.core core $(BINS)
 
 distclean: clean
-	rm -rf config.log config.status Makefile autom4te.cache
+	rm -rf config.log config.status Makefile autom4te.cache contrib/rc.vusaged
 
 install: $(BINS)
 	$(INSTALL) -s -m 0700 vusaged $(VPOPMAILDIR)/bin
