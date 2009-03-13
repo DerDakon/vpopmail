@@ -100,7 +100,7 @@ static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
 int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 {
  FILE *fs;
- int i;
+ int i, dot = 0;
  char *domain_hash;
  char DomainSubDir[MAX_BUFF];
  char dir_control_for_uid[MAX_BUFF];
@@ -133,13 +133,18 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if ( strlen( domain ) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
   /* check invalid email domain characters */
+  dot = 0;
   for(i=0;domain[i]!=0;++i) {
+	 if (domain[i] == '.')
+		dot = 1;
+
     if (i == 0 && domain[i] == '-' ) return(VA_INVALID_DOMAIN_NAME);
     if (isalnum((int)domain[i])==0 && domain[i]!='-' && domain[i]!='.') {
       return(VA_INVALID_DOMAIN_NAME);
     }
   }
   if ( domain[i-1] == '-' ) return(VA_INVALID_DOMAIN_NAME);
+  if (!dot) return(VA_INVALID_DOMAIN_NAME);
 
   /* after the name is okay, check if it already exists */
   if ( vget_assign(domain, NULL, 0, NULL, NULL ) != NULL ) {
@@ -3118,6 +3123,7 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
 
   /* search the cdb file for our requested domain */
   i = cdb_seek(fileno(fs), cdb_key, strlen(cdb_key), &dlen);
+  
   in_uid = -1;
   in_gid = -1;
 
