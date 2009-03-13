@@ -262,6 +262,7 @@ char *vrandom_pass (char *buffer, int len);
 int is_username_valid( char *user );
 int is_domain_valid( char *domain );
 char *maildir_to_email(const char *maildir);
+int user_domain_to_email(const char *, const char *, char *, int);
 
 
 /*  Operational Overhead  */
