@@ -173,7 +173,7 @@ vdeloldusers.o: $(DEPS) vdeloldusers.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vdeluser.o: $(DEPS) vdeluser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vdominfo.o: $(DEPS) vdominfo.c config.h vpopmail.h vauth.h
+vdominfo.o: $(DEPS) vdominfo.c config.h vpopmail.h vauth.h vlimits.h quota.h
 	$(CCC) -o $@ -c $*.c
 vipmap.o: $(DEPS) vipmap.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -218,6 +218,7 @@ quota.o: $(DEPS) quota.c quota.h client.h storage.h vauth.h vpopmail.h
 
 post-compile:
 	@echo
+	@echo "    vpopmail is compiled        "
 	@echo "(Type 'make install' to install)"
 	@echo
 
@@ -249,7 +250,7 @@ install: $(BUILD_ALL)
 	echo "-I$(VPOPMAILDIR)/include" > $(VPOPMAILDIR)/etc/inc_deps
 	echo "-L$(VPOPMAILDIR)/lib $(LLIBS) -lvpopmail" > $(VPOPMAILDIR)/etc/lib_deps
 	
-	if test ! -r $(VPOPMAILDIR)/etc/vlimits.conf; then \
+	if test ! -r $(VPOPMAILDIR)/etc/vlimits.default; then \
 	  $(INSTALL) -m 644 vlimits.default $(VPOPMAILDIR)/etc/vlimits.default; \
     fi
 	
