@@ -4088,6 +4088,58 @@ char *maildir_to_email (const char *maildir)
 	return email;
 }
 
+/*
+   Formats an email address from a user and domain pair
+   Returns 0 on failure, length on success
+   Will use default domain if domain argument is NULL or empty
+*/
+
+int user_domain_to_email(const char *user, const char *domain, char *email, int elen)
+{
+   int ulen = 0, dlen = 0, ret = 0;
+   char dom[256] = { 0 };
+
+   if ((user == NULL) || (!(*user)))
+	  return 0;
+
+   /*
+	  Use default domain
+   */
+
+   if ((domain == NULL) || (!(*domain))) {
+	  vset_default_domain_safe(dom, sizeof(dom));
+	  if (!(*dom))
+		 return 0;
+
+	  domain = (const char *)dom;
+   }
+   
+   /*
+	  Count length
+   */
+
+   ulen = strlen(user);
+   dlen = strlen(domain);
+
+   if ((ulen + dlen + 1) >= elen)
+	  return 0;
+
+   /*
+	  Build address
+   */
+
+   memcpy(email, user, ulen);
+   memcpy((email + ulen + 1), domain, dlen);
+   *(email + ulen) = '@';
+   *(email + ulen + dlen + 1) = '\0';
+
+   /*
+	  Return length
+   */
+
+   return (ulen + dlen + 1);
+}
+
 /* escape these characters out of strings: ', \, " */
 #define ESCAPE_CHARS "'\"\\"
 
