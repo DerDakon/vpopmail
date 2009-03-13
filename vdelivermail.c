@@ -589,7 +589,7 @@ int deliver_to_maildir (
 void deliver_mail(char *address, char *quota)
 {
  pid_t inject_pid = 0;
- int child;
+ int child, qcheck = 0, ret = 0;
  unsigned int xcode;
  FILE *fs;
  char tmp_file[256];
@@ -598,6 +598,8 @@ void deliver_mail(char *address, char *quota)
 #ifdef MAILDROP
  struct vlimits limits;
 #endif
+
+   qcheck = -1;
 
     /* This is a comment, ignore it */
     if ( *address == '#' ) return;
@@ -636,12 +638,14 @@ void deliver_mail(char *address, char *quota)
           read_quota_from_maildir (address, maildirquota, sizeof(maildirquota));
           quota = maildirquota;
         }
+
+		email = maildir_to_email(address);
         
         /* if the user has a quota set */
 #ifdef MAILDROP
        vget_limits(TheDomain, &limits);
        if ( vpw==NULL ) {
-         parse_email(maildir_to_email(address), TheUser, TheDomain, AUTH_SIZE);
+         parse_email(email, TheUser, TheDomain, AUTH_SIZE);
          vpw=vauth_getpw(TheUser, TheDomain);
        }
        if ( vpw!=NULL && (limits.disable_spamassassin==1 ||
@@ -652,7 +656,11 @@ void deliver_mail(char *address, char *quota)
             /* If the user is over their quota, return it back
              * to the sender.
              */
-            if (user_over_maildirquota(address,format_maildirquota(quota))==1) {
+
+		    email = maildir_to_email(address);
+			qcheck = quota_check(email);
+			if (qcheck == 1) {
+			   //if (user_over_maildirquota(address,format_maildirquota(quota))==1) {
 
                 /* check for over quota message in domain */
                 snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
@@ -674,7 +682,8 @@ void deliver_mail(char *address, char *quota)
                 vexiterr (EXIT_OVERQUOTA, "");
             }
             if (QUOTA_WARN_PERCENT >= 0 &&
-                vmaildir_readquota(address, format_maildirquota(quota))
+//                vmaildir_readquota(address, format_maildirquota(quota))
+			     quota_usage(email, quota)
                     >= QUOTA_WARN_PERCENT) {
                 deliver_quota_warning(address, format_maildirquota(quota));
             }
@@ -685,7 +694,14 @@ void deliver_mail(char *address, char *quota)
 
 #ifdef DOMAIN_QUOTAS
     /* bk: check domain quota */
-        if (domain_over_maildirquota(address)==1)
+		if (qcheck == -1) {
+		   ret = quota_check_domain(TheDomain);
+		   if (ret)
+			  qcheck = 2;
+	    }
+
+//        if (domain_over_maildirquota(address)==1)
+	    if (qcheck == 2)
         {
             /* check for over quota message in domain */
             snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
@@ -709,6 +725,8 @@ void deliver_mail(char *address, char *quota)
 #endif
 
         /* Get the email address from the maildir */
+		// done above
+
         email = maildir_to_email(address);
 
         /* Set the Delivered-To: header */
