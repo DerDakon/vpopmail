@@ -276,6 +276,17 @@ install: $(BUILD_ALL)
     fi
 	
 	@#
+	@# If vauth.c is symlinked to vldap.c, copy
+	@# vpopmail.ldap
+	@#
+	
+	if test ! "`diff -q ./vauth.c ./vldap.c`"; then \
+	   if test ! -r $(VPOPMAILDIR)/etc/vpopmail.ldap; then \
+		 $(INSTALL) -o vpopmail -g vchkpw -m 0640 ldap/vpopmail.ldap $(VPOPMAILDIR)/etc/vpopmail.ldap; \
+	   fi; \
+    fi
+	
+	@#
 	@# Install vusaged
 	@#
 	
