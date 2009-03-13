@@ -273,7 +273,8 @@ void display_lastlogin (struct vqpasswd *pw, char *domain)
 
 void display_user(struct vqpasswd *mypw, char *domain)
 {
- char maildir[MAX_BUFF];
+   int ret = 0, usage = 0;
+ char maildir[MAX_BUFF], email[512] = { 0 };
 
     if ( DisplayAll ) {
         printf("name:   %s\n", mypw->pw_name);
@@ -317,8 +318,14 @@ void display_user(struct vqpasswd *mypw, char *domain)
 
         snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
         if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
-            printf("usage:     %d%%\n", 
-                vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
+		    usage = 0;
+
+		    memset(email, 0, sizeof(email));
+			ret = user_domain_to_email(mypw->pw_name, domain, email, sizeof(email));
+			if (ret)
+			   usage = quota_usage(email, mypw->pw_shell);
+
+            printf("usage:     %d%%\n", usage);
         } else {
             printf("usage:     %s\n", mypw->pw_shell);
         }
