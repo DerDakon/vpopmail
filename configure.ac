@@ -2041,10 +2041,6 @@ esac
 case $ENABLE_DOMAIN_QUOTAS in
   1*|y*|Y*)
     echo "     domain quotas = ON  --enable-domainquotas (default)"
-	echo ""
-	echo "                     *** Domain quotas should only be enabled ***"
-    echo "                     *** when using the vpopmail usage daemon ***"
-	echo ""
     ;;
   *)
     echo "     domain quotas = OFF --disable-domainquotas"
