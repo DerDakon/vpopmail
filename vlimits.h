@@ -9,6 +9,9 @@
 #ifndef VPOPMAIL_VLIMITS_H
 #define VPOPMAIL_VLIMITS_H
 
+#include <pwd.h>
+#include "vauth.h"
+
 /* permissions for non-postmaster admins */
 #define VLIMIT_DISABLE_CREATE 0x01
 #define VLIMIT_DISABLE_MODIFY 0x02
