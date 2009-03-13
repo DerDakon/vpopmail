@@ -246,10 +246,8 @@ int quota_get_usage(const char *record, storage_t *bytes, storage_t *count)
 
 int quota_usage(const char *record, const char *quota)
 {
-   int sp = 0, cp = 0, ret = 0;
+   int ret = 0;
    storage_t squota = 0, cquota = 0, bytes = 0, count = 0;
-
-   sp = cp = 0;
 
    /*
 	  Get usage
@@ -266,8 +264,21 @@ int quota_usage(const char *record, const char *quota)
    quota_mtos(quota, &squota, &cquota);
 
    /*
-	  Calculate percentages
+	  Return percentage
    */
+
+   return quota_percent(bytes, count, squota, cquota);
+}
+
+/*
+   Returns percentage of highest usage between bytes and message count
+*/
+
+int quota_percent(storage_t bytes, storage_t count, storage_t squota, storage_t cquota)
+{
+   storage_t sp = 0, cp = 0;
+
+   sp = cp = 0;
 
    if (squota) {
 	  sp = (int)((float)((float)bytes / (float)squota) * (float)100);
@@ -288,10 +299,6 @@ int quota_usage(const char *record, const char *quota)
 	  if (cp < 0)
 		 cp = 0;
    }
-
-   /*
-	  Return highest value
-   */
 
    if (cp > sp)
 	  return cp;
