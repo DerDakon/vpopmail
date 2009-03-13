@@ -20,6 +20,7 @@ BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vad
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
 	   vlist vusagec authvchkpw
+BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h
 INSTALL_DIRS = bin etc doc include lib domains
 CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
@@ -32,7 +33,7 @@ LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimit
 # Build
 #
 
-all: $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@ post-compile
+all: $(BUILD_ALL) post-compile
 
 #
 # cdb library
@@ -200,7 +201,7 @@ vpopmaild.o: $(DEPS) vpopmaild.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpopmail.o: $(DEPS) vpopmail.c config.h md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h quota.h
 	$(CCC) -o $@ -c $*.c
-vsetuserquota.o: $(DEPS) vsetuserquota.c config.h vpopmail.h vauth.h
+vsetuserquota.o: $(DEPS) vsetuserquota.c config.h vpopmail.h vauth.h 
 	$(CCC) -o $@ -c $*.c
 vusagec.o: $(DEPS) vusagec.c client.h storage.h
 	$(CCC) -o $@ -c $*.c
@@ -208,7 +209,7 @@ vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h quot
 	$(CCC) -o $@ -c $*.c
 vutil.o: $(DEPS) vutil.c vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-quota.o: $(DEPS) quota.c quota.h client.h storage.h
+quota.o: $(DEPS) quota.c quota.h client.h storage.h vauth.h vpopmail.h
 	$(CCC) -o $@ -c $*.c
 
 #
@@ -220,7 +221,7 @@ post-compile:
 	@echo "(Type 'make install' to install)"
 	@echo
 
-install: $(BUILD_BINS) $(BUILD_LIBS)
+install: $(BUILD_ALL)
 	@echo
 	@echo "Installing..."
 	@echo
@@ -247,6 +248,10 @@ install: $(BUILD_BINS) $(BUILD_LIBS)
 	
 	echo "-I$(VPOPMAILDIR)/include" > $(VPOPMAILDIR)/etc/inc_deps
 	echo "-L$(VPOPMAILDIR)/lib $(LLIBS) -lvpopmail" > $(VPOPMAILDIR)/etc/lib_deps
+	
+	if test ! -r $(VPOPMAILDIR)/etc/vlimits.conf; then \
+	  $(INSTALL) -m 644 vlimits.default $(VPOPMAILDIR)/etc/vlimits.default; \
+    fi
 	
 	@#
 	@# Copy vusagec.conf
