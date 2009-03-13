@@ -3751,46 +3751,6 @@ char *vrandom_pass(char *buffer, int len)
   return buffer;
 }
 
-char *vgen_pass(int len)
-/* old function to generate a random password (replaced by vrandom_pass) */
-{
-  char *p;
-
-  p = malloc(len + 1);
-  if (p == NULL) return NULL;
-  return (vrandom_pass (p, len));
-}
-
-
-/************************************************************************/
-
-/* if inchar is valid, return 1
- * if inchar is invalid, return 0
- *
- * Michael Bowe 15th August 2003
- * This  function isnt used by vpopmail, cantidate for removal?
- */
-int vvalidchar( char inchar ) 
-{
- 
- /* check lower case a to lower case z */
- if ( inchar >= 'a' && inchar <= 'z' ) return(1);
-
- /* check upper case a to upper case z */
- if ( inchar >= 'A' && inchar <= 'Z' ) return(1);
-
- /* check numbers */
- if ( inchar >= '0' && inchar <= '9' ) return(1);
-
- /* check for '-' and '.' */
- if ( inchar == '-' || inchar == '.' || inchar == '_' ) return(1);
-
- /* everything else is invalid */
- verrori = VA_INVALID_EMAIL_CHAR;
- return(0);
- 
-}
-
 /************************************************************************/
 
 /* support all the valid characters except %

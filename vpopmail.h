@@ -325,8 +325,6 @@ int vfd_move(int,int);
 int update_rules();
 char *vversion(char *);
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain);
-char *vgen_pass(int len);
-int vvalidchar( char inchar );
 char *format_maildirquota(const char *q);
 char *date_header();
 int qnprintf (char *buffer, size_t size, const char *format, ...);
