@@ -54,6 +54,10 @@ int quota_check(const char *email)
 /*
    Compares if a user is over a provided quota, or
    if the domain is over it's configured quota
+
+   Returns 0 if not over quota or no user record
+   Returns 1 if over by user quota
+   Returns 2 if over by domain quota
 */
 
 int quota_compare(const char *email, const char *quota)
@@ -155,7 +159,7 @@ int quota_compare(const char *email, const char *quota)
 
    if ((ret) && (usage != -1)) {
 	  if ((usage >= vl.diskquota) || (count >= vl.maxmsgcount))
-		 return 1;
+		 return 2;
    }
 
    return 0;
@@ -175,20 +179,18 @@ int quota_get_usage(const char *record, storage_t *bytes, storage_t *count)
    if ((record == NULL) || (bytes == NULL) || (count == NULL))
 	  return 0;
 
-   ret = client_query_quick(record, &bytes, &count);
-   if ((!ret) || (bytes == -1))
+   ret = client_query_quick(record, bytes, count);
+   if ((!ret) || (*bytes == -1))
 	  return 0;
 
    return 1;
 }
 
 /*
-   Returns user quota usage percentage
-   This function should only be used for informational
-   purposes, it does not factor in domain usage
+   Returns record quota usage percentage
 */
 
-int quota_usage(const char *email, const char *quota)
+int quota_usage(const char *record, const char *quota)
 {
    int sp = 0, cp = 0, ret = 0;
    storage_t squota = 0, cquota = 0, bytes = 0, count = 0;
@@ -199,7 +201,7 @@ int quota_usage(const char *email, const char *quota)
 	  Get usage
    */
 
-   ret = quota_get_usage(email, &bytes, &count);
+   ret = quota_get_usage(record, &bytes, &count);
    if (!ret)
 	  return 0;
 
