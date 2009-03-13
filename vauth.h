@@ -21,6 +21,9 @@
 #ifndef VPOPMAIL_VAUTH_H
 #define VPOPMAIL_VAUTH_H
 
+#include <pwd.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <time.h>
 
 #ifdef IP_ALIAS_DOMAINS
