@@ -97,7 +97,7 @@ int quota_check_domain(const char *domain)
 	  Compare
    */
 
-   if ((bytes >= vl.diskquota) || (count >= vl.maxmsgcount))
+   if (((vl.diskquota) && (bytes >= vl.diskquota)) || ((vl.maxmsgcount) && ((count >= vl.maxmsgcount))))
 	  return 1;
 
    return 0;
