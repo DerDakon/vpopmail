@@ -20,13 +20,13 @@ BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vad
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
 	   vlist vusagec authvchkpw
-INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h
+INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h
 INSTALL_DIRS = bin etc doc include lib domains
 CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
-					  $(CDB_OBJECTS)
+					  quota.o $(CDB_OBJECTS)
 
 #
 # Build
@@ -65,7 +65,7 @@ authvchkpw: authvchkpw.o hmac_md5.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
 vchkpw: vchkpw.o md5.o hmac_md5.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
-vdelivermail: vdelivermail.o maildirquota.o libvpopmail.a 
+vdelivermail: vdelivermail.o maildirquota.o quota.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
 clearopensmtp: clearopensmtp.o libvpopmail.a 
 	$(LINK) -o $@ $+ $(LLIBS)
@@ -91,7 +91,7 @@ vmoduser: vmoduser.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
 valias: valias.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
-vuserinfo: vuserinfo.o maildirquota.o libvpopmail.a
+vuserinfo: vuserinfo.o maildirquota.o quota.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
 vmkpasswd: vmkpasswd.o libvpopmail.a
 	$(LINK) -o $@ $+ $(LLIBS)
@@ -141,7 +141,7 @@ hmac_md5.o: $(DEPS) hmac_md5.c global.h md5.h
 ippp.o: $(DEPS) ippp.c ippp.h
 	$(CCC) -o $@ -c $*.c
 maildirquota.o: $(DEPS) maildirquota.c vauth.h vpopmail.h vlimits.h maildirquota.h \
-   config.h conf.h storage.h client.h
+   config.h conf.h storage.h client.h quota.h
 	$(CCC) -o $@ -c $*.c
 md5.o: $(DEPS) md5.c md5.h cdb
 	$(CCC) -o $@ -c $*.c
@@ -166,7 +166,7 @@ vconvert.o: $(DEPS) vconvert.c config.h vpopmail.h vauth.h vmysql.h cdb
 	$(CCC) -o $@ -c $*.c
 vdeldomain.o: $(DEPS) vdeldomain.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vdelivermail.o: $(DEPS) vdelivermail.c config.h vpopmail.h vauth.h maildirquota.h seek.h vlimits.h
+vdelivermail.o: $(DEPS) vdelivermail.c config.h vpopmail.h vauth.h maildirquota.h seek.h vlimits.h quota.h
 	$(CCC) -o $@ -c $*.c
 vdeloldusers.o: $(DEPS) vdeloldusers.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -198,15 +198,17 @@ vpopbull.o: $(DEPS) vpopbull.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpopmaild.o: $(DEPS) vpopmaild.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vpopmail.o: $(DEPS) vpopmail.c config.h md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h
+vpopmail.o: $(DEPS) vpopmail.c config.h md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h quota.h
 	$(CCC) -o $@ -c $*.c
 vsetuserquota.o: $(DEPS) vsetuserquota.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vusagec.o: $(DEPS) vusagec.c client.h storage.h
 	$(CCC) -o $@ -c $*.c
-vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h
+vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h quota.h
 	$(CCC) -o $@ -c $*.c
 vutil.o: $(DEPS) vutil.c vpopmail.h vauth.h
+	$(CCC) -o $@ -c $*.c
+quota.o: $(DEPS) quota.c quota.h client.h storage.h
 	$(CCC) -o $@ -c $*.c
 
 #
