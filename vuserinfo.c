@@ -55,7 +55,6 @@ gid_t pw_gid;
 void usage();
 void get_options(int argc, char **argv);
 void display_user(struct vqpasswd *mypw, char *domain);
-char *format_maildirquota(const char *q);
 
 int main(int argc, char *argv[])
 {
