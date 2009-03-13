@@ -205,7 +205,7 @@ vsetuserquota.o: $(DEPS) vsetuserquota.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vusagec.o: $(DEPS) vusagec.c client.h storage.h
 	$(CCC) -o $@ -c $*.c
-vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h quota.h
+vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h quota.h storage.h
 	$(CCC) -o $@ -c $*.c
 vutil.o: $(DEPS) vutil.c vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
