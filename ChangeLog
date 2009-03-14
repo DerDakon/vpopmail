@@ -14,6 +14,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added new more efficient, safer alternatives to current vpopmail API to be fully replaced later
   - Added patch by Luis Felipe Silveira da Silva to provide maildrop flag in vlimits MySQL
   - Updated vdeloldusers to allow option to ignore users with .qmail file
+  - Updated to build and install libvpopmail.so
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
