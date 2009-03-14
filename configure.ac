@@ -684,6 +684,37 @@ case $ENABLE_MD5_PASSWORDS in
       AC_MSG_RESULT(yes)
       ENABLE_MD5_PASSWORDS=1
       AC_DEFINE_UNQUOTED(MD5_PASSWORDS,$ENABLE_MD5_PASSWORDS,"")
+
+	  AC_MSG_CHECKING(whether system supports MD5 passwords)
+	  AC_TRY_RUN([
+		 #include <stdio.h>
+	     #include <string.h>
+	     #include <unistd.h>
+
+	     int main(int argc, char *argv[])
+	     {
+	  	  char *ret = NULL;
+	  	  const char salt[12] = "\$1\$ABCDEFG\0", key[5] = "test\0";
+
+	  	  ret = (char *)crypt(key, salt);
+
+	  	  if (ret == NULL)
+		 	 return 2;
+
+	  	  if (*(ret + 2) != '$')
+	  		 return 1;
+
+	  	  return 0;
+	     }
+		 ], 
+			[
+			   AC_MSG_RESULT(yes)],
+			[
+			   AC_MSG_RESULT(no)
+			   AC_MSG_ERROR(Your system does not support MD5 passwords.  You must use the --disable-md5-passwords option)
+			]
+)
+
       ;;
   *)
       AC_MSG_RESULT(no)
