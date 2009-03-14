@@ -15,7 +15,7 @@ DEPS = Makefile
 INSTALL = @INSTALL@
 CCC = $(CC) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS)
-BUILD_LIBS = libvpopmail.a
+BUILD_LIBS = libvpopmail.a libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
@@ -57,6 +57,8 @@ vusaged/vusaged:
 
 libvpopmail.a: $(LIBVPOPMAIL_OBJECTS)
 	$(AR) -cru libvpopmail.a $(LIBVPOPMAIL_OBJECTS)
+libvpopmail.so: $(LIBVPOPMAIL_OBJECTS)
+	$(CC) -shared -o libvpopmail.so $(LIBVPOPMAIL_OBJECTS)
 
 #
 # Binaries
