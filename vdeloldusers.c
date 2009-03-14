@@ -19,10 +19,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <time.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
@@ -39,6 +40,7 @@ int  EveryDomain;
 int  Verbose;
 int  Delete;
 int  UsersToDelete = 0;
+int IgnoreDotQmailUsers = 1;
 
 void usage();
 void get_options(int argc,char **argv);
@@ -52,6 +54,12 @@ int main(int argc, char *argv[])
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
     }
+
+	/*
+	  Ignore users with .qmail in their directory
+    */
+
+	IgnoreDotQmailUsers = 1;
 
 	get_options(argc,argv);
 
@@ -89,6 +97,7 @@ void usage()
 	printf("         -e (process every domain)\n");
     printf("         -D (actually delete users. no users are deleted without this option)\n");
 	printf("         -V (verbose -- print old users that will be deleted)\n");
+	printf("         -i (don't ignore users with .qmail files)\n");
 }
 
 void get_options(int argc,char **argv)
@@ -103,8 +112,10 @@ void get_options(int argc,char **argv)
         Delete = 0;
 
 	errflag = 0;
-	while( !errflag && (c=getopt(argc,argv,"vVDd:a:e")) != -1 ) {
+	while( !errflag && (c=getopt(argc,argv,"vViDd:a:e")) != -1 ) {
 		switch(c) {
+		    case 'i':
+						   IgnoreDotQmailUsers = 0;
 			case 'e':
                                 EveryDomain = 1;
 				break;
@@ -144,8 +155,10 @@ void get_options(int argc,char **argv)
 void deloldusers(char *Domain, time_t nowt)
 {
  time_t mytime;
+ struct stat st;
+ char b[255] = { 0 };
  static struct vqpasswd *mypw;
- int first = 1;
+ int first = 1, ret = 0;
 
     while( (mypw = vauth_getall(Domain, first, 0)) != NULL )  {
         first = 0;
@@ -159,6 +172,17 @@ void deloldusers(char *Domain, time_t nowt)
 
             if ( mytime != 0 ) {
                 if(mytime < nowt) {
+				    memset(b, 0, sizeof(b));
+					snprintf(b, sizeof(b), "%s/.qmail", mypw->pw_dir);
+
+				    ret = stat(b, &st);
+					if ((ret != -1) && (IgnoreDotQmailUsers)) {
+					   if (Verbose)
+						  printf("skipping %s@%s: user has .qmail file\n", mypw->pw_name, Domain);
+
+					   continue;
+					 }
+					 
                     UsersToDelete = 1;
                     if ( Verbose) {
                         printf("%s@%s\n", mypw->pw_name, Domain);
