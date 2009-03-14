@@ -12,6 +12,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated vdelivermail to use new quota API
   - Added warnings in functions that utilize old quota code to help identify changes that need to be made
   - Added new more efficient, safer alternatives to current vpopmail API to be fully replaced later
+  - Added patch by Luis Felipe Silveira da Silva to provide maildrop flag in vlimits MySQL
+  - Updated vdeloldusers to allow option to ignore users with .qmail file
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
