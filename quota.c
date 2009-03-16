@@ -20,6 +20,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "quota.h"
 #include "client.h"
 #include "storage.h"
@@ -34,6 +37,7 @@
 
 int quota_check(const char *email)
 {
+   int ret = 0;
    struct vqpasswd *pw = NULL;
 
    /*
@@ -45,10 +49,23 @@ int quota_check(const char *email)
 	  return 0;
 
    /*
-	  Return quota check
+	  Do quota check
    */
 
-   return quota_compare(email, pw->pw_shell);
+   ret = quota_compare(email, pw->pw_shell);
+
+   /*
+	  Domain is over quota
+   */
+
+   if (ret == -2)
+	  return 1;
+
+   /*
+	  Deliver quotawarn
+   */
+
+   return 1;
 }
 
 /*
@@ -392,6 +409,47 @@ int quota_mtos(const char *quota, storage_t *size, storage_t *count)
 	  else
 		 h++;
    }
+
+   return 1;
+}
+
+/*
+   Returns if the quota system should warn the user
+   Returns 1 if yes, 0 if no or error
+*/
+
+int quota_should_warn(struct vqpasswd *pw)
+{
+   time_t tm = 0;
+   int ret = 0;
+   struct stat st;
+   char b[255] = { 0 };
+
+   /*
+	  Check used parameters
+   */
+
+   if (pw == NULL)
+	  return 0;
+
+   if (pw->pw_dir == NULL)
+	  return 0;
+
+   tm = time(NULL);
+
+   memset(b, 0, sizeof(b));
+   snprintf(b, sizeof(b), "%s/quotawarn", pw->pw_dir);
+
+   /*
+	  Check filetime
+   */
+
+   ret = stat(b, &st);
+   if (ret == -1)
+	  return 0;
+
+   if ((st.st_mtime + 86400) > tm)
+	  return 0;
 
    return 1;
 }
