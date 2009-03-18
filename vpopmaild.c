@@ -1604,7 +1604,7 @@ int read_file()
   while(fgets(tmpbuf,sizeof(tmpbuf),fs)!=NULL){
     if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || strcmp(tmpbuf, ".\n") == 0 ) {
       snprintf(WriteBuf, sizeof(WriteBuf), ".");
-      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf));
+      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf)-strlen(WriteBuf)-1);
     } else {
       memcpy(WriteBuf,tmpbuf,sizeof(tmpbuf));
     }
