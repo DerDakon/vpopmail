@@ -353,7 +353,7 @@ pid_t qmail_inject_open(char *address)
 
 int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerlen, char *address)
 {
-  char msgbuf[4096];
+  char msgbuf[MSG_BUF_SIZE];
   ssize_t file_count;
   struct vlimits limits;
 #ifdef SPAMASSASSIN
@@ -392,7 +392,7 @@ int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerl
             dup2(pim[1], 1);
             close(pim[1]);
             if (execl(SPAMC_PROG, SPAMC_PROG, "-f", "-u",
-                 address, 0) == -1) {
+                 address, NULL) == -1) {
               while ((file_count = read(0, msgbuf, MSG_BUF_SIZE)) > 0) {
                 write(1, msgbuf, file_count);
               }

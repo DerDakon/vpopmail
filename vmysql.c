@@ -890,8 +890,12 @@ int vopen_smtp_relay()
     if ( (err=vauth_open_update()) != 0 ) return 0;
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-"replace into relay ( ip_addr, timestamp ) values ( '%s', %d )",
-            ipaddr, (int)mytime);
+        "INSERT INTO relay "
+        "SET ip_addr = '%s', timestamp = %d "
+        "ON DUPLICATE KEY UPDATE "
+        "ip_addr = '%s', timestamp = %d",
+        ipaddr, (int)mytime,
+        ipaddr, (int)mytime);
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
@@ -1026,9 +1030,13 @@ int vadd_ip_map( char *ip, char *domain)
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
     if ( vauth_open_update() != 0 ) return(-1);
 
-    qnprintf(SqlBufUpdate,SQL_BUF_SIZE,  
-      "replace into ip_alias_map ( ip_addr, domain ) values ( '%s', '%s' )",
-      ip, domain);
+    qnprintf(SqlBufUpdate,SQL_BUF_SIZE,
+        "INSERT INTO ip_alias_map "
+        "SET ip_addr = '%s', domain = '%s' "
+        "ON DUPLICATE KEY UPDATE "
+        "ip_addr = '%s', domain = '%s'",
+        ip, domain,
+        ip, domain);
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_ip_map_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
@@ -1176,25 +1184,37 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
     if ( vauth_open_update() != 0 ) return(-1);
 
-    qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
-domain, cur_users, \
-level_cur, level_max, \
-level_start0, level_start1, level_start2, \
-level_end0, level_end1, level_end2, \
-level_mod0, level_mod1, level_mod2, \
-level_index0, level_index1, level_index2, the_dir ) values ( \
-'%s', %lu, %d, %d, \
-%d, %d, %d, \
-%d, %d, %d, \
-%d, %d, %d, \
-%d, %d, %d, \
-'%s')\n",
-    domain, vdir->cur_users, vdir->level_cur, vdir->level_max,
-    vdir->level_start[0], vdir->level_start[1], vdir->level_start[2],
-    vdir->level_end[0], vdir->level_end[1], vdir->level_end[2],
-    vdir->level_mod[0], vdir->level_mod[1], vdir->level_mod[2],
-    vdir->level_index[0], vdir->level_index[1], vdir->level_index[2],
-    vdir->the_dir);
+    qnprintf(SqlBufUpdate, SQL_BUF_SIZE,
+        "INSERT INTO dir_control "
+        "SET domain = '%s', cur_users = '%lu', level_cur = '%d', "
+        "level_max = '%d', level_start0 = '%d', "
+        "level_start1 = '%d', level_start2 = '%d', "
+        "level_end0 = '%d', level_end1 = '%d', level_end2 = '%d', "
+        "level_mod0 = '%d', level_mod1 = '%d', level_mod2 = '%d', "
+        "level_index0 = '%d', level_index1 = '%d', level_index2 = '%d', "
+        "the_dir = '%s' "
+        "ON DUPLICATE KEY UPDATE "
+        "cur_users = '%lu', level_cur = '%d', "
+        "level_max = '%d', level_start0 = '%d', "
+        "level_start1 = '%d', level_start2 = '%d', "
+        "level_end0 = '%d', level_end1 = '%d', level_end2 = '%d', "
+        "level_mod0 = '%d', level_mod1 = '%d', level_mod2 = '%d', "
+        "level_index0 = '%d', level_index1 = '%d', level_index2 = '%d', "
+        "the_dir = '%s'\n",
+        domain, vdir->cur_users, vdir->level_cur,
+        vdir->level_max, vdir->level_start[0],
+        vdir->level_start[1], vdir->level_start[2],
+        vdir->level_end[0], vdir->level_end[1], vdir->level_end[2],
+        vdir->level_mod[0], vdir->level_mod[1], vdir->level_mod[2],
+        vdir->level_index[0], vdir->level_index[1], vdir->level_index[2],
+        vdir->the_dir,
+        vdir->cur_users, vdir->level_cur,
+        vdir->level_max, vdir->level_start[0],
+        vdir->level_start[1], vdir->level_start[2],
+        vdir->level_end[0], vdir->level_end[1], vdir->level_end[2],
+        vdir->level_mod[0], vdir->level_mod[1], vdir->level_mod[2],
+        vdir->level_index[0], vdir->level_index[1], vdir->level_index[2],
+        vdir->the_dir);
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
@@ -1214,21 +1234,21 @@ void vcreate_dir_control(char *domain)
   if (vauth_create_table ("dir_control", DIR_CONTROL_TABLE_LAYOUT, 1)) return;
 
     /* this next bit should be replaced with a call to vwrite_dir_control */
-    qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "replace into dir_control ( \
-domain, cur_users, \
-level_cur, level_max, \
-level_start0, level_start1, level_start2, \
-level_end0, level_end1, level_end2, \
-level_mod0, level_mod1, level_mod2, \
-level_index0, level_index1, level_index2, the_dir ) values ( \
-'%s', 0, \
-0, %d, \
-0, 0, 0, \
-%d, %d, %d, \
-0, 2, 4, \
-0, 0, 0, \
-'')\n",
-    domain, MAX_DIR_LEVELS, MAX_DIR_LIST-1, MAX_DIR_LIST-1, MAX_DIR_LIST-1);
+    qnprintf(SqlBufUpdate, SQL_BUF_SIZE,
+        "INSERT INTO dir_control "
+        "SET domain = '%s', cur_users = 0, level_cur = 0, level_max = %d, "
+        "level_start0 = 0, level_start1 = 0, level_start2 = 0, "
+        "level_end0 = %d, level_end1 = %d, level_end2 = %d, "
+        "level_mod0 = 0, level_mod1 = 2, level_mod2 = 4, "
+        "level_index0 = 0, level_index1 = 0, level_index2 = 0, the_dir = '' "
+        "ON DUPLICATE KEY UPDATE "
+        "cur_users = 0, level_cur = 0, level_max = %d, "
+        "level_start0 = 0, level_start1 = 0, level_start2 = 0, "
+        "level_end0 = %d, level_end1 = %d, level_end2 = %d, "
+        "level_mod0 = 0, level_mod1 = 2, level_mod2 = 4, "
+        "level_index0 = 0, level_index1 = 0, level_index2 = 0, the_dir = ''\n",
+        domain, MAX_DIR_LEVELS, MAX_DIR_LIST-1, MAX_DIR_LIST-1, MAX_DIR_LIST-1,
+        MAX_DIR_LEVELS, MAX_DIR_LIST-1, MAX_DIR_LIST-1, MAX_DIR_LIST-1);
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         fprintf(stderr, "vmysql: sql error[d]: %s\n", mysql_error(&mysql_update));
@@ -1268,8 +1288,14 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-"replace into lastauth set user='%s', domain='%s', \
-remote_ip='%s', timestamp=%lu", user, domain, remoteip, time(NULL)); 
+        "INSERT INTO lastauth "
+        "SET user = '%s', domain = '%s', "
+        "remote_ip = '%s', timestamp = %lu "
+        "ON DUPLICATE KEY UPDATE "
+        "user = '%s', domain = '%s', "
+        "remote_ip = '%s', timestamp = %lu",
+        user, domain, remoteip, time(NULL),
+        user, domain, remoteip, time(NULL));
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
@@ -1780,46 +1806,51 @@ int vset_limits(const char *domain, const struct vlimits *limits)
     if (vauth_open_update() != 0)
         return(-1);
 
-    qnprintf(SqlBufUpdate, SQL_BUF_SIZE, "REPLACE INTO limits ("
-        "domain, maxpopaccounts, maxaliases, "
-        "maxforwards, maxautoresponders, maxmailinglists, "
-        "diskquota, maxmsgcount, defaultquota, defaultmaxmsgcount, "
-        "disable_pop, disable_imap, disable_dialup, "
-        "disable_passwordchanging, disable_webmail, disable_relay, "
-        "disable_smtp, disable_spamassassin, delete_spam, disable_maildrop, perm_account, "
-        "perm_alias, perm_forward, perm_autoresponder, perm_maillist, "
-        "perm_quota, perm_defaultquota) \n"
-        "VALUES \n"
-        "('%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
-        domain,
-        limits->maxpopaccounts,
-        limits->maxaliases,
-        limits->maxforwards,
-        limits->maxautoresponders,
-        limits->maxmailinglists,
-        limits->diskquota,
-        limits->maxmsgcount,
-        limits->defaultquota,
-        limits->defaultmaxmsgcount,
-        limits->disable_pop,
-        limits->disable_imap,
-        limits->disable_dialup,
-        limits->disable_passwordchanging,
-        limits->disable_webmail,
-        limits->disable_relay,
-        limits->disable_smtp,
-        limits->disable_spamassassin,
-        limits->delete_spam,
-        limits->disable_maildrop,
-        limits->perm_account,
-        limits->perm_alias,
-        limits->perm_forward,
-        limits->perm_autoresponder,
+    qnprintf(SqlBufUpdate, SQL_BUF_SIZE,
+        "INSERT INTO limits "
+        "SET domain = '%s', maxpopaccounts = %d, maxaliases = %d, "
+        "maxforwards = %d, maxautoresponders = %d, maxmailinglists = %d, "
+        "diskquota = %d, maxmsgcount = %d, defaultquota = %d, defaultmaxmsgcount = %d, "
+        "disable_pop = %d, disable_imap = %d, disable_dialup = %d, "
+        "disable_passwordchanging = %d, disable_webmail = %d, disable_relay = %d, "
+        "disable_smtp = %d, disable_spamassassin = %d, delete_spam = %d, perm_account = %d, "
+        "perm_alias = %d, perm_forward = %d, perm_autoresponder = %d, perm_maillist = %d, "
+        "perm_quota = %d, perm_defaultquota = %d "
+        "ON DUPLICATE KEY UPDATE "
+        "maxpopaccounts = %d, maxaliases = %d, "
+        "maxforwards = %d, maxautoresponders = %d, maxmailinglists = %d, "
+        "diskquota = %d, maxmsgcount = %d, defaultquota = %d, defaultmaxmsgcount = %d, "
+        "disable_pop = %d, disable_imap = %d, disable_dialup = %d, "
+        "disable_passwordchanging = %d, disable_webmail = %d, disable_relay = %d, "
+        "disable_smtp = %d, disable_spamassassin = %d, delete_spam = %d, perm_account = %d, "
+        "perm_alias = %d, perm_forward = %d, perm_autoresponder = %d, perm_maillist = %d, "
+        "perm_quota = %d, perm_defaultquota = %d",
+        domain, limits->maxpopaccounts, limits->maxaliases,
+        limits->maxforwards, limits->maxautoresponders, limits->maxmailinglists,
+        limits->diskquota, limits->maxmsgcount, limits->defaultquota, limits->defaultmaxmsgcount,
+        limits->disable_pop, limits->disable_imap, limits->disable_dialup,
+        limits->disable_passwordchanging, limits->disable_webmail, limits->disable_relay,
+        limits->disable_smtp, limits->disable_spamassassin, limits->delete_spam, limits->perm_account,
+        limits->perm_alias, limits->perm_forward, limits->perm_autoresponder,
         (limits->perm_maillist |
-         (limits->perm_maillist_users << VLIMIT_DISABLE_BITS) |
-         (limits->perm_maillist_moderators << (VLIMIT_DISABLE_BITS * 2))),
-        limits->perm_quota,
-        limits->perm_defaultquota);
+            (limits->perm_maillist_users << VLIMIT_DISABLE_BITS) |
+                (limits->perm_maillist_moderators << (VLIMIT_DISABLE_BITS * 2)
+            )
+        ),
+        limits->perm_quota, limits->perm_defaultquota,
+        limits->maxpopaccounts, limits->maxaliases,
+        limits->maxforwards, limits->maxautoresponders, limits->maxmailinglists,
+        limits->diskquota, limits->maxmsgcount, limits->defaultquota, limits->defaultmaxmsgcount,
+        limits->disable_pop, limits->disable_imap, limits->disable_dialup,
+        limits->disable_passwordchanging, limits->disable_webmail, limits->disable_relay,
+        limits->disable_smtp, limits->disable_spamassassin, limits->delete_spam, limits->perm_account,
+        limits->perm_alias, limits->perm_forward, limits->perm_autoresponder, 
+        (limits->perm_maillist |
+            (limits->perm_maillist_users << VLIMIT_DISABLE_BITS) |
+                (limits->perm_maillist_moderators << (VLIMIT_DISABLE_BITS * 2)
+            )
+        ),
+        limits->perm_quota, limits->perm_defaultquota);
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_limits_table();
