@@ -325,7 +325,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("quota:     %s\n", mypw->pw_shell);
 
         snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
-        if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
+
 		    usage = 0;
 
 		    memset(email, 0, sizeof(email));
@@ -337,9 +337,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
 			}
 
             printf("usage:     %d%% (%llu byte(s) in %llu file(s))\n", usage, bytes, count);
-        } else {
-            printf("usage:     %s\n", mypw->pw_shell);
-        }
+
         display_lastlogin (mypw, domain);
     } else {
         if ( DisplayName ) printf("%s\n", mypw->pw_name);
