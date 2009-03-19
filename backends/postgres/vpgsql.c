@@ -33,6 +33,8 @@
 #include "vlimits.h"
 #include "vpgsql.h"
 
+char auth_module_name[] = "postgres";
+
 //  Variables to control debug output
 #ifdef VPOPMAIL_DEBUG
 int show_trace=0;
@@ -126,7 +128,7 @@ int pg_end(void)
 }                                                   
 
 /*** Open a connection to pgsql ***/
-int vauth_open( int will_update )
+int auth_open( int will_update )
 {
 #ifdef VPOPMAIL_DEBUG
 show_trace = ( getenv("VPSHOW_TRACE") != NULL);
@@ -136,7 +138,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
 
 #ifdef VPOPMAIL_DEBUG
     if( show_trace ) {
-        fprintf( stderr, "vauth_open(%d)\n",will_update);
+        fprintf( stderr, "auth_open(%d)\n",will_update);
     }
 #endif 
 
@@ -159,7 +161,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
   /* Try to connect to the pgserver with the specified database. */
   pgc = PQconnectdb(PG_CONNECT);
   if( PQstatus(pgc) == CONNECTION_BAD) {
-    fprintf(stderr, "vauth_open: can't connect: %s\n", PQerrorMessage(pgc));
+    fprintf(stderr, "auth_open: can't connect: %s\n", PQerrorMessage(pgc));
     return VA_NO_AUTH_CONNECTION;
   }	
   return(0);
@@ -171,7 +173,7 @@ int vauth_create_table (char *table, char *layout, int showerror)
   PGresult *pgres;
   char SqlBufCreate[SQL_BUF_SIZE];
   
-  if ((err = vauth_open(1))) return (err);
+  if ((err = auth_open(1))) return (err);
 
   snprintf(SqlBufCreate, SQL_BUF_SIZE,
     "CREATE TABLE %s ( %s )", table, layout);
@@ -187,7 +189,7 @@ int vauth_create_table (char *table, char *layout, int showerror)
   return err;
 }
 
-int vauth_adddomain( char *domain )
+int auth_adddomain( char *domain )
 {
 #ifndef MANY_DOMAINS
   vset_default_domain( domain );
@@ -199,7 +201,7 @@ int vauth_adddomain( char *domain )
 #endif
 }
 
-int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
+int auth_adduser(char *user, char *domain, char *pass, char *gecos, 
 		  char *dir, int apop )
 {
   char *domstr;
@@ -212,7 +214,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
   int err;
   PGresult *pgres;
     
-  if ( (err=vauth_open(1)) != 0 ) return(err);
+  if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
   strncpy( quota, "NOQUOTA", 30 );
@@ -260,14 +262,14 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 	    );
   if(! ( pgres=PQexec(pgc,SqlBufUpdate) )||
      PQresultStatus(pgres)!=PGRES_COMMAND_OK )  {
-    fprintf(stderr, "vauth_adduser: %s\npgsql: %s\n", 
+    fprintf(stderr, "auth_adduser: %s\npgsql: %s\n", 
 	    SqlBufUpdate, PQerrorMessage(pgc));
   }
   if( pgres )  PQclear(pgres);
   return(0);
 
 }
-struct vqpasswd *vauth_getpw(char *user, char *domain)
+struct vqpasswd *auth_getpw(char *user, char *domain)
 {
   char in_domain[156];
   char *domstr;
@@ -276,7 +278,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   PGresult *pgres;
 
   verrori = 0;
-  if ( (err=vauth_open(0)) != 0 ) {
+  if ( (err=auth_open(0)) != 0 ) {
     verrori = err;
     return(NULL);
   }
@@ -307,7 +309,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     if( pgres ) PQclear(pgres);	
 #ifdef DEBUG
     fprintf(stderr, 
-	    "vauth_getpw: failed select: %s : %s\n", 
+	    "auth_getpw: failed select: %s : %s\n", 
 	    SqlBufRead, PQerrorMessage(pgc));
 #endif
     return NULL;
@@ -348,13 +350,13 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   return(&vpw);
 }
 
-int vauth_deldomain( char *domain )
+int auth_deldomain( char *domain )
 {
   PGresult *pgres;
   char *tmpstr;
   int err;
     
-  if ( (err=vauth_open(1)) != 0 ) return(err);
+  if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -400,13 +402,13 @@ int vauth_deldomain( char *domain )
     return(0);
 }
 
-int vauth_deluser( char *user, char *domain )
+int auth_deluser( char *user, char *domain )
 {
   PGresult *pgres;
   char *tmpstr;
   int err = 0;
     
-  if ( (err=vauth_open(1)) != 0 ) return(err);
+  if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -455,7 +457,7 @@ int vauth_deluser( char *user, char *domain )
   return(err);
 }
 
-int vauth_setquota( char *username, char *domain, char *quota)
+int auth_setquota( char *username, char *domain, char *quota)
 {
   PGresult *pgres;
   char *tmpstr;
@@ -468,7 +470,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
   if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
     
-  if ( (err=vauth_open(1)) != 0 ) return(err);
+  if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -486,7 +488,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
   pgres = PQexec(pgc, SqlBufUpdate);
   if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK ) {
     fprintf(stderr, 
-	    "vauth_setquota: query failed: %s\n", PQerrorMessage(pgc));
+	    "auth_setquota: query failed: %s\n", PQerrorMessage(pgc));
     if( pgres ) PQclear(pgres);
     return(-1);
   } 
@@ -494,7 +496,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
   return(0);
 }
 
-struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
+struct vqpasswd *auth_getall(char *domain, int first, int sortit)
 {
   static PGresult *pgres=NULL; 
   /* ntuples - number of tuples ctuple - current tuple */
@@ -513,7 +515,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 #endif
 
   if ( first == 1 ) {
-    if ( (err=vauth_open(0)) != 0 ) return(NULL);
+    if ( (err=auth_open(0)) != 0 ) return(NULL);
     qnprintf(SqlBufRead,  SQL_BUF_SIZE, GETALL, domstr
 #ifdef MANY_DOMAINS
 	     ,domain
@@ -529,7 +531,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     }	
     pgres = PQexec(pgc, SqlBufRead);
     if( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
-      fprintf(stderr, "vauth_getall:query failed[5]: %s\n", PQerrorMessage(pgc));
+      fprintf(stderr, "auth_getall:query failed[5]: %s\n", PQerrorMessage(pgc));
       if( pgres ) { 
         PQclear(pgres);
         pgres=NULL;
@@ -579,7 +581,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     return(&vpw);
 }
 
-void vauth_end_getall()
+void auth_end_getall()
 {
   /* not applicable in pgsql? */
 }
@@ -601,7 +603,7 @@ char *vauth_munch_domain( char *domain )
   return(tmpbuf);
 }
 
-int vauth_setpw( struct vqpasswd *inpw, char *domain )
+int auth_setpw( struct vqpasswd *inpw, char *domain )
 {
   PGresult *pgres;
   char *tmpstr;
@@ -619,7 +621,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     return(VA_BAD_UID);
   }
 
-  if ( (err=vauth_open(1)) != 0 ) return(err);
+  if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
 
 #ifndef MANY_DOMAINS
@@ -646,7 +648,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
             );
   pgres=PQexec(pgc, SqlBufUpdate);
   if ( !pgres || PQresultStatus(pgres)!= PGRES_COMMAND_OK ) {
-    fprintf(stderr, "vauth_setpw: pgsql query[6]: %s\n", 
+    fprintf(stderr, "auth_setpw: pgsql query[6]: %s\n", 
 	    PQerrorMessage(pgc));
     if( pgres )  PQclear(pgres);
     return(-1);
@@ -681,7 +683,7 @@ int vopen_smtp_relay()
     return 0;
   }
 
-  if ( (err=vauth_open(1)) != 0 ) return 0;
+  if ( (err=auth_open(1)) != 0 ) return 0;
 
   qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
     "UPDATE relay SET ip_addr='%s', timestamp=%d WHERE ip_addr='%s'",
@@ -729,7 +731,7 @@ void vupdate_rules(int fdm)
   register unsigned i=0, n, len=strlen(re)+1;
   char *buf=NULL;
 
-  if (vauth_open(0) != 0) return;
+  if (auth_open(0) != 0) return;
 
   snprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT ip_addr FROM relay");
   if ( !(pgres=PQexec(pgc, SqlBufRead)) || PQresultStatus(pgres)!=PGRES_TUPLES_OK) {
@@ -770,7 +772,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
   time_t delete_time;
   int err;
     
-  if ( (err=vauth_open(1)) != 0 ) return;
+  if ( (err=auth_open(1)) != 0 ) return;
   delete_time = mytime - clear_minutes;
 
   snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
@@ -790,12 +792,12 @@ void vcreate_relay_table()
 }
 #endif
 
-int vmkpasswd( char *domain )
+int mkpasswd( char *domain )
 {
     return(0);
 }
 
-void vclose()
+void vvclose()
 {
   /* disconnection from the database */
   if ( is_open == 1 ) {
@@ -811,7 +813,7 @@ void vcreate_ip_map_table()
   return;
 }
 
-int vget_ip_map( char *ip, char *domain, int domain_size)
+int get_ip_map( char *ip, char *domain, int domain_size)
 {
   PGresult *pgres;
   char *ptr;
@@ -820,7 +822,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
   if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
   if ( domain == NULL ) return(-2);
-  if ( vauth_open(0) != 0 ) return(-3);
+  if ( auth_open(0) != 0 ) return(-3);
 
   qnprintf(SqlBufRead, SQL_BUF_SIZE,
 	   "select domain from ip_alias_map where ip_addr = '%s'",
@@ -845,7 +847,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
   return (ret);
 }
 
-int vadd_ip_map( char *ip, char *domain) 
+int add_ip_map( char *ip, char *domain) 
 {
   PGresult *pgres;
   int err = 0;
@@ -889,7 +891,7 @@ int vadd_ip_map( char *ip, char *domain)
   return ( pg_end() ); /* end transaction */
 }
 
-int vdel_ip_map( char *ip, char *domain) 
+int del_ip_map( char *ip, char *domain) 
 {
   PGresult *pgres;
   int err=0;
@@ -960,7 +962,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
 }
 #endif
 
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int read_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
   PGresult *pgres;
   int found = 0;
@@ -1029,7 +1031,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
   return(0);
 }
 
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int write_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
   PGresult *pgres;
 
@@ -1115,7 +1117,7 @@ level_index0, level_index1, level_index2, the_dir ) values ( \
   PQclear(pgres);
 }
 
-int vdel_dir_control(char *domain)
+int del_dir_control(char *domain)
 {
   PGresult *pgres;
   int err;
@@ -1144,7 +1146,7 @@ int vdel_dir_control(char *domain)
 }
 
 #ifdef ENABLE_AUTH_LOGGING
-int vset_lastauth(char *user, char *domain, char *remoteip )
+int set_lastauth(char *user, char *domain, char *remoteip )
 {
   PGresult *pgres;
   int err=0;
@@ -1208,7 +1210,7 @@ fprintf(stderr, "update returned 0 and/or insert failed in vset_lastauth()\n");
   if( pgres ) PQclear(pgres);
   return(0);
 }
-time_t vget_lastauth(struct vqpasswd *pw, char *domain)
+time_t get_lastauth(struct vqpasswd *pw, char *domain)
 {
   PGresult *pgres;
   int err, ntuples;
@@ -1240,7 +1242,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
   return(mytime);
 }
 
-char *vget_lastauthip(struct vqpasswd *pw, char *domain)
+char *get_lastauthip(struct vqpasswd *pw, char *domain)
 {
   PGresult *pgres;
   static char tmpbuf[100];
@@ -1605,7 +1607,7 @@ void vcreate_vlog_table()
 }
 #endif
 
-int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {
 	  if ( vpw == NULL ) return(-1);
 
