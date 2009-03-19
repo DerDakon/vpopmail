@@ -18,6 +18,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated CDB module
   - Updated MySQL module
   - Updated LDAP module
+  - Updated PostgreSQL module
+  - Updated vuserinfo to always show usage
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
