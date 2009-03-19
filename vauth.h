@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <time.h>
-#include "vauthmodule.h"
 
 #ifdef IP_ALIAS_DOMAINS
 #define IP_ALIAS_MAP_FILE "etc/ip_alias_map"
@@ -53,7 +52,6 @@ struct vqpasswd {
   char *pw_shell;		/* User Quota (or NOQUOTA)  */
   char *pw_clear_passwd;	/* Clear password.  */
 };
-
 
 void vclose1();
 /* these routines are used to admin ip aliased domains */
@@ -104,5 +102,9 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheN
 
 int vauth_load_module(const char *);
 const char *vauth_module_name(void);
+int vauth_open(int);
+void vclose(void);
+
+#include "vauthmodule.h"
 #endif
 

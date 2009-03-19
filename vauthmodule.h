@@ -4,13 +4,12 @@
 */
 
 #ifndef __VAUTHMODULE_H_
-   #define __VUTHMODULE_H_
+   #define __VAUTHMODULE_H_
 
 #include "vauth.h"
 
 #ifndef VAUTH_MODULE
 
-int (*vauth_open)( int will_update );
 int (*vauth_adddomain)(char *);
 int (*vauth_deldomain)(char *);
 int (*vauth_adduser)(char *username, char *domain, char *passwd, char *gecos, char * dir, int apop);
@@ -28,7 +27,6 @@ int (*vdel_dir_control)(char *domain);
 int (*vset_lastauth)( char *user, char *domain, char *remoteip);
 time_t (*vget_lastauth)( struct vqpasswd *pw, char *domain);
 char *(*vget_lastauthip)( struct vqpasswd *pw, char *domain);
-void (*vclose)();
 
 #endif
 #endif

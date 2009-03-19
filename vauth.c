@@ -46,8 +46,16 @@ struct vauth_required_func {
    int flags;
 };
 
+/*
+   Catch calls to force module load for programs
+   not following 5.5 API
+*/
+
+static int (*auth_open_ptr)(int) = NULL;
+static void (*vvclose_ptr)(void) = NULL;
+
 static struct vauth_required_func vauth_required_functions[] = {
-   { "auth_open", &vauth_open, 0 },
+   { "auth_open", &auth_open_ptr, 0 },
    { "auth_adddomain", &vauth_adddomain, 0 },
    { "auth_deldomain", &vauth_deldomain, 0},
    { "auth_adduser", &vauth_adduser, 0 },
@@ -59,7 +67,7 @@ static struct vauth_required_func vauth_required_functions[] = {
    { "auth_getall", &vauth_getall, 0 },
    { "auth_end_getall", &vauth_end_getall, 0 },
    { "mkpasswd", &vmkpasswd, VAUTH_MF_OPTIONAL },
-   { "vvclose", &vclose, 0 },
+   { "vvclose", &vvclose_ptr, 0 },
 #ifdef ENABLE_AUTH_LOGGING
    { "set_lastauth", &vset_lastauth, 0 },
    { "get_lastauth", &vget_lastauth, 0 },
@@ -70,7 +78,7 @@ static struct vauth_required_func vauth_required_functions[] = {
    { NULL, NULL }
 };
 
-static void *vauth_find_module_function(const char *);
+static int vauth_find_module_function(const char *);
 
 /*
    Not thread-safe, but none of vpopmail is right now
@@ -148,27 +156,74 @@ int vauth_load_module(const char *module)
 }
 
 /*
-   So vclose() won't fail if called after a vauth_load_module failure
+   Automatically call vauth_load_module() if vauth_open is caught
 */
 
-void vauth_dummy_vclose(void)
+int vauth_open(int x)
 {
+   int ret = 0;
+
+   /*
+	  If the module has already been loaded
+	  call the real vauth_open
+   */
+
+   if (auth_module_handle) {
+	  if (auth_open_ptr == NULL) {
+		 fprintf(stderr, "vauth_open: no auth_open pointer\n");
+		 return 1;
+	  }
+
+	  return auth_open_ptr(x);
+   }
+
+   /*
+	  If we haven't loaded a module yet, try and then repeat
+	  this call
+   */
+
+   ret = vauth_load_module(NULL);
+   if (!ret) {
+	  fprintf(stderr, "vauth_open: vauth_load_module failed\n");
+	  return 0;
+   }
+
+   return vauth_open(x);
+}
+
+/*
+   Prevents segfaults if vclose is called when vauth_load_module() fails
+*/
+
+void vclose(void)
+{
+   if (auth_module_handle == NULL)
+	  return;
+
+   if (vvclose_ptr == NULL)
+	  return;
+
+   /*
+	  Call the real vclose() if a module is loaded
+   */
+
+   vvclose_ptr();
 }
 
 /*
    Returns pointer for a function
 */
 
-static void *vauth_find_module_function(const char *name)
+static int vauth_find_module_function(const char *name)
 {
    int i = 0;
    
    for (i = 0; vauth_required_functions[i].name; i++) {
 	  if (!(strcasecmp(vauth_required_functions[i].name, name)))
-		 return vauth_required_functions[i].func;
+		 return i;
    }
 
-   return NULL;
+   return -1;
 }
 
 /*
