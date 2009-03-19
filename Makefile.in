@@ -6,16 +6,16 @@
 CC = @CC@
 AR = ar
 BINS = 
-CFLAGS = @CFLAGS@ @auth_inc@
-LIBS = @LIBS@ @auth_libs@ libvpopmail.a
-LLIBS = @LIBS@ @auth_libs@
+CFLAGS = @CFLAGS@
+LIBS = @LIBS@ -L. -lvpopmail
+LLIBS = @LIBS@ 
 LDFLAGS = @LDFLAGS@
 VPOPMAILDIR = @vpopmaildir@
 DEPS = Makefile
 INSTALL = @INSTALL@
 CCC = $(CC) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS)
-BUILD_LIBS = libvpopmail.a libvpopmail.so
+BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
@@ -55,8 +55,8 @@ vusaged/vusaged:
 # Library
 #
 
-libvpopmail.a: $(LIBVPOPMAIL_OBJECTS)
-	$(AR) -cru libvpopmail.a $(LIBVPOPMAIL_OBJECTS)
+#libvpopmail.so: $(LIBVPOPMAIL_OBJECTS)
+#	$(AR) -cru libvpopmail.so $(LIBVPOPMAIL_OBJECTS)
 libvpopmail.so: $(LIBVPOPMAIL_OBJECTS)
 	$(CC) -shared -o libvpopmail.so $(LIBVPOPMAIL_OBJECTS)
 
@@ -64,59 +64,59 @@ libvpopmail.so: $(LIBVPOPMAIL_OBJECTS)
 # Binaries
 #
 
-authvchkpw: authvchkpw.o hmac_md5.o libvpopmail.a
+authvchkpw: authvchkpw.o hmac_md5.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vchkpw: vchkpw.o md5.o hmac_md5.o libvpopmail.a
+vchkpw: vchkpw.o md5.o hmac_md5.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vdelivermail: vdelivermail.o maildirquota.o quota.o libvpopmail.a
+vdelivermail: vdelivermail.o maildirquota.o quota.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-clearopensmtp: clearopensmtp.o libvpopmail.a 
+clearopensmtp: clearopensmtp.o libvpopmail.so 
 	$(LINK) -o $@ $+ $(LLIBS)
-vadddomain: vadddomain.o libvpopmail.a
+vadddomain: vadddomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vdeldomain: vdeldomain.o libvpopmail.a
+vdeldomain: vdeldomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vpasswd: vpasswd.o libvpopmail.a
+vpasswd: vpasswd.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vadduser: vadduser.o libvpopmail.a
+vadduser: vadduser.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vdeluser: vdeluser.o libvpopmail.a
+vdeluser: vdeluser.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vaddaliasdomain: vaddaliasdomain.o libvpopmail.a
+vaddaliasdomain: vaddaliasdomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vsetuserquota: vsetuserquota.o libvpopmail.a
+vsetuserquota: vsetuserquota.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vpopbull: vpopbull.o libvpopmail.a
+vpopbull: vpopbull.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vdeloldusers: vdeloldusers.o libvpopmail.a
+vdeloldusers: vdeloldusers.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vmoduser: vmoduser.o libvpopmail.a
+vmoduser: vmoduser.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-valias: valias.o libvpopmail.a
+valias: valias.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vuserinfo: vuserinfo.o maildirquota.o quota.o libvpopmail.a
+vuserinfo: vuserinfo.o maildirquota.o quota.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vmkpasswd: vmkpasswd.o libvpopmail.a
+vmkpasswd: vmkpasswd.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vipmap: vipmap.o libvpopmail.a
+vipmap: vipmap.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vdominfo: vdominfo.o libvpopmail.a
+vdominfo: vdominfo.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vconvert: vconvert.o libvpopmail.a
+vconvert: vconvert.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vkill: vkill.o libvpopmail.a
+vkill: vkill.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vmoddomlimits: vmoddomlimits.o libvpopmail.a
+vmoddomlimits: vmoddomlimits.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vchangepw: vchangepw.o libvpopmail.a
+vchangepw: vchangepw.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-dotqmail2valias: dotqmail2valias.o libvpopmail.a
+dotqmail2valias: dotqmail2valias.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vpopmaild: vpopmaild.o libvpopmail.a
+vpopmaild: vpopmaild.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vlist: vlist.o vlistlib.o vutil.o libvpopmail.a
+vlist: vlist.o vlistlib.o vutil.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vusagec: vusagec.o libvpopmail.a
+vusagec: vusagec.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 
 #
@@ -158,14 +158,13 @@ vadduser.o: $(DEPS) vadduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 valias.o: $(DEPS) valias.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h vcdb.c vcdb.h \
-   vmysql.c vmysql.h vpgsql.c vpgsql.h voracle.pc voracle.h vsybase.c vsybase.h cdb
+vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h
 	$(CCC) -o $@ -c $*.c
 vchangepw.o: $(DEPS) vchangepw.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vchkpw.o: $(DEPS) vchkpw.c config.h vpopmail.h vauth.h vlimits.h vlog.h
 	$(CCC) -o $@ -c $*.c
-vconvert.o: $(DEPS) vconvert.c config.h vpopmail.h vauth.h vmysql.h cdb
+vconvert.o: $(DEPS) vconvert.c config.h vpopmail.h vauth.h cdb
 	$(CCC) -o $@ -c $*.c
 vdeldomain.o: $(DEPS) vdeldomain.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -267,28 +266,6 @@ install: $(BUILD_ALL)
     fi
 	
 	@#
-	@# If vauth.c is symlinked to vmysql.c, copy
-	@# vpopmail.mysql
-	@#
-	
-	if test ! "`diff -q ./vauth.c ./vmysql.c`"; then \
-	   if test ! -r $(VPOPMAILDIR)/etc/vpopmail.mysql; then \
-		 $(INSTALL) -o vpopmail -g vchkpw -m 0640 vpopmail.mysql $(VPOPMAILDIR)/etc/vpopmail.mysql; \
-	   fi; \
-    fi
-	
-	@#
-	@# If vauth.c is symlinked to vldap.c, copy
-	@# vpopmail.ldap
-	@#
-	
-	if test ! "`diff -q ./vauth.c ./vldap.c`"; then \
-	   if test ! -r $(VPOPMAILDIR)/etc/vpopmail.ldap; then \
-		 $(INSTALL) -o vpopmail -g vchkpw -m 0640 ldap/vpopmail.ldap $(VPOPMAILDIR)/etc/vpopmail.ldap; \
-	   fi; \
-    fi
-	
-	@#
 	@# Install vusaged
 	@#
 	
@@ -313,11 +290,15 @@ install: $(BUILD_ALL)
 # 
 
 clean:
+	if test -r backends/cdb/Makefile; then (cd backends/cdb;make clean); fi
+	if test -r backends/mysql/Makefile; then (cd backends/mysql;make clean); fi
 	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
 	(cd cdb;make clean)
 	(cd vusaged;make clean)
 
 distclean: clean
-	rm -rf config.h Makefile autom4te.cache config.log config.status vauth.c
+	if test -r backends/cdb/Makefile; then (cd backends/cdb;make dist clean); fi
+	if test -r backends/mysql/Makefile; then (cd backends/mysql;make dist clean); fi
+	rm -rf config.h Makefile autom4te.cache config.log config.status backends/module.mk
 	(cd cdb;make distclean)
 	(cd vusaged; make distclean)

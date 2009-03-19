@@ -28,6 +28,7 @@
 #include "vpopmail.h"
 #include "vauth.h"
 #include "vlimits.h"
+#include "vauthmodule.h"
 
 
 #include "vpopmaild.msg"
@@ -287,6 +288,12 @@ int main(int argc, char **argv)
   int status   = 1;
   int failures = 0;
   int attempts = 0;
+
+  i = vauth_load_module(NULL);
+  if (!i)
+	  vexiterror(stderr, "could not load authentication module");
+
+
 
   if( vauth_open( 1 )) {
     show_error( ERR_CANT_OPEN_AUTH, 101 );

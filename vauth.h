@@ -53,28 +53,8 @@ struct vqpasswd {
   char *pw_clear_passwd;	/* Clear password.  */
 };
 
-int vauth_open( int will_update );
 
-int vauth_adddomain(char *);
-int vauth_deldomain(char *);
-
-int vauth_adduser(char *username, char *domain, char *passwd, char *gecos, char * dir, int apop);
-
-int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw);
-int vauth_deluser(char *, char *);
-int vauth_setquota( char *, char *, char *);
-struct vqpasswd *vauth_getpw(char *, char *);
-int vauth_setpw(struct vqpasswd *, char *);
-struct vqpasswd *vauth_getall(char *, int, int);
-void vauth_end_getall();
-int vmkpasswd( char *domain );
-void vclose();
 void vclose1();
-
-int vset_lastauth( char *user, char *domain, char *remoteip);
-time_t vget_lastauth( struct vqpasswd *pw, char *domain);
-char *vget_lastauthip( struct vqpasswd *pw, char *domain);
-
 /* these routines are used to admin ip aliased domains */
 #ifdef IP_ALIAS_DOMAINS
 int vget_ip_map( char *ip, char *domain, int domain_size);
@@ -109,10 +89,6 @@ int inc_dir_control(vdir_type *);
 int dec_dir_control(char *domain, uid_t uid, gid_t gid);
 void print_control();
 
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid );
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid);
-int vdel_dir_control(char *domain);
-
 char *valias_select( char *alias, char *domain );
 char *valias_select_next();
 char *valias_select_all( char *alias, char *domain );
@@ -124,5 +100,8 @@ int valias_delete_domain( char *domain);
 
 /* Log to MySQL Added by David Wartell to support MySQL logging */
 int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
+
+int vauth_load_module(const char *);
+const char *vauth_module_name(void);
 #endif
 

@@ -34,6 +34,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 int main(void)
 {
@@ -44,6 +45,10 @@ int main(void)
 	char Domain[MAX_BUFF];
 	char Passwd[128];	/* must be at least the size of the buffer in vpopmail.c::getpass */
 	char *passwdtmp;
+
+	i = vauth_load_module(NULL);
+	if (!i)
+	   vexiterror(stderr, "could not load authentication module");
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );

@@ -29,6 +29,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 char Email[MAX_BUFF];
 char Passwd[MAX_BUFF];
@@ -49,6 +50,10 @@ int main(int argc,char **argv)
  char User[MAX_BUFF];
  char Domain[MAX_BUFF];
  struct vqpasswd *vpw;
+
+    i = vauth_load_module(NULL);
+	if (!i)
+	   vexiterror(stderr, "could not load authentication module");
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );

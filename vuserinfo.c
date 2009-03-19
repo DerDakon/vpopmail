@@ -35,6 +35,7 @@
 #include "quota.h"
 #include "storage.h"
 #include "maildirquota.h"
+#include "vauthmodule.h"
 
 
 char Email[MAX_BUFF];
@@ -65,6 +66,11 @@ int main(int argc, char *argv[])
  int i;
 
  char User[MAX_BUFF];
+
+   i = vauth_load_module(NULL);
+   if (!i)
+	  vexiterror(stderr, "could not load authentication module");
+
 
     if( vauth_open( 0 )) {
         vexiterror( stderr, "Initial open." );

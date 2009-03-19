@@ -24,6 +24,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 #ifdef POP_AUTH_OPEN_RELAY
 
@@ -34,6 +35,7 @@ static char TmpBuf2[MAX_BUFF];
 
 int main()
 {
+   int ret;
 #ifndef USE_SQL
  FILE *fs_smtp_cur;
  FILE *fs_smtp_tmp;
@@ -42,6 +44,10 @@ int main()
 #endif /* ndef USE_SQL */
  time_t mytime;
  time_t clear_minutes;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
 	if( vauth_open( 0 )) {
 		vexiterror( stderr, "Initial open." );
@@ -109,6 +115,12 @@ int main()
 #else
 int main()
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
 	printf("vpopmail not configure with --enable-roaming-users\n");
 	return(vexit(0));
 }

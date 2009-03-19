@@ -117,6 +117,7 @@
 #define VA_CANNOT_CREATE_DATABASE       -43
 #define VA_CANNOT_CREATE_TABLE          -44
 #define VA_CANNOT_DELETE_CATCHALL       -55
+#define VA_NO_AUTH_MODULE				-66
 
 
 /* gid flags */

@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 #include "vauth.h"
 
 #ifdef ENABLE_AUTH_LOGGING
@@ -49,7 +50,12 @@ void deloldusers(char *Domain, time_t nowt);
 
 int main(int argc, char *argv[])
 {
+   int ret;
  time_t nowt;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
@@ -222,6 +228,12 @@ void process_all_domains(time_t nowt)
 
 int main()
 {
+   int ret;
+
+	  ret = vauth_load_module(NULL);
+	  if (!ret)
+		 vexiterror(stderr, "could not load authentication module");
+
         printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
         return(vexit(-1));
 }
