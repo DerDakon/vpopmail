@@ -1,0 +1,37 @@
+#
+# $Id$
+# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+#
+
+include ../module.mk
+
+CFLAGS = @CFLAGS@ -I@incdir@
+LDFLAGS = @LDFLAGS@
+CCC = $(CC) $(CFLAGS)
+LINK = $(CC) -shared -nostartfiles
+LIBS = -L@libdir@ @LIBS@
+
+all: vmysql.so
+
+vmysql.so: vmysql.o
+	$(LINK) -o vmysql.so vmysql.o
+
+vmysql.o: vmysql.c vmysql.h
+	$(CCC) -o vmysql.o -c vmysql.c
+
+clean:
+	rm -f *.o *.so
+
+distclean: clean
+	rm -rf Makefile autom4te.cache  config.log config.status
+
+install:
+	$(INSTALL) vmysql.so $(VPOPMAIL_MODULEDIR)/vmysql.so
+	if test -L $(VPOPMAIL_AUTHMODULE); then \
+	   rm -f $(VPOPMAIL_AUTHMODULE); \
+	   ln -s $(VPOPMAIL_MODULEDIR)/vmysql.so $(VPOPMAIL_AUTHMODULE); \
+    fi
+	
+	if ! test -r $(VPOPMAIL_ETCDIR)/vpopmail.mysql; then \
+	   $(INSTALL) -o vpopmail -g vchkpw -m 0640 vpopmail.mysql $(VPOPMAIL_ETCDIR)/vpopmail.mysql; \
+    fi
