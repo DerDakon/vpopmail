@@ -20,6 +20,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated LDAP module
   - Updated PostgreSQL module
   - Updated vuserinfo to always show usage
+  - Updated vauthmodule.h to be included by vauth.h except if VAUTH_MODULE is defined
+  - Defined VAUTH_MODULE under working modules
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
