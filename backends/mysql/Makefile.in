@@ -10,13 +10,14 @@ LDFLAGS = @LDFLAGS@
 CCC = $(CC) $(CFLAGS)
 LINK = $(CC) -shared -nostartfiles
 LIBS = -L@libdir@ @LIBS@
+DEPS = Makefile
 
 all: vmysql.so
 
 vmysql.so: vmysql.o
-	$(LINK) -o vmysql.so vmysql.o
+	$(LINK) -o vmysql.so vmysql.o $(LIBS)
 
-vmysql.o: vmysql.c vmysql.h
+vmysql.o: $(DEPS) vmysql.c vmysql.h
 	$(CCC) -o vmysql.o -c vmysql.c
 
 clean:

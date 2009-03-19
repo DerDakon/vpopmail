@@ -2874,8 +2874,8 @@ echo $ECHO_N "checking for vpopmail build... $ECHO_C" >&6; }
 if ! test -r ../module.mk; then
    { echo "$as_me:$LINENO: result: not found" >&5
 echo "${ECHO_T}not found" >&6; }
-   { { echo "$as_me:$LINENO: error: vpopmail is not built -- please build the vpopmail source before trying to build modules" >&5
-echo "$as_me: error: vpopmail is not built -- please build the vpopmail source before trying to build modules" >&2;}
+   { { echo "$as_me:$LINENO: error: vpopmail is not compiled -- please build the vpopmail source before trying to build modules" >&5
+echo "$as_me: error: vpopmail is not compiled -- please build the vpopmail source before trying to build modules" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
