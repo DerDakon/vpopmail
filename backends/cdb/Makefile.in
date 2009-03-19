@@ -9,13 +9,14 @@ CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
 CCC = $(CC) $(CFLAGS)
 LINK = $(CC) -shared -nostartfiles
+DEPS = Makefile
 
 all: vcdb.so
 
 vcdb.so: vcdb.o
 	$(LINK) -o vcdb.so vcdb.o
 
-vcdb.o: vcdb.c vcdb.h
+vcdb.o: $(DEPS) vcdb.c vcdb.h
 	$(CCC) -o vcdb.o -c vcdb.c
 
 clean:

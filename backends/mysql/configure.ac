@@ -11,7 +11,7 @@ AC_CANONICAL_HOST
 # Set default compiler and linker flags
 #
 
-AC_SUBST(CFLAGS, "-I../.. -I../../cdb -fPIC")
+AC_SUBST(CFLAGS, "-I../.. -fPIC")
 AC_SUBST(LDFLAGS, "")
 
 #
