@@ -15,6 +15,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated vdeloldusers to allow option to ignore users with .qmail file
   - Updated to build and install libvpopmail.so
   - Added backend module support
+  - Updated CDB module
+  - Updated MySQL module
+  - Updated LDAP module
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
