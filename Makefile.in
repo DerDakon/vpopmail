@@ -316,17 +316,19 @@ authmodule:
 # 
 
 clean:
-	if test -r backends/ldap/Makefile; then (cd backends/ldap;make clean); fi
-	if test -r backends/cdb/Makefile; then (cd backends/cdb;make clean); fi
-	if test -r backends/mysql/Makefile; then (cd backends/mysql;make clean); fi
+	@if test -r backends/postgres/Makefile; then (cd backends/postgres;make clean); fi
+	@if test -r backends/ldap/Makefile; then (cd backends/ldap;make clean); fi
+	@if test -r backends/cdb/Makefile; then (cd backends/cdb;make clean); fi
+	@if test -r backends/mysql/Makefile; then (cd backends/mysql;make clean); fi
 	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
 	(cd cdb;make clean)
 	(cd vusaged;make clean)
 
 distclean: clean
-	if test -r backends/ldap/Makefile; then (cd backends/ldap;make distclean); fi
-	if test -r backends/cdb/Makefile; then (cd backends/cdb;make distclean); fi
-	if test -r backends/mysql/Makefile; then (cd backends/mysql;make distclean); fi
+	@if test -r backends/postgres/Makefile; then (cd backends/postgres;make distclean); fi
+	@if test -r backends/ldap/Makefile; then (cd backends/ldap;make distclean); fi
+	@if test -r backends/cdb/Makefile; then (cd backends/cdb;make distclean); fi
+	@if test -r backends/mysql/Makefile; then (cd backends/mysql;make distclean); fi
 	rm -rf config.h Makefile autom4te.cache config.log config.status backends/module.mk
 	(cd cdb;make distclean)
 	(cd vusaged; make distclean)
