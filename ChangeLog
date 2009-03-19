@@ -22,6 +22,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated vuserinfo to always show usage
   - Updated vauthmodule.h to be included by vauth.h except if VAUTH_MODULE is defined
   - Defined VAUTH_MODULE under working modules
+  - Updated module code to automatically call vauth_load_module and to catch calls to vauth_open and vclose
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
