@@ -8,6 +8,8 @@
 
 #include "vauth.h"
 
+#ifndef VAUTH_MODULE
+
 int (*vauth_open)( int will_update );
 int (*vauth_adddomain)(char *);
 int (*vauth_deldomain)(char *);
@@ -28,4 +30,5 @@ time_t (*vget_lastauth)( struct vqpasswd *pw, char *domain);
 char *(*vget_lastauthip)( struct vqpasswd *pw, char *domain);
 void (*vclose)();
 
+#endif
 #endif

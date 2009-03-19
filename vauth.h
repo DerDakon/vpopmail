@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <time.h>
+#include "vauthmodule.h"
 
 #ifdef IP_ALIAS_DOMAINS
 #define IP_ALIAS_MAP_FILE "etc/ip_alias_map"
