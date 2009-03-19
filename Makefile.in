@@ -284,6 +284,32 @@ install: $(BUILD_ALL)
 	@echo "  located in vusaged/contrib/rc.vusaged"
 	@echo "-------------------------------------------------"
 	@echo
+	
+	@#
+	@# Check if a backend has been installed
+	@#
+	
+	@if ! test -r $(VPOPMAILDIR)/etc/vpopmail.authmodule; then \
+	   (make authmodule); \
+    fi
+
+authmodule:
+	@echo
+	@echo "      *** You have not selected an authentication module! ***"
+	@echo
+	@sleep 5
+	@echo
+	@echo "  ***************************************************************"
+	@echo "  ** Select an authentication module of CDB, MySQL,            **"
+	@echo "  ** LDAP, PostgreSQL, Oracle, or SyBase from the              **"
+	@echo "  ** backends directory and compile it with the following      **"
+	@echo "  ** command:                                                  **"
+	@echo "  **                                                           **"
+	@echo "  ** cd backends/module && ./configure && make && make install **"
+	@echo "  **                                                           **"
+	@echo "  ***************************************************************"
+	@echo
+	
 
 #
 # Cleanup
@@ -298,9 +324,9 @@ clean:
 	(cd vusaged;make clean)
 
 distclean: clean
-	if test -r backends/ldap/Makefile; then (cd backends/ldap;make dist clean); fi
-	if test -r backends/cdb/Makefile; then (cd backends/cdb;make dist clean); fi
-	if test -r backends/mysql/Makefile; then (cd backends/mysql;make dist clean); fi
+	if test -r backends/ldap/Makefile; then (cd backends/ldap;make distclean); fi
+	if test -r backends/cdb/Makefile; then (cd backends/cdb;make distclean); fi
+	if test -r backends/mysql/Makefile; then (cd backends/mysql;make distclean); fi
 	rm -rf config.h Makefile autom4te.cache config.log config.status backends/module.mk
 	(cd cdb;make distclean)
 	(cd vusaged; make distclean)
