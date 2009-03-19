@@ -158,7 +158,7 @@ vadduser.o: $(DEPS) vadduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 valias.o: $(DEPS) valias.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h
+vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h vauth.c
 	$(CCC) -o $@ -c $*.c
 vchangepw.o: $(DEPS) vchangepw.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
