@@ -22,6 +22,8 @@
 Add error result for "unable to read vpopmail.mysql" and return it
 
 */ 
+
+#define VAUTH_MODULE
  
 #include <pwd.h>
 #include <unistd.h>
