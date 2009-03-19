@@ -30,6 +30,7 @@
 #include <dirent.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 #include "vauth.h"
 
 /* Default behavior is to do nothing if there are already valias table 
@@ -67,10 +68,15 @@ void strreplace (char *s, char c1, char c2)
 
 int main(int argc, char *argv[])
 {
+   int ret;
 #ifndef VALIAS
 	fprintf (stderr, "You must enable valiases (./configure --enable-valias) to use this program.\n");
 	return -1;
 #endif
+
+	ret = vauth_load_module(NULL);
+	if (!ret)
+	   vexiterror(stderr, "could not load authentication module");
 
 	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );

@@ -30,7 +30,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-#include "vmysql.h"
+#include "vauthmodule.h"
 
 
 #ifdef HAS_SHADOW
@@ -80,6 +80,12 @@ int  PasswdFormat;
 
 int main(int argc, char *argv[])
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
 	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );
 	}

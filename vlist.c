@@ -50,6 +50,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include "vauth.h"
+#include "vauthmodule.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -602,6 +603,11 @@ int main(int argc, char *argv[] ) {
     int command1=0, command2=0, isDomainOnly=0, isCreating=0;
     listInfoType LI;
     char Buff[MAX_BUFF];
+
+	status = vauth_load_module(NULL);
+	if (!status)
+	  vexiterror(stderr, "could not load authentication module");
+
 
     //  Open the vpopmail library
     if( vauth_open( 1 )) {

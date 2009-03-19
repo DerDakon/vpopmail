@@ -1,0 +1,15 @@
+#
+# $Id$
+# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+#
+
+CC = @CC@
+INSTALL = @INSTALL@
+
+#
+# Locations
+#
+
+VPOPMAIL_ETCDIR=@vpopmaildir@/etc
+VPOPMAIL_MODULEDIR=@vpopmaildir@/lib
+VPOPMAIL_AUTHMODULE=$(VPOPMAIL_ETCDIR)/vpopmail.authmodule

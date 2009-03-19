@@ -43,6 +43,7 @@
 #include "seek.h"
 #endif
 #include "vlimits.h"
+#include "vauthmodule.h"
 
 /* Globals */
 #define AUTH_SIZE 300
@@ -117,7 +118,12 @@ int vexiterr (int err, char *errstr)
  */
 int main(int argc, char **argv)
 {
+   int ret;
     char loopcheck[255];
+
+	ret =vauth_load_module(NULL);
+	if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
     /* get the arguments to the program and setup things */
     get_arguments(argc, argv);

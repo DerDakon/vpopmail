@@ -30,7 +30,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
+#include "vauthmodule.h"
 
 #define MSG_BUF_SIZE  32768
 #define TOKENS ":\r\n"
@@ -69,6 +69,11 @@ int main(int argc, char *argv[])
  char *domain_dir = NULL;
  static struct stat statbuf;
  domain_entry *entry;
+ int ret;
+
+  ret = vauth_load_module(NULL);
+  if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
   memset(TmpBuf,0,sizeof(TmpBuf));
   memset(MsgBuf,0,sizeof(MsgBuf));
@@ -80,6 +85,7 @@ int main(int argc, char *argv[])
     usage();
     vexit(-1);
   }
+
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );

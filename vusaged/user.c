@@ -25,6 +25,7 @@
    #include <assert.h>
 #endif
 #include <vauth.h>
+#include <vauthmodule.h>
 #include "path.h"
 #include "storage.h"
 #include "cache.h"

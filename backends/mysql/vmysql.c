@@ -37,6 +37,8 @@ Add error result for "unable to read vpopmail.mysql" and return it
 #include "vlimits.h"
 #include "vmysql.h"
 
+const char auth_module_name[] = "mysql";
+
 static MYSQL mysql_update;
 static MYSQL mysql_read_getall;
 
@@ -286,7 +288,7 @@ int vauth_open_read()
 //  Make vauth_open_read answer for vauth_open, so that function
 //  can be called to test the database.
 
-int vauth_open( int will_update ) {
+int auth_open( int will_update ) {
 
 if( will_update ) {
     return( vauth_open_update());
@@ -352,7 +354,7 @@ int vauth_create_table (char *table, char *layout, int showerror)
  
 
 /************************************************************************/
-int vauth_adddomain( char *domain )
+int auth_adddomain( char *domain )
 {
 #ifndef MANY_DOMAINS
   vset_default_domain( domain );
@@ -366,7 +368,7 @@ int vauth_adddomain( char *domain )
 
 
 /************************************************************************/
-int vauth_adduser(char *user, char *domain, char *pass, char *gecos, 
+int auth_adduser(char *user, char *domain, char *pass, char *gecos, 
     char *dir, int apop )
 {
  char *domstr;
@@ -436,7 +438,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
 
 
 /************************************************************************/
-struct vqpasswd *vauth_getpw(char *user, char *domain)
+struct vqpasswd *auth_getpw(char *user, char *domain)
 {
  char *domstr;
  static struct vqpasswd vpw;
@@ -494,7 +496,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
         */
         
         fprintf(stderr, "Attempting to rebuild connection to SQL server\n");
-        vclose();
+        vvclose();
         verrori = 0;
         if ( (err=vauth_open_read()) != 0 ) {
           verrori = err;
@@ -561,7 +563,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 
 
 /************************************************************************/
-int vauth_deldomain( char *domain )
+int auth_deldomain( char *domain )
 {
  char *tmpstr;
  int err;
@@ -610,7 +612,7 @@ int vauth_deldomain( char *domain )
 
 
 /************************************************************************/
-int vauth_deluser( char *user, char *domain )
+int auth_deluser( char *user, char *domain )
 {
  char *tmpstr;
  int err = 0;
@@ -657,7 +659,7 @@ int vauth_deluser( char *user, char *domain )
     return(err);
 }
 
-int vauth_setquota( char *username, char *domain, char *quota)
+int auth_setquota( char *username, char *domain, char *quota)
 {
  char *tmpstr;
  int err;
@@ -693,7 +695,7 @@ int vauth_setquota( char *username, char *domain, char *quota)
 
 
 /************************************************************************/
-struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
+struct vqpasswd *auth_getall(char *domain, int first, int sortit)
 {
  char *domstr = NULL;
  static struct vqpasswd vpw;
@@ -778,7 +780,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
 
 
 /************************************************************************/
-void vauth_end_getall()
+void auth_end_getall()
 {
     if ( res_read_getall != NULL ) {
         mysql_free_result(res_read_getall);
@@ -808,7 +810,7 @@ char *vauth_munch_domain( char *domain )
 
 
 /************************************************************************/
-int vauth_setpw( struct vqpasswd *inpw, char *domain )
+int auth_setpw( struct vqpasswd *inpw, char *domain )
 {
  char *tmpstr;
  uid_t myuid;
@@ -969,7 +971,7 @@ int vmkpasswd( char *domain )
 
 
 /************************************************************************/
-void vclose()
+void vvclose()
 {
     if (read_open == 1 ) {
         mysql_close(&mysql_read);
@@ -996,7 +998,7 @@ void vcreate_ip_map_table()
 
 
 /************************************************************************/
-int vget_ip_map( char *ip, char *domain, int domain_size)
+int get_ip_map( char *ip, char *domain, int domain_size)
 {
  int ret = -1;
 
@@ -1024,7 +1026,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
 
 
 /************************************************************************/
-int vadd_ip_map( char *ip, char *domain) 
+int add_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
@@ -1048,7 +1050,7 @@ int vadd_ip_map( char *ip, char *domain)
 
 
 /************************************************************************/
-int vdel_ip_map( char *ip, char *domain) 
+int del_ip_map( char *ip, char *domain) 
 {
     if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
     if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
@@ -1111,7 +1113,7 @@ int vshow_ip_map( int first, char *ip, char *domain )
 
 
 /************************************************************************/
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int read_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  int found = 0;
 
@@ -1180,7 +1182,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 
 
 /************************************************************************/
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int write_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
     if ( vauth_open_update() != 0 ) return(-1);
 
@@ -1258,7 +1260,7 @@ void vcreate_dir_control(char *domain)
 
 
 /************************************************************************/
-int vdel_dir_control(char *domain)
+int del_dir_control(char *domain)
 {
  int err;
 
@@ -1281,7 +1283,7 @@ int vdel_dir_control(char *domain)
 
 /************************************************************************/
 #ifdef ENABLE_AUTH_LOGGING
-int vset_lastauth(char *user, char *domain, char *remoteip )
+int set_lastauth(char *user, char *domain, char *remoteip )
 {
  int err;
 
@@ -1307,7 +1309,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
 
 
 /************************************************************************/
-time_t vget_lastauth(struct vqpasswd *pw, char *domain)
+time_t get_lastauth(struct vqpasswd *pw, char *domain)
 {
  int err;
  time_t mytime;
@@ -1335,7 +1337,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
 
 
 /************************************************************************/
-char *vget_lastauthip(struct vqpasswd *pw, char *domain)
+char *get_lastauthip(struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[100];
 
@@ -1878,7 +1880,7 @@ int vdel_limits(const char *domain)
 
 
 /************************************************************************/
-int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {
   if ( vpw == NULL ) return(-1);
 

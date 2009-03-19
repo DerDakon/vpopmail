@@ -29,6 +29,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 
 char Domain_a[MAX_BUFF];
@@ -42,6 +43,10 @@ int main(int argc, char *argv[])
     int err;
     char *doma;
     char *domb;
+
+	err = vauth_load_module(NULL);
+	if (!err)
+	   vexiterror(stderr, "could not load authentication module");
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );

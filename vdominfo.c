@@ -26,6 +26,7 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "quota.h"
+#include "vauthmodule.h"
 
 
 char Domain[MAX_BUFF];
@@ -55,6 +56,12 @@ extern vdir_type vdir;
 
 int main(int argc, char *argv[])
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
     if( vauth_open( 0 )) {
         vexiterror( stderr, "Initial open." );
     }

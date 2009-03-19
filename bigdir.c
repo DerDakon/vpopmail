@@ -28,6 +28,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 vdir_type vdir;
 

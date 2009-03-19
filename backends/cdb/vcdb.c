@@ -45,6 +45,8 @@
 
 #define TOKENS " \n"
 
+const char auth_module_name[] = "cdb";
+
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
 
@@ -219,7 +221,7 @@ int make_vpasswd_cdb(char *domain)
     return 0;
 }
 
-struct vqpasswd *vauth_getpw(char *user, char *domain)
+struct vqpasswd *auth_getpw(char *user, char *domain)
 {
  char in_domain[156];
  static struct vqpasswd pwent;
@@ -334,7 +336,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 }
 
 
-struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
+struct vqpasswd *auth_getall(char *domain, int first, int sortit)
 {
  static FILE *fsv = NULL;
  struct vqpasswd *tmpwd;
@@ -356,7 +358,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
     return(tmpwd);
 }
 
-void vauth_end_getall()
+void auth_end_getall()
 {
 }
 
@@ -391,7 +393,7 @@ void set_vpasswd_files( char *domain )
         "%s/%s", vpasswd_dir,VPASSWD_LOCK_FILE);
 }
 
-int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, int apop )
+int auth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, int apop )
 {
  static char tmpbuf1[MAX_BUFF];
  static char tmpbuf2[MAX_BUFF];
@@ -439,12 +441,12 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
         tmpstr = strtok(tmpbuf2,":");
         if ( added == 0 && strcmp(user, tmpstr) < 0 ) {
             added = 1;
-            vauth_adduser_line( fs1, user, pass, domain,gecos,dir, apop);
+            auth_adduser_line( fs1, user, pass, domain,gecos,dir, apop);
         }
         fputs(tmpbuf1, fs1);
     }
     if ( added == 0 ) {
-        vauth_adduser_line( fs1, user, pass, domain,gecos,dir,apop);
+        auth_adduser_line( fs1, user, pass, domain,gecos,dir,apop);
     }
     fclose(fs1);
     fclose(fs2);
@@ -461,17 +463,17 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos, char *dir, 
 
 }
 
-int vauth_adddomain( char *domain )
+int auth_adddomain( char *domain )
 {
     return(0);
 }
 
-int vauth_deldomain( char *domain )
+int auth_deldomain( char *domain )
 {
     return(0);
 }
 
-int vauth_deluser( char *user, char *domain )
+int auth_deluser( char *user, char *domain )
 {
  static char tmpbuf1[MAX_BUFF];
  static char tmpbuf2[MAX_BUFF];
@@ -528,10 +530,10 @@ int vauth_deluser( char *user, char *domain )
 
 /* Utility function to set the users quota
  *
- * Calls underlying vauth_getpw and vauth_setpw
+ * Calls underlying auth_getpw and auth_setpw
  * to actually change the users information
  */
-int vauth_setquota( char *username, char *domain, char *quota)
+int auth_setquota( char *username, char *domain, char *quota)
 {
  struct vqpasswd *vpw;
 
@@ -542,14 +544,14 @@ int vauth_setquota( char *username, char *domain, char *quota)
     if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
     if ( strlen(quota) > MAX_PW_QUOTA )    return(VA_QUOTA_TOO_LONG);
 
-    vpw = vauth_getpw( username, domain );
+    vpw = auth_getpw( username, domain );
     if ( vpw==NULL ) return(VA_USER_DOES_NOT_EXIST);
     vpw->pw_shell = quota;
-    return(vauth_setpw(vpw,domain));
+    return(auth_setpw(vpw,domain));
 
 }
 
-int vauth_setpw( struct vqpasswd *inpw, char *domain ) 
+int auth_setpw( struct vqpasswd *inpw, char *domain ) 
 {
  static char tmpbuf1[MAX_BUFF];
  static char tmpbuf2[MAX_BUFF];
@@ -662,7 +664,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     return(0);
 }
 
-int vauth_adduser_line( FILE *fs1, 
+int auth_adduser_line( FILE *fs1, 
     char *user, 
     char *pass, 
     char *domain, 
@@ -717,7 +719,7 @@ int vauth_adduser_line( FILE *fs1,
 }
 
 
-int vmkpasswd( char *domain )
+int mkpasswd( char *domain )
 {
 #ifdef FILE_LOCKING
  int fd3;
@@ -750,7 +752,7 @@ int vmkpasswd( char *domain )
 
 /*   Verify the connection to the authentication database   */
 
-int vauth_open( int will_update ) {
+int auth_open( int will_update ) {
 
 #ifdef VPOPMAIL_DEBUG
 show_trace = ( getenv("VPSHOW_TRACE") != NULL);
@@ -760,7 +762,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
 
 #ifdef VPOPMAIL_DEBUG
     if( show_trace ) {
-        fprintf( stderr, "vauth_open()\n");
+        fprintf( stderr, "auth_open()\n");
     }
 #endif 
 
@@ -779,7 +781,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
     return( 0 );
 }
 
-void vclose()
+void vvclose()
 {
 
 }
@@ -924,7 +926,7 @@ int vshow_ip_map( int first, char *ip, char *domain)
 }
 #endif
 
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int read_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 { 
  FILE *fs;
  char dir_control_file[MAX_DIR_NAME];
@@ -1006,7 +1008,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int write_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 { 
  FILE *fs;
  char dir_control_file[MAX_DIR_NAME];
@@ -1050,7 +1052,7 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
-int vdel_dir_control(char *domain)
+int del_dir_control(char *domain)
 {
  char dir_control_file[MAX_DIR_NAME];
 
@@ -1060,7 +1062,7 @@ int vdel_dir_control(char *domain)
 }
 
 #ifdef ENABLE_AUTH_LOGGING
-int vset_lastauth(char *user, char *domain, char *remoteip )
+int set_lastauth(char *user, char *domain, char *remoteip )
 {
  char *tmpbuf;
  FILE *fs;
@@ -1068,7 +1070,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
  uid_t uid;
  gid_t gid;
 
-    if( (vpw = vauth_getpw( user, domain )) == NULL) return(0);
+    if( (vpw = auth_getpw( user, domain )) == NULL) return(0);
 
 	tmpbuf = malloc(MAX_BUFF);
 	snprintf(tmpbuf, MAX_BUFF, "%s/lastauth", vpw->pw_dir);
@@ -1085,7 +1087,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
 	return(0);
 }
 
-time_t vget_lastauth( struct vqpasswd *pw, char *domain)
+time_t get_lastauth( struct vqpasswd *pw, char *domain)
 {
  char *tmpbuf;
  struct stat mystatbuf;
@@ -1100,7 +1102,7 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain)
 	return(mystatbuf.st_mtime);
 }
 
-char *vget_lastauthip( struct vqpasswd *pw, char *domain)
+char *get_lastauthip( struct vqpasswd *pw, char *domain)
 {
  static char tmpbuf[MAX_BUFF];
  FILE *fs;
@@ -1158,7 +1160,7 @@ void vcdb_strip_char( char *instr )
 
 }
 
-int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 {
   if ( vpw == NULL ) return(-1);
 

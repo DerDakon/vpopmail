@@ -34,6 +34,8 @@
 #include "vlimits.h"
 #include "vldap.h"
 
+const char auth_module_name[] = "ldap";
+
 LDAP *ld = NULL;
 LDAPMessage *glm = NULL;
 
@@ -112,7 +114,7 @@ int load_connection_info() {
     return 0;
 }
 
-struct vqpasswd *vauth_getpw(char *user, char *domain) {
+struct vqpasswd *auth_getpw(char *user, char *domain) {
     int ret = 0;
     size_t len = 0;
     struct vqpasswd *vpw = NULL;
@@ -367,11 +369,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain) {
 
 /***************************************************************************/
 
-void vauth_end_getall() {}
+void auth_end_getall() {}
 
 /***************************************************************************/
 
-struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
+struct vqpasswd *auth_getall(char *domain, int first, int sortit) {
     int ret = 0;
     size_t len = 0;
     struct vqpasswd *pw = NULL;
@@ -443,7 +445,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
         }
 
         /* grab the vpopmail properties of this user */
-        pw = vauth_getpw(*vals, domain);
+        pw = auth_getpw(*vals, domain);
 
         return pw;
     }
@@ -464,7 +466,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
             return NULL;
         }
 
-        pw = vauth_getpw(*vals, domain);
+        pw = auth_getpw(*vals, domain);
 
         ldap_value_free(vals);
 
@@ -480,7 +482,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit) {
  
    vol@inter7.com
 */
-int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *dir, int apop ) {
+int auth_adduser(char *user, char *domain, char *password, char *gecos, char *dir, int apop ) {
     char *dn = NULL;
     char *dn_tmp = NULL;
     LDAPMod **lm = NULL;
@@ -647,7 +649,7 @@ int vauth_adduser(char *user, char *domain, char *password, char *gecos, char *d
 
 /***************************************************************************/
 
-int vauth_adddomain( char *domain ) {
+int auth_adddomain( char *domain ) {
     int ret = 0;
     char *dn = NULL;
     LDAPMod **lm = NULL;
@@ -731,7 +733,7 @@ int vauth_adddomain( char *domain ) {
 
 /***************************************************************************/
 
-int vauth_deldomain( char *domain ) {
+int auth_deldomain( char *domain ) {
     int ret = 0;
     size_t len = 0;
     char *dn = NULL;
@@ -752,8 +754,8 @@ int vauth_deldomain( char *domain ) {
         return -98;
 
     /* loop through all the users in the domain, deleting each one */
-    for (pw = vauth_getall(domain, 1, 0); pw; pw = vauth_getall(domain, 0, 0))
-        vauth_deluser(pw->pw_name, domain);
+    for (pw = auth_getall(domain, 1, 0); pw; pw = auth_getall(domain, 0, 0))
+        auth_deluser(pw->pw_name, domain);
 
     /* next, delete the actual domain */
     ret = ldap_delete_s(ld, dn);
@@ -773,24 +775,24 @@ int vauth_deldomain( char *domain ) {
 
 /***************************************************************************/
 
-int vauth_vpasswd( char *user, char *domain, char *crypted, int apop ) {
+int auth_vpasswd( char *user, char *domain, char *crypted, int apop ) {
     int ret = 0;
     struct vqpasswd *pw = NULL;
 
-    pw = vauth_getpw(user, domain);
+    pw = auth_getpw(user, domain);
     if (pw == NULL)
         return VA_USER_DOES_NOT_EXIST;
 
     pw->pw_passwd = safe_strdup(crypted);
 
-    ret = vauth_setpw(pw, domain);
+    ret = auth_setpw(pw, domain);
 
     return ret;
 }
 
 /***************************************************************************/
 
-int vauth_deluser( char *user, char *domain ) {
+int auth_deluser( char *user, char *domain ) {
     int ret = 0;
     size_t len = 0;
     char *dn = NULL;
@@ -834,7 +836,7 @@ int vauth_deluser( char *user, char *domain ) {
 
 /***************************************************************************/
 
-int vauth_setquota( char *username, char *domain, char *quota) {
+int auth_setquota( char *username, char *domain, char *quota) {
     int ret = 0;
     struct vqpasswd *pw = NULL;
 
@@ -851,7 +853,7 @@ int vauth_setquota( char *username, char *domain, char *quota) {
     if ( strlen(quota) > MAX_PW_QUOTA )
         return(VA_QUOTA_TOO_LONG);
 
-    pw = vauth_getpw(username, domain);
+    pw = auth_getpw(username, domain);
     if ( (pw == NULL) && (verrori != 0))
         return verrori;
     else if ( pw == NULL )
@@ -859,14 +861,14 @@ int vauth_setquota( char *username, char *domain, char *quota) {
 
     pw->pw_shell = safe_strdup(quota);
 
-    ret = vauth_setpw(pw, domain);
+    ret = auth_setpw(pw, domain);
 
     return ret;
 }
 
 /***************************************************************************/
 
-int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
+int auth_setpw( struct vqpasswd *inpw, char *domain ) {
     int ret = 0;
     size_t len = 0;
     char *dn = NULL;
@@ -974,7 +976,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain ) {
 
 /*   Verify the connection to the authentication database   */
 
-int vauth_open( int will_update ) {
+int auth_open( int will_update ) {
 
 #ifdef VPOPMAIL_DEBUG
 show_trace = ( getenv("VPSHOW_TRACE") != NULL);
@@ -1192,7 +1194,7 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
     uid_t uid;
     gid_t gid;
 
-    if ((vpw = vauth_getpw( user, domain )) == NULL)
+    if ((vpw = auth_getpw( user, domain )) == NULL)
         return (0);
 
     tmpbuf = (char *) safe_malloc(MAX_BUFF);
@@ -1213,12 +1215,12 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
 }
 
 
-int vset_lastauth(char *user, char *domain, char *remoteip ) {
+int set_lastauth(char *user, char *domain, char *remoteip ) {
     return(vset_lastauth_time(user, domain, remoteip, time(NULL) ));
 }
 
 
-time_t vget_lastauth( struct vqpasswd *pw, char *domain) {
+time_t get_lastauth( struct vqpasswd *pw, char *domain) {
     char *tmpbuf;
     struct stat mystatbuf;
 
@@ -1233,7 +1235,7 @@ time_t vget_lastauth( struct vqpasswd *pw, char *domain) {
 }
 
 
-char *vget_lastauthip( struct vqpasswd *pw, char *domain) {
+char *get_lastauthip( struct vqpasswd *pw, char *domain) {
     static char tmpbuf[MAX_BUFF];
     FILE *fs;
 
@@ -1249,7 +1251,7 @@ char *vget_lastauthip( struct vqpasswd *pw, char *domain) {
 /***************************************************************************/
 
 #ifdef IP_ALIAS_DOMAINS
-int vget_ip_map( char *ip, char *domain, int domain_size) {
+int get_ip_map( char *ip, char *domain, int domain_size) {
     FILE *fs;
     char tmpbuf[156];
     char *tmpstr;
@@ -1288,7 +1290,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size) {
  * It will remove any duplicate entry before adding it
  *
  */
-int vadd_ip_map( char *ip, char *domain) {
+int add_ip_map( char *ip, char *domain) {
     FILE *fs;
     char tmpbuf[156];
 
@@ -1308,7 +1310,7 @@ int vadd_ip_map( char *ip, char *domain) {
     return(0);
 }
 
-int vdel_ip_map( char *ip, char *domain) {
+int del_ip_map( char *ip, char *domain) {
     FILE *fs;
     FILE *fs1;
     char file1[156];
@@ -1360,7 +1362,7 @@ int vdel_ip_map( char *ip, char *domain) {
     return(0);
 }
 
-int vshow_ip_map( int first, char *ip, char *domain) {
+int show_ip_map( int first, char *ip, char *domain) {
     static FILE *fs = NULL;
     char tmpbuf[156];
     char *tmpstr;
@@ -1494,7 +1496,7 @@ void *safe_malloc (size_t siz) {
 
 /***************************************************************************/
 
-int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw) {
+int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw) {
     if ( vpw == NULL )
         return(-1);
 

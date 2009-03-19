@@ -42,6 +42,7 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "maildirquota.h"
+#include "vauthmodule.h"
 
 #ifndef MD5_PASSWORDS
 #define MAX_PW_CLEAR_PASSWD 8
@@ -2310,6 +2311,7 @@ int vsetuserquota( char *username, char *domain, char *quota )
    * and then store the quota into the auth backend
    */
   formattedquota = format_maildirquota(quota);
+
   ret = vauth_setquota( username, domain, formattedquota);
   if (ret != VA_SUCCESS ) return(ret);
 
@@ -2936,6 +2938,8 @@ char *verror(int va_err )
     return("can't read users/assign file");
    case VA_CANNOT_DELETE_CATCHALL:
     return("can't delete catchall account");
+   case VA_NO_AUTH_MODULE:
+	return("no authentication module loaded");
    default:
     return("Unknown error");
   }

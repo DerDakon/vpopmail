@@ -678,9 +678,6 @@ vpopuser
 vpopgroup
 vpopmaildir
 domains_dir
-auth_libs
-auth_inc
-USE_MYSQL
 acx_pthread_config
 PTHREAD_CC
 PTHREAD_LIBS
@@ -1303,16 +1300,9 @@ Optional Features:
   --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).
   --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.
   --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.
-  --enable-auth-module=MOD   Nominate how to store the vpopmail account information (cdb (default), mysql, pgsql, ldap, oracle, or sybase).
   --enable-passwd            Enable /etc/passwd (or shadow) accounts in addition to virtual domains.
   --enable-logging=OPT       Log to syslog: n=nothing, e=errors only (default), y=all attempts, p=errors with passwords, v=verbose (all attempts, with passwords).
   --enable-log-name=TEXT     Set syslog name vpopmail.
-  --disable-auth-logging     Don't record time and ip of last auth attempt. Valid only for CDB, MySQL, PGSQL, LDAP.
-  --enable-sql-logging       Enable authentication logging to MySQL/Postgres.
-  --enable-mysql-limits      Use MySQL to store limits instead of .qmailadmin-limits files.
-  --enable-mysql-replication Enable support for replicated MySQL auth servers.
-  --enable-valias            Store email aliases in SQL table or LDAP database instead of .qmail files.
-  --disable-many-domains     Creates a table for each virtual domain instead of storing all users in a single table. Only valid for MySQL and PostgreSQL
 
 
 Some influential environment variables:
@@ -3199,250 +3189,80 @@ _ACEOF
 fi
 
 
+{ echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
+echo $ECHO_N "checking for dlopen in -ldl... $ECHO_C" >&6; }
+if test "${ac_cv_lib_dl_dlopen+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlopen ();
+int
+main ()
+{
+return dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_dl_dlopen=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_dl_dlopen=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_dl_dlopen" >&5
+echo "${ECHO_T}$ac_cv_lib_dl_dlopen" >&6; }
+if test $ac_cv_lib_dl_dlopen = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDL 1
+_ACEOF
+
+  LIBS="-ldl $LIBS"
+
+fi
+
+
 #
 # Headers
 #
-
-
-
-
-
-
-ac_header_dirent=no
-for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
-  as_ac_Header=`echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
-{ echo "$as_me:$LINENO: checking for $ac_hdr that defines DIR" >&5
-echo $ECHO_N "checking for $ac_hdr that defines DIR... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <$ac_hdr>
-
-int
-main ()
-{
-if ((DIR *) 0)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  eval "$as_ac_Header=yes"
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	eval "$as_ac_Header=no"
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
-_ACEOF
-
-ac_header_dirent=$ac_hdr; break
-fi
-
-done
-# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
-if test $ac_header_dirent = dirent.h; then
-  { echo "$as_me:$LINENO: checking for library containing opendir" >&5
-echo $ECHO_N "checking for library containing opendir... $ECHO_C" >&6; }
-if test "${ac_cv_search_opendir+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' dir; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_search_opendir=$ac_res
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext
-  if test "${ac_cv_search_opendir+set}" = set; then
-  break
-fi
-done
-if test "${ac_cv_search_opendir+set}" = set; then
-  :
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_search_opendir" >&5
-echo "${ECHO_T}$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-else
-  { echo "$as_me:$LINENO: checking for library containing opendir" >&5
-echo $ECHO_N "checking for library containing opendir... $ECHO_C" >&6; }
-if test "${ac_cv_search_opendir+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' x; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_search_opendir=$ac_res
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext
-  if test "${ac_cv_search_opendir+set}" = set; then
-  break
-fi
-done
-if test "${ac_cv_search_opendir+set}" = set; then
-  :
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_search_opendir" >&5
-echo "${ECHO_T}$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-fi
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -4011,73 +3831,6 @@ _ACEOF
 
 fi
 
-{ echo "$as_me:$LINENO: checking for sys/wait.h that is POSIX.1 compatible" >&5
-echo $ECHO_N "checking for sys/wait.h that is POSIX.1 compatible... $ECHO_C" >&6; }
-if test "${ac_cv_header_sys_wait_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <sys/wait.h>
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned int) (stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
-int
-main ()
-{
-  int s;
-  wait (&s);
-  s = WIFEXITED (s) ? WEXITSTATUS (s) : 1;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_cv_header_sys_wait_h=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_header_sys_wait_h=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_header_sys_wait_h" >&5
-echo "${ECHO_T}$ac_cv_header_sys_wait_h" >&6; }
-if test $ac_cv_header_sys_wait_h = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_SYS_WAIT_H 1
-_ACEOF
-
-fi
-
 # On IRIX 5.3, sys/types and inttypes.h are conflicting.
 
 
@@ -4181,7 +3934,8 @@ done
 
 
 
-for ac_header in arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h
+
+for ac_header in arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h dlfcn.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -5138,6 +4892,247 @@ if test $ac_cv_func_chown_works = yes; then
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_CHOWN 1
 _ACEOF
+
+fi
+
+
+
+
+
+
+ac_header_dirent=no
+for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
+  as_ac_Header=`echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $ac_hdr that defines DIR" >&5
+echo $ECHO_N "checking for $ac_hdr that defines DIR... $ECHO_C" >&6; }
+if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <$ac_hdr>
+
+int
+main ()
+{
+if ((DIR *) 0)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  eval "$as_ac_Header=yes"
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	eval "$as_ac_Header=no"
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+ac_res=`eval echo '${'$as_ac_Header'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
+_ACEOF
+
+ac_header_dirent=$ac_hdr; break
+fi
+
+done
+# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
+if test $ac_header_dirent = dirent.h; then
+  { echo "$as_me:$LINENO: checking for library containing opendir" >&5
+echo $ECHO_N "checking for library containing opendir... $ECHO_C" >&6; }
+if test "${ac_cv_search_opendir+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' dir; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_search_opendir=$ac_res
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext
+  if test "${ac_cv_search_opendir+set}" = set; then
+  break
+fi
+done
+if test "${ac_cv_search_opendir+set}" = set; then
+  :
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_search_opendir" >&5
+echo "${ECHO_T}$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+else
+  { echo "$as_me:$LINENO: checking for library containing opendir" >&5
+echo $ECHO_N "checking for library containing opendir... $ECHO_C" >&6; }
+if test "${ac_cv_search_opendir+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir ();
+int
+main ()
+{
+return opendir ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' x; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_search_opendir=$ac_res
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext
+  if test "${ac_cv_search_opendir+set}" = set; then
+  break
+fi
+done
+if test "${ac_cv_search_opendir+set}" = set; then
+  :
+else
+  ac_cv_search_opendir=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_search_opendir" >&5
+echo "${ECHO_T}$ac_cv_search_opendir" >&6; }
+ac_res=$ac_cv_search_opendir
+if test "$ac_res" != no; then
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
 
 fi
 
@@ -7906,750 +7901,6 @@ fi
 
 #----------------------------------------------------------------------
 
-{ echo "$as_me:$LINENO: checking whether an auth module has been specified" >&5
-echo $ECHO_N "checking whether an auth module has been specified... $ECHO_C" >&6; }
-
-#default to use CDB authentication
-AUTH_MODULE="cdb"
-
-# Check whether --enable-auth-module was given.
-if test "${enable_auth_module+set}" = set; then
-  enableval=$enable_auth_module; AUTH_MODULE="$enableval"
-fi
-
-
-case $AUTH_MODULE in
-
-  cd*|Cd*|CD*)
-    { echo "$as_me:$LINENO: result: no, so default to cdb" >&5
-echo "${ECHO_T}no, so default to cdb" >&6; }
-    USE_CDB=1
-    USE_SQL=0
-    rm -rf vauth.c
-    ln -sf vcdb.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_CDB $USE_CDB
-_ACEOF
-
-    auth_libs=""
-
-    auth_inc="-Icdb"
-
-    ;;
-
-  my*|My*|MY*)
-    { echo "$as_me:$LINENO: result: mysql" >&5
-echo "${ECHO_T}mysql" >&6; }
-    USE_CDB=0
-    USE_SQL=1
-    USE_MYSQL=1
-    rm -rf vauth.c
-    ln -sf vmysql.c vauth.c
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_SQL $USE_SQL
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_MYSQL $USE_MYSQL
-_ACEOF
-
-    #AC_CHECK_LIB(m,floor)
-    #AC_CHECK_LIB(z,compress)
-
-    if test "$incdir" = ""
-    then
-        { { echo "$as_me:$LINENO: error: Unable to find your MySQL inc dir, specify --enable-incdir." >&5
-echo "$as_me: error: Unable to find your MySQL inc dir, specify --enable-incdir." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    if test ! -d "$incdir"
-    then
-       { { echo "$as_me:$LINENO: error: Unable to find your MySQL inc dir, specify --enable-incdir." >&5
-echo "$as_me: error: Unable to find your MySQL inc dir, specify --enable-incdir." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    auth_inc="-I$incdir"
-
-
-    if test "$libdir" = ""
-    then
-        { { echo "$as_me:$LINENO: error: Unable to find your MySQL lib dir, specify --enable-libdir." >&5
-echo "$as_me: error: Unable to find your MySQL lib dir, specify --enable-libdir." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    if test ! -d "$libdir"
-    then
-        { { echo "$as_me:$LINENO: error: Unable to find your MySQL lib dir, specify --enable-libdir." >&5
-echo "$as_me: error: Unable to find your MySQL lib dir, specify --enable-libdir." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    auth_libs="-Xlinker -R -Xlinker $libdir -L$libdir $extralibflags -lmysqlclient -lz -lm"
-
-    ;;
-
-  pg*|Pg*|PG*)
-    { echo "$as_me:$LINENO: result: pgsql" >&5
-echo "${ECHO_T}pgsql" >&6; }
-
-    pgconfig=""
-    for f in /usr/local/pgsql/bin/pg_config /usr/local/bin/pg_config /usr/bin/pg_config
-    do
-        if test -f $f
-        then
-            pgconfig=$f
-            break
-        fi
-    done
-
-    if test "$pgconfig" = ""
-    then
-        { { echo "$as_me:$LINENO: error: Unable to locate the pg_config program." >&5
-echo "$as_me: error: Unable to locate the pg_config program." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    if test ! -f "$pgconfig"
-    then
-        { { echo "$as_me:$LINENO: error: Unable to locate the pg_config program." >&5
-echo "$as_me: error: Unable to locate the pg_config program." >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    USE_CDB=0
-    USE_SQL=1
-    USE_POSTGRES=1
-    rm -rf vauth.c
-    ln -sf vpgsql.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_SQL $USE_SQL
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_POSTGRES $USE_POSTGRES
-_ACEOF
-
-
-    auth_libs="-L`$pgconfig --libdir` -lpq "
-
-    auth_inc="-I`$pgconfig --includedir`"
-
-    ;;
-
-  ld*|Ld*|LD*)
-    { echo "$as_me:$LINENO: result: ldap" >&5
-echo "${ECHO_T}ldap" >&6; }
-
-
-for ac_header in ldap.h lber.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  { echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-else
-  # Is the header compilable?
-{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
-echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <$ac_header>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_header_compiler=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6; }
-
-# Is the header present?
-{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
-echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <$ac_header>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6; }
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
-  yes:no: )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
-    ac_header_preproc=yes
-    ;;
-  no:yes:* )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
-echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
-echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
-echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
-echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
-
-    ;;
-esac
-{ echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  eval "$as_ac_Header=\$ac_header_preproc"
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-
-fi
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-else
-  { { echo "$as_me:$LINENO: error: OpenLDAP headers not found" >&5
-echo "$as_me: error: OpenLDAP headers not found" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-done
-
-
-	#
-	# XXX Not sure what to test for here
-	#
-	#AC_CHECK_LIB(ldap, ldap_connect, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
-	#AC_CHECK_LIB(lber, ber_alloc, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
-	#AC_CHECK_LIB(resolv, res_init, [], [AC_MSG_ERROR(OpenLDAP libraries not found)])
-
-    USE_CDB=0
-    USE_SQL=0
-    USE_LDAP=1
-    rm -rf vauth.c
-    ln -sf vldap.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_LDAP $USE_LDAP
-_ACEOF
-
-    auth_libs="-L/usr/local/lib -lldap -llber -lresolv"
-
-    auth_inc="-I/usr/local/include"
-
-    ;;
-
-  or*|Or*|OR*)
-    { echo "$as_me:$LINENO: result: oracle" >&5
-echo "${ECHO_T}oracle" >&6; }
-
-
-
-for ac_header in sqlda.h sqlca.h sqlcpr.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  { echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-else
-  # Is the header compilable?
-{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
-echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <$ac_header>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_header_compiler=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6; }
-
-# Is the header present?
-{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
-echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <$ac_header>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6; }
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
-  yes:no: )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
-    ac_header_preproc=yes
-    ;;
-  no:yes:* )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
-echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
-echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
-echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
-echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
-
-    ;;
-esac
-{ echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  eval "$as_ac_Header=\$ac_header_preproc"
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-
-fi
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-else
-  { { echo "$as_me:$LINENO: error: Oracle headers not found" >&5
-echo "$as_me: error: Oracle headers not found" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-done
-
-
-	#
-	# XXX Not sure what functions the Oracle libraries export
-	#
-
-    USE_CDB=0
-    USE_SQL=1
-    USE_ORACLE=1
-    rm -rf vauth.c
-    ln -sf voracle.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_SQL $USE_SQL
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_ORACLE $USE_ORACLE
-_ACEOF
-
-    auth_libs="-L$libdir -lclntsh -lclient8"
-
-    auth_inc="-I$incdir"
-
-    ;;
-
-  sy*|Sy*|SY*)
-    { echo "$as_me:$LINENO: result: sybase" >&5
-echo "${ECHO_T}sybase" >&6; }
-
-
-for ac_header in sybfront.h sybdb.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  { echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-else
-  # Is the header compilable?
-{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
-echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <$ac_header>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_header_compiler=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6; }
-
-# Is the header present?
-{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
-echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <$ac_header>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6; }
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
-  yes:no: )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
-    ac_header_preproc=yes
-    ;;
-  no:yes:* )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
-echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
-echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
-echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
-echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
-
-    ;;
-esac
-{ echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  eval "$as_ac_Header=\$ac_header_preproc"
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-
-fi
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-else
-  { { echo "$as_me:$LINENO: error: Sybase headers not found" >&5
-echo "$as_me: error: Sybase headers not found" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-done
-
-
-{ echo "$as_me:$LINENO: checking for dbopen in -lsybdb" >&5
-echo $ECHO_N "checking for dbopen in -lsybdb... $ECHO_C" >&6; }
-if test "${ac_cv_lib_sybdb_dbopen+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsybdb  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dbopen ();
-int
-main ()
-{
-return dbopen ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_sybdb_dbopen=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_sybdb_dbopen=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_sybdb_dbopen" >&5
-echo "${ECHO_T}$ac_cv_lib_sybdb_dbopen" >&6; }
-if test $ac_cv_lib_sybdb_dbopen = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBSYBDB 1
-_ACEOF
-
-  LIBS="-lsybdb $LIBS"
-
-else
-  { { echo "$as_me:$LINENO: error: Sybase libraries not found" >&5
-echo "$as_me: error: Sybase libraries not found" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-
-    USE_CDB=0
-    USE_SQL=1
-    USE_SYBASE=1
-    rm -rf vauth.c
-    ln -sf vsybase.c vauth.c
-
-cat >>confdefs.h <<_ACEOF
-#define USE_SQL $USE_SQL
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define USE_SYBASE $USE_SYBASE
-_ACEOF
-
-    auth_libs="-L/opt/sybase/lib -lsybdb -lm"
-
-    auth_inc="-I/opt/sybase/include"
-
-    ;;
-
-  *)
-    { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-    { { echo "$as_me:$LINENO: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase" >&5
-echo "$as_me: error: A valid auth-module was not selected. Please specify using --enable-auth-module=cdb|mysql|pgsql|ldap|oracle|sybase" >&2;}
-   { (exit 1); exit 1; }; }
-    ;;
-
-esac
-
-
-#----------------------------------------------------------------------
-
 { echo "$as_me:$LINENO: checking whether system accounts have been enabled" >&5
 echo $ECHO_N "checking whether system accounts have been enabled... $ECHO_C" >&6; }
 # Check whether --enable-passwd was given.
@@ -9060,235 +8311,6 @@ cat >>confdefs.h <<_ACEOF
 #define LOG_NAME "$log_name"
 _ACEOF
 
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether auth-logging is enabled" >&5
-echo $ECHO_N "checking whether auth-logging is enabled... $ECHO_C" >&6; }
-# Check whether --enable-auth-logging was given.
-if test "${enable_auth_logging+set}" = set; then
-  enableval=$enable_auth_logging; ENABLE_AUTH_LOGGING=$enableval
-else
-
-                        ENABLE_AUTH_LOGGING=y
-
-
-fi
-
-
-case $ENABLE_AUTH_LOGGING in
-  1*|y*|Y*)
-      { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-      ENABLE_AUTH_LOGGING=1
-
-cat >>confdefs.h <<_ACEOF
-#define ENABLE_AUTH_LOGGING $ENABLE_AUTH_LOGGING
-_ACEOF
-
-      ;;
-  *)
-      { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether sql-logging is enabled" >&5
-echo $ECHO_N "checking whether sql-logging is enabled... $ECHO_C" >&6; }
-# Check whether --enable-sql-logging was given.
-if test "${enable_sql_logging+set}" = set; then
-  enableval=$enable_sql_logging; ENABLE_SQL_LOGGING=$enableval
-else
-
-                        ENABLE_SQL_LOGGING=n
-
-
-fi
-
-
-case $ENABLE_SQL_LOGGING in
-  1*|y*|Y*)
-      { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-      if test "$USE_SQL" != 1
-      then
-          { { echo "$as_me:$LINENO: error: sql-logging is only supported in the MySQL/Postgres authentication modules" >&5
-echo "$as_me: error: sql-logging is only supported in the MySQL/Postgres authentication modules" >&2;}
-   { (exit 1); exit 1; }; }
-      else
-        ENABLE_SQL_LOGGING=1
-
-cat >>confdefs.h <<_ACEOF
-#define ENABLE_SQL_LOGGING $ENABLE_SQL_LOGGING
-_ACEOF
-
-      fi
-      ;;
-  *)
-      { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether mysql-limits is enabled" >&5
-echo $ECHO_N "checking whether mysql-limits is enabled... $ECHO_C" >&6; }
-# Check whether --enable-mysql-limits was given.
-if test "${enable_mysql_limits+set}" = set; then
-  enableval=$enable_mysql_limits; ENABLE_MYSQL_LIMITS=$enableval
-else
-
-                        ENABLE_MYSQL_LIMITS=n
-
-
-fi
-
-
-case $ENABLE_MYSQL_LIMITS in
-  1*|y*|Y*)
-      { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-      if test "$USE_MYSQL" != 1
-      then
-          { { echo "$as_me:$LINENO: error: mysql-limits is only supported in the MySQL authentication module" >&5
-echo "$as_me: error: mysql-limits is only supported in the MySQL authentication module" >&2;}
-   { (exit 1); exit 1; }; }
-      else
-          ENABLE_MYSQL_LIMITS=1
-
-cat >>confdefs.h <<_ACEOF
-#define ENABLE_MYSQL_LIMITS $ENABLE_MYSQL_LIMITS
-_ACEOF
-
-      fi
-      ;;
-  *)
-      { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-      ;;
-esac
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether mysql-replication is enabled" >&5
-echo $ECHO_N "checking whether mysql-replication is enabled... $ECHO_C" >&6; }
-# Check whether --enable-mysql-replication was given.
-if test "${enable_mysql_replication+set}" = set; then
-  enableval=$enable_mysql_replication; MYSQL_REPLICATION=$enableval
-else
-
-                        MYSQL_REPLICATION=n
-
-
-fi
-
-
-case $MYSQL_REPLICATION in
-  1*|y*|Y*)
-        { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-        if test "$USE_MYSQL" != 1
-        then
-                { { echo "$as_me:$LINENO: error: mysql-replication is only supported in the MySQL authentication module" >&5
-echo "$as_me: error: mysql-replication is only supported in the MySQL authentication module" >&2;}
-   { (exit 1); exit 1; }; }
-        else
-                MYSQL_REPLICATION=1
-
-cat >>confdefs.h <<_ACEOF
-#define MYSQL_REPLICATION $MYSQL_REPLICATION
-_ACEOF
-
-        fi
-        ;;
-  *)
-        { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether valias is enabled" >&5
-echo $ECHO_N "checking whether valias is enabled... $ECHO_C" >&6; }
-# Check whether --enable-valias was given.
-if test "${enable_valias+set}" = set; then
-  enableval=$enable_valias; VALIAS=$enableval
-else
-
-                        VALIAS=n
-
-
-fi
-
-
-case $VALIAS in
-  1*|y*|Y*)
-        { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-        if test "$USE_SQL" != 1
-		 then
-		   if test "$USE_LDAP" != 1
-			then
-                { { echo "$as_me:$LINENO: error: valias option is only supported in the SQL and LDAP authentication modules" >&5
-echo "$as_me: error: valias option is only supported in the SQL and LDAP authentication modules" >&2;}
-   { (exit 1); exit 1; }; }
-			fi
-		 fi
-
-                VALIAS=1
-
-cat >>confdefs.h <<_ACEOF
-#define VALIAS $VALIAS
-_ACEOF
-
-        ;;
-  *)
-        { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
-{ echo "$as_me:$LINENO: checking whether many-domains is enabled" >&5
-echo $ECHO_N "checking whether many-domains is enabled... $ECHO_C" >&6; }
-# Check whether --enable-many-domains was given.
-if test "${enable_many_domains+set}" = set; then
-  enableval=$enable_many_domains; MANY_DOMAINS=$enableval
-else
-
-                        MANY_DOMAINS=y
-
-
-fi
-
-
-case $MANY_DOMAINS in
-  1*|y*|Y*)
-                { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-                #if test $USE_SQL != 1
-                #then
-                #     AC_MSG_ERROR(many-domains is only supported in the SQL authentication modules)
-                #else
-                   MANY_DOMAINS=1
-
-cat >>confdefs.h <<_ACEOF
-#define MANY_DOMAINS $MANY_DOMAINS
-_ACEOF
-
-                #fi
-        ;;
-  *)
-                { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-                MANY_DOMAINS=0
-        ;;
-esac
 
 #
 # Check if we can compile vusaged
@@ -10198,7 +9220,7 @@ echo "${ECHO_T}no" >&6; }
 
 #----------------------------------------------------------------------
 
-ac_config_files="$ac_config_files Makefile vusaged/Makefile vusaged/contrib/rc.vusaged"
+ac_config_files="$ac_config_files Makefile vusaged/Makefile vusaged/contrib/rc.vusaged backends/module.mk"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10757,6 +9779,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "vusaged/Makefile") CONFIG_FILES="$CONFIG_FILES vusaged/Makefile" ;;
     "vusaged/contrib/rc.vusaged") CONFIG_FILES="$CONFIG_FILES vusaged/contrib/rc.vusaged" ;;
+    "backends/module.mk") CONFIG_FILES="$CONFIG_FILES backends/module.mk" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -10883,9 +9906,6 @@ vpopuser!$vpopuser$ac_delim
 vpopgroup!$vpopgroup$ac_delim
 vpopmaildir!$vpopmaildir$ac_delim
 domains_dir!$domains_dir$ac_delim
-auth_libs!$auth_libs$ac_delim
-auth_inc!$auth_inc$ac_delim
-USE_MYSQL!$USE_MYSQL$ac_delim
 acx_pthread_config!$acx_pthread_config$ac_delim
 PTHREAD_CC!$PTHREAD_CC$ac_delim
 PTHREAD_LIBS!$PTHREAD_LIBS$ac_delim
@@ -10895,7 +9915,7 @@ VUSAGEDLIBS!$VUSAGEDLIBS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 75; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 72; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -11472,83 +10492,6 @@ case $ENABLE_DOMAIN_QUOTAS in
     echo "     domain quotas = OFF --disable-domainquotas"
     ;;
 esac
-
-
-case $AUTH_MODULE in
-  cd*|Cd*|CD*)
-    echo "       auth module = cdb --enable-auth-module=cdb (default)"
-    ;;
-
-  my*|My*|MY*)
-    echo "       auth module = mysql --enable-auth-module=mysql"
-
-    case $MYSQL_REPLICATION in
-      1*|y*|Y*)
-        echo " mysql replication = ON  --enable-mysql-replication"
-        ;;
-      *)
-        echo " mysql replication = OFF --disable-mysql-replication (default)"
-        ;;
-    esac
-
-    case $ENABLE_SQL_LOGGING in
-      1*|y*|Y*)
-        echo "       sql logging = ON  --enable-sql-logging"
-        ;;
-      *)
-        echo "       sql logging = OFF --disable-sql-logging (default)"
-        ;;
-    esac
-
-    case $ENABLE_MYSQL_LIMITS in
-      1*|y*|Y*)
-        echo "      mysql limits = ON  --enable-mysql-limits"
-        ;;
-      *)
-        echo "      mysql limits = OFF --disable-mysql-limits (default)"
-        ;;
-    esac
-
-    case $VALIAS in
-      1*|y*|Y*)
-        echo "  SQL valias table = ON  --enable-valias"
-        ;;
-      *)
-        echo "  SQL valias table = OFF --disable-valias (default)"
-        ;;
-    esac
-    ;;
-
-  pg*|Pg*|PG*)
-    echo "       auth module = postgres --enable-auth-module=postgres"
-
-    case $ENABLE_SQL_LOGGING in
-      1*|y*|Y*)
-        echo "       sql logging = ON  --enable-sql-logging"
-        ;;
-      *)
-        echo "       sql logging = OFF --disable-sql-logging (default)"
-      ;;
-    esac
-    ;;
-
-  ld*|Ld*|LD*)
-    echo "       auth module = ldap --enable-auth-module=ldap"
-    ;;
-
-  or*|Or*|OR*)
-    echo "       auth module = oracle --enable-auth-module=oracle"
-    ;;
-
-  sy*|Sy*|SY*)
-    echo "       auth module = sybase --enable-auth-module=sybase"
-    ;;
-
-esac
-
-
-echo "          auth inc = $auth_inc"
-echo "          auth lib = $auth_libs"
 
 
 case $ENABLE_PASSWD in

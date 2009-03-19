@@ -43,6 +43,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "vauth.h"
+#include "vauthmodule.h"
 
 #ifndef lint
 static char     sccsid[] = "$Id$";
@@ -210,6 +211,7 @@ pipe_exec(char **argv, char *tmpbuf, int len)
 int
 main(int argc, char **argv)
 {
+   int ret;
 	char           *buf, *tmpbuf, *login, *challenge, *crypt_pass,
 				   *prog_name, *service, *service_type;
 	char            user[AUTH_SIZE], domain[AUTH_SIZE], Email[MAX_BUFF];
@@ -219,6 +221,12 @@ main(int argc, char **argv)
 	struct vqpasswd  *pw;
 	char           *(indiargs[]) = { VPOPMAILDIR"/sbin/imaplogin", VPOPMAILDIR"/libexec/authlib/authvchkpw",
 					VPOPMAILDIR"/bin/imapd", "Maildir", 0 };
+
+	ret = vauth_load_module(NULL);
+	if (!ret) {
+	   fprintf(stderr, "%s: could not load authentication module\n", prog_name);
+	   return 1;
+	}
 
 	if ((prog_name = strrchr(argv[0], '/')))
 		prog_name++;

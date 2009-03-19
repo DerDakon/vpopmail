@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <vpopmail.h>
 #include <vauth.h>
+#include <vauthmodule.h>
 #include "conf.h"
 #include "domain.h"
 #include "userstore.h"
@@ -85,6 +86,16 @@ int queue_init(config_t *config)
 #ifdef ASSERT_DEBUG
    assert(config != NULL);
 #endif
+
+   /*
+	  Initialize vpopmail module
+   */
+
+   ret = vauth_load_module(NULL);
+   if (!ret) {
+	  fprintf(stderr, "queue_init: vauth_load_module failed\n");
+	  return 0;
+   }
 
    /*
 	  Initialize
