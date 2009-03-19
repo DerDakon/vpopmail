@@ -1008,7 +1008,7 @@ dump_data  = ( getenv("VPDUMP_DATA")  != NULL);
 
 /***************************************************************************/
 
-void vclose(void) {
+void vvclose(void) {
     if (ld) {
         ldap_unbind_s(ld);
         ld = NULL;
@@ -1048,7 +1048,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
     return(dir_control_file);
 }
 
-int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int read_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  FILE *fs;
  char dir_control_file[MAX_DIR_NAME];
@@ -1130,7 +1130,7 @@ int vread_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
-int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
+int write_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 {
  FILE *fs;
  char dir_control_file[MAX_DIR_NAME];
@@ -1174,7 +1174,7 @@ int vwrite_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
     return(0);
 }
 
-int vdel_dir_control(char *domain)
+int del_dir_control(char *domain)
 {
  char dir_control_file[MAX_DIR_NAME];
 
@@ -1186,7 +1186,7 @@ int vdel_dir_control(char *domain)
 /***************************************************************************/
 
 #ifdef ENABLE_AUTH_LOGGING
-int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time ) {
+int set_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time ) {
     char *tmpbuf;
     FILE *fs;
     struct vqpasswd *vpw;
