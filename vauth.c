@@ -72,6 +72,12 @@ static struct vauth_required_func vauth_required_functions[] = {
    { "set_lastauth", &vset_lastauth, 0 },
    { "get_lastauth", &vget_lastauth, 0 },
 #endif
+#ifdef IP_ALIAS_DOMAINS
+   { "get_ip_map", &vget_ip_map, 0 },
+   { "add_ip_map", &vadd_ip_map, 0 },
+   { "del_ip_map", &vdel_ip_map, 0 },
+   { "show_ip_map", &vshow_ip_map, 0 },
+#endif
    { "read_dir_control", &vread_dir_control, 0 },
    { "write_dir_control", &vwrite_dir_control, 0 },
    { "del_dir_control", &vdel_dir_control, 0 },

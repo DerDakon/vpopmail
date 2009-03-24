@@ -1302,7 +1302,7 @@ int add_ip_map( char *ip, char *domain) {
     if ( domain == NULL || strlen(domain) <= 0 )
         return(-10);
 
-    vdel_ip_map( ip, domain );
+    del_ip_map( ip, domain );
 
     snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
     if ( (fs = fopen(tmpbuf,"a+")) == NULL )

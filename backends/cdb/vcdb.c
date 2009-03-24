@@ -790,7 +790,7 @@ void vvclose()
 }
 
 #ifdef IP_ALIAS_DOMAINS
-int vget_ip_map( char *ip, char *domain, int domain_size)
+int get_ip_map( char *ip, char *domain, int domain_size)
 {
  FILE *fs;
  char tmpbuf[156];
@@ -823,7 +823,7 @@ int vget_ip_map( char *ip, char *domain, int domain_size)
  * It will remove any duplicate entry before adding it
  *
  */
-int vadd_ip_map( char *ip, char *domain)
+int add_ip_map( char *ip, char *domain)
 {
  FILE *fs;
  char tmpbuf[156];
@@ -831,7 +831,7 @@ int vadd_ip_map( char *ip, char *domain)
 	if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
 	if ( domain == NULL || strlen(domain) <= 0 ) return(-10);
 
-	vdel_ip_map( ip, domain );
+	del_ip_map( ip, domain );
 
 	snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
 	if ( (fs = fopen(tmpbuf,"a+")) == NULL ) return(-1);
@@ -841,7 +841,7 @@ int vadd_ip_map( char *ip, char *domain)
 	return(0);
 }
 
-int vdel_ip_map( char *ip, char *domain) 
+int del_ip_map( char *ip, char *domain) 
 {
  FILE *fs;
  FILE *fs1;
@@ -888,7 +888,7 @@ int vdel_ip_map( char *ip, char *domain)
 	return(0);
 }
 
-int vshow_ip_map( int first, char *ip, char *domain)
+int show_ip_map( int first, char *ip, char *domain)
 {
  static FILE *fs = NULL;
  char tmpbuf[156];

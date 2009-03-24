@@ -1069,7 +1069,7 @@ int del_ip_map( char *ip, char *domain)
 
 
 /************************************************************************/
-int vshow_ip_map( int first, char *ip, char *domain )
+int show_ip_map( int first, char *ip, char *domain )
 {
  static int more = 0;
 

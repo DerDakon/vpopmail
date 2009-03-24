@@ -616,23 +616,23 @@ void vclose()
 }
 
 #ifdef IP_ALIAS_DOMAINS
-int vget_ip_map( char *ip, char *domain, int domain_size)
+int get_ip_map( char *ip, char *domain, int domain_size)
 {
 	if ( ip == NULL || strlen(ip) <= 0 ) return(0);
 	return(0);
 }
 
-int vadd_ip_map( char *ip, char *domain) 
+int add_ip_map( char *ip, char *domain) 
 {
 	return(0);
 }
 
-int vdel_ip_map( char *ip, char *domain) 
+int del_ip_map( char *ip, char *domain) 
 {
 	return(0);
 }
 
-int vshow_ip_map( int first, char *ip, char *domain);
+int show_ip_map( int first, char *ip, char *domain);
 {
 	return(0);
 }
