@@ -58,14 +58,14 @@ int quota_check(const char *email)
 	  Domain is over quota
    */
 
-   if (ret == -2)
+   if (ret == 2)
 	  return 1;
 
    /*
-	  Deliver quotawarn
+	  Return result
    */
 
-   return 1;
+   return ret;
 }
 
 /*
