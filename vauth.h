@@ -55,12 +55,6 @@ struct vqpasswd {
 
 void vclose1();
 /* these routines are used to admin ip aliased domains */
-#ifdef IP_ALIAS_DOMAINS
-int vget_ip_map( char *ip, char *domain, int domain_size);
-int vadd_ip_map( char *ip, char *domain);
-int vdel_ip_map( char *ip, char *domain); 
-int vshow_ip_map( int first, char *ip, char *domain);
-#endif
 
 #define MAX_DIR_LEVELS        3
 #define MAX_USERS_PER_LEVEL 100

@@ -2720,6 +2720,10 @@ void vset_default_domain( char *domain )
 
 void vset_default_domain_safe(char *domain, int dlen) 
 {
+#ifdef IP_ALIAS_DOMAINS
+   int ret = 0;
+#endif
+
    int len = 0;
    char *tmpstr = NULL, host[256] = { 0 };
 

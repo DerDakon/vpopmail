@@ -918,7 +918,7 @@ int del_ip_map( char *ip, char *domain)
   if(pgres) PQclear(pgres);
   return(0);
 }	
-int vshow_ip_map( int first, char *ip, char *domain )
+int show_ip_map( int first, char *ip, char *domain )
 {
   static PGresult *pgres=NULL;
   static unsigned ntuples=0, ctuple=0;

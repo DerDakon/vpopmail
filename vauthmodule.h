@@ -28,5 +28,12 @@ int (*vset_lastauth)( char *user, char *domain, char *remoteip);
 time_t (*vget_lastauth)( struct vqpasswd *pw, char *domain);
 char *(*vget_lastauthip)( struct vqpasswd *pw, char *domain);
 
+#ifdef IP_ALIAS_DOMAINS
+int (*vget_ip_map)( char *ip, char *domain, int domain_size);
+int (*vadd_ip_map)( char *ip, char *domain);
+int (*vdel_ip_map)( char *ip, char *domain); 
+int (*vshow_ip_map)( int first, char *ip, char *domain);
+#endif
+
 #endif
 #endif
