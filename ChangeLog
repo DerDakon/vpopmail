@@ -23,6 +23,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated vauthmodule.h to be included by vauth.h except if VAUTH_MODULE is defined
   - Defined VAUTH_MODULE under working modules
   - Updated module code to automatically call vauth_load_module and to catch calls to vauth_open and vclose
+  - Fixed result comparison bug in quota_check
+  - Added IP alias domain functionality to modules
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
