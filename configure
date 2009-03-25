@@ -9090,8 +9090,8 @@ if test "${enable_valias+set}" = set; then
   enableval=$enable_valias;
 	  { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
-	  { { echo "$as_me:$LINENO: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling your backend module" >&5
-echo "$as_me: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling your backend module" >&2;}
+	  { { echo "$as_me:$LINENO: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling a backend module." >&5
+echo "$as_me: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling a backend module." >&2;}
    { (exit 1); exit 1; }; }
 
 
@@ -9118,6 +9118,19 @@ if test "${enable_pgsql_logging+set}" = set; then
 echo "${ECHO_T}yes" >&6; }
         { { echo "$as_me:$LINENO: error: --enable-pgsql-logging has been superceded.  Please use --enable-sql-logging instead" >&5
 echo "$as_me: error: --enable-pgsql-logging has been superceded.  Please use --enable-sql-logging instead" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+fi
+
+
+# Check whether --enable-auth-module was given.
+if test "${enable_auth_module+set}" = set; then
+  enableval=$enable_auth_module;
+	  { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+	  { { echo "$as_me:$LINENO: error: --enable-auth-module is no longer used.  Please select a backend from the backends directory" >&5
+echo "$as_me: error: --enable-auth-module is no longer used.  Please select a backend from the backends directory" >&2;}
    { (exit 1); exit 1; }; }
 
 

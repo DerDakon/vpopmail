@@ -1539,6 +1539,13 @@ AC_ARG_ENABLE(pgsql-logging, [],
     ]
 )
 
+AC_ARG_ENABLE(auth-module, [],
+   [
+	  AC_MSG_RESULT(yes)
+	  AC_MSG_ERROR(--enable-auth-module is no longer used.  Please select a backend from the backends directory)
+   ]
+)
+
 AC_ARG_ENABLE(mysql, [],
     [
         AC_MSG_RESULT(yes)
