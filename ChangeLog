@@ -25,6 +25,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated module code to automatically call vauth_load_module and to catch calls to vauth_open and vclose
   - Fixed result comparison bug in quota_check
   - Added IP alias domain functionality to modules
+  - Updated some formatting in vdominfo output in regards to alias domains
+  - Updated backend module code to support valias
 
   Luis Felipe 
   - Updated to provide maildrop flag in vlimits MySQL
