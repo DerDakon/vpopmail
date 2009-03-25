@@ -19,6 +19,7 @@
 
 AC_PREREQ([2.52])
 AC_INIT(vmysql,1.0.0)
+AC_CONFIG_HEADER(vmysql.h)
 AC_CANONICAL_HOST
 
 #
@@ -68,7 +69,7 @@ do
 done
 
 AC_ARG_ENABLE(libdir,
-    [  --enable-libdir=DIR        Your MySQL 'lib' directory.],
+    [  --enable-libdir=DIR     Your MySQL 'lib' directory.],
     libdir="$enableval",
 )
 
@@ -89,11 +90,23 @@ do
 done
 
 AC_ARG_ENABLE(incdir,
-    [  --enable-incdir=DIR        Your MySQL 'include' directory.],
+    [  --enable-incdir=DIR     Your MySQL 'include' directory.],
     incdir="$enableval",
 )
 
 AC_SUBST(incdir)
+
+#
+# Options
+#
+
+AC_MSG_CHECKING(whether to use valias)
+AC_ARG_ENABLE(valias,
+			  [  --enable-valias         Enable storage of dotqmail data in the MySQL database ],
+			  [ 
+			    AC_DEFINE_UNQUOTED(VALIAS,1,"")
+			    AC_MSG_RESULT(yes)
+			  ], AC_MSG_RESULT(no))
 
 #
 # Output

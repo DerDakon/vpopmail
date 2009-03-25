@@ -158,7 +158,7 @@ vadduser.o: $(DEPS) vadduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 valias.o: $(DEPS) valias.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h vauth.c
+vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h vauth.c vpalias.h
 	$(CCC) -o $@ -c $*.c
 vchangepw.o: $(DEPS) vchangepw.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -192,7 +192,7 @@ vmoddomlimits.o: $(DEPS) vmoddomlimits.c config.h vpopmail.h vauth.h vlimits.h
 	$(CCC) -o $@ -c $*.c
 vmoduser.o: $(DEPS) vmoduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
-vpalias.o: $(DEPS) vpalias.c vpopmail.h vauth.h
+vpalias.o: $(DEPS) vpalias.c vpopmail.h vauth.h vpalias.h
 	$(CCC) -o $@ -c $*.c
 vpasswd.o: $(DEPS) vpasswd.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c

@@ -19,6 +19,8 @@
 #ifndef VPOPMAIL_PGSQL_H
 #define VPOPMAIL_PGSQL_H
 
+#undef VALIAS
+
 #include "config.h"
 
 /* Edit to match your set up */
