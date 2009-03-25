@@ -277,7 +277,7 @@ void display_one_domain( char * Domain )
     }
 
     for(i=0;i<aliascount;i++) {
- 	printf ("alias: %s\n", aliases[i]);
+ 	printf ("alias:  %s\n", aliases[i]);
         free( aliases[i] );
     } 
 }
