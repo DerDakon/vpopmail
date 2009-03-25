@@ -1518,6 +1518,13 @@ AC_CHECK_LIB(ev, ev_loop_new,
 
 AC_MSG_CHECKING(whether any discontinued --enable commands have been used)
 
+AC_ARG_ENABLE(valias, [],
+   [
+	  AC_MSG_RESULT(yes)
+	  AC_MSG_ERROR(--enable-valias is no longer a vpopmail configure option.  Please use this option when compiling a backend module.)
+   ]
+)
+
 AC_ARG_ENABLE(mysql-logging, [],
     [
         AC_MSG_RESULT(yes)
