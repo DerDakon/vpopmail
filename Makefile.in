@@ -282,6 +282,12 @@ install: $(BUILD_ALL)
 	@echo "            vpopmail is installed"
 	@echo "  Be sure to install the vusaged startup script"
 	@echo "  located in vusaged/contrib/rc.vusaged"
+	@echo
+	@echo "  You will also want to select a backend module"
+	@echo "  for storing authentication information if you"
+	@echo "  have not already done this."
+	@echo
+	@echo "     For more information see backends/README"
 	@echo "-------------------------------------------------"
 	@echo
 	
