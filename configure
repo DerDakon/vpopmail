@@ -9085,6 +9085,19 @@ fi
 { echo "$as_me:$LINENO: checking whether any discontinued --enable commands have been used" >&5
 echo $ECHO_N "checking whether any discontinued --enable commands have been used... $ECHO_C" >&6; }
 
+# Check whether --enable-valias was given.
+if test "${enable_valias+set}" = set; then
+  enableval=$enable_valias;
+	  { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+	  { { echo "$as_me:$LINENO: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling your backend module" >&5
+echo "$as_me: error: --enable-valias is no longer a vpopmail configure option.  Please use this option when compiling your backend module" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+fi
+
+
 # Check whether --enable-mysql-logging was given.
 if test "${enable_mysql_logging+set}" = set; then
   enableval=$enable_mysql_logging;
