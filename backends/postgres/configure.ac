@@ -19,6 +19,7 @@
 
 AC_PREREQ([2.52])
 AC_INIT(vpgsql,1.0.0)
+AC_CONFIG_HEADER(vpgsql.h)
 AC_CANONICAL_HOST
 
 #
@@ -92,6 +93,18 @@ auth_inc="-I`$pgconfig --includedir`"
 
 AC_MSG_RESULT($auth_inc)
 AC_SUBST(auth_inc)
+
+#
+# Options
+#
+
+AC_MSG_CHECKING(whether to use valias)
+AC_ARG_ENABLE(valias,
+			  [  --enable-valias         Enable storage of dotqmail data in the PostgreSQL database ],
+			  [ 
+			    AC_DEFINE_UNQUOTED(VALIAS,1,"")
+			    AC_MSG_RESULT(yes)
+			  ], AC_MSG_RESULT(no))
 
 #
 # Output

@@ -43,9 +43,6 @@ char AliasLine[MAX_BUFF];
 
 int AliasAction;
 int AliasExists;
-char *valias_select_names( char *domain );
-char *valias_select_names_next();
-void  valias_select_names_end();
 
 void usage();
 void get_options(int argc,char **argv);

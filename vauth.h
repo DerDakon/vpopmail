@@ -82,15 +82,6 @@ int inc_dir_control(vdir_type *);
 int dec_dir_control(char *domain, uid_t uid, gid_t gid);
 void print_control();
 
-char *valias_select( char *alias, char *domain );
-char *valias_select_next();
-char *valias_select_all( char *alias, char *domain );
-char *valias_select_all_next(char *alias);
-int valias_insert( char *alias, char *domain, char *alias_line);
-int valias_remove( char *alias, char *domain, char *alias_line);
-int valias_delete( char *alias, char *domain);
-int valias_delete_domain( char *domain);
-
 /* Log to MySQL Added by David Wartell to support MySQL logging */
 int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheName, char *IpAddr, char *LogLine);
 

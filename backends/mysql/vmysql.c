@@ -39,6 +39,8 @@ Add error result for "unable to read vpopmail.mysql" and return it
 #include "vlimits.h"
 #include "vmysql.h"
 
+void vvclose();
+
 const char auth_module_name[] = "mysql";
 
 static MYSQL mysql_update;
@@ -588,7 +590,7 @@ int auth_deldomain( char *domain )
     } 
 
 #ifdef VALIAS 
-    valias_delete_domain( domain);
+    alias_delete_domain( domain);
 #endif
 
 #ifdef ENABLE_AUTH_LOGGING
@@ -1377,7 +1379,7 @@ struct linklist *valias_current = NULL;
 
 
 /************************************************************************/
-char *valias_select( char *alias, char *domain )
+char *alias_select( char *alias, char *domain )
 {
  int err;
  struct linklist *temp_entry = NULL;
@@ -1414,7 +1416,7 @@ where alias = '%s' and domain = '%s'", alias, domain );
 
 
 /************************************************************************/
-char *valias_select_next()
+char *alias_select_next()
 {
     if (valias_current == NULL) return NULL;
 
@@ -1426,7 +1428,7 @@ char *valias_select_next()
 
 
 /************************************************************************/
-int valias_insert( char *alias, char *domain, char *alias_line)
+int alias_insert( char *alias, char *domain, char *alias_line)
 {
  int err;
 
@@ -1458,7 +1460,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 
 
 /************************************************************************/
-int valias_remove( char *alias, char *domain, char *alias_line)
+int alias_remove( char *alias, char *domain, char *alias_line)
 {
  int err;
 
@@ -1488,7 +1490,7 @@ and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
 
 
 /************************************************************************/
-int valias_delete( char *alias, char *domain)
+int alias_delete( char *alias, char *domain)
 {
  int err;
 
@@ -1519,7 +1521,7 @@ and domain = '%s'", alias, domain );
 
 
 /************************************************************************/
-int valias_delete_domain( char *domain)
+int alias_delete_domain( char *domain)
 {
  int err;
 
@@ -1556,7 +1558,7 @@ void vcreate_valias_table()
 
 
 /************************************************************************/
-char *valias_select_all( char *alias, char *domain )
+char *alias_select_all( char *alias, char *domain )
 {
  int err;
  struct linklist *temp_entry = NULL;
@@ -1593,7 +1595,7 @@ char *valias_select_all( char *alias, char *domain )
 
 
 /************************************************************************/
-char *valias_select_all_next(char *alias)
+char *alias_select_all_next(char *alias)
 {
     if (valias_current == NULL) return NULL;
     valias_current = linklist_del (valias_current);
@@ -1610,7 +1612,7 @@ char *valias_select_all_next(char *alias)
  *  valias_select_names
  */
 
-char *valias_select_names( char *alias, char *domain )
+char *alias_select_names( char *alias, char *domain )
 {
  struct linklist *temp_entry = NULL;
 
@@ -1656,7 +1658,7 @@ char *valias_select_names( char *alias, char *domain )
  *  valias_select_names_next
  */
 
-char *valias_select_names_next(char *alias)
+char *alias_select_names_next(char *alias)
 {
     if (valias_current == NULL) return NULL;
     valias_current = linklist_del (valias_current);
@@ -1674,7 +1676,7 @@ char *valias_select_names_next(char *alias)
  *  valias_select_names_end
  */
 
-void valias_select_names_end() {
+void alias_select_names_end() {
 
 //  not needed by mysql
 

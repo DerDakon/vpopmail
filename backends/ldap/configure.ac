@@ -20,6 +20,7 @@
 AC_PREREQ([2.52])
 AC_INIT(vldap,1.0.0)
 AC_CANONICAL_HOST
+AC_CONFIG_HEADER(vldap.h)
 
 #
 # Set default compiler and linker flags
@@ -53,10 +54,6 @@ AC_MSG_RESULT(found)
 # Libraries
 #
 
-#
-# I'm unsure of what to test for
-#
-
 AC_CHECK_LIB(ldap, ldap_open)
 AC_CHECK_LIB(lber, ber_pvt_opt_on)
 
@@ -71,7 +68,7 @@ do
 done
 
 AC_ARG_ENABLE(libdir,
-    [  --enable-libdir=DIR        Your OpenLDAP 'lib' directory.],
+    [  --enable-libdir=DIR     Your OpenLDAP 'lib' directory.],
     libdir="$enableval",
 )
 
@@ -92,11 +89,23 @@ do
 done
 
 AC_ARG_ENABLE(incdir,
-    [  --enable-incdir=DIR        Your OpenLDAP 'include' directory.],
+    [  --enable-incdir=DIR     Your OpenLDAP 'include' directory.],
     incdir="$enableval",
 )
 
 AC_SUBST(incdir)
+
+#
+# Options
+#
+
+AC_MSG_CHECKING(whether to use valias)
+AC_ARG_ENABLE(valias,
+			  [  --enable-valias         Enable storage of dotqmail data in the LDAP database ],
+			  [ 
+			    AC_DEFINE_UNQUOTED(VALIAS,1,"")
+			    AC_MSG_RESULT(yes)
+			  ], AC_MSG_RESULT(no))
 
 #
 # Output

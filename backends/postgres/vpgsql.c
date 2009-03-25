@@ -381,7 +381,7 @@ int auth_deldomain( char *domain )
   if(pgres) PQclear(pgres);
 
 #ifdef VALIAS 
-    valias_delete_domain( domain);
+    alias_delete_domain( domain);
 #endif
 
 #ifdef ENABLE_AUTH_LOGGING
@@ -1285,7 +1285,7 @@ void vcreate_lastauth_table()
 #ifdef VALIAS
 struct linklist *valias_current = NULL;
 
-char *valias_select( char *alias, char *domain )
+char *alias_select( char *alias, char *domain )
 {
   PGresult *pgvalias;
   int err, verrori;
@@ -1329,7 +1329,7 @@ char *valias_select( char *alias, char *domain )
   else return(valias_current->data);
 }
 
-char *valias_select_next()
+char *alias_select_next()
 {
   if (valias_current == NULL) return NULL;
 
@@ -1339,7 +1339,7 @@ char *valias_select_next()
   else return valias_current->data; 
 }
 
-int valias_insert( char *alias, char *domain, char *alias_line)
+int alias_insert( char *alias, char *domain, char *alias_line)
 {
   PGresult *pgres;
   int err;
@@ -1380,7 +1380,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
   return(-1);
 }
 
-int valias_delete( char *alias, char *domain)
+int alias_delete( char *alias, char *domain)
 {
   PGresult *pgres;
   int err;
@@ -1416,7 +1416,7 @@ int valias_delete( char *alias, char *domain)
   return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *alias_line)
+int alias_remove( char *alias, char *domain, char *alias_line)
 {
   PGresult *pgres;
   int err;
@@ -1449,7 +1449,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
   return(0);
 }
 
-int valias_delete_domain( char *domain)
+int alias_delete_domain( char *domain)
 {
   PGresult *pgres;
   int err;
@@ -1503,7 +1503,7 @@ void vcreate_valias_table()
     return;
 }
 
-char *valias_select_all( char *alias, char *domain )
+char *alias_select_all( char *alias, char *domain )
 {
   PGresult *pgres;
   int err;
@@ -1547,7 +1547,7 @@ char *valias_select_all( char *alias, char *domain )
   }
 }
 
-char *valias_select_all_next(char *alias)
+char *alias_select_all_next(char *alias)
 {
   if (valias_current == NULL) return NULL;
   valias_current = linklist_del (valias_current);

@@ -27,6 +27,18 @@ int (*vdel_dir_control)(char *domain);
 int (*vset_lastauth)( char *user, char *domain, char *remoteip);
 time_t (*vget_lastauth)( struct vqpasswd *pw, char *domain);
 char *(*vget_lastauthip)( struct vqpasswd *pw, char *domain);
+char *(*valias_select)( char *alias, char *domain );
+char *(*valias_select_next)();
+char *(*valias_select_all)( char *alias, char *domain );
+char *(*valias_select_all_next)(char *alias);
+char *(*valias_select_names)(char *);
+char *(*valias_select_names_next)();
+char *(*valias_select_names_end)();
+int (*valias_insert)( char *alias, char *domain, char *alias_line);
+int (*valias_remove)( char *alias, char *domain, char *alias_line);
+int (*valias_delete)( char *alias, char *domain);
+int (*valias_delete_domain)( char *domain);
+
 
 #ifdef IP_ALIAS_DOMAINS
 int (*vget_ip_map)( char *ip, char *domain, int domain_size);

@@ -29,6 +29,7 @@
 #include "config.h"
 #include "vauthmodule.h"
 #include "vpopmail.h"
+#include "vpalias.h"
 
 extern int verrori;
 
@@ -44,6 +45,7 @@ struct vauth_required_func {
    const char *name;
    void *func;
    int flags;
+   void *rfunc;
 };
 
 /*
@@ -55,32 +57,43 @@ static int (*auth_open_ptr)(int) = NULL;
 static void (*vvclose_ptr)(void) = NULL;
 
 static struct vauth_required_func vauth_required_functions[] = {
-   { "auth_open", &auth_open_ptr, 0 },
-   { "auth_adddomain", &vauth_adddomain, 0 },
-   { "auth_deldomain", &vauth_deldomain, 0},
-   { "auth_adduser", &vauth_adduser, 0 },
-   { "auth_crypt", &vauth_crypt, 0 },
-   { "auth_deluser", &vauth_deluser, 0 },
-   { "auth_setpw", &vauth_setpw, 0 },
-   { "auth_getpw", &vauth_getpw, 0 },
-   { "auth_setquota", &vauth_setquota, 0 },
-   { "auth_getall", &vauth_getall, 0 },
-   { "auth_end_getall", &vauth_end_getall, 0 },
-   { "mkpasswd", &vmkpasswd, VAUTH_MF_OPTIONAL },
-   { "vvclose", &vvclose_ptr, 0 },
+   { "auth_open", &auth_open_ptr, 0, NULL },
+   { "auth_adddomain", &vauth_adddomain, 0, NULL },
+   { "auth_deldomain", &vauth_deldomain, 0, NULL},
+   { "auth_adduser", &vauth_adduser, 0, NULL },
+   { "auth_crypt", &vauth_crypt, 0, NULL },
+   { "auth_deluser", &vauth_deluser, 0, NULL },
+   { "auth_setpw", &vauth_setpw, 0, NULL },
+   { "auth_getpw", &vauth_getpw, 0, NULL },
+   { "auth_setquota", &vauth_setquota, 0, NULL },
+   { "auth_getall", &vauth_getall, 0, NULL },
+   { "auth_end_getall", &vauth_end_getall, 0, NULL },
+   { "mkpasswd", &vmkpasswd, VAUTH_MF_OPTIONAL, NULL },
+   { "vvclose", &vvclose_ptr, 0, NULL },
+   { "read_dir_control", &vread_dir_control, 0, NULL },
+   { "write_dir_control", &vwrite_dir_control, 0, NULL },
+   { "del_dir_control", &vdel_dir_control, 0, NULL },
+   { "alias_select", &valias_select, VAUTH_MF_OPTIONAL, &vpalias_select },
+   { "alias_select_next", &valias_select_next, VAUTH_MF_OPTIONAL, &vpalias_select_next },
+   { "alias_select_all", &valias_select_all, VAUTH_MF_OPTIONAL, &vpalias_select_all },
+   { "alias_select_all_next", &valias_select_all_next, VAUTH_MF_OPTIONAL, &vpalias_select_all_next },
+   { "alias_select_names", &valias_select_names, VAUTH_MF_OPTIONAL, &vpalias_select_names },
+   { "alias_select_names_next", &valias_select_names_next, VAUTH_MF_OPTIONAL, &vpalias_select_names_next },
+   { "alias_select_names_end", &valias_select_names_end, VAUTH_MF_OPTIONAL, &vpalias_select_names_end },
+   { "alias_insert", &valias_insert, VAUTH_MF_OPTIONAL, &vpalias_insert },
+   { "alias_remove", &valias_remove, VAUTH_MF_OPTIONAL, &vpalias_remove },
+   { "alias_delete", &valias_delete, VAUTH_MF_OPTIONAL, &vpalias_delete },
+   { "alias_delete_domain", &valias_delete_domain, VAUTH_MF_OPTIONAL, &vpalias_delete_domain },
 #ifdef ENABLE_AUTH_LOGGING
-   { "set_lastauth", &vset_lastauth, 0 },
-   { "get_lastauth", &vget_lastauth, 0 },
+   { "set_lastauth", &vset_lastauth, 0, NULL },
+   { "get_lastauth", &vget_lastauth, 0, NULL },
 #endif
 #ifdef IP_ALIAS_DOMAINS
-   { "get_ip_map", &vget_ip_map, 0 },
-   { "add_ip_map", &vadd_ip_map, 0 },
-   { "del_ip_map", &vdel_ip_map, 0 },
-   { "show_ip_map", &vshow_ip_map, 0 },
+   { "get_ip_map", &vget_ip_map, 0, NULL },
+   { "add_ip_map", &vadd_ip_map, 0, NULL },
+   { "del_ip_map", &vdel_ip_map, 0, NULL },
+   { "show_ip_map", &vshow_ip_map, 0, NULL },
 #endif
-   { "read_dir_control", &vread_dir_control, 0 },
-   { "write_dir_control", &vwrite_dir_control, 0 },
-   { "del_dir_control", &vdel_dir_control, 0 },
    { NULL, NULL }
 };
 
@@ -142,14 +155,32 @@ int vauth_load_module(const char *module)
 
    for (i = 0; vauth_required_functions[i].name; i++) {
 	  sym = dlsym(hand, vauth_required_functions[i].name);
-	  if ((sym == NULL) && (!(vauth_required_functions[i].flags & VAUTH_MF_OPTIONAL))) {
-		 dlclose(hand);
-		 fprintf(stderr, "vauth_load_module: %s: dlsym(%s) failed: %d\n",
-			   module, vauth_required_functions[i].name, errno);
-		 verrori = VA_NO_AUTH_MODULE;
-		 return 0;
+	  if (sym == NULL) {
+		 if (!(vauth_required_functions[i].flags & VAUTH_MF_OPTIONAL)) {
+			dlclose(hand);
+			fprintf(stderr, "vauth_load_module: %s: dlsym(%s) failed: %d\n",
+				  module, vauth_required_functions[i].name, errno);
+			verrori = VA_NO_AUTH_MODULE;
+			return 0;
+		 }
+
+		 if (vauth_required_functions[i].rfunc) {
+			sym = vauth_required_functions[i].rfunc;
+#ifdef VAUTH_MODULE_DEBUG
+			printf("%s available by replacement\n", vauth_required_functions[i].name);
+#endif
+		 }
+
+#ifdef VAUTH_MODULE_DEBUG
+		 else
+			printf("%s not available by module\n", vauth_required_functions[i].name);
+#endif
 	  }
 
+#ifdef VAUTH_MODULE_DEBUG
+	  else
+		 printf("%s loaded by module\n", vauth_required_functions[i].name);
+#endif
 	  *(intptr_t *)(vauth_required_functions[i].func) = (intptr_t)sym;
    }
 

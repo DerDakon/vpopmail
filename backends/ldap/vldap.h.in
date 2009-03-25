@@ -17,32 +17,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/* NOTE: From of vpopmail 5.4.15, LDAP connection info is stored in
-   ~vpopmail/etc/vpopmail.ldap.  The format of the file is as follows:
-   
-   ldap server|ldap port|ldap user|ldap password|ldap basedn
-   
-   Comments (lines starting with '#') are allowed. 
-   
-   Port should be the actual port.
-   
-   For example:
-   
-   # This is the LDAP configuration file for vpopmail.
-   localhost|389|cn=vpopmailuser, o=vpopmail|vpoppasswd|o=vpopmail
-   
- */
-
-int ldapversion = 3;
-
-void *safe_malloc (size_t siz);
-char *safe_strdup (const char *s);
-void safe_free (void **p);
-int ldap_connect ();
-int compose_dn (char **dn, char *domain);
-
 #ifndef VPOPMAIL_LDAP_H
 #define VPOPMAIL_LDAP_H
+
+#undef VALIAS
 
 char *VLDAP_SERVER;
 int VLDAP_PORT = LDAP_PORT;
@@ -64,4 +42,12 @@ static char *vldap_attrs[] = {
 #endif
 NULL
 };
+
+int ldapversion = 3;
+
+void *safe_malloc (size_t siz);
+char *safe_strdup (const char *s);
+void safe_free (void **p);
+int ldap_connect ();
+int compose_dn (char **dn, char *domain);
 #endif

@@ -770,7 +770,7 @@ int auth_deldomain( char *domain ) {
     }
 
 #ifdef VALIAS
-	valias_delete_domain(domain);
+	alias_delete_domain(domain);
 #endif
 
     return VA_SUCCESS;
@@ -1510,11 +1510,11 @@ int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw) {
 
 
 #ifdef VALIAS
-struct linklist *valias_current = NULL;
+struct linklist *alias_current = NULL;
 
 
 /************************************************************************/
-char *valias_select( char *alias, char *domain )
+char *alias_select( char *alias, char *domain )
 {
  int err, len, ret, i = 0;
  char filter[512] = { 0 }, dn[512] = { 0 };
@@ -1523,8 +1523,8 @@ char *valias_select( char *alias, char *domain )
  char **aa = NULL, **di = NULL, *fields[] = { "aa", "di", NULL }, *p = NULL;
 
     /* remove old entries as necessary */
-    while (valias_current != NULL)
-        valias_current = linklist_del (valias_current);
+    while (alias_current != NULL)
+        alias_current = linklist_del (alias_current);
 
    if (ld == NULL) {
 	  err = ldap_connect(); 
@@ -1587,8 +1587,8 @@ char *valias_select( char *alias, char *domain )
 
 	   for (i = 0; di[i]; i++) {
 		   temp_entry = linklist_add(temp_entry, di[i], "");
-			if (valias_current == NULL)
-			   valias_current = temp_entry;
+			if (alias_current == NULL)
+			   alias_current = temp_entry;
 	   }
 
 	   ldap_value_free(aa);
@@ -1596,28 +1596,28 @@ char *valias_select( char *alias, char *domain )
 	   msg = ldap_next_entry(ld, msg);
     }
 
-    if (valias_current == NULL) return NULL; /* no results */
+    if (alias_current == NULL) return NULL; /* no results */
     else {
 		ldap_msgfree(res);
-        return(valias_current->data);
+        return(alias_current->data);
     }
 }
 
 
 /************************************************************************/
-char *valias_select_next()
+char *alias_select_next()
 {
-    if (valias_current == NULL) return NULL;
+    if (alias_current == NULL) return NULL;
 
-    valias_current = linklist_del (valias_current);
+    alias_current = linklist_del (alias_current);
 
-    if (valias_current == NULL) return NULL;
-    else return valias_current->data;
+    if (alias_current == NULL) return NULL;
+    else return alias_current->data;
 }
 
 
 /************************************************************************/
-int valias_insert( char *alias, char *domain, char *alias_line)
+int alias_insert( char *alias, char *domain, char *alias_line)
 {
  int err, ret = 0, mod = LDAP_MOD_ADD, i = 0;
  LDAPMessage *msg = NULL, *res = NULL;
@@ -1720,7 +1720,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     if( allow_onchange ) {
        /* tell other programs that data has changed */
        snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
-       call_onchange ( "valias_insert" );
+       call_onchange ( "alias_insert" );
        }
 #endif
 
@@ -1729,7 +1729,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
 
 
 /************************************************************************/
-int valias_remove( char *alias, char *domain, char *alias_line)
+int alias_remove( char *alias, char *domain, char *alias_line)
 {
  int err, ret = 0, i = 0;
  LDAPMod **lm = NULL;
@@ -1743,7 +1743,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
     if( allow_onchange ) {
        /* tell other programs that data has changed */
        snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line );
-       call_onchange ( "valias_remove" );
+       call_onchange ( "alias_remove" );
        }
 #endif
 
@@ -1829,7 +1829,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 	      ldap_value_free(di);
 
 	   ldap_msgfree(res);
-	   return valias_delete(alias, domain);
+	   return alias_delete(alias, domain);
     }
 
 	ldap_value_free(di);
@@ -1839,7 +1839,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
 
 
 /************************************************************************/
-int valias_delete( char *alias, char *domain)
+int alias_delete( char *alias, char *domain)
 {
  int err, ret = 0;
  char ud[512] = { 0 }, dn[512] = { 0 };
@@ -1850,7 +1850,7 @@ int valias_delete( char *alias, char *domain)
     if( allow_onchange ) {
        /* tell other programs that data has changed */
        snprintf ( onchange_buf, MAX_BUFF, "%s@%s", alias, domain );
-       call_onchange ( "valias_delete" );
+       call_onchange ( "alias_delete" );
        }
 #endif
 
@@ -1871,7 +1871,7 @@ int valias_delete( char *alias, char *domain)
 
 
 /************************************************************************/
-int valias_delete_domain( char *domain)
+int alias_delete_domain( char *domain)
 {
  int err, ret;
  char filter[512] = { 0 }, dn[512] = { 0 };
@@ -1926,9 +1926,9 @@ int valias_delete_domain( char *domain)
 		  }
 	   }
 
-	   ret = valias_delete(*aa, domain);
+	   ret = alias_delete(*aa, domain);
 	   if (ret == -1)
-		  fprintf(stderr, "vldap: valias_delete_domain: valias_delete(%s@%s) failed\n", *aa, domain);
+		  fprintf(stderr, "vldap: alias_delete_domain: alias_delete(%s@%s) failed\n", *aa, domain);
 
 	   ldap_value_free(aa);
 	   msg = ldap_next_entry(ld, msg);
@@ -1938,7 +1938,7 @@ int valias_delete_domain( char *domain)
 }
 
 /************************************************************************/
-char *valias_select_all( char *alias, char *domain )
+char *alias_select_all( char *alias, char *domain )
 {
  int err, len, ret, i = 0;
  char filter[512] = { 0 }, dn[512] = { 0 };
@@ -1958,8 +1958,8 @@ char *valias_select_all( char *alias, char *domain )
    memset(dn, 0, sizeof(dn));
    snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
 
-    while (valias_current != NULL)
-        valias_current = linklist_del (valias_current);
+    while (alias_current != NULL)
+        alias_current = linklist_del (alias_current);
 
     ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
                         filter, fields, 0, &res);
@@ -2011,8 +2011,8 @@ char *valias_select_all( char *alias, char *domain )
 
 	   for (i = 0; di[i]; i++) {
 		   temp_entry = linklist_add(temp_entry, di[i], *aa);
-		   if (valias_current == NULL)
-		      valias_current = temp_entry;
+		   if (alias_current == NULL)
+		      alias_current = temp_entry;
 	   }
 
 	   ldap_value_free(aa);
@@ -2020,34 +2020,34 @@ char *valias_select_all( char *alias, char *domain )
 	   msg = ldap_next_entry(ld, msg);
     }
 
-    if (valias_current == NULL) return NULL; /* no results */
+    if (alias_current == NULL) return NULL; /* no results */
     else {
 	    ldap_msgfree(res);
-        strcpy (alias, valias_current->d2);
-        return(valias_current->data);
+        strcpy (alias, alias_current->d2);
+        return(alias_current->data);
     }
 }
 
 
 /************************************************************************/
-char *valias_select_all_next(char *alias)
+char *alias_select_all_next(char *alias)
 {
-    if (valias_current == NULL) return NULL;
-    valias_current = linklist_del (valias_current);
+    if (alias_current == NULL) return NULL;
+    alias_current = linklist_del (alias_current);
             
-    if (valias_current == NULL) return NULL; /* no results */
+    if (alias_current == NULL) return NULL; /* no results */
     else {
-        strcpy (alias, valias_current->d2);
-        return(valias_current->data);
+        strcpy (alias, alias_current->d2);
+        return(alias_current->data);
     }
 }
 
 /************************************************************************
  *
- *  valias_select_names
+ *  alias_select_names
  */
 
-char *valias_select_names( char *alias, char *domain )
+char *alias_select_names( char *alias, char *domain )
 {
  int err, ret;
  char filter[512] = { 0 }, dn[512] = { 0 };
@@ -2073,8 +2073,8 @@ char *valias_select_names( char *alias, char *domain )
    memset(dn, 0, sizeof(dn));
    snprintf(dn, sizeof(dn), "ou=valias,%s", VLDAP_BASEDN);
 
-    while (valias_current != NULL)
-        valias_current = linklist_del (valias_current);
+    while (alias_current != NULL)
+        alias_current = linklist_del (alias_current);
 
     ret = ldap_search_s(ld, dn, LDAP_SCOPE_SUBTREE,
                         filter, fields, 0, &res);
@@ -2118,45 +2118,45 @@ char *valias_select_names( char *alias, char *domain )
 	   }
 
 	   temp_entry = linklist_add(temp_entry, *aa, *aa);
-	   if (valias_current == NULL)
-		  valias_current = temp_entry;
+	   if (alias_current == NULL)
+		  alias_current = temp_entry;
 
 	   ldap_value_free(aa);
 	   msg = ldap_next_entry(ld, msg);
     }
 
-    if (valias_current == NULL) return NULL; /* no results */
+    if (alias_current == NULL) return NULL; /* no results */
     else {
-        strcpy (alias, valias_current->d2);
+        strcpy (alias, alias_current->d2);
 		 ldap_msgfree(res);
-        return(valias_current->data);
+        return(alias_current->data);
     }
 }
 
 /************************************************************************
  *
- *  valias_select_names_next
+ *  alias_select_names_next
  */
 
-char *valias_select_names_next(char *alias)
+char *alias_select_names_next(char *alias)
 {
-    if (valias_current == NULL) return NULL;
-    valias_current = linklist_del (valias_current);
+    if (alias_current == NULL) return NULL;
+    alias_current = linklist_del (alias_current);
  
-    if (valias_current == NULL) return NULL; /* no results */
+    if (alias_current == NULL) return NULL; /* no results */
     else {
-        strcpy (alias, valias_current->d2);
-        return(valias_current->data);
+        strcpy (alias, alias_current->d2);
+        return(alias_current->data);
     }
 }
 
 
 /************************************************************************
  *
- *  valias_select_names_end
+ *  alias_select_names_end
  */
 
-void valias_select_names_end() {
+void alias_select_names_end() {
 
 //  not needed by ldap
 

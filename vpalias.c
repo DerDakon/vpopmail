@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 #include "config.h"
-#ifndef VALIAS 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +26,7 @@
 #include <unistd.h>
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vpalias.h"
 
 /* Globals */
 static char alias_line[MAX_ALIAS_LINE];
@@ -39,11 +39,12 @@ static FILE *alias_fs = NULL;
 static char mydomain[MAX_FILE_SIZE];
 
 /* forward declarations */
-char *valias_next_return_line(char *alias);
-char *valias_select_names_next();
-void valias_select_names_end();
 
-char *valias_select( char *alias, char *domain )
+char *vpalias_next_return_line(char *alias);
+char *vpalias_select_names_next();
+void vpalias_select_names_end();
+
+char *vpalias_select( char *alias, char *domain )
 {
  char *tmpstr;
  static char tmpbuf[156];
@@ -90,10 +91,10 @@ char *valias_select( char *alias, char *domain )
     if ( (alias_fs = fopen(tmpbuf, "r")) == NULL ) {
     	return(NULL);
     }
-    return(valias_select_next());
+    return(vpalias_select_next());
 }
 
-char *valias_select_next()
+char *vpalias_select_next()
 {
  char *tmpstr;
 
@@ -111,7 +112,7 @@ char *valias_select_next()
     return(alias_line);
 }
 
-int valias_insert( char *alias, char *domain, char *alias_line)
+int vpalias_insert( char *alias, char *domain, char *alias_line)
 {
  int i;
  char *tmpstr;
@@ -160,7 +161,7 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
-int valias_remove( char *alias, char *domain, char *alias_line)
+int vpalias_remove( char *alias, char *domain, char *alias_line)
 {
  int i;
  char *tmpstr;
@@ -227,7 +228,7 @@ int valias_remove( char *alias, char *domain, char *alias_line)
     return(0);
 }
 
-int valias_delete( char *alias, char *domain)
+int vpalias_delete( char *alias, char *domain)
 {
  char *tmpstr;
  char Dir[156];
@@ -264,12 +265,17 @@ int valias_delete( char *alias, char *domain)
     return(unlink(Dir));
 }
 
+int vpalias_delete_domain(char *domain)
+{
+   return 0;
+}
+
 static int sort_compare( const void *p1, const void *p2 ) 
 {
   return strcasecmp(*(char **)p1, *(char **)p2 );
 }
 
-char *valias_select_names( char *domain )
+char *vpalias_select_names( char *domain )
 {
  static DIR *mydir = NULL;
  static struct dirent *mydirent;
@@ -301,7 +307,7 @@ char *valias_select_names( char *domain )
     }
 
     if( names != NULL ) {
-       valias_select_names_end();
+       vpalias_select_names_end();
     }
 
     /*  We are about to create an array of string pointers big
@@ -381,10 +387,10 @@ char *valias_select_names( char *domain )
     }
     qsort(names, num_names, sizeof(char *), sort_compare );    
 
-    return(valias_select_names_next());
+    return(vpalias_select_names_next());
 }
 
-char *valias_select_names_next()
+char *vpalias_select_names_next()
 {
   if( NULL == names ) {
      return(NULL);
@@ -398,7 +404,7 @@ char *valias_select_names_next()
 }
 
 
-void valias_select_names_end()
+void vpalias_select_names_end()
 {
  int i;
 
@@ -415,7 +421,7 @@ void valias_select_names_end()
 } 
 
 
-char *valias_select_all( char *alias, char *domain )
+char *vpalias_select_all( char *alias, char *domain )
 {
  uid_t uid;
  gid_t gid;
@@ -446,14 +452,14 @@ char *valias_select_all( char *alias, char *domain )
 	return(NULL);
     }
 
-    result = valias_select_names( domain );
+    result = vpalias_select_names( domain );
     if (result == NULL) return NULL;
     strcpy(alias, result);
     strncpy(mydomain, domain, MAX_FILE_SIZE);
-    return(valias_select(alias, domain));
+    return(vpalias_select(alias, domain));
 }
 
-char *valias_select_all_next(char *alias)
+char *vpalias_select_all_next(char *alias)
 {
  char *tmpstr;
 
@@ -462,20 +468,19 @@ char *valias_select_all_next(char *alias)
     return( NULL );
   }
   
-  tmpstr=valias_select_next(alias);
+  tmpstr=vpalias_select_next(alias);
 
   if (NULL == tmpstr) {
-    tmpstr=valias_select_names_next();
+    tmpstr=vpalias_select_names_next();
 
     if( NULL == tmpstr ) {
       return( NULL );
 
     } else {
       strcpy(alias, tmpstr);
-      return( valias_select(alias, mydomain));
+      return( vpalias_select(alias, mydomain));
     }
   }  else  {
     return( tmpstr );
   }
 }
-#endif
