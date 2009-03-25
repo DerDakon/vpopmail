@@ -1,0 +1,46 @@
+$Id$
+
+Backends
+-----------------------------------------------
+
+To select a backend, simply change to the backend
+directory, compile it, and install it.
+
+Note that the vpopmail source must have been built
+first.
+
+Compiling
+-----------------------------------------------
+
+To compile a module, run the following command:
+
+   ./configure [options]
+
+For available options, please use:
+
+   ./configure --help
+
+Most users will simply type:
+
+   ./configure
+
+After the configure process has completed, you may
+build the module with the following command:
+
+   make
+
+After the module has compiled, install, and make it
+active with the following command:
+
+   make install
+
+The module is now installed and active.
+
+Notes
+-------------------------------------------------
+
+Some modules, such as the MySQL and LDAP modules
+require you to configure database authentication
+information in a file, while others require you
+to modify a source header.  Please refer to the
+specific module's documentation for more information.
