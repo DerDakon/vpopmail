@@ -17,14 +17,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
  
-/* TODO
-
-Add error result for "unable to read vpopmail.mysql" and return it
-
-*/ 
-
-#define VAUTH_MODULE
- 
 #include <pwd.h>
 #include <unistd.h>
 #include <stdio.h>
