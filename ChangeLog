@@ -27,6 +27,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added IP alias domain functionality to modules
   - Updated some formatting in vdominfo output in regards to alias domains
   - Updated backend module code to support valias
+  - Added initial FHS compliance
 
   Luis Felipe Silveira da Silva <felipe@bsd.com.br>
   - Updated to provide maildrop flag in vlimits MySQL
