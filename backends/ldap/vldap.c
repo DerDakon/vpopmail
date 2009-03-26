@@ -82,7 +82,7 @@ int load_connection_info() {
     if (loaded) return 0;
     loaded = 1;
 
-    sprintf(config, "%s/etc/%s", VPOPMAILDIR, "vpopmail.ldap");
+    sprintf(config, "%s/%s", VPOPMAIL_DIR_ETC, "vpopmail.ldap");
 
     fp = fopen(config, "r");
     if (fp == NULL) {
@@ -1034,7 +1034,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
 
         /* save some time if this is the vpopmail user */
         if ( uid == VPOPMAILUID ) {
-            strncpy(dir_control_file, VPOPMAILDIR, MAX_DIR_NAME);
+            strncpy(dir_control_file, VPOPMAIL_DIR_DOMAINS, MAX_DIR_NAME);
 
         /* for other users, look them up in /etc/passwd */
         } else if ( (pw=getpwuid(uid))!=NULL ) {
@@ -1046,7 +1046,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
         }
 
         /* stick on the rest of the path */
-        strncat(dir_control_file, "/" DOMAINS_DIR "/.dir-control", MAX_DIR_NAME);
+        strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME);
     }
     return(dir_control_file);
 }
@@ -1263,7 +1263,7 @@ int get_ip_map( char *ip, char *domain, int domain_size) {
         return(-1);
 
     /* open the ip_alias_map file */
-    snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+    snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
     if ( (fs = fopen(tmpbuf,"r")) == NULL )
         return(-1);
 
@@ -1304,7 +1304,7 @@ int add_ip_map( char *ip, char *domain) {
 
     del_ip_map( ip, domain );
 
-    snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+    snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
     if ( (fs = fopen(tmpbuf,"a+")) == NULL )
         return(-1);
     fprintf( fs, "%s %s\n", ip, domain);
@@ -1328,12 +1328,12 @@ int del_ip_map( char *ip, char *domain) {
     if ( domain == NULL || strlen(domain) <= 0 )
         return(-1);
 
-    snprintf(file1, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+    snprintf(file1, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
     if ( (fs = fopen(file1,"r")) == NULL )
         return(-1);
 
     snprintf(file2, 156,
-             "%s/%s.%d", VPOPMAILDIR, IP_ALIAS_MAP_FILE, getpid());
+             "%s/%s.%d", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE, getpid());
     if ( (fs1 = fopen(file2,"w")) == NULL ) {
         fclose(fs);
         return(-1);
@@ -1380,7 +1380,7 @@ int show_ip_map( int first, char *ip, char *domain) {
             fclose(fs);
             fs = NULL;
         }
-        snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+        snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
         if ( (fs = fopen(tmpbuf,"r")) == NULL )
             return(-1);
     }

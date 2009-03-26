@@ -122,7 +122,7 @@ int vauth_load_module(const char *module)
 
    if (module == NULL) {
 	  memset(b, 0, sizeof(b));
-	  snprintf(b, sizeof(b), "%s/etc/vpopmail.authmodule", VPOPMAILDIR);
+	  snprintf(b, sizeof(b), "%s/vpopmail.authmodule", VPOPMAIL_DIR_ETC);
 
 	  module = (const char *)b;
    }

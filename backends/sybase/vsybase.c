@@ -199,9 +199,9 @@ int vauth_adduser_size(char *user, char *domain, char *pass, char *gecos,
 
 	if ( strlen(domain) <= 0 ) {
 		if ( strlen(dir) > 0 ) {
-			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s/%s", VPOPMAILDIR, dir, user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s/%s", VPOPMAIL_DIR_DOMAINS, dir, user);
 		} else {
-			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
+			snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAIL_DIR_DOMAINS, user);
 		}
 	} else {
 		vget_assign(domain, dom_dir, 156, &uid, &gid );

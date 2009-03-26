@@ -66,7 +66,7 @@ config_t *config_begin(const char *filename)
    */
 
    memset(b, 0, sizeof(b));
-   snprintf(b, sizeof(b), "%s/etc/%s", VPOPMAILDIR, filename);
+   snprintf(b, sizeof(b), "%s/%s", VPOPMAIL_DIR_ETC, filename);
 
    c = config_read(b);
    if (c) {

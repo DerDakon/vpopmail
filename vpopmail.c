@@ -104,10 +104,11 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char tmpbuf[MAX_BUFF];
  char Dir[MAX_BUFF];
  char calling_dir[MAX_BUFF];
+ char ddir[512] = { 0 };
 
  char *aliases[1];
  int aliascount=0;
- 
+
 #ifdef ONCHANGE_SCRIPT
   /*  Don't execute any implied onchange in called functions  */
   allow_onchange = 0;
@@ -156,25 +157,33 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   /* store the calling directory */
   getcwd(calling_dir, sizeof(calling_dir));
 
+  if ((dir == NULL) || (dir == VPOPMAIL_DIR_DOMAINS) || (!(*dir))) {
+	 memset(ddir, 0, sizeof(ddir));
+	 snprintf(ddir, sizeof(ddir), "%s/%s", VPOPMAIL_DIR_DOMAINS, domain);
+	 dir = ddir;
+  }
+
   /* go to the directory where our Domains dir is to be stored 
    * check for error and return error on error
    */
+#if 0
   if ( chdir(dir) != 0 ) return(VA_BAD_V_DIR);
+#endif
 
   /* go into the Domains subdir */
-  if ( chdir(DOMAINS_DIR) != 0 ) {
+  if ( chdir(dir) != 0 ) {
 
     /* if it's not there, no problem, just try to create it */
-    if ( mkdir(DOMAINS_DIR, VPOPMAIL_DIR_MODE) != 0 ) {
+    if ( mkdir(dir, VPOPMAIL_DIR_MODE) != 0 ) {
       chdir(calling_dir);
       return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
     }
 
     /*  set the permisions on our new Domains dir */
-    chown(DOMAINS_DIR,uid,gid);
+    chown(dir,uid,gid);
 
     /* now try moving into the Domains subdir again */
-    if ( chdir(DOMAINS_DIR) != 0 ) {
+    if ( chdir(dir) != 0 ) {
       chdir(calling_dir);
       return(VA_BAD_D_DIR);
     }
@@ -195,9 +204,9 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   close_big_dir(dir_control_for_uid, uid, gid);      
 
   if ( strlen(domain_hash) > 0 ) {
-    snprintf(DomainSubDir, sizeof(DomainSubDir), "%s/%s", domain_hash, domain);
+    snprintf(DomainSubDir, sizeof(DomainSubDir), "%s/%s/%s", dir, domain_hash, domain);
   } else {
-    snprintf(DomainSubDir,sizeof(DomainSubDir), "%s", domain);
+    snprintf(DomainSubDir,sizeof(DomainSubDir), "%s/%s", dir, domain);
   }
 
   /* Check to make sure length of the dir isnt going to exceed
@@ -205,7 +214,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
    * We dont want to start creating dirs and putting entries in
    * the assign file etc if the path is going to be too long
    */
-  if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) > MAX_PW_DIR) {
+  if (strlen(dir)+strlen(DomainSubDir) > MAX_PW_DIR) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
@@ -229,27 +238,25 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   }
 
   /* create the .qmail-default file */
-  snprintf(tmpbuf, sizeof(tmpbuf), "%s/%s/%s/.qmail-default", dir, DOMAINS_DIR, 
+  snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-default",
     DomainSubDir);
   if ( (fs = fopen(tmpbuf, "w+"))==NULL) {
     /* back out of changes made so far */
-    chdir(dir); chdir(DOMAINS_DIR);
     if (vdelfiles(DomainSubDir) != 0) {
-      fprintf(stderr, "Failed to delete directory tree :%s\n", DomainSubDir);
+      fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
     dec_dir_control(dir_control_for_uid, uid, gid);
     chdir(calling_dir);
     return(VA_COULD_NOT_OPEN_QMAIL_DEFAULT);
   } else {
-    fprintf(fs, "| %s/bin/vdelivermail '' bounce-no-mailbox\n", VPOPMAILDIR);
+    fprintf(fs, "| %s/vdelivermail '' bounce-no-mailbox\n", VPOPMAIL_DIR_BIN);
     fclose(fs);
   }
 
   /* create an entry in the assign file for our new domain */
-  snprintf(tmpbuf, sizeof(tmpbuf), "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
+  snprintf(tmpbuf, sizeof(tmpbuf), "%s", DomainSubDir);
   if (add_domain_assign( domain, domain, tmpbuf, uid, gid ) != 0) {
     /* back out of changes made so far */
-    chdir(dir); chdir(DOMAINS_DIR);
     if (vdelfiles(DomainSubDir) != 0) {
       fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
@@ -260,7 +267,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   }
 
   /* recursively change ownership to new file system entries */
-  snprintf(tmpbuf, sizeof(tmpbuf), "%s/%s/%s", dir, DOMAINS_DIR, DomainSubDir);
+  snprintf(tmpbuf, sizeof(tmpbuf), "%s", DomainSubDir);
   r_chown(tmpbuf, uid, gid);
 
   /* ask the authentication module to add the domain entry */
@@ -276,7 +283,6 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     fprintf(stderr, "Error. Failed while attempting to add domain to auth backend\n");
 
-    chdir(dir); chdir(DOMAINS_DIR);    
     if (vdelfiles(DomainSubDir) != 0) {
       fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
@@ -2617,7 +2623,7 @@ char *default_domain()
    if (!init) {
      init++;
      d[0] = '\0';  /* make sure d is empty in case file doesn't exist */
-     snprintf (path, sizeof(path), "%s/etc/defaultdomain", VPOPMAILDIR);
+     snprintf (path, sizeof(path), "%s/defaultdomain", VPOPMAIL_DIR_ETC);
 
      fs = fopen (path, "r");
      if (fs != NULL) {
@@ -2853,9 +2859,9 @@ char *verror(int va_err )
    case VA_BAD_U_DIR:
     return("Unable to chdir to vpopmail/users directory");
    case VA_BAD_D_DIR:
-    return("Unable to chdir to vpopmail/" DOMAINS_DIR " directory");
+    return("Unable to chdir to " VPOPMAIL_DIR_DOMAINS);
    case VA_BAD_V_DIR:
-    return("Unable to chdir to vpopmail/" DOMAINS_DIR "/domain directory");
+    return("Unable to chdir to " VPOPMAIL_DIR_DOMAINS " domain directory");
    case VA_EXIST_U_DIR:
     return("User's directory already exists");
    case VA_BAD_U_DIR2:
@@ -2875,7 +2881,7 @@ char *verror(int va_err )
    case VA_COULD_NOT_OPEN_QMAIL_DEFAULT:
     return("Could not open qmail default");
    case VA_CAN_NOT_MAKE_DOMAINS_DIR:
-    return("Can not make " DOMAINS_DIR " directory");
+    return("Can not make " VPOPMAIL_DIR_DOMAINS " directory");
    case VA_COULD_NOT_UPDATE_FILE:
     return("Could not update file");
    case VA_CRYPT_FAILED:
@@ -4318,7 +4324,7 @@ int call_onchange ( const char *cmd )
            }
 
 	/* build the name */
-	snprintf ( path, sizeof(path), "%s/etc/onchange", VPOPMAILDIR );
+	snprintf ( path, sizeof(path), "%s/onchange", VPOPMAIL_DIR_ETC );
 
 	/* if it doesn't exist, we're done */
 	if( access(path,F_OK) ) { 

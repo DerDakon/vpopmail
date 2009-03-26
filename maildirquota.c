@@ -332,7 +332,7 @@ struct  stat    stat_buf;
 int     quotafd;
 char    quotawarnmsg[500];
 
-        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
+        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/.quotawarn.msg", VPOPMAIL_DIR_DOMAINS);
 
         if (stat(quotawarnmsg, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0 && *q)

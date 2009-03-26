@@ -38,7 +38,7 @@ clean:
 	rm -f *.o *.so
 
 distclean: clean
-	rm -rf Makefile autom4te.cache  config.log config.status
+	rm -rf Makefile autom4te.cache  config.log config.status vmysql.h
 
 install:
 	$(INSTALL) vmysql.so $(VPOPMAIL_MODULEDIR)/vmysql.so
