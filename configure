@@ -7008,10 +7008,10 @@ echo "${ECHO_T}FHS" >&6; }
    eval includedir=$includedir"/vpopmail"
 fi
 
-#if test "$exec_prefix" = "NONE"
-#then
-#   eval exec_prefix=$prefix
-#fi
+if test "$exec_prefix" = "NONE"
+then
+   eval exec_prefix=$prefix
+fi
 
 eval vpopmail_dir_bin=$bindir
 eval vpopmail_dir_etc=$sysconfdir
