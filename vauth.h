@@ -27,7 +27,7 @@
 #include <time.h>
 
 #ifdef IP_ALIAS_DOMAINS
-#define IP_ALIAS_MAP_FILE "etc/ip_alias_map"
+#define IP_ALIAS_MAP_FILE "ip_alias_map"
 #define IP_ALIAS_TOKENS " \t\n"
 #endif
 

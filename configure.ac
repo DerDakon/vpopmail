@@ -213,7 +213,7 @@ AC_MSG_CHECKING(if we're building on Solaris)
 
 case "$host" in
   *-*-solaris*)
-    extralibflags="-R$libdir -lm -lnsl -lsocket"
+    extralibflags="-lm -lnsl -lsocket"
 	AC_MSG_RESULT(yes)
 
 	#
@@ -232,17 +232,20 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_ARG_ENABLE(non-root-build,
-    [  --enable-non-root-build    Build vpopmail as a non-root user, only if you know what you are doing. see README.non-root],
-    idtest='false', idtest='true')
+#
+# FHS compliance
+#
+
+AC_ARG_ENABLE(root-check,
+    [  --disable-root-check    Disables root user check when compiling vpopmail ], idtest='false', idtest='true')
 
 #----------------------------------------------------------------------
 
 if $idtest && test `$idcommand` != "0"
 then
   AC_MSG_WARN(=== vpopmail must be configured as root. ===)
-  AC_MSG_WARN(=== please switch to the root user and  ===)
-  AC_MSG_WARN(=== run ./configure. Thanks ===)
+  AC_MSG_WARN(=== please switch to the root user and   ===)
+  AC_MSG_WARN(=== run ./configure.                     ===)
   AC_MSG_ERROR(aborted.)
 fi
 
@@ -486,10 +489,55 @@ then
         AC_MSG_ERROR(No vpopmail home directory)
 fi
 
+#
+# Determine directories
+#
+
+AC_MSG_CHECKING(directory layout)
+
 vpopmaildir=`cat vpopmail.dir`
-AC_SUBST(vpopmaildir)
-AC_DEFINE_UNQUOTED(VPOPMAILDIR,"$vpopmaildir","")
 rm -f vpopmail.dir
+
+if test "$prefix" = "NONE"
+then
+   AC_MSG_RESULT(vpopmail style)
+   prefix=$vpopmaildir
+   AC_SUBST(prefix,$vpopmaildir)
+   localstatedir=$prefix"/domains"
+   AC_SUBST(localstatedir,$localstatedir)
+else
+   AC_MSG_RESULT(FHS)
+   eval localstatedir=$localstatedir"/vpopmail"
+   eval sysconfdir=$sysconfdir"/vpopmail"
+   eval includedir=$includedir"/vpopmail"
+fi
+
+if test "$exec_prefix" = "NONE"
+then
+   eval exec_prefix=$prefix
+fi
+
+eval vpopmail_dir_bin=$bindir
+eval vpopmail_dir_etc=$sysconfdir
+eval vpopmail_dir_lib=$libdir
+eval vpopmail_dir_domains=$localstatedir
+eval vpopmail_dir_include=$includedir
+
+AC_DEFINE_UNQUOTED(VPOPMAIL_DIR_BIN,"$vpopmail_dir_bin","")
+AC_DEFINE_UNQUOTED(VPOPMAIL_DIR_ETC,"$vpopmail_dir_etc","")
+AC_DEFINE_UNQUOTED(VPOPMAIL_DIR_LIB,"$vpopmail_dir_lib","")
+AC_DEFINE_UNQUOTED(VPOPMAIL_DIR_INCLUDE,"$vpopmail_dir_include","")
+AC_DEFINE_UNQUOTED(VPOPMAIL_DIR_DOMAINS,"$vpopmail_dir_domains","")
+
+AC_SUBST(VPOPMAIL_DIR_BIN, $vpopmail_dir_bin)
+AC_SUBST(VPOPMAIL_DIR_ETC, $vpopmail_dir_etc)
+AC_SUBST(VPOPMAIL_DIR_LIB, $vpopmail_dir_lib)
+AC_SUBST(VPOPMAIL_DIR_INCLUDE, $vpopmail_dir_include)
+AC_SUBST(VPOPMAIL_DIR_DOMAINS, $vpopmail_dir_domains)
+
+#
+# UID:GID
+#
 
 vpopmailuid=`cat vpopmail.uid`
 AC_DEFINE_UNQUOTED(VPOPMAILUID,$vpopmailuid,"")
@@ -500,23 +548,23 @@ AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid,"")
 rm -f vpopmail.gid
 rm -f vpopusername
 
-#----------------------------------------------------------------------
+#
+# Create etc directory if root
+#
 
-if test ! -d $vpopmaildir/etc
+if test ! -d $vpopmail_etc_dir
 then
-  if test ! -d $vpopmaildir
-  then
-    AC_MSG_WARN( creating $vpopmaildir )
-    mkdir -p $vpopmaildir
-    chown $vpopmailuid $vpopmaildir
-    chgrp $vpopmailgid $vpopmaildir
-    chmod 755 $vpopmaildir
-  fi
-  AC_MSG_WARN( making a vpopmail etc directory )
-  mkdir $vpopmaildir/etc
-  chown $vpopmailuid "$vpopmaildir"/etc
-  chgrp $vpopmailgid "$vpopmaildir"/etc
-  chmod 755 "$vpopmaildir"/etc
+   if test ! $idtest
+   then
+	  AC_MSG_WARN($vpopmail_dir_etc does not exist!)
+	  sleep 3
+   else
+	  AC_MSG_WARN(making vpopmail etc directory)
+	  mkdir -p $vpopmail_dir_etc
+	  chown $vpopmailuid $vpopmail_dir_etc
+	  chgrp $vpopmailgid $vpopmail_dir_etc
+	  chmod 755 $vpopmail_dir_etc
+   fi
 fi
 
 #----------------------------------------------------------------------
@@ -570,7 +618,7 @@ case $POPRELAY in
 
     AC_MSG_CHECKING(whether we can locate the tcp.smtp file)
     tcpserver_file=""
-    for f in "$vpopmaildir"/etc/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
+    for f in "$sysconfdir"/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
     do
         if test -f $f
         then
@@ -586,10 +634,10 @@ case $POPRELAY in
             if test "$tcpserver_file" = ""
             then
                 AC_MSG_WARN([Unable to find your tcpserver relay file.])
-                AC_MSG_WARN([Creating tcp.smtp in "$vpopmaildir"/etc/tcp.smtp.])
+                AC_MSG_WARN([Creating tcp.smtp in "$sysconfdir"/tcp.smtp.])
 
-                echo "127.:allow,RELAYCLIENT=\"\"" > "$vpopmaildir"/etc/tcp.smtp
-                tcpserver_file="$vpopmaildir"/etc/tcp.smtp
+                echo "127.:allow,RELAYCLIENT=\"\"" > "$sysconfdir"/tcp.smtp
+                tcpserver_file="$sysconfdir"/tcp.smtp
             fi
         ]
     )
@@ -633,9 +681,9 @@ case $POPRELAY in
     AC_DEFINE_UNQUOTED(RELAY_CLEAR_MINUTES,$relay_clear_minutes,"")
 
 
-    open_smtp_cur="$vpopmaildir/etc/open-smtp"
-    open_smtp_tmp="$vpopmaildir/etc/open-smtp.tmp"
-    open_smtp_lok="$vpopmaildir/etc/open-smtp.lock"
+    open_smtp_cur="$sysconfdir/open-smtp"
+    open_smtp_tmp="$sysconfdir/open-smtp.tmp"
+    open_smtp_lok="$sysconfdir/open-smtp.lock"
     AC_DEFINE_UNQUOTED(OPEN_SMTP_CUR_FILE,"$open_smtp_cur","")
     AC_DEFINE_UNQUOTED(OPEN_SMTP_TMP_FILE,"$open_smtp_tmp","")
     AC_DEFINE_UNQUOTED(OPEN_SMTP_LOK_FILE,"$open_smtp_lok","")
@@ -1050,54 +1098,21 @@ esac
 
 #----------------------------------------------------------------------
 
-vlimits_default="$vpopmaildir/etc/vlimits.default"
+eval vlimits_default="$sysconfdir/vlimits.default"
 
 AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 
 #----------------------------------------------------------------------
 
-domains_dir="domains"
+#domains_dir="domains"
 
-AC_ARG_ENABLE(domains-dir,
-    [  --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).],
-    domains_dir="$enableval",
-)
+#AC_ARG_ENABLE(domains-dir,
+#    [  --enable-domains-dir=TEXT  Directory in ~vpopmail to store domains (default=domains).],
+#    domains_dir="$enableval",
+#)
 
-AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir","")
-AC_SUBST(domains_dir)
-
-#----------------------------------------------------------------------
-
-# cant contain this following block in the mysql section, as it is also used by oracle
-incdir=""
-for f in /usr/local/mysql/include/mysql /usr/local/mysql/include /usr/local/include/mysql /usr/include/mysql
-do
-    if test -d $f
-    then
-        incdir=$f
-        break
-    fi
-done
-
-AC_ARG_ENABLE(incdir,
-    [  --enable-incdir=DIR        Your MySQL/Oracle 'include' directory.],
-    incdir="$enableval",
-)
-
-libdir=""
-for f in /usr/local/mysql/lib/mysql /usr/local/mysql/lib  /usr/local/lib/mysql /usr/lib/mysql
-do
-    if test -d $f
-    then
-        libdir=$f
-        break
-    fi
-done
-
-AC_ARG_ENABLE(libdir,
-    [  --enable-libdir=DIR        Your MySQL/Oracle 'lib' directory.],
-    libdir="$enableval",
-)
+#AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir","")
+#AC_SUBST(domains_dir)
 
 #----------------------------------------------------------------------
 
@@ -1602,6 +1617,14 @@ AC_ARG_ENABLE(default-domain, [],
     ]
 )
 
+AC_ARG_ENABLE(non-root-build, [],
+    [ 
+	  AC_MSG_RESULT(yes)
+	  AC_MSG_ERROR(--enable-non-root-build is deprecated.  Please use --disable-root-check)
+    ]
+)
+
+
 AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
@@ -1616,8 +1639,11 @@ echo "           $PACKAGE_NAME $PACKAGE_VERSION"
 echo "            Current settings"
 echo "---------------------------------------"
 echo ""
-echo "vpopmail directory = "$vpopmaildir""
-echo " domains directory = "$vpopmaildir"/"$domains_dir""
+echo " domains directory = "$vpopmail_dir_domains""
+echo "    conf directory = $vpopmail_dir_etc"
+echo "     bin directory = $vpopmail_dir_bin"
+echo "     lib directory = $vpopmail_dir_lib"
+echo " include directory = $vpopmail_dir_include"
 echo "               uid = "$vpopmailuid""
 echo "               gid = "$vpopmailgid""
 

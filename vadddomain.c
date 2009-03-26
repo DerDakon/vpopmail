@@ -101,11 +101,11 @@ int main(int argc, char *argv[])
 
             /* if catchall address is an email address... */
             if ( strstr(BounceEmail, "@") != NULL ) { 
-                fprintf(fs, "| %s/bin/vdelivermail '' %s\n", VPOPMAILDIR, 
+                fprintf(fs, "| %s/vdelivermail '' %s\n", VPOPMAIL_DIR_BIN, 
                     BounceEmail);
             /* No '@' - so assume catchall is a mailbox name */
             } else {
-                fprintf(fs, "| %s/bin/vdelivermail '' %s/%s\n", VPOPMAILDIR,
+                fprintf(fs, "| %s/vdelivermail '' %s/%s\n", VPOPMAIL_DIR_BIN,
                     a_dir, BounceEmail);
             }
 
@@ -232,7 +232,9 @@ void get_options(int argc,char **argv)
 
     /* if a home dir hasnt been chosen, default to the vpopmail dir */
     if ( Dir[0] == 0 ) {
-	snprintf(Dir, sizeof(Dir), "%s", VPOPMAILDIR);
+	   // XXX TODO There is no VPOPMAILDIR anymore
+	   // What is this for?
+	snprintf(Dir, sizeof(Dir), "%s", VPOPMAIL_DIR_DOMAINS);
     }
 
     /* Grab the domain */

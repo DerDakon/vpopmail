@@ -10,7 +10,8 @@ LIBS = -L.. -lvpopmail @VUSAGEDLIBS@ @LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @
 INSTALL = install
 DEPS = Makefile
 BINS = vusaged
-VPOPMAILDIR = @vpopmaildir@
+VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
+VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 
 all: $(BINS)
 
@@ -57,5 +58,5 @@ distclean: clean
 	rm -rf config.log config.status Makefile autom4te.cache contrib/rc.vusaged
 
 install: $(BINS)
-	$(INSTALL) -s -m 0700 vusaged $(VPOPMAILDIR)/bin
-	if test ! -r $(VPOPMAILDIR)/etc/vusaged.conf; then $(INSTALL) -m 0600 etc/vusaged.conf $(VPOPMAILDIR)/etc/vusaged.conf; fi
+	$(INSTALL) -s -m 0700 vusaged $(VPOPMAIL_DIR_BIN)
+	if test ! -r $(VPOPMAIL_DIR_ETC)/vusaged.conf; then $(INSTALL) -m 0600 etc/vusaged.conf $(VPOPMAIL_DIR_ETC)/vusaged.conf; fi

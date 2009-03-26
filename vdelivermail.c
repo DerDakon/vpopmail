@@ -670,7 +670,7 @@ void deliver_mail(char *address, char *quota)
                 snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
                 if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                     /* if no domain over quota then check in vpopmail dir */
-                    snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
+                    snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",VPOPMAIL_DIR_DOMAINS);
                     fs=fopen(tmp_file, "r");
                 }
 
@@ -710,7 +710,7 @@ void deliver_mail(char *address, char *quota)
             snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
             if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                 /* if no domain over quota then check in vpopmail dir */
-                snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
+                snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",VPOPMAIL_DIR_DOMAINS);
                 fs=fopen(tmp_file, "r");
             }
 
@@ -1114,7 +1114,7 @@ void usernotfound()
         snprintf(tmp_file, sizeof(tmp_file), "%s/.no-user.msg",TheDomainDir);
         if ( (fs=fopen(tmp_file, "r")) == NULL ) {
             /* if no domain no user then check in vpopmail dir */
-            snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.no-user.msg",VPOPMAILDIR,DOMAINS_DIR);
+            snprintf(tmp_file, sizeof(tmp_file), "%s/.no-user.msg",VPOPMAIL_DIR_DOMAINS);
             fs=fopen(tmp_file, "r");
         }
         if ( fs == NULL ) {
@@ -1184,7 +1184,7 @@ int deliver_quota_warning(const char *dir)
            (stat(quotawarnmsg, &sb) != 0)) {
 
         /* if that fails look in vpopmail dir */
-        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
+        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/.quotawarn.msg", VPOPMAIL_DIR_DOMAINS);
         if ( ((read_fd = open(quotawarnmsg, O_RDONLY)) < 0) || 
               (stat(quotawarnmsg, &sb) != 0)) {
             return 0;

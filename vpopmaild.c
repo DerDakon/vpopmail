@@ -445,8 +445,8 @@ int login()
   snprintf( TheUserDir, sizeof(TheUserDir), "%s", AuthVpw.pw_dir);
   snprintf( TheDomainDir, sizeof(TheDomainDir),  "%s",
     vget_assign(TheDomain,NULL,0,&uid,&gid));
-  snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
-    VPOPMAILDIR);
+  snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s", 
+    VPOPMAIL_DIR_DOMAINS);
 
   if ( AuthVpw.pw_gid & SA_ADMIN )
     logged_in = 3;
@@ -463,7 +463,15 @@ int login()
     snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
     wait_write();
 
-    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir %s" RET_CRLF, VPOPMAILDIR);
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_bin %s" RET_CRLF, VPOPMAIL_DIR_BIN);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_etc %s" RET_CRLF, VPOPMAIL_DIR_ETC);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_lib %s" RET_CRLF, VPOPMAIL_DIR_LIB);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_include %s" RET_CRLF, VPOPMAIL_DIR_INCLUDE);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_domains %s" RET_CRLF, VPOPMAIL_DIR_DOMAINS);
     wait_write();
 
     snprintf(WriteBuf,sizeof(WriteBuf), "domain_dir %s" RET_CRLF, TheDomainDir);
@@ -956,7 +964,7 @@ int add_domain()
     return(-1);
   }
 
-  if ((ret=vadddomain(domain,VPOPMAILDIR,VPOPMAILUID,VPOPMAILGID))!=VA_SUCCESS){
+  if ((ret=vadddomain(domain,VPOPMAIL_DIR_DOMAINS,VPOPMAILUID,VPOPMAILGID))!=VA_SUCCESS){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0.804 %s" RET_CRLF, verror(ret));
     return(-1);
   }

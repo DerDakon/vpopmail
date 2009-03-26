@@ -118,7 +118,7 @@ int load_connection_info() {
     if (loaded) return 0;
     loaded = 1;
 
-    sprintf(config, "%s/etc/%s", VPOPMAILDIR, "vpopmail.mysql");
+    sprintf(config, "%s/%s", VPOPMAIL_DIR_ETC, "vpopmail.mysql");
 
     fp = fopen(config, "r");
     if (fp == NULL) {
@@ -401,9 +401,9 @@ int auth_adduser(char *user, char *domain, char *pass, char *gecos,
     if ( strlen(domain) <= 0 ) {
         if ( strlen(dir) > 0 ) {
             snprintf(dirbuf, sizeof(dirbuf), 
-                "%s/users/%s/%s", VPOPMAILDIR, dir, user);
+                "%s/users/%s/%s", VPOPMAIL_DIR_DOMAINS, dir, user);
         } else {
-            snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
+            snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAIL_DIR_DOMAINS, user);
         }
     } else {
         vget_assign(domain, dom_dir, sizeof(dom_dir), &uid, &gid );

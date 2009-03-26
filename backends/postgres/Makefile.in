@@ -38,7 +38,7 @@ clean:
 	rm -f *.o *.so
 
 distclean: clean
-	rm -rf Makefile autom4te.cache  config.log config.status
+	rm -rf Makefile autom4te.cache  config.log config.status vpgsql.h
 
 install:
 	$(INSTALL) vpgsql.so $(VPOPMAIL_MODULEDIR)/vpgsql.so

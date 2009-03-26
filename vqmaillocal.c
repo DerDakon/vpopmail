@@ -904,7 +904,7 @@ void usernotfound()
     }
 
     /* check if it is a path add the /Maildir/ for delivery */
-    if ( strstr( bounce, VPOPMAILDIR ) != 0 ) {
+    if ( strstr( bounce, VPOPMAIL_DIR_DOMAINS ) != 0 ) {
         strcat( bounce, "/Maildir/");
     }
 

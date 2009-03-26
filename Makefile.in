@@ -10,7 +10,6 @@ CFLAGS = @CFLAGS@
 LIBS = @LIBS@ -L. -lvpopmail
 LLIBS = @LIBS@ 
 LDFLAGS = @LDFLAGS@
-VPOPMAILDIR = @vpopmaildir@
 DEPS = Makefile
 INSTALL = @INSTALL@
 CCC = $(CC) $(CFLAGS)
@@ -19,15 +18,20 @@ BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
-	   vlist vusagec authvchkpw
+	   vlist vusagec
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h
-INSTALL_DIRS = bin etc doc include lib domains
+INSTALL_DIRS = @VPOPMAIL_DIR_BIN@ @VPOPMAIL_DIR_ETC@ @VPOPMAIL_DIR_INCLUDE@ @VPOPMAIL_DIR_LIB@ @VPOPMAIL_DIR_DOMAINS@
 CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
 					  quota.o $(CDB_OBJECTS)
+VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
+VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
+VPOPMAIL_DIR_INCLUDE = @VPOPMAIL_DIR_INCLUDE@
+VPOPMAIL_DIR_LIB = @VPOPMAIL_DIR_LIB@
+VPOPMAIL_DIR_DOMAINS = @VPOPMAIL_DIR_DOMAINS@
 
 #
 # Build
@@ -64,8 +68,6 @@ libvpopmail.so: $(LIBVPOPMAIL_OBJECTS)
 # Binaries
 #
 
-authvchkpw: authvchkpw.o hmac_md5.o libvpopmail.so
-	$(LINK) -o $@ $+ $(LLIBS)
 vchkpw: vchkpw.o md5.o hmac_md5.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 vdelivermail: vdelivermail.o maildirquota.o quota.o libvpopmail.so
@@ -123,8 +125,6 @@ vusagec: vusagec.o libvpopmail.so
 # Objects
 #
 
-authvchkpw.o: $(DEPS) authvchkpw.c config.h vpopmail.h md5.h hmac_md5.h vauth.h
-	$(CCC) -o $@ -c $*.c
 backfill.o: $(DEPS) backfill.c vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 bigdir.o: $(DEPS) bigdir.c file_lock.h config.h vpopmail.h vauth.h
@@ -234,35 +234,35 @@ install: $(BUILD_ALL)
 	@# Create directories
 	@#
 	
-	for i in $(INSTALL_DIRS); do mkdir -p $(VPOPMAILDIR)/$${i}; chown vpopmail:vchkpw $(VPOPMAILDIR)/$${i}; done
-	chmod 700 $(VPOPMAILDIR)/domains
+	for i in $(INSTALL_DIRS); do if test ! -d $${i}; then mkdir -p $${i}; chown vpopmail:vchkpw $${i}; fi; done
+	chmod 700 $(VPOPMAIL_DIR_DOMAINS)
 	
 	@#
 	@# Copy binaries, libraries and headers
 	@#
 	
-	for i in $(BUILD_BINS); do $(INSTALL) -s -o vpopmail -g vchkpw $${i} $(VPOPMAILDIR)/bin; chmod 711 $(VPOPMAILDIR)/bin/$${i}; done
-	for i in $(BUILD_LIBS); do $(INSTALL) $${i} $(VPOPMAILDIR)/lib; chmod 644 $(VPOPMAILDIR)/lib/$${i}; done
-	$(INSTALL) -m 444 config.h $(VPOPMAILDIR)/include/vpopmail_config.h
-	for i in $(INSTALL_HEADERS); do $(INSTALL) -m 444 $${i} $(VPOPMAILDIR)/include; done
+	for i in $(BUILD_BINS); do $(INSTALL) -s -o vpopmail -g vchkpw $${i} $(VPOPMAIL_DIR_BIN); chmod 711 $(VPOPMAIL_DIR_BIN)/$${i}; done
+	for i in $(BUILD_LIBS); do $(INSTALL) $${i} $(VPOPMAIL_DIR_LIB); chmod 644 $(VPOPMAIL_DIR_LIB)/$${i}; done
+	$(INSTALL) -m 444 config.h $(VPOPMAIL_DIR_INCLUDE)/vpopmail_config.h
+	for i in $(INSTALL_HEADERS); do $(INSTALL) -m 444 $${i} $(VPOPMAIL_DIR_INCLUDE); done
 	
 	@#
 	@# Create dependency files
 	@#
 	
-	echo "-I$(VPOPMAILDIR)/include" > $(VPOPMAILDIR)/etc/inc_deps
-	echo "-L$(VPOPMAILDIR)/lib $(LLIBS) -lvpopmail" > $(VPOPMAILDIR)/etc/lib_deps
+	echo "-I$(VPOPMAIL_DIR_INCLUDE)" > $(VPOPMAIL_DIR_ETC)/inc_deps
+	echo "-L$(VPOPMAIL_DIR_LIB) $(LLIBS) -lvpopmail" > $(VPOPMAIL_DIR_ETC)/lib_deps
 	
-	if test ! -r $(VPOPMAILDIR)/etc/vlimits.default; then \
-	  $(INSTALL) -m 644 vlimits.default $(VPOPMAILDIR)/etc/vlimits.default; \
+	if test ! -r $(VPOPMAIL_DIR_ETC)/vlimits.default; then \
+	  $(INSTALL) -m 644 vlimits.default $(VPOPMAIL_DIR_ETC)/vlimits.default; \
     fi
 	
 	@#
 	@# Copy vusagec.conf
 	@#
 	
-	if test ! -r $(VPOPMAILDIR)/etc/vusagec.conf; then \
-	   $(INSTALL) -o vpopmail -g vchkpw -m 644 vusagec.conf $(VPOPMAILDIR)/etc/vusagec.conf; \
+	if test ! -r $(VPOPMAIL_DIR_ETC)/vusagec.conf; then \
+	   $(INSTALL) -o vpopmail -g vchkpw -m 644 vusagec.conf $(VPOPMAIL_DIR_ETC)/vusagec.conf; \
     fi
 	
 	@#
@@ -282,12 +282,6 @@ install: $(BUILD_ALL)
 	@echo "            vpopmail is installed"
 	@echo "  Be sure to install the vusaged startup script"
 	@echo "  located in vusaged/contrib/rc.vusaged"
-	@echo
-	@echo "  You will also want to select a backend module"
-	@echo "  for storing authentication information if you"
-	@echo "  have not already done this."
-	@echo
-	@echo "     For more information see backends/README"
 	@echo "-------------------------------------------------"
 	@echo
 	
@@ -295,7 +289,7 @@ install: $(BUILD_ALL)
 	@# Check if a backend has been installed
 	@#
 	
-	@if ! test -r $(VPOPMAILDIR)/etc/vpopmail.authmodule; then \
+	@if ! test -r $(VPOPMAIL_DIR_ETC)/vpopmail.authmodule; then \
 	   (make authmodule); \
     fi
 
@@ -315,6 +309,7 @@ authmodule:
 	@echo "  **                                                           **"
 	@echo "  ***************************************************************"
 	@echo
+	@sleep 5
 	
 
 #

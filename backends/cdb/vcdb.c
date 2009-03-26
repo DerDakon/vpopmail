@@ -381,7 +381,7 @@ void set_vpasswd_files( char *domain )
     memset(vpasswd_lock_file, 0, MAX_BUFF);
 
     if ( domain == NULL || domain[0] == 0 ) {
-        snprintf(vpasswd_dir, MAX_BUFF, "%s/users", VPOPMAILDIR);
+        snprintf(vpasswd_dir, MAX_BUFF, "%s/users", VPOPMAIL_DIR_DOMAINS);
     } else {
         snprintf(vpasswd_dir, MAX_BUFF, "%s", Dir); 
     }
@@ -680,7 +680,7 @@ int auth_adduser_line( FILE *fs1,
  char crypted[100];
 
 	if ( vget_assign(domain, Dir, 156, &uid, &gid ) == NULL ) {
-		strcpy(Dir, VPOPMAILDIR);
+		strcpy(Dir, VPOPMAIL_DIR_DOMAINS);
         }
  
         if ( pass[0] != 0 ) {
@@ -799,7 +799,7 @@ int get_ip_map( char *ip, char *domain, int domain_size)
 	if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
 
 	/* open the ip_alias_map file */
-	snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+	snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
 	if ( (fs = fopen(tmpbuf,"r")) == NULL ) return(-1);
 
 	while( fgets(tmpbuf, 156, fs) != NULL ) {
@@ -833,7 +833,7 @@ int add_ip_map( char *ip, char *domain)
 
 	del_ip_map( ip, domain );
 
-	snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+	snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
 	if ( (fs = fopen(tmpbuf,"a+")) == NULL ) return(-1);
 	fprintf( fs, "%s %s\n", ip, domain);
 	fclose(fs);
@@ -855,11 +855,11 @@ int del_ip_map( char *ip, char *domain)
 	if ( ip == NULL || strlen(ip) <= 0 ) return(-1);
 	if ( domain == NULL || strlen(domain) <= 0 ) return(-1);
 
-	snprintf(file1, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+	snprintf(file1, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
 	if ( (fs = fopen(file1,"r")) == NULL ) return(-1);
 
 	snprintf(file2, 156,
-            "%s/%s.%d", VPOPMAILDIR, IP_ALIAS_MAP_FILE, getpid());
+            "%s/%s.%d", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE, getpid());
 	if ( (fs1 = fopen(file2,"w")) == NULL ) {
 		fclose(fs);
 		return(-1);
@@ -902,7 +902,7 @@ int show_ip_map( int first, char *ip, char *domain)
 			fclose(fs);
 			fs = NULL;
 		}
-		snprintf(tmpbuf, 156, "%s/%s", VPOPMAILDIR, IP_ALIAS_MAP_FILE);
+		snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
 		if ( (fs = fopen(tmpbuf,"r")) == NULL ) return(-1);
 	}
 	if ( fs == NULL ) return(-1);
@@ -1132,7 +1132,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
       
         /* save some time if this is the vpopmail user */
         if ( uid == VPOPMAILUID ) {
-            strncpy(dir_control_file, VPOPMAILDIR, MAX_DIR_NAME);
+            strncpy(dir_control_file, VPOPMAIL_DIR_DOMAINS, MAX_DIR_NAME);
 
         /* for other users, look them up in /etc/passwd */
         } else if ( (pw=getpwuid(uid))!=NULL ) {
@@ -1144,7 +1144,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
         }
 
         /* stick on the rest of the path */
-        strncat(dir_control_file, "/" DOMAINS_DIR "/.dir-control", MAX_DIR_NAME); 
+        strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME); 
     }
     return(dir_control_file);
 }
