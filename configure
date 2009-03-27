@@ -658,10 +658,10 @@ host
 host_cpu
 host_vendor
 host_os
-CFLAGS
-LDFLAGS
 AWK
 CC
+CFLAGS
+LDFLAGS
 CPPFLAGS
 ac_ct_CC
 EXEEXT
@@ -1861,15 +1861,6 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
 ac_config_headers="$ac_config_headers config.h"
-
-
-#
-# Set default compiler and linker flags
-#
-
-CFLAGS=""
-
-LDFLAGS=""
 
 
 #
@@ -9961,10 +9952,10 @@ host!$host$ac_delim
 host_cpu!$host_cpu$ac_delim
 host_vendor!$host_vendor$ac_delim
 host_os!$host_os$ac_delim
-CFLAGS!$CFLAGS$ac_delim
-LDFLAGS!$LDFLAGS$ac_delim
 AWK!$AWK$ac_delim
 CC!$CC$ac_delim
+CFLAGS!$CFLAGS$ac_delim
+LDFLAGS!$LDFLAGS$ac_delim
 CPPFLAGS!$CPPFLAGS$ac_delim
 ac_ct_CC!$ac_ct_CC$ac_delim
 EXEEXT!$EXEEXT$ac_delim

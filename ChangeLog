@@ -30,6 +30,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added initial FHS compliance
   - Removed authvchkpw because we do not support Courier-MTA any longer
   - Added vmoduserflags binary
+  - Fixed bug in configure scripts that reset CFLAGS to empty
 
   Luis Felipe Silveira da Silva <felipe@bsd.com.br>
   - Updated to provide maildrop flag in vlimits MySQL
