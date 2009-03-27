@@ -20,6 +20,8 @@
 #ifndef VPOPMAIL_CDB_H
 #define VPOPMAIL_CDB_H
 
+#undef ENABLE_AUTH_LOGGING
+
 #define VPASSWD_FILE         "vpasswd"
 #define VPASSWD_BAK_FILE     "vpasswd.bak"
 #define VPASSWD_LOCK_FILE    ".vpasswd.lock"

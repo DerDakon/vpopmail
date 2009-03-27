@@ -108,6 +108,23 @@ AC_ARG_ENABLE(valias,
 			  ], AC_MSG_RESULT(no))
 
 #
+# Authentication logging
+#
+
+AC_MSG_CHECKING(if authentication logging is enabled)
+
+AC_ARG_ENABLE(auth-logging,
+    [  --enable-auth-logging   Enable authentication logging],
+	[
+	  AC_MSG_RESULT(yes)
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,1,"")
+    ],
+	[
+	   AC_MSG_RESULT(no)
+    ]
+)
+
+#
 # Output
 #
 

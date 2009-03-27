@@ -9335,6 +9335,19 @@ echo "$as_me: error: --enable-vpopgroup is deprecated.  Please use --with-vpopgr
 fi
 
 
+# Check whether --enable-auth-logging was given.
+if test "${enable_auth_logging+set}" = set; then
+  enableval=$enable_auth_logging;
+				  { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+				  { { echo "$as_me:$LINENO: error: --enable-auth-logging is a module option.  Please use --enable-auth-logging when compiling a backend module" >&5
+echo "$as_me: error: --enable-auth-logging is a module option.  Please use --enable-auth-logging when compiling a backend module" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+fi
+
+
 { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 
@@ -10647,17 +10660,6 @@ case $ENABLE_LOGGING in
     echo "        pop syslog = OFF"
     ;;
 esac
-
-
-case $ENABLE_AUTH_LOGGING in
-  1*|y*|Y*)
-    echo "      auth logging = ON  --enable-auth-logging (default)"
-    ;;
-  *)
-    echo "      auth logging = OFF --disable-auth-logging"
-    ;;
-esac
-
 
 if test "$USE_SQL" = 1
 then

@@ -1649,6 +1649,13 @@ AC_ARG_WITH(vpopgroup, [],
 			]
 )
 
+AC_ARG_ENABLE(auth-logging, [],
+			  [
+				  AC_MSG_RESULT(yes)
+				  AC_MSG_ERROR(--enable-auth-logging is a module option.  Please use --enable-auth-logging when compiling a backend module)
+			   ]
+)
+
 AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
@@ -1834,17 +1841,6 @@ case $ENABLE_LOGGING in
     echo "        pop syslog = OFF"
     ;;
 esac
-
-
-case $ENABLE_AUTH_LOGGING in
-  1*|y*|Y*)
-    echo "      auth logging = ON  --enable-auth-logging (default)"
-    ;;
-  *)
-    echo "      auth logging = OFF --disable-auth-logging"
-    ;;
-esac
-
 
 if test "$USE_SQL" = 1
 then

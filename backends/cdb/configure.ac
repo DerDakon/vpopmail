@@ -20,6 +20,7 @@
 AC_PREREQ([2.52])
 AC_INIT(vcdb,1.0.0)
 AC_CANONICAL_HOST
+AC_CONFIG_HEADER(vcdb.h)
 
 #
 # Set default compiler and linker flags
@@ -48,6 +49,23 @@ if ! test -r ../module.mk; then
 fi
 
 AC_MSG_RESULT(found)
+
+#
+# Authentication logging
+#
+
+AC_MSG_CHECKING(if authentication logging is enabled)
+
+AC_ARG_ENABLE(auth-logging,
+    [  --enable-auth-logging   Enable authentication logging],
+	[
+	  AC_MSG_RESULT(yes)
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,1,"")
+    ],
+	[
+	   AC_MSG_RESULT(no)
+    ]
+)
 
 #
 # Output

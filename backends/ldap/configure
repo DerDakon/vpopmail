@@ -1220,6 +1220,7 @@ Optional Features:
   --enable-libdir=DIR     Your OpenLDAP 'lib' directory.
   --enable-incdir=DIR     Your OpenLDAP 'include' directory.
   --enable-valias         Enable storage of dotqmail data in the LDAP database
+  --enable-auth-logging   Enable authentication logging
 
 Some influential environment variables:
   CC          C compiler command
@@ -3099,6 +3100,33 @@ echo "${ECHO_T}yes" >&6; }
 else
   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
+fi
+
+
+#
+# Authentication logging
+#
+
+{ echo "$as_me:$LINENO: checking if authentication logging is enabled" >&5
+echo $ECHO_N "checking if authentication logging is enabled... $ECHO_C" >&6; }
+
+# Check whether --enable-auth-logging was given.
+if test "${enable_auth_logging+set}" = set; then
+  enableval=$enable_auth_logging;
+	  { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define ENABLE_AUTH_LOGGING 1
+_ACEOF
+
+
+else
+
+	   { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+
 fi
 
 
