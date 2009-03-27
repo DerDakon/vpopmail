@@ -30,7 +30,14 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added initial FHS compliance
   - Removed authvchkpw because we do not support Courier-MTA any longer
   - Added vmoduserflags binary
-  - Fixed bug in configure scripts that reset CFLAGS to empty
+  - Fixed bug in configure scripts that reset CFLAGS to empty if specified at configure time
+  - Changed usage output for vmoddomain
+  - Removed vfilter flag from vmoddomain source
+  - Renamed --enable-vpopuser and --enable-vpopgroup to --with-vpopuser and --with-vpopgroup
+  - Added use of --with-vpopuser and --with-vpopgroup in the various Makefiles
+
+  Manvendra Bhangui <mbhangui@users.sourceforge.net>
+  - Added vmoddomain
 
   Luis Felipe Silveira da Silva <felipe@bsd.com.br>
   - Updated to provide maildrop flag in vlimits MySQL
