@@ -9,13 +9,6 @@ AC_CANONICAL_HOST
 AC_CONFIG_HEADER(config.h)
 
 #
-# Set default compiler and linker flags
-#
-
-AC_SUBST(CFLAGS, "")
-AC_SUBST(LDFLAGS, "")
-
-#
 # Export package version
 #
 
