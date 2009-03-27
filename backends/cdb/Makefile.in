@@ -37,7 +37,7 @@ clean:
 	rm -f *.o *.so
 
 distclean: clean
-	rm -rf Makefile autom4te.cache  config.log config.status
+	rm -rf Makefile autom4te.cache  config.log config.status vcdb.h
 
 install:
 	$(INSTALL) vcdb.so $(VPOPMAIL_MODULEDIR)/vcdb.so

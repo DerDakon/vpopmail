@@ -35,6 +35,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Removed vfilter flag from vmoddomain source
   - Renamed --enable-vpopuser and --enable-vpopgroup to --with-vpopuser and --with-vpopgroup
   - Added use of --with-vpopuser and --with-vpopgroup in the various Makefiles
+  - Added support of --enable-auth-logging
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

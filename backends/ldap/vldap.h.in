@@ -21,6 +21,7 @@
 #define VPOPMAIL_LDAP_H
 
 #undef VALIAS
+#undef ENABLE_AUTH_LOGGING
 
 char *VLDAP_SERVER;
 int VLDAP_PORT = LDAP_PORT;
