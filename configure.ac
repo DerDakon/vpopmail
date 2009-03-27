@@ -9,6 +9,24 @@ AC_CANONICAL_HOST
 AC_CONFIG_HEADER(config.h)
 
 #
+# Default CFLAGS
+#
+
+if test -z "$CFLAGS"
+then
+   AC_SUBST(CFLAGS, "")
+fi
+
+#
+# Default LDFLAGS
+#
+
+if test -z "$LDFLAGS"
+then
+   AC_SUBST(LDFLAGS, "")
+fi
+
+#
 # Export package version
 #
 
@@ -381,13 +399,13 @@ AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh","")
 AC_MSG_CHECKING(for valid vpopmail user and group)
 
 vpopuser="vpopmail"
-AC_ARG_ENABLE(vpopuser,
-    [  --enable-vpopuser=USER     User name allocated to vpopmail [vpopmail].],
+AC_ARG_WITH(vpopuser,
+    [  --with-vpopuser=USER     User name allocated to vpopmail [vpopmail].],
     vpopuser="$enableval",
     [
         if test "$vpopuser" = ""
         then
-            AC_MSG_ERROR([Unable to find your vpopmail user, specify --enable-vpopuser.])
+            AC_MSG_ERROR([Unable to find your vpopmail user, specify --with-vpopuser.])
         fi
     ]
 )
@@ -398,13 +416,13 @@ AC_SUBST(vpopuser)
 echo $vpopuser > vpopusername
 
 vpopgroup="vchkpw"
-AC_ARG_ENABLE(vpopgroup,
-    [  --enable-vpopgroup=GROUP   Group name allocated to vpopmail [vchkpw].],
+AC_ARG_WITH(vpopgroup,
+    [  --with-vpopgroup=GROUP   Group name allocated to vpopmail [vchkpw].],
     vpopgroup="$enableval",
     [
         if test "$vpopgroup" = ""
         then
-            AC_MSG_ERROR([Unable to find your vpopmail group, specify --enable-vpopgroup.])
+            AC_MSG_ERROR([Unable to find your vpopmail group, specify --with-vpopgroup.])
         fi
     ]
 )
@@ -1617,6 +1635,19 @@ AC_ARG_ENABLE(non-root-build, [],
     ]
 )
 
+AC_ARG_WITH(vpopuser, [],
+			[
+			   AC_MSG_RESULT(yes)
+			   AC_MSG_ERROR(--enable-vpopuser is deprecated.  Please use --with-vpopmail)
+			]
+)
+
+AC_ARG_WITH(vpopgroup, [],
+			[
+			   AC_MSG_RESULT(yes)
+			   AC_MSG_ERROR(--enable-vpopgroup is deprecated.  Please use --with-vpopgroup)
+			]
+)
 
 AC_MSG_RESULT(no)
 

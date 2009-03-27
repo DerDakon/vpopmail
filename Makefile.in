@@ -18,7 +18,7 @@ BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
-	   vlist vusagec vmoduserflags
+	   vlist vusagec vmoduserflags vmoddomain
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h
 INSTALL_DIRS = @VPOPMAIL_DIR_BIN@ @VPOPMAIL_DIR_ETC@ @VPOPMAIL_DIR_INCLUDE@ @VPOPMAIL_DIR_LIB@ @VPOPMAIL_DIR_DOMAINS@
@@ -122,6 +122,8 @@ vusagec: vusagec.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 vmoduserflags: vmoduserflags.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
+vmoddomain: vmoddomain.o libvpopmail.so
+	$(LINK) -o $@ $+ $(LLIBS)
 
 #
 # Objects
@@ -216,6 +218,8 @@ quota.o: $(DEPS) quota.c quota.h client.h storage.h vauth.h vpopmail.h
 	$(CCC) -o $@ -c $*.c
 vmoduserflags.o: $(DEPS) vmoduserflags.c vpopmail.h vauth.h vauthmodule.h
 	$(CCC) -o $@ -c $*.c
+vmoddomain.o: $(DEPS) vmoddomain.c config.h vpopmail.h file_lock.h
+	$(CCC) -o $@ -c $*.c
 
 #
 # Package
@@ -238,14 +242,14 @@ install: $(BUILD_ALL)
 	@# Create directories
 	@#
 	
-	for i in $(INSTALL_DIRS); do if test ! -d $${i}; then mkdir -p $${i}; chown vpopmail:vchkpw $${i}; fi; done
+	for i in $(INSTALL_DIRS); do if test ! -d $${i}; then mkdir -p $${i}; chown @vpopuser@:@vpopgroup@ $${i}; fi; done
 	chmod 700 $(VPOPMAIL_DIR_DOMAINS)
 	
 	@#
 	@# Copy binaries, libraries and headers
 	@#
 	
-	for i in $(BUILD_BINS); do $(INSTALL) -s -o vpopmail -g vchkpw $${i} $(VPOPMAIL_DIR_BIN); chmod 711 $(VPOPMAIL_DIR_BIN)/$${i}; done
+	for i in $(BUILD_BINS); do $(INSTALL) -s -o @vpopuser@ -g @vpopgroup@ $${i} $(VPOPMAIL_DIR_BIN); chmod 711 $(VPOPMAIL_DIR_BIN)/$${i}; done
 	for i in $(BUILD_LIBS); do $(INSTALL) $${i} $(VPOPMAIL_DIR_LIB); chmod 644 $(VPOPMAIL_DIR_LIB)/$${i}; done
 	$(INSTALL) -m 444 config.h $(VPOPMAIL_DIR_INCLUDE)/vpopmail_config.h
 	for i in $(INSTALL_HEADERS); do $(INSTALL) -m 444 $${i} $(VPOPMAIL_DIR_INCLUDE); done
@@ -266,7 +270,7 @@ install: $(BUILD_ALL)
 	@#
 	
 	if test ! -r $(VPOPMAIL_DIR_ETC)/vusagec.conf; then \
-	   $(INSTALL) -o vpopmail -g vchkpw -m 644 vusagec.conf $(VPOPMAIL_DIR_ETC)/vusagec.conf; \
+	   $(INSTALL) -o @vpopuser@ -g @vpopgroup@ -m 644 vusagec.conf $(VPOPMAIL_DIR_ETC)/vusagec.conf; \
     fi
 	
 	@#

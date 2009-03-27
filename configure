@@ -658,10 +658,10 @@ host
 host_cpu
 host_vendor
 host_os
-AWK
-CC
 CFLAGS
 LDFLAGS
+AWK
+CC
 CPPFLAGS
 ac_ct_CC
 EXEEXT
@@ -1277,8 +1277,6 @@ Optional Features:
   --enable-qmail-newu=PATH   Full path to qmail-newu program.
   --enable-qmail-inject=PATH Full path to qmail-inject program.
   --enable-qmail-newmrh=PATH Full path to qmail-newmrh program.
-  --enable-vpopuser=USER     User name allocated to vpopmail vpopmail.
-  --enable-vpopgroup=GROUP   Group name allocated to vpopmail vchkpw.
   --enable-roaming-users     Enable POP-before-SMTP functionality.
   --enable-tcprules-prog=PATH    Full path to tcprules program /usr/{local/}bin/tcprules.
   --enable-tcpserver-file=PATH   File where tcpserver -x relay information is stored /home/vpopmail/etc/tcp.smtp.
@@ -1303,6 +1301,13 @@ Optional Features:
   --enable-passwd            Enable /etc/passwd (or shadow) accounts in addition to virtual domains.
   --enable-logging=OPT       Log to syslog: n=nothing, e=errors only (default), y=all attempts, p=errors with passwords, v=verbose (all attempts, with passwords).
   --enable-log-name=TEXT     Set syslog name vpopmail.
+
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-vpopuser=USER     User name allocated to vpopmail vpopmail.
+  --with-vpopgroup=GROUP   Group name allocated to vpopmail vchkpw.
 
 
 Some influential environment variables:
@@ -1862,6 +1867,26 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 ac_config_headers="$ac_config_headers config.h"
 
+
+#
+# Default CFLAGS
+#
+
+if test -z "$CFLAGS"
+then
+   CFLAGS=""
+
+fi
+
+#
+# Default LDFLAGS
+#
+
+if test -z "$LDFLAGS"
+then
+   LDFLAGS=""
+
+fi
 
 #
 # Export package version
@@ -6798,15 +6823,16 @@ _ACEOF
 echo $ECHO_N "checking for valid vpopmail user and group... $ECHO_C" >&6; }
 
 vpopuser="vpopmail"
-# Check whether --enable-vpopuser was given.
-if test "${enable_vpopuser+set}" = set; then
-  enableval=$enable_vpopuser; vpopuser="$enableval"
+
+# Check whether --with-vpopuser was given.
+if test "${with_vpopuser+set}" = set; then
+  withval=$with_vpopuser; vpopuser="$enableval"
 else
 
         if test "$vpopuser" = ""
         then
-            { { echo "$as_me:$LINENO: error: Unable to find your vpopmail user, specify --enable-vpopuser." >&5
-echo "$as_me: error: Unable to find your vpopmail user, specify --enable-vpopuser." >&2;}
+            { { echo "$as_me:$LINENO: error: Unable to find your vpopmail user, specify --with-vpopuser." >&5
+echo "$as_me: error: Unable to find your vpopmail user, specify --with-vpopuser." >&2;}
    { (exit 1); exit 1; }; }
         fi
 
@@ -6824,15 +6850,16 @@ _ACEOF
 echo $vpopuser > vpopusername
 
 vpopgroup="vchkpw"
-# Check whether --enable-vpopgroup was given.
-if test "${enable_vpopgroup+set}" = set; then
-  enableval=$enable_vpopgroup; vpopgroup="$enableval"
+
+# Check whether --with-vpopgroup was given.
+if test "${with_vpopgroup+set}" = set; then
+  withval=$with_vpopgroup; vpopgroup="$enableval"
 else
 
         if test "$vpopgroup" = ""
         then
-            { { echo "$as_me:$LINENO: error: Unable to find your vpopmail group, specify --enable-vpopgroup." >&5
-echo "$as_me: error: Unable to find your vpopmail group, specify --enable-vpopgroup." >&2;}
+            { { echo "$as_me:$LINENO: error: Unable to find your vpopmail group, specify --with-vpopgroup." >&5
+echo "$as_me: error: Unable to find your vpopmail group, specify --with-vpopgroup." >&2;}
    { (exit 1); exit 1; }; }
         fi
 
@@ -9281,6 +9308,33 @@ fi
 
 
 
+# Check whether --with-vpopuser was given.
+if test "${with_vpopuser+set}" = set; then
+  withval=$with_vpopuser;
+			   { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+			   { { echo "$as_me:$LINENO: error: --enable-vpopuser is deprecated.  Please use --with-vpopmail" >&5
+echo "$as_me: error: --enable-vpopuser is deprecated.  Please use --with-vpopmail" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+fi
+
+
+
+# Check whether --with-vpopgroup was given.
+if test "${with_vpopgroup+set}" = set; then
+  withval=$with_vpopgroup;
+			   { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+			   { { echo "$as_me:$LINENO: error: --enable-vpopgroup is deprecated.  Please use --with-vpopgroup" >&5
+echo "$as_me: error: --enable-vpopgroup is deprecated.  Please use --with-vpopgroup" >&2;}
+   { (exit 1); exit 1; }; }
+
+
+fi
+
+
 { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 
@@ -9952,10 +10006,10 @@ host!$host$ac_delim
 host_cpu!$host_cpu$ac_delim
 host_vendor!$host_vendor$ac_delim
 host_os!$host_os$ac_delim
-AWK!$AWK$ac_delim
-CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
+AWK!$AWK$ac_delim
+CC!$CC$ac_delim
 CPPFLAGS!$CPPFLAGS$ac_delim
 ac_ct_CC!$ac_ct_CC$ac_delim
 EXEEXT!$EXEEXT$ac_delim

@@ -46,5 +46,5 @@ install:
 	ln -s $(VPOPMAIL_MODULEDIR)/vldap.so $(VPOPMAIL_AUTHMODULE)
 	
 	if ! test -r $(VPOPMAIL_ETCDIR)/vpopmail.ldap; then \
-	   $(INSTALL) -o vpopmail -g vchkpw -m 0640 vpopmail.ldap $(VPOPMAIL_ETCDIR)/vpopmail.ldap; \
+	   $(INSTALL) -o $(VPOPMAIL_USER) -g $(VPOPMAIL_GROUP) -m 0640 vpopmail.ldap $(VPOPMAIL_ETCDIR)/vpopmail.ldap; \
     fi
