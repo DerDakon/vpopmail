@@ -26,8 +26,7 @@ AC_CONFIG_HEADER(vldap.h)
 # Set default compiler and linker flags
 #
 
-AC_SUBST(CFLAGS, "-I../.. -fPIC")
-AC_SUBST(LDFLAGS, "")
+AC_SUBST(CFLAGS, "$CFLAGS -I../.. -fPIC")
 
 #
 # Programs

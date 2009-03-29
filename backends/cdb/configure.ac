@@ -26,8 +26,7 @@ AC_CONFIG_HEADER(vcdb.h)
 # Set default compiler and linker flags
 #
 
-AC_SUBST(CFLAGS, "-I../.. -I../../cdb -fPIC")
-AC_SUBST(LDFLAGS, "")
+AC_SUBST(CFLAGS, "$CFLAGS -I../.. -I../../cdb -fPIC")
 
 #
 # Programs
