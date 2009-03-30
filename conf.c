@@ -52,7 +52,6 @@ char *config_convert_literal(char *);
 
 config_t *config_begin(const char *filename)
 {
-   struct passwd *pw = NULL;
    config_t *c = NULL;
    char b[255] = { 0 };
    int i = 0;

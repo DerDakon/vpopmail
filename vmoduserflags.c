@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "vauth.h"
 #include "vauthmodule.h"
 #include "vpopmail.h"
@@ -60,7 +61,7 @@ static void print_flags(int, int);
 
 int main(int argc, char *argv[])
 {
-   int ret = 0, i = 0, bits = 0;
+   int ret = 0, bits = 0;
    struct vqpasswd *pw = NULL;
    char user[128] = { 0 }, domain[256] = { 0 };
 
