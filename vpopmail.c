@@ -157,7 +157,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   /* store the calling directory */
   getcwd(calling_dir, sizeof(calling_dir));
 
-  if ((dir == NULL) || (dir == VPOPMAIL_DIR_DOMAINS) || (!(*dir))) {
+  if ((dir == NULL) || ((const char *)dir == (const char *)VPOPMAIL_DIR_DOMAINS) || (!(*dir))) {
 	 memset(ddir, 0, sizeof(ddir));
 	 snprintf(ddir, sizeof(ddir), "%s/%s", VPOPMAIL_DIR_DOMAINS, domain);
 	 dir = ddir;
@@ -2728,10 +2728,11 @@ void vset_default_domain_safe(char *domain, int dlen)
 {
 #ifdef IP_ALIAS_DOMAINS
    int ret = 0;
+   char host[256] = { 0 };
 #endif
 
    int len = 0;
-   char *tmpstr = NULL, host[256] = { 0 };
+   char *tmpstr = NULL;
 
    if ((domain == NULL) || (dlen <= 0))
 	  return;
@@ -4072,7 +4073,7 @@ char *maildir_to_email (const char *maildir)
 
 int user_domain_to_email(const char *user, const char *domain, char *email, int elen)
 {
-   int ulen = 0, dlen = 0, ret = 0;
+   int ulen = 0, dlen = 0;
    char dom[256] = { 0 };
 
    if ((user == NULL) || (!(*user)))
