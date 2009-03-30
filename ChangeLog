@@ -36,6 +36,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Renamed --enable-vpopuser and --enable-vpopgroup to --with-vpopuser and --with-vpopgroup
   - Added use of --with-vpopuser and --with-vpopgroup in the various Makefiles
   - Added support of --enable-auth-logging
+  - Added -fPIC to libvpopmail object compiler flags
+  - Fixed some unused variables
+  - Fixed some headers that needed to be included in various files
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
