@@ -13,6 +13,7 @@ LDFLAGS = @LDFLAGS@
 DEPS = Makefile
 INSTALL = @INSTALL@
 CCC = $(CC) $(CFLAGS)
+PICC = $(CC) $(CFLAGS) -fPIC
 LINK = $(CC) $(LDFLAGS)
 BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
@@ -130,30 +131,30 @@ vmoddomain: vmoddomain.o libvpopmail.so
 #
 
 backfill.o: $(DEPS) backfill.c vpopmail.h vauth.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 bigdir.o: $(DEPS) bigdir.c file_lock.h config.h vpopmail.h vauth.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 clearopensmtp.o: $(DEPS) clearopensmtp.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 client.o: $(DEPS) client.c client.h storage.h conf.h ippp.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 conf.o: $(DEPS) conf.c conf.h config.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 dotqmail2valias.o: $(DEPS) dotqmail2valias.c vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 file_lock.o: $(DEPS) file_lock.c file_lock.h config.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 hmac_md5.o: $(DEPS) hmac_md5.c global.h md5.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 ippp.o: $(DEPS) ippp.c ippp.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 maildirquota.o: $(DEPS) maildirquota.c vauth.h vpopmail.h vlimits.h maildirquota.h \
    config.h conf.h storage.h client.h quota.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 md5.o: $(DEPS) md5.c md5.h cdb
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 seek.o: $(DEPS) seek.c seek.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vaddaliasdomain.o: $(DEPS) vaddaliasdomain.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vadddomain.o: $(DEPS) vadddomain.c config.h vpopmail.h vauth.h
@@ -163,7 +164,7 @@ vadduser.o: $(DEPS) vadduser.c config.h vpopmail.h vauth.h
 valias.o: $(DEPS) valias.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vauth.o: $(DEPS) vauth.h config.h vpopmail.h file_lock.h vlimits.h cdb vauthmodule.h vauth.c vpalias.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vchangepw.o: $(DEPS) vchangepw.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vchkpw.o: $(DEPS) vchkpw.c config.h vpopmail.h vauth.h vlimits.h vlog.h
@@ -185,9 +186,9 @@ vipmap.o: $(DEPS) vipmap.c config.h vpopmail.h vauth.h
 vkill.o: $(DEPS) vkill.c config.h vpopmail.h
 	$(CCC) -o $@ -c $*.c
 vlimits.o: $(DEPS) vlimits.c config.h vpopmail.h vauth.h vlimits.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vlistlib.o: $(DEPS) vlistlib.c vpopmail.h config.h vauth.h vutil.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vlist.o: $(DEPS) vlist.c vpopmail.h config.h
 	$(CCC) -o $@ -c $*.c
 vmkpasswd.o: $(DEPS) vmkpasswd.c config.h vpopmail.h vauth.h
@@ -197,7 +198,7 @@ vmoddomlimits.o: $(DEPS) vmoddomlimits.c config.h vpopmail.h vauth.h vlimits.h
 vmoduser.o: $(DEPS) vmoduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpalias.o: $(DEPS) vpalias.c vpopmail.h vauth.h vpalias.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vpasswd.o: $(DEPS) vpasswd.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpopbull.o: $(DEPS) vpopbull.c config.h vpopmail.h vauth.h
@@ -205,7 +206,7 @@ vpopbull.o: $(DEPS) vpopbull.c config.h vpopmail.h vauth.h
 vpopmaild.o: $(DEPS) vpopmaild.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpopmail.o: $(DEPS) vpopmail.c config.h md5.h vpopmail.h file_lock.h vauth.h vlimits.h maildirquota.h quota.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vsetuserquota.o: $(DEPS) vsetuserquota.c config.h vpopmail.h vauth.h 
 	$(CCC) -o $@ -c $*.c
 vusagec.o: $(DEPS) vusagec.c client.h storage.h
@@ -213,9 +214,9 @@ vusagec.o: $(DEPS) vusagec.c client.h storage.h
 vuserinfo.o: $(DEPS) vuserinfo.c vpopmail.h vauth.h config.h maildirquota.h quota.h storage.h
 	$(CCC) -o $@ -c $*.c
 vutil.o: $(DEPS) vutil.c vpopmail.h vauth.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 quota.o: $(DEPS) quota.c quota.h client.h storage.h vauth.h vpopmail.h
-	$(CCC) -o $@ -c $*.c
+	$(PICC) -o $@ -c $*.c
 vmoduserflags.o: $(DEPS) vmoduserflags.c vpopmail.h vauth.h vauthmodule.h
 	$(CCC) -o $@ -c $*.c
 vmoddomain.o: $(DEPS) vmoddomain.c config.h vpopmail.h file_lock.h
