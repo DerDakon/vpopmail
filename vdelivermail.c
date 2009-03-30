@@ -44,6 +44,7 @@
 #endif
 #include "vlimits.h"
 #include "vauthmodule.h"
+#include "quota.h"
 
 /* Globals */
 #define AUTH_SIZE 300

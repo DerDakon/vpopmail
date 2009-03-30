@@ -97,7 +97,9 @@ static struct vauth_required_func vauth_required_functions[] = {
    { NULL, NULL }
 };
 
+#if 0
 static int vauth_find_module_function(const char *);
+#endif
 
 /*
    Not thread-safe, but none of vpopmail is right now
@@ -112,8 +114,8 @@ static char *auth_module_name = NULL;
 
 int vauth_load_module(const char *module)
 {
-   int i = 0, fd = 0;
-   char b[1024] = { 0 }, *p = NULL;
+   int i = 0;
+   char b[1024] = { 0 };
    void *hand = NULL, *sym = NULL;
 
    /*
@@ -247,6 +249,7 @@ void vclose(void)
    vvclose_ptr();
 }
 
+#if 0
 /*
    Returns pointer for a function
 */
@@ -262,6 +265,7 @@ static int vauth_find_module_function(const char *name)
 
    return -1;
 }
+#endif
 
 /*
    Returns currently loaded module name
