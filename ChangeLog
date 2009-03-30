@@ -39,6 +39,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added -fPIC to libvpopmail object compiler flags
   - Fixed some unused variables
   - Fixed some headers that needed to be included in various files
+  - Added DESTDIR support
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
