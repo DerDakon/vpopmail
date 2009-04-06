@@ -44,6 +44,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated Makefiles to only chown when root, and mkdir when root or DESTDIR is set
   - Updated detection and auto-creation of tcp.smtp inside configure.ac to work with DESTDIR correctly
   - Updated backend Makefiles to not chown when not root
+  - Fixed bug in vauth_open wrapper that returned success instead of failure if vauth_load_module failed
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
