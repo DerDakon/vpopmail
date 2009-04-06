@@ -58,5 +58,5 @@ distclean: clean
 	rm -rf config.log config.status Makefile autom4te.cache contrib/rc.vusaged
 
 install: $(BINS)
-	$(INSTALL) -s -m 0700 vusaged $(DESTDIR)$(VPOPMAIL_DIR_BIN)
+	$(INSTALL) -s -m 0700 vusaged $(DESTDIR)$(VPOPMAIL_DIR_BIN)/vusaged
 	if test ! -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusaged.conf; then $(INSTALL) -m 0600 etc/vusaged.conf $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusaged.conf; fi
