@@ -224,7 +224,7 @@ int vauth_open(int x)
    ret = vauth_load_module(NULL);
    if (!ret) {
 	  fprintf(stderr, "vauth_open: vauth_load_module failed\n");
-	  return 0;
+	  return 1;
    }
 
    return vauth_open(x);
