@@ -19,6 +19,7 @@
 
 CC = @CC@ -DVAUTH_MODULE
 INSTALL = @INSTALL@
+IDCOMMAND = @idcommand@
 
 #
 # Locations
