@@ -114,6 +114,7 @@ case "$host" in
 esac
 
 AC_MSG_RESULT($idcommand)
+AC_SUBST(idcommand)
 
 #
 # ps command
@@ -240,25 +241,6 @@ case "$host" in
     extralibflags=""
     ;;
 esac
-
-#----------------------------------------------------------------------
-
-#
-# FHS compliance
-#
-
-AC_ARG_ENABLE(root-check,
-    [  --disable-root-check    Disables root user check when compiling vpopmail ], idtest='false', idtest='true')
-
-#----------------------------------------------------------------------
-
-if $idtest && test `$idcommand` != "0"
-then
-  AC_MSG_WARN(=== vpopmail must be configured as root. ===)
-  AC_MSG_WARN(=== please switch to the root user and   ===)
-  AC_MSG_WARN(=== run ./configure.                     ===)
-  AC_MSG_ERROR(aborted.)
-fi
 
 #
 # Locate the qmail directory
@@ -563,19 +545,27 @@ rm -f vpopusername
 # Create etc directory if root
 #
 
-if test ! -d $vpopmail_etc_dir
+AC_MSG_CHECKING(whether ${DESTDIR}$vpopmail_dir_etc exists...)
+
+if test ! -d ${DESTDIR}$vpopmail_dir_etc
 then
-   if test ! $idtest
-   then
-	  AC_MSG_WARN($vpopmail_dir_etc does not exist!)
-	  sleep 3
-   else
-	  AC_MSG_WARN(making vpopmail etc directory)
-	  mkdir -p $vpopmail_dir_etc
-	  chown $vpopmailuid $vpopmail_dir_etc
-	  chgrp $vpopmailgid $vpopmail_dir_etc
-	  chmod 755 $vpopmail_dir_etc
-   fi
+	  AC_MSG_RESULT(no)
+	  if test "`$idcommand`" = "0" || test ! -z "${DESTDIR}"
+	  then
+		 mkdir -p ${DESTDIR}$vpopmail_dir_etc
+		 chmod 755 ${DESTDIR}$vpopmail_dir_etc
+		 AC_MSG_WARN(made ${DESTDIR}$vpopmail_dir_etc directory)
+	  else
+		 AC_MSG_WARN(Could not make ${DESTDIR}$vpopmail_dir_etc)
+		 sleep 3
+	  fi
+	  if test "`$idcommand`" = "0"
+	  then
+		 chown $vpopmailuid ${DESTDIR}$vpopmail_dir_etc
+		 chgrp $vpopmailgid ${DESTDIR}$vpopmail_dir_etc
+	  fi
+else
+	  AC_MSG_RESULT(yes)
 fi
 
 #----------------------------------------------------------------------
@@ -626,10 +616,30 @@ case $POPRELAY in
     AC_MSG_RESULT(yes)
     AC_DEFINE_UNQUOTED(TCPRULES_PROG,"$tcprules_prog","")
 
+    AC_ARG_ENABLE(tcpserver_file,
+        [  --enable-tcpserver-file=PATH   File where tcpserver -x relay information is stored [/home/vpopmail/etc/tcp.smtp].],
+        tcpserver_file="$enableval",
+        [
+            if test "$tcpserver_file" = ""
+            then
+                AC_MSG_WARN([Unable to find your tcpserver relay file.])
+                AC_MSG_WARN([Creating ${DESTDIR}/$vpopmail_dir_etc/tcp.smtp])
+
+				if test -d "$vpopmail_dir_etc"
+				then
+				  echo "127.:allow,RELAYCLIENT=\"\"" > ${DESTDIR}/$vpopmail_dir_etc/tcp.smtp
+			    else
+				  AC_MSG_WARN($vpopmail_dir_etc does not exist -- Could not make $vpopmail_dir_etc/tcp.smtp)
+				  sleep 3
+			    fi
+
+                tcpserver_file="$vpopmail_dir_etc"/tcp.smtp
+            fi
+        ]
+    )
 
     AC_MSG_CHECKING(whether we can locate the tcp.smtp file)
-    tcpserver_file=""
-    for f in "$sysconfdir"/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
+    for f in "$vpopmail_dir_etc"/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
     do
         if test -f $f
         then
@@ -638,29 +648,21 @@ case $POPRELAY in
         fi
     done
 
-    AC_ARG_ENABLE(tcpserver_file,
-        [  --enable-tcpserver-file=PATH   File where tcpserver -x relay information is stored [/home/vpopmail/etc/tcp.smtp].],
-        tcpserver_file="$enableval",
-        [
-            if test "$tcpserver_file" = ""
-            then
-                AC_MSG_WARN([Unable to find your tcpserver relay file.])
-                AC_MSG_WARN([Creating tcp.smtp in "$sysconfdir"/tcp.smtp.])
-
-                echo "127.:allow,RELAYCLIENT=\"\"" > "$sysconfdir"/tcp.smtp
-                tcpserver_file="$sysconfdir"/tcp.smtp
-            fi
-        ]
-    )
+	if test -z "$tcpserver_file"
+    then
+	   AC_MSG_RESULT(no)
+	   AC_MSG_ERROR([Unable to find your tcp.smtp file, specify --enable-tcpserver-file=/full/path/to/tcp.smtp])
+    fi
 
     if test ! -f "$tcpserver_file"
     then
-        AC_MSG_ERROR([Unable to find your tcp.smtp file, specify --enable-tcpserver-path=/full/path/to/tcp.smtp])
+	   AC_MSG_RESULT(no)
+	   AC_MSG_WARN(Unable to find tcp.smtp file -- Using $tcpserver_file, but roaming users may not work...)
+	   sleep 3
     fi
 
     AC_MSG_RESULT(yes)
     AC_DEFINE_UNQUOTED(TCP_FILE,"$tcpserver_file","")
-
 
     AC_MSG_CHECKING(whether rebuild-tcpserver-file is been enabled)
     AC_ARG_ENABLE(rebuild-tcpserver-file,
@@ -682,7 +684,6 @@ case $POPRELAY in
         ;;
     esac
 
-
     relay_clear_minutes="180"
     AC_ARG_ENABLE(relay-clear-minutes,
         [  --enable-relay-clear-minutes=#    Expire time for roaming users after pop authentication [180].],
@@ -691,10 +692,9 @@ case $POPRELAY in
 
     AC_DEFINE_UNQUOTED(RELAY_CLEAR_MINUTES,$relay_clear_minutes,"")
 
-
-    open_smtp_cur="$sysconfdir/open-smtp"
-    open_smtp_tmp="$sysconfdir/open-smtp.tmp"
-    open_smtp_lok="$sysconfdir/open-smtp.lock"
+    open_smtp_cur="$vpopmail_dir_etc/open-smtp"
+    open_smtp_tmp="$vpopmail_dir_etc/open-smtp.tmp"
+    open_smtp_lok="$vpopmail_dir_etc/open-smtp.lock"
     AC_DEFINE_UNQUOTED(OPEN_SMTP_CUR_FILE,"$open_smtp_cur","")
     AC_DEFINE_UNQUOTED(OPEN_SMTP_TMP_FILE,"$open_smtp_tmp","")
     AC_DEFINE_UNQUOTED(OPEN_SMTP_LOK_FILE,"$open_smtp_lok","")
@@ -748,6 +748,7 @@ case $ENABLE_MD5_PASSWORDS in
 		 #include <stdio.h>
 	     #include <string.h>
 	     #include <unistd.h>
+		 #include <crypt.h>
 
 	     int main(int argc, char *argv[])
 	     {
@@ -1109,7 +1110,7 @@ esac
 
 #----------------------------------------------------------------------
 
-eval vlimits_default="$sysconfdir/vlimits.default"
+eval vlimits_default="$vpopmail_dir_etc/vlimits.default"
 
 AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
 
