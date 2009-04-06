@@ -12,6 +12,7 @@ LLIBS = @LIBS@
 LDFLAGS = @LDFLAGS@
 DEPS = Makefile
 INSTALL = @INSTALL@
+IDCOMMAND = @idcommand@
 CCC = $(CC) $(CFLAGS)
 PICC = $(CC) $(CFLAGS) -fPIC
 LINK = $(CC) $(LDFLAGS)
@@ -235,7 +236,34 @@ post-compile:
 
 install-strip: install
 
-install: $(BUILD_ALL)
+pre-install:
+	@echo
+	@echo "Checking installation pre-requisites..."
+	@echo
+	
+	@if test -z "$(IDCOMMAND)"; then \
+	   echo; \
+	   echo "Cannot determine your uid because IDCOMMAND is not set."; \
+	   echo; \
+	fi
+	
+	@if test "`$(IDCOMMAND)`" != "0"; then \
+	  if test -z "$${DESTDIR}"; then \
+		 echo; \
+		 echo "You can't install vpopmail because you aren't root"; \
+		 echo "and you don't have DESTDIR set."; \
+		 echo; \
+		 false; \
+	  fi; \
+	  if test "$${DESTDIR:0:1}" != "/"; then \
+		 echo; \
+		 echo "DESTDIR must be an absolute path starting with /"; \
+		 echo; \
+		 false; \
+	  fi ;\
+	fi
+
+install: pre-install $(BUILD_ALL)
 	@echo
 	@echo "Installing..."
 	@echo
@@ -244,15 +272,40 @@ install: $(BUILD_ALL)
 	@# Create directories
 	@#
 	
-	for i in $(INSTALL_DIRS); do if test ! -d $${i}; then mkdir -p $${i}; chown @vpopuser@:@vpopgroup@ $${i}; fi; done
-	chmod 700 $(VPOPMAIL_DIR_DOMAINS)
+	for i in $(INSTALL_DIRS); do \
+	   if test ! -d $${i}; then \
+		 mkdir -p $${i}; \
+		 if test "`$(IDCOMMAND)`" = "0"; then \
+			chown @vpopuser@:@vpopgroup@ $${i}; \
+		 fi; \
+	   fi; \
+    done
+	
+	if test "`$(IDCOMMAND)`" = "0" || test ! -z "$${DESTDIR}"; then \
+	  chmod 700 $(DESTDIR)$(VPOPMAIL_DIR_DOMAINS); \
+    fi
 	
 	@#
 	@# Copy binaries, libraries and headers
 	@#
 	
-	for i in $(BUILD_BINS); do $(INSTALL) -s -o @vpopuser@ -g @vpopgroup@ $${i} $(DESTDIR)$(VPOPMAIL_DIR_BIN); chmod 711 $(DESTDIR)$(VPOPMAIL_DIR_BIN)/$${i}; done
-	for i in $(BUILD_LIBS); do $(INSTALL) $${i} $(DESTDIR)$(VPOPMAIL_DIR_LIB); chmod 644 $(DESTDIR)$(VPOPMAIL_DIR_LIB)/$${i}; done
+	for i in $(BUILD_BINS); do \
+	   $(INSTALL) -s $${i} $(DESTDIR)$(VPOPMAIL_DIR_BIN); \
+	   if test "`$(IDCOMMAND)`" = "0"; then \
+		 chown @vpopuser@:@vpopgroup@ $(DESTDIR)$(VPOPMAIL_DIR_BIN)/$${i}; \
+	   fi; \
+	   if test "`$(IDCOMMAND)`" = "0" || test ! -z "$${DESTDIR}"; then \
+		 chmod 711 $(DESTDIR)$(VPOPMAIL_DIR_BIN)/$${i}; \
+	   fi; \
+    done
+	
+	for i in $(BUILD_LIBS); do \
+	   $(INSTALL) $${i} $(DESTDIR)$(VPOPMAIL_DIR_LIB); \
+	   if test "`$(IDCOMMAND)`" = "0" || test ! -z "$${DESTDIR}"; then \
+		 chmod 644 $(DESTDIR)$(VPOPMAIL_DIR_LIB)/$${i}; \
+	   fi; \
+    done
+	
 	$(INSTALL) -m 444 config.h $(DESTDIR)$(VPOPMAIL_DIR_INCLUDE)/vpopmail_config.h
 	for i in $(INSTALL_HEADERS); do $(INSTALL) -m 444 $${i} $(DESTDIR)$(VPOPMAIL_DIR_INCLUDE); done
 	
@@ -272,7 +325,10 @@ install: $(BUILD_ALL)
 	@#
 	
 	if test ! -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusagec.conf; then \
-	   $(INSTALL) -o @vpopuser@ -g @vpopgroup@ -m 644 vusagec.conf $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusagec.conf; \
+	   $(INSTALL) -m 644 vusagec.conf $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusagec.conf; \
+	   if test "`$(IDCOMMAND)`" = "0"; then \
+		 chown @vpopuser@:@vpopgroup@ $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusagec.conf; \
+	   fi; \
     fi
 	
 	@#
