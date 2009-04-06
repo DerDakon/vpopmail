@@ -674,6 +674,7 @@ CPP
 GREP
 EGREP
 LIBOBJS
+idcommand
 vpopuser
 vpopgroup
 VPOPMAIL_DIR_BIN
@@ -1272,7 +1273,6 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-root-check    Disables root user check when compiling vpopmail
   --enable-qmaildir=DIR      Directory where qmail control and user directories are installed /var/qmail.
   --enable-qmail-newu=PATH   Full path to qmail-newu program.
   --enable-qmail-inject=PATH Full path to qmail-inject program.
@@ -6252,6 +6252,7 @@ esac
 { echo "$as_me:$LINENO: result: $idcommand" >&5
 echo "${ECHO_T}$idcommand" >&6; }
 
+
 #
 # ps command
 #
@@ -6596,35 +6597,6 @@ echo "${ECHO_T}no" >&6; }
     extralibflags=""
     ;;
 esac
-
-#----------------------------------------------------------------------
-
-#
-# FHS compliance
-#
-
-# Check whether --enable-root-check was given.
-if test "${enable_root_check+set}" = set; then
-  enableval=$enable_root_check; idtest='false'
-else
-  idtest='true'
-fi
-
-
-#----------------------------------------------------------------------
-
-if $idtest && test `$idcommand` != "0"
-then
-  { echo "$as_me:$LINENO: WARNING: === vpopmail must be configured as root. ===" >&5
-echo "$as_me: WARNING: === vpopmail must be configured as root. ===" >&2;}
-  { echo "$as_me:$LINENO: WARNING: === please switch to the root user and   ===" >&5
-echo "$as_me: WARNING: === please switch to the root user and   ===" >&2;}
-  { echo "$as_me:$LINENO: WARNING: === run ./configure.                     ===" >&5
-echo "$as_me: WARNING: === run ./configure.                     ===" >&2;}
-  { { echo "$as_me:$LINENO: error: aborted." >&5
-echo "$as_me: error: aborted." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 
 #
 # Locate the qmail directory
@@ -7099,21 +7071,32 @@ rm -f vpopusername
 # Create etc directory if root
 #
 
-if test ! -d $vpopmail_etc_dir
+{ echo "$as_me:$LINENO: checking whether ${DESTDIR}$vpopmail_dir_etc exists..." >&5
+echo $ECHO_N "checking whether ${DESTDIR}$vpopmail_dir_etc exists...... $ECHO_C" >&6; }
+
+if test ! -d ${DESTDIR}$vpopmail_dir_etc
 then
-   if test ! $idtest
-   then
-	  { echo "$as_me:$LINENO: WARNING: $vpopmail_dir_etc does not exist!" >&5
-echo "$as_me: WARNING: $vpopmail_dir_etc does not exist!" >&2;}
-	  sleep 3
-   else
-	  { echo "$as_me:$LINENO: WARNING: making vpopmail etc directory" >&5
-echo "$as_me: WARNING: making vpopmail etc directory" >&2;}
-	  mkdir -p $vpopmail_dir_etc
-	  chown $vpopmailuid $vpopmail_dir_etc
-	  chgrp $vpopmailgid $vpopmail_dir_etc
-	  chmod 755 $vpopmail_dir_etc
-   fi
+	  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+	  if test "`$idcommand`" = "0" || test ! -z "${DESTDIR}"
+	  then
+		 mkdir -p ${DESTDIR}$vpopmail_dir_etc
+		 chmod 755 ${DESTDIR}$vpopmail_dir_etc
+		 { echo "$as_me:$LINENO: WARNING: made ${DESTDIR}$vpopmail_dir_etc directory" >&5
+echo "$as_me: WARNING: made ${DESTDIR}$vpopmail_dir_etc directory" >&2;}
+	  else
+		 { echo "$as_me:$LINENO: WARNING: Could not make ${DESTDIR}$vpopmail_dir_etc" >&5
+echo "$as_me: WARNING: Could not make ${DESTDIR}$vpopmail_dir_etc" >&2;}
+		 sleep 3
+	  fi
+	  if test "`$idcommand`" = "0"
+	  then
+		 chown $vpopmailuid ${DESTDIR}$vpopmail_dir_etc
+		 chgrp $vpopmailgid ${DESTDIR}$vpopmail_dir_etc
+	  fi
+else
+	  { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
 fi
 
 #----------------------------------------------------------------------
@@ -7188,19 +7171,6 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-
-    { echo "$as_me:$LINENO: checking whether we can locate the tcp.smtp file" >&5
-echo $ECHO_N "checking whether we can locate the tcp.smtp file... $ECHO_C" >&6; }
-    tcpserver_file=""
-    for f in "$sysconfdir"/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
-    do
-        if test -f $f
-        then
-            tcpserver_file=$f
-            break
-        fi
-    done
-
     # Check whether --enable-tcpserver_file was given.
 if test "${enable_tcpserver_file+set}" = set; then
   enableval=$enable_tcpserver_file; tcpserver_file="$enableval"
@@ -7210,22 +7180,52 @@ else
             then
                 { echo "$as_me:$LINENO: WARNING: Unable to find your tcpserver relay file." >&5
 echo "$as_me: WARNING: Unable to find your tcpserver relay file." >&2;}
-                { echo "$as_me:$LINENO: WARNING: Creating tcp.smtp in \"$sysconfdir\"/tcp.smtp." >&5
-echo "$as_me: WARNING: Creating tcp.smtp in \"$sysconfdir\"/tcp.smtp." >&2;}
+                { echo "$as_me:$LINENO: WARNING: Creating $vpopmail_dir_etc/tcp.smtp" >&5
+echo "$as_me: WARNING: Creating $vpopmail_dir_etc/tcp.smtp" >&2;}
 
-                echo "127.:allow,RELAYCLIENT=\"\"" > "$sysconfdir"/tcp.smtp
-                tcpserver_file="$sysconfdir"/tcp.smtp
+				if test -d "$vpopmail_dir_etc"
+				then
+				  echo "127.:allow,RELAYCLIENT=\"\"" > ${DESTDIR}/$vpopmail_dir_etc/tcp.smtp
+			    else
+				  { echo "$as_me:$LINENO: WARNING: $vpopmail_dir_etc does not exist -- Could not make $vpopmail_dir_etc/tcp.smtp" >&5
+echo "$as_me: WARNING: $vpopmail_dir_etc does not exist -- Could not make $vpopmail_dir_etc/tcp.smtp" >&2;}
+				  sleep 3
+			    fi
+
+                tcpserver_file="$vpopmail_dir_etc"/tcp.smtp
             fi
 
 
 fi
 
 
+    { echo "$as_me:$LINENO: checking whether we can locate the tcp.smtp file" >&5
+echo $ECHO_N "checking whether we can locate the tcp.smtp file... $ECHO_C" >&6; }
+    for f in "$vpopmail_dir_etc"/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
+    do
+        if test -f $f
+        then
+            tcpserver_file=$f
+            break
+        fi
+    done
+
+	if test -z "$tcpserver_file"
+    then
+	   { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+	   { { echo "$as_me:$LINENO: error: Unable to find your tcp.smtp file, specify --enable-tcpserver-file=/full/path/to/tcp.smtp" >&5
+echo "$as_me: error: Unable to find your tcp.smtp file, specify --enable-tcpserver-file=/full/path/to/tcp.smtp" >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+
     if test ! -f "$tcpserver_file"
     then
-        { { echo "$as_me:$LINENO: error: Unable to find your tcp.smtp file, specify --enable-tcpserver-path=/full/path/to/tcp.smtp" >&5
-echo "$as_me: error: Unable to find your tcp.smtp file, specify --enable-tcpserver-path=/full/path/to/tcp.smtp" >&2;}
-   { (exit 1); exit 1; }; }
+	   { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+	   { echo "$as_me:$LINENO: WARNING: Unable to find tcp.smtp file -- Using $tcpserver_file" >&5
+echo "$as_me: WARNING: Unable to find tcp.smtp file -- Using $tcpserver_file" >&2;}
+	   sleep 3
     fi
 
     { echo "$as_me:$LINENO: result: yes" >&5
@@ -7234,7 +7234,6 @@ echo "${ECHO_T}yes" >&6; }
 cat >>confdefs.h <<_ACEOF
 #define TCP_FILE "$tcpserver_file"
 _ACEOF
-
 
 
     { echo "$as_me:$LINENO: checking whether rebuild-tcpserver-file is been enabled" >&5
@@ -7267,7 +7266,6 @@ echo "${ECHO_T}no" >&6; }
         ;;
     esac
 
-
     relay_clear_minutes="180"
     # Check whether --enable-relay-clear-minutes was given.
 if test "${enable_relay_clear_minutes+set}" = set; then
@@ -7281,10 +7279,9 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-
-    open_smtp_cur="$sysconfdir/open-smtp"
-    open_smtp_tmp="$sysconfdir/open-smtp.tmp"
-    open_smtp_lok="$sysconfdir/open-smtp.lock"
+    open_smtp_cur="$vpopmail_dir_etc/open-smtp"
+    open_smtp_tmp="$vpopmail_dir_etc/open-smtp.tmp"
+    open_smtp_lok="$vpopmail_dir_etc/open-smtp.lock"
 
 cat >>confdefs.h <<_ACEOF
 #define OPEN_SMTP_CUR_FILE "$open_smtp_cur"
@@ -7384,6 +7381,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 		 #include <stdio.h>
 	     #include <string.h>
 	     #include <unistd.h>
+		 #include <crypt.h>
 
 	     int main(int argc, char *argv[])
 	     {
@@ -7932,7 +7930,7 @@ esac
 
 #----------------------------------------------------------------------
 
-eval vlimits_default="$sysconfdir/vlimits.default"
+eval vlimits_default="$vpopmail_dir_etc/vlimits.default"
 
 
 cat >>confdefs.h <<_ACEOF
@@ -10035,6 +10033,7 @@ CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
+idcommand!$idcommand$ac_delim
 vpopuser!$vpopuser$ac_delim
 vpopgroup!$vpopgroup$ac_delim
 VPOPMAIL_DIR_BIN!$VPOPMAIL_DIR_BIN$ac_delim
@@ -10051,7 +10050,7 @@ VUSAGEDLIBS!$VUSAGEDLIBS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 75; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 76; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
