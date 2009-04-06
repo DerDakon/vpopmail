@@ -46,5 +46,8 @@ install:
 	ln -s $(VPOPMAIL_MODULEDIR)/vmysql.so $(VPOPMAIL_AUTHMODULE)
 	
 	if ! test -r $(VPOPMAIL_ETCDIR)/vpopmail.mysql; then \
-	   $(INSTALL) -o $(VPOPMAIL_USER) -g $(VPOPMAIL_GROUP) -m 0640 vpopmail.mysql $(VPOPMAIL_ETCDIR)/vpopmail.mysql; \
+	   $(INSTALL) -m 0640 vpopmail.mysql $(VPOPMAIL_ETCDIR)/vpopmail.mysql; \
+	   if test "`$(IDCOMMAND)`" = "0"; then \
+		 chown $(VPOPMAIL_USER):$(VPOPMAIL_GROUP) $(VPOPMAIL_ETCDIR)/vpopmail.mysql; \
+	   fi; \
     fi
