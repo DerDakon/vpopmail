@@ -53,8 +53,8 @@ AC_MSG_RESULT(found)
 # Libraries
 #
 
-AC_CHECK_LIB(ldap, ldap_open)
-AC_CHECK_LIB(lber, ber_pvt_opt_on)
+AC_CHECK_LIB(ldap, ldap_open, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
+AC_CHECK_LIB(lber, ber_pvt_opt_on, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
 
 libdir=""
 for f in /usr/local/lib /usr/lib /usr/local/openldap/lib /usr/local/ldap/lib
