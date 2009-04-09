@@ -131,8 +131,8 @@ int vauth_load_module(const char *module)
 
    hand = dlopen(module, RTLD_GLOBAL|RTLD_NOW);
    if (hand == NULL) {
-	  fprintf(stderr, "vauth_load_module: dlopen(%s) failed: %d\n",
-			module, errno);
+	  fprintf(stderr, "vauth_load_module: dlopen(%s) failed: %s\n",
+			module, dlerror());
 	  verrori = VA_NO_AUTH_MODULE;
 	  return 0;
    }
