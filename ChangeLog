@@ -45,6 +45,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated detection and auto-creation of tcp.smtp inside configure.ac to work with DESTDIR correctly
   - Updated backend Makefiles to not chown when not root
   - Fixed bug in vauth_open wrapper that returned success instead of failure if vauth_load_module failed
+  - Updated LDAP and MySQL configure scripts to fail if required libraries not found
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
