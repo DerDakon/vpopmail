@@ -47,6 +47,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed bug in vauth_open wrapper that returned success instead of failure if vauth_load_module failed
   - Updated LDAP and MySQL configure scripts to fail if required libraries not found
   - Updated vauth_load_module to use dlerror() to report errors when dlopen() fails
+  - Re-added passing of -R<vpopmail lib dir> to linker
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

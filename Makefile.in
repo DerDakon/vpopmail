@@ -15,7 +15,7 @@ INSTALL = @INSTALL@
 IDCOMMAND = @idcommand@
 CCC = $(CC) $(CFLAGS)
 PICC = $(CC) $(CFLAGS) -fPIC
-LINK = $(CC) $(LDFLAGS)
+LINK = $(CC) $(LDFLAGS) -Xlinker -R -Xlinker $(VPOPMAIL_DIR_LIB)
 BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
