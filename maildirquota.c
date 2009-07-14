@@ -494,7 +494,6 @@ int vmaildir_readquota(const char *dir, const char *quota_type)
    ret = client_query_quick(email, &uusage, &dusage);
    if (ret) {
 	  if (uusage != -1) {
-
 		 /*
 			Convert quota string to integers
 		 */
@@ -505,8 +504,7 @@ int vmaildir_readquota(const char *dir, const char *quota_type)
 			Return percentage
 		 */
 
-		 fd = (int)((uusage/usquota) * 100);
-
+		 fd = (int)((long double)((long double)uusage/(long double)usquota) * (long double)100.0);
 		 if (fd > 100)
 			fd = 100;
 
