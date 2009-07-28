@@ -59,6 +59,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed input formatting in vpopmaild
   - Fixed bounds issue in vdelivermail
   - Updated MySQL module to use "INSERT INTO .. ON DUPLICATE KEY UPDATE" instead of "REPLACE INTO"
+  - Fixed overflow in PostgreSQL module
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
