@@ -229,19 +229,21 @@ int auth_adduser(char *user, char *domain, char *pass, char *gecos,
     domstr = PGSQL_LARGE_USERS_TABLE;
   }
 
+  memset(dirbuf, 0, sizeof(dirbuf));
+
   if ( strlen(domain) <= 0 ) {
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf, SQL_BUF_SIZE, 
+      snprintf(dirbuf, sizeof(dirbuf) - 1, 
 	       "%s/users/%s/%s", VPOPMAIL_DIR_DOMAINS, dir, user);
     } else {
-      snprintf(dirbuf, SQL_BUF_SIZE, "%s/users/%s", VPOPMAIL_DIR_DOMAINS, user);
+      snprintf(dirbuf, sizeof(dirbuf) - 1, "%s/users/%s", VPOPMAIL_DIR_DOMAINS, user);
     }
   } else {
     vget_assign(domain, dom_dir, 156, &uid, &gid );
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s/%s", dom_dir, dir, user);
+      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s/%s", dom_dir, dir, user);
     } else {
-      snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s", dom_dir, user);
+      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s", dom_dir, user);
     }
   }
 
