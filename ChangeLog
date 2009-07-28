@@ -15,6 +15,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
    - Re-enabled --enable-domainquotas (with warnings)
    - Fixed percentage calculation bug in vmaildir_readquota
 
+   aledr <matrixworkstation@gmail.com>
+   - Fixed overflow in PostgreSQL module
+
 5.4.27 - Released 16-Jan-2009
 	Jeremy Kister, Rick Widmer, Tom Collins
 	- Solaris doesn't like setenv

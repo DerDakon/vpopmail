@@ -226,19 +226,21 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     domstr = PGSQL_LARGE_USERS_TABLE;
   }
 
+   memset(dirbuf, 0, sizeof(dirbuf));
+
   if ( strlen(domain) <= 0 ) {
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf, SQL_BUF_SIZE, 
+      snprintf(dirbuf, sizeof(dirbuf) - 1, 
 	       "%s/users/%s/%s", VPOPMAILDIR, dir, user);
     } else {
-      snprintf(dirbuf, SQL_BUF_SIZE, "%s/users/%s", VPOPMAILDIR, user);
+      snprintf(dirbuf, sizeof(dirbuf) - 1, "%s/users/%s", VPOPMAILDIR, user);
     }
   } else {
     vget_assign(domain, dom_dir, 156, &uid, &gid );
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s/%s", dom_dir, dir, user);
+      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s/%s", dom_dir, dir, user);
     } else {
-      snprintf(dirbuf,SQL_BUF_SIZE, "%s/%s", dom_dir, user);
+      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s", dom_dir, user);
     }
   }
 
@@ -248,7 +250,7 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     Crypted[0] = 0;
   }
 
-  qnprintf( SqlBufUpdate, SQL_BUF_SIZE, INSERT, 
+  qnprintf( SqlBufUpdate, sizeof(SqlBufUpdate), INSERT, 
 	    domstr, user, 
 #ifdef MANY_DOMAINS
 	    domain,
