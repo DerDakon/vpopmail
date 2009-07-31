@@ -33,7 +33,7 @@ vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vpopmaild vlist authvchkpw vusagec
 
 vusagec_SOURCES = vusagec.c client.c conf.c ippp.c
-vlist_LDADD = libvpopmail.a @auth_libs@
+vusagec_LDADD = libvpopmail.a @auth_libs@
 	
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
 vuserinfo_LDADD = libvpopmail.a @auth_libs@

@@ -14,6 +14,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
    - Updated domain quota enforcement to work when using vusage
    - Re-enabled --enable-domainquotas (with warnings)
    - Fixed percentage calculation bug in vmaildir_readquota
+   - Updated lastauth/vlog queries not to trigger failure condition on domain
+     deletion in MySQL and PostgreSQL module
+   - Updated build scripts to show version 5.4.28
 
    aledr <matrixworkstation@gmail.com>
    - Fixed overflow in PostgreSQL module
