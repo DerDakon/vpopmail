@@ -31,6 +31,7 @@ Add error result for "unable to read vpopmail.mysql" and return it
 #include <string.h>
 #include <time.h>
 #include <mysql.h>
+#include <mysqld_error.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
@@ -591,7 +592,9 @@ int vauth_deldomain( char *domain )
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from lastauth where domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(-1);
+	   err = mysql_errno(&mysql_update);
+	   if (err != ER_NO_SUCH_TABLE)
+		  fprintf(stderr, "vauth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
     } 
 #endif
 
@@ -599,7 +602,9 @@ int vauth_deldomain( char *domain )
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
        "delete from vlog where domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-       return(-1);
+	   err = mysql_errno(&mysql_update);
+	   if (err != ER_NO_SUCH_TABLE)
+		  fprintf(stderr, "vauth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
     }
 #endif
 
@@ -642,7 +647,11 @@ int vauth_deluser( char *user, char *domain )
         "delete from lastauth where user = '%s' and domain = '%s'", 
         user, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        err = -1;
+	   err = mysql_errno(&mysql_update);
+	   if (err != ER_NO_SUCH_TABLE)
+		  err = -1;
+	   else
+		  err = 0;
     } 
 #endif
 
@@ -651,7 +660,11 @@ int vauth_deluser( char *user, char *domain )
         "delete from vlog where domain = '%s' and user = '%s'", 
        domain, user );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        err = -1;
+	   err = mysql_errno(&mysql_update);
+	   if (err != ER_NO_SUCH_TABLE)
+		  err = -1;
+	   else
+		  err = 0;
     }
 #endif
     return(err);
