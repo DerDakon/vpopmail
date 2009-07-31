@@ -821,6 +821,8 @@ int check_forward_deliver(char *dir)
     chdir(dir);
 
 #ifdef QMAIL_EXT
+    fs = NULL;
+
     /* format the file name */
     if (strlen(TheExt)) {
         strcpy(tmpbuf,".qmail-");
@@ -837,9 +839,10 @@ int check_forward_deliver(char *dir)
                 }
             }
         }
-    } else {
-        fs = fopen(".qmail","r");
     }
+	
+	if (fs == NULL)
+        fs = fopen(".qmail","r");
 #else
     fs = fopen(".qmail","r");
 #endif
