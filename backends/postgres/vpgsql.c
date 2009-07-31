@@ -388,8 +388,13 @@ int auth_deldomain( char *domain )
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from lastauth where domain = '%s'", domain );
     pgres=PQexec(pgc, SqlBufUpdate);
+
+	/*
+	   We don't care if this fails
+    */
+
     if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK) {
-      return(-1);
+      //return(-1);
     } 	
     if(pgres) PQclear(pgres);
 #endif
@@ -398,8 +403,13 @@ int auth_deldomain( char *domain )
     qnprintf( sqlBufUpdate, SQL_BUF_SIZE,
        "delete from vlog where domain = '%s'", domain );
     pgres=PQexec(pgc, SqlBufUpdate);
+
+	/*
+	    We don't care if this fails
+    */
+
     if( !pgres || PGresultStatus(pgres)!=PGRES_COMMAND_OK) {
-      return(-1);
+      //return(-1);
     }
 #endif
     return(0);
