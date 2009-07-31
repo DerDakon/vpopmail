@@ -48,6 +48,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated LDAP and MySQL configure scripts to fail if required libraries not found
   - Updated vauth_load_module to use dlerror() to report errors when dlopen() fails
   - Re-added passing of -R<vpopmail lib dir> to linker
+  - Updated some MySQL and PostgreSQL deletion queries related to lastauth/vlog not to
+    trigger a failure condition if the table doesn't exist
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
