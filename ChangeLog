@@ -17,6 +17,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
    - Updated lastauth/vlog queries not to trigger failure condition on domain
      deletion in MySQL and PostgreSQL module
    - Updated build scripts to show version 5.4.28
+   - Added solution for 5.4.28 to LDAP schema for sn and cn attributes being
+     required.  A permanent solution will be added to the 5.5 tree
 
    aledr <matrixworkstation@gmail.com>
    - Fixed overflow in PostgreSQL module
