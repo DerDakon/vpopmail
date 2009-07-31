@@ -50,6 +50,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Re-added passing of -R<vpopmail lib dir> to linker
   - Updated some MySQL and PostgreSQL deletion queries related to lastauth/vlog not to
     trigger a failure condition if the table doesn't exist
+  - Updated vdelivermail to process vpopmail-style .qmail files for users with
+    dashes in their username when qmail-ext is enabled
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
