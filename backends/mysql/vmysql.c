@@ -577,9 +577,8 @@ int auth_deldomain( char *domain )
         tmpstr, domain );
 #endif 
 
-    if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(-1);
-    } 
+    if (mysql_query(&mysql_update,SqlBufUpdate))
+	   fprintf(stderr, "auth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
 
 #ifdef VALIAS 
     alias_delete_domain( domain);
@@ -589,16 +588,17 @@ int auth_deldomain( char *domain )
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
         "delete from lastauth where domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        return(-1);
+	   err = mysql_errno(&mysql_update);
+	   if (err != ERR_NO_SUCH_TABLE)
+		  fprintf(stderr, "auth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
     } 
 #endif
 
 #ifdef ENABLE_SQL_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
        "delete from vlog where domain = '%s'", domain );
-    if (mysql_query(&mysql_update,SqlBufUpdate)) {
-       return(-1);
-    }
+    if (mysql_query(&mysql_update,SqlBufUpdate))
+	   fprintf(stderr, "auth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
 #endif
 
     vdel_limits(domain);
@@ -640,7 +640,14 @@ int auth_deluser( char *user, char *domain )
         "delete from lastauth where user = '%s' and domain = '%s'", 
         user, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
-        err = -1;
+	   err = mysql_errno(&mysql_update);
+	   if (err != ERR_NO_SUCH_TABLE) {
+		  fprintf(stderr, "auth_deluser: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
+          err = -1;
+	   }
+
+	   else
+		  err = 0;
     } 
 #endif
 
@@ -649,6 +656,7 @@ int auth_deluser( char *user, char *domain )
         "delete from vlog where domain = '%s' and user = '%s'", 
        domain, user );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
+	   fprintf(stderr, "auth_deluser: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
         err = -1;
     }
 #endif
