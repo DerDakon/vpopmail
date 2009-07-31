@@ -226,21 +226,21 @@ int vauth_adduser(char *user, char *domain, char *pass, char *gecos,
     domstr = PGSQL_LARGE_USERS_TABLE;
   }
 
-   memset(dirbuf, 0, sizeof(dirbuf));
+  *dirbuf = '\0';
 
   if ( strlen(domain) <= 0 ) {
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf, sizeof(dirbuf) - 1, 
+      snprintf(dirbuf, sizeof(dirbuf), 
 	       "%s/users/%s/%s", VPOPMAILDIR, dir, user);
     } else {
-      snprintf(dirbuf, sizeof(dirbuf) - 1, "%s/users/%s", VPOPMAILDIR, user);
+      snprintf(dirbuf, sizeof(dirbuf), "%s/users/%s", VPOPMAILDIR, user);
     }
   } else {
     vget_assign(domain, dom_dir, 156, &uid, &gid );
     if ( strlen(dir) > 0 ) {
-      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s/%s", dom_dir, dir, user);
+      snprintf(dirbuf,sizeof(dirbuf), "%s/%s/%s", dom_dir, dir, user);
     } else {
-      snprintf(dirbuf,sizeof(dirbuf) - 1, "%s/%s", dom_dir, user);
+      snprintf(dirbuf,sizeof(dirbuf), "%s/%s", dom_dir, user);
     }
   }
 
