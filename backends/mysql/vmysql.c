@@ -25,6 +25,7 @@
 #include <string.h>
 #include <time.h>
 #include <mysql.h>
+#include <mysqld_error.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
@@ -589,7 +590,7 @@ int auth_deldomain( char *domain )
         "delete from lastauth where domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	   err = mysql_errno(&mysql_update);
-	   if (err != ERR_NO_SUCH_TABLE)
+	   if (err != ER_NO_SUCH_TABLE)
 		  fprintf(stderr, "auth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
     } 
 #endif
@@ -641,7 +642,7 @@ int auth_deluser( char *user, char *domain )
         user, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	   err = mysql_errno(&mysql_update);
-	   if (err != ERR_NO_SUCH_TABLE) {
+	   if (err != ER_NO_SUCH_TABLE) {
 		  fprintf(stderr, "auth_deluser: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
           err = -1;
 	   }
