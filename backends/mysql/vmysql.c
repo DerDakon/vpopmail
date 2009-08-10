@@ -225,7 +225,7 @@ int vauth_open_update()
     if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
       /* we were able to connect, so create the database */ 
       snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-		"create database %s", MYSQL_UPDATE_DATABASE );
+		"CREATE DATABASE%s", MYSQL_UPDATE_DATABASE );
       if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	
 	/* we could not create the database
@@ -571,10 +571,10 @@ int auth_deldomain( char *domain )
 #ifndef MANY_DOMAINS
     /* convert the domain name to the table name (eg convert . to _ ) */
     tmpstr = vauth_munch_domain( domain );
-    snprintf( SqlBufUpdate, SQL_BUF_SIZE, "drop table %s", tmpstr);
+    snprintf( SqlBufUpdate, SQL_BUF_SIZE, "DROP TABLE %s", tmpstr);
 #else
     tmpstr = MYSQL_DEFAULT_TABLE;
-    qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "delete from %s where pw_domain = '%s'",
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM %s WHERE pw_domain = '%s'",
         tmpstr, domain );
 #endif 
 
@@ -587,7 +587,7 @@ int auth_deldomain( char *domain )
 
 #ifdef ENABLE_AUTH_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from lastauth where domain = '%s'", domain );
+        "DELETE FROM lastauth WHERE domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	   err = mysql_errno(&mysql_update);
 	   if (err != ER_NO_SUCH_TABLE)
@@ -597,7 +597,7 @@ int auth_deldomain( char *domain )
 
 #ifdef ENABLE_SQL_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-       "delete from vlog where domain = '%s'", domain );
+       "DELETE FROM vlog WHERE domain = '%s'", domain );
     if (mysql_query(&mysql_update,SqlBufUpdate))
 	   fprintf(stderr, "auth_deldomain: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
 #endif
@@ -638,7 +638,7 @@ int auth_deluser( char *user, char *domain )
 
 #ifdef ENABLE_AUTH_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from lastauth where user = '%s' and domain = '%s'", 
+        "DELETE FROM lastauth WHERE user = '%s' AND domain = '%s'", 
         user, domain );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	   err = mysql_errno(&mysql_update);
@@ -654,7 +654,7 @@ int auth_deluser( char *user, char *domain )
 
 #ifdef ENABLE_SQL_LOGGING
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-        "delete from vlog where domain = '%s' and user = '%s'", 
+        "DELETE FROM vlog WHERE domain = '%s' AND user = '%s'", 
        domain, user );
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
 	   fprintf(stderr, "auth_deluser: warning: mysql_query(%s) failed: %s\n", SqlBufUpdate, mysql_error(&mysql_update));
@@ -725,7 +725,7 @@ struct vqpasswd *auth_getall(char *domain, int first, int sortit)
             );
 
         if ( sortit == 1 ) {
-            strncat( SqlBufRead, " order by pw_name", SQL_BUF_SIZE);
+            strncat( SqlBufRead, " ORDER BY pw_name", SQL_BUF_SIZE);
         }
 
         if (res_read!=NULL) mysql_free_result(res_read_getall);
@@ -922,7 +922,7 @@ void vupdate_rules(int fdm)
 {
     if (vauth_open_read() != 0) return;
 
-    snprintf(SqlBufRead, SQL_BUF_SIZE, "select ip_addr from relay");
+    snprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT ip_addr FROM relay");
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
@@ -952,7 +952,7 @@ void vclear_open_smtp(time_t clear_minutes, time_t mytime)
     if ( (err=vauth_open_update()) != 0 ) return; 
     delete_time = mytime - clear_minutes;
 
-    snprintf( SqlBufUpdate, SQL_BUF_SIZE, "delete from relay where timestamp <= %d", 
+    snprintf( SqlBufUpdate, SQL_BUF_SIZE, "DELETE FROM relay WHERE timestamp <= %d", 
         (int)delete_time);
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_relay_table();
@@ -1011,7 +1011,7 @@ int get_ip_map( char *ip, char *domain, int domain_size)
     if ( domain == NULL ) return(-2);
     if ( vauth_open_read() != 0 ) return(-3);
 
-    qnprintf(SqlBufRead, SQL_BUF_SIZE, "select domain from ip_alias_map where ip_addr = '%s'",
+    qnprintf(SqlBufRead, SQL_BUF_SIZE, "SELECT domain FROM ip_alias_map WHERE ip_addr = '%s'",
         ip);
     if (mysql_query(&mysql_read,SqlBufRead)) {
         return(-1);
@@ -1062,7 +1062,7 @@ int del_ip_map( char *ip, char *domain)
     if ( vauth_open_update() != 0 ) return(-1);
 
     qnprintf( SqlBufUpdate,SQL_BUF_SIZE,  
-        "delete from ip_alias_map where ip_addr = '%s' and domain = '%s'",
+        "DELETE FROM ip_alias_map WHERE ip_addr = '%s' AND domain = '%s'",
             ip, domain);
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         return(0);
@@ -1083,7 +1083,7 @@ int show_ip_map( int first, char *ip, char *domain )
     if ( first == 1 ) {
 
         snprintf(SqlBufRead,SQL_BUF_SIZE, 
-            "select ip_addr, domain from ip_alias_map"); 
+            "SELECT ip_addr, domain FROM ip_alias_map"); 
 
         if (res_read!=NULL) mysql_free_result(res_read);
         res_read = NULL;
@@ -1124,12 +1124,12 @@ int read_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 
     if ( vauth_open_read() != 0 ) return(-1);
     qnprintf(SqlBufRead, SQL_BUF_SIZE, 
-        "select %s from dir_control where domain = '%s'", 
+        "SELECT %s FROM dir_control WHERE domain = '%s'", 
         DIR_CONTROL_SELECT, domain );
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_dir_control(domain);
         qnprintf(SqlBufRead, SQL_BUF_SIZE, 
-            "select %s from dir_control where domain = '%s'", 
+            "SELECT %s FROM dir_control WHERE domain = '%s'", 
            DIR_CONTROL_SELECT, domain );
         if (mysql_query(&mysql_read,SqlBufRead)) {
             return(-1);
@@ -1272,7 +1272,7 @@ int del_dir_control(char *domain)
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf(SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from dir_control where domain = '%s'", 
+        "DELETE FROM dir_control WHERE domain = '%s'", 
         domain); 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_dir_control(domain);
@@ -1322,7 +1322,7 @@ time_t get_lastauth(struct vqpasswd *pw, char *domain)
     if ( (err=vauth_open_read()) != 0 ) return(err);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
-    "select timestamp from lastauth where user='%s' and domain='%s'", 
+    "SELECT timestamp FROM lastauth WHERE user='%s' AND domain='%s'", 
         pw->pw_name, domain);
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
@@ -1349,7 +1349,7 @@ char *get_lastauthip(struct vqpasswd *pw, char *domain)
     if ( vauth_open_read() != 0 ) return(NULL);
 
     qnprintf( SqlBufRead,  SQL_BUF_SIZE,
-    "select remote_ip from lastauth where user='%s' and domain='%s'", 
+    "SELECT remote_ip FROM lastauth WHERE user='%s' AND domain='%s'", 
         pw->pw_name, domain);
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
@@ -1394,8 +1394,8 @@ char *alias_select( char *alias, char *domain )
       return(NULL);
     }
 
-    qnprintf( SqlBufRead, SQL_BUF_SIZE, "select valias_line from valias \
-where alias = '%s' and domain = '%s'", alias, domain );
+    qnprintf( SqlBufRead, SQL_BUF_SIZE, "SELECT valias_line FROM valias \
+WHERE alias = '%s' AND domain = '%s'", alias, domain );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
@@ -1436,7 +1436,7 @@ int alias_insert( char *alias, char *domain, char *alias_line)
     if ( (err=vauth_open_update()) != 0 ) return(err);
     while(*alias_line==' ' && *alias_line!=0) ++alias_line;
 
-    qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "insert into valias \
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE, "INSERT INTO valias \
 ( alias, domain, valias_line ) values ( '%s', '%s', '%s')",
         alias, domain, alias_line );
 
@@ -1476,8 +1476,8 @@ int alias_remove( char *alias, char *domain, char *alias_line)
 #endif
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where alias = '%s' \
-and valias_line = '%s' and domain = '%s'", alias, alias_line, domain );
+        "DELETE FROM valias WHERE alias = '%s' \
+AND valias_line = '%s' AND domain = '%s'", alias, alias_line, domain );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
@@ -1506,8 +1506,8 @@ int alias_delete( char *alias, char *domain)
 #endif
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where alias = '%s' \
-and domain = '%s'", alias, domain );
+        "DELETE FROM valias WHERE alias = '%s' \
+AND domain = '%s'", alias, domain );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
         vcreate_valias_table();
@@ -1537,7 +1537,7 @@ int alias_delete_domain( char *domain)
 #endif
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-        "delete from valias where domain = '%s'", 
+        "DELETE FROM valias WHERE domain = '%s'", 
         domain );
 
     if (mysql_query(&mysql_update,SqlBufUpdate)) {
@@ -1571,7 +1571,7 @@ char *alias_select_all( char *alias, char *domain )
     if ( (err=vauth_open_read()) != 0 ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
-        "select alias, valias_line from valias where domain = '%s' order by alias", domain );
+        "SELECT alias, valias_line FROM valias WHERE domain = '%s' ORDER BY alias", domain );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
@@ -1625,7 +1625,7 @@ char *alias_select_names( char *alias, char *domain )
     if ( vauth_open_read() ) return(NULL);
 
     qnprintf( SqlBufRead, SQL_BUF_SIZE, 
-        "select distinct alias from valias where domain = '%s' order by alias", domain );
+        "SELECT distinct alias FROM valias WHERE domain = '%s' ORDER BY alias", domain );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
@@ -1699,7 +1699,7 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass,
     if ( (err=vauth_open_update()) != 0 ) return(err);
 
     qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
-        "INSERT INTO vlog set user='%s', passwd='%s', \
+        "INSERT INTO vlog SET user='%s', passwd='%s', \
         domain='%s', logon='%s', remoteip='%s', message='%s', \
         error=%i, timestamp=%d", TheUser, ThePass, TheDomain,
         TheName, IpAddr, LogLine, verror, (int)mytime);
