@@ -53,6 +53,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated vdelivermail to process vpopmail-style .qmail files for users with
     dashes in their username when qmail-ext is enabled
   - Added mailbox group code
+  - Added vconfig binary for outputting hardcoded paths, strings, and integers
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
