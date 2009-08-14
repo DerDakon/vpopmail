@@ -20,7 +20,7 @@ BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
-	   vlist vusagec vmoduserflags vmoddomain
+	   vlist vusagec vmoduserflags vmoddomain boxgroup
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h
 INSTALL_DIRS = $(DESTDIR)@VPOPMAIL_DIR_BIN@ $(DESTDIR)@VPOPMAIL_DIR_ETC@ $(DESTDIR)@VPOPMAIL_DIR_INCLUDE@ \
@@ -29,7 +29,7 @@ CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pa
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
-					  quota.o $(CDB_OBJECTS)
+					  quota.o group.o $(CDB_OBJECTS)
 VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
 VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 VPOPMAIL_DIR_INCLUDE = @VPOPMAIL_DIR_INCLUDE@
@@ -127,6 +127,8 @@ vmoduserflags: vmoduserflags.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 vmoddomain: vmoddomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
+boxgroup: boxgroup.o libvpopmail.so
+	$(LINK) -o $@ $+ $(LLIBS)
 
 #
 # Objects
@@ -157,6 +159,9 @@ md5.o: $(DEPS) md5.c md5.h cdb
 	$(PICC) -o $@ -c $*.c
 seek.o: $(DEPS) seek.c seek.h
 	$(PICC) -o $@ -c $*.c
+group.o: $(DEPS) group.c group.h vauth.h
+	$(PICC) -o $@ -c $*.c
+
 vaddaliasdomain.o: $(DEPS) vaddaliasdomain.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vadddomain.o: $(DEPS) vadddomain.c config.h vpopmail.h vauth.h
@@ -222,6 +227,8 @@ quota.o: $(DEPS) quota.c quota.h client.h storage.h vauth.h vpopmail.h
 vmoduserflags.o: $(DEPS) vmoduserflags.c vpopmail.h vauth.h vauthmodule.h
 	$(CCC) -o $@ -c $*.c
 vmoddomain.o: $(DEPS) vmoddomain.c config.h vpopmail.h file_lock.h
+	$(CCC) -o $@ -c $*.c
+boxgroup.o: $(DEPS) boxgroup.c vpopmail.h group.h
 	$(CCC) -o $@ -c $*.c
 
 #
