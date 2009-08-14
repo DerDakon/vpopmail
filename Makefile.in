@@ -20,7 +20,7 @@ BUILD_LIBS = libvpopmail.so
 BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vadduser vdeluser \
 	   vaddaliasdomain vsetuserquota vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd \
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
-	   vlist vusagec vmoduserflags vmoddomain boxgroup
+	   vlist vusagec vmoduserflags vmoddomain boxgroup vconfig
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h
 INSTALL_DIRS = $(DESTDIR)@VPOPMAIL_DIR_BIN@ $(DESTDIR)@VPOPMAIL_DIR_ETC@ $(DESTDIR)@VPOPMAIL_DIR_INCLUDE@ \
@@ -129,6 +129,8 @@ vmoddomain: vmoddomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 boxgroup: boxgroup.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
+vconfig: vconfig.o
+	$(LINK) -o $@ $+
 
 #
 # Objects
@@ -229,6 +231,8 @@ vmoduserflags.o: $(DEPS) vmoduserflags.c vpopmail.h vauth.h vauthmodule.h
 vmoddomain.o: $(DEPS) vmoddomain.c config.h vpopmail.h file_lock.h
 	$(CCC) -o $@ -c $*.c
 boxgroup.o: $(DEPS) boxgroup.c vpopmail.h group.h
+	$(CCC) -o $@ -c $*.c
+vconfig.o: $(DEPS) vconfig.c config.h
 	$(CCC) -o $@ -c $*.c
 
 #
