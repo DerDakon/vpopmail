@@ -19,6 +19,7 @@
 #ifndef VPOPMAIL_MYSQL_H
 #define VPOPMAIL_MYSQL_H
 
+#undef MANY_DOMAINS
 #undef VALIAS
 #undef ENABLE_AUTH_LOGGING
 
