@@ -1636,6 +1636,13 @@ AC_ARG_ENABLE(non-root-build, [],
     ]
 )
 
+AC_ARG_ENABLE(many-domains, [],
+    [
+	  AC_MSG_RESULT(yes)
+	  AC_MSG_ERROR(Please use --enable-many-domains when building a backend module)
+    ]
+)
+
 AC_ARG_WITH(vpopuser, [],
 			[
 			   AC_MSG_RESULT(yes)
@@ -1842,16 +1849,6 @@ case $ENABLE_LOGGING in
     echo "        pop syslog = OFF"
     ;;
 esac
-
-if test "$USE_SQL" = 1
-then
-  if test "$MANY_DOMAINS" = 1
-  then
-    echo "all domains in one SQL table = --enable-many-domains (default)"
-  else
-    echo "one domain per SQL table     = --disable-many-domains"
-  fi
-fi
 
 case $ENABLE_SPAMASSASSIN in
   1*|y*|Y*)

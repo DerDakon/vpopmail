@@ -106,6 +106,23 @@ AC_ARG_ENABLE(valias,
 			  ], AC_MSG_RESULT(no))
 
 #
+# Many domains
+#
+
+AC_MSG_CHECKING(for many domains configuration)
+
+AC_ARG_ENABLE(many-domains,
+   [  --enable-many-domains   Store domains a single table rather than one table per domain ],
+   [
+	  AC_MSG_RESULT(yes)
+	  AC_DEFINE_UNQUOTED(MANY_DOMAINS,1,"")
+   ],
+   [
+	  AC_MSG_RESULT(no)
+   ]
+)
+
+#
 # Output
 #
 
