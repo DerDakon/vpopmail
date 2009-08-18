@@ -2037,7 +2037,12 @@ _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define VERSION "$VERSION_VERSION"
+#define VPOPMAIL_VERSION "$PACKAGE_VERSION"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION "$PACKAGE_VERSION"
 _ACEOF
 
 

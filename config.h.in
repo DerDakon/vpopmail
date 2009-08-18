@@ -242,6 +242,8 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+#undef VPOPMAIL_VERSION
+#undef VERSION
 
 /* "" */
 #undef POP_AUTH_OPEN_RELAY
@@ -320,9 +322,6 @@
 
 /* "" */
 #undef VALIAS
-
-/* Version number of package */
-#undef VERSION
 
 /* "" */
 #undef VLIMITS_DEFAULT_FILE
