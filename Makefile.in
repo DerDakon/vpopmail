@@ -22,7 +22,7 @@ BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vad
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
 	   vlist vusagec vmoduserflags vmoddomain boxgroup vconfig
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
-INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h
+INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h group.h
 INSTALL_DIRS = $(DESTDIR)@VPOPMAIL_DIR_BIN@ $(DESTDIR)@VPOPMAIL_DIR_ETC@ $(DESTDIR)@VPOPMAIL_DIR_INCLUDE@ \
 			   $(DESTDIR)@VPOPMAIL_DIR_LIB@ $(DESTDIR)@VPOPMAIL_DIR_DOMAINS@
 CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \

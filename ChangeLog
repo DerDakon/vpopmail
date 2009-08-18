@@ -62,6 +62,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated library and include path detection for MySQL and LDAP
   - Updated version definition strings
   - Updated vconfig output not to terminate with spaces
+  - Added group.h to install headers
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
