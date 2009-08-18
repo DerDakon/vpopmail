@@ -58,6 +58,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Removed old VALIAS ifdefs in vdelivermail
   - Removed old VALIAS ifdefs in dotqmail2valias
   - Updated dotqmail2valias to check if backend module provides native valias support
+  - Added vpopmail version output to vconfig
+  - Updated library and include path detection for MySQL and LDAP
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

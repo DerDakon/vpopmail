@@ -3176,6 +3176,29 @@ _ACEOF
 fi
 
 
+libdir=""
+for f in /usr/local/mysql/lib/mysql /usr/local/mysql/lib  /usr/local/lib/mysql /usr/lib/mysql
+do
+    if test -d $f
+    then
+        libdir=$f
+		LDFLAGS="$LDFLAGS -L$libdir"
+        break
+    fi
+done
+
+# Check whether --enable-libdir was given.
+if test "${enable_libdir+set}" = set; then
+  enableval=$enable_libdir;
+	  libdir="$enableval"
+	  LDFLAGS="$LDFLAGS -L$libdir"
+
+
+fi
+
+
+
+
 { $as_echo "$as_me:$LINENO: checking for mysql_real_connect in -lmysqlclient" >&5
 $as_echo_n "checking for mysql_real_connect in -lmysqlclient... " >&6; }
 if test "${ac_cv_lib_mysqlclient_mysql_real_connect+set}" = set; then
@@ -3253,24 +3276,6 @@ else
 $as_echo "$as_me: error: Can't find MySQL library.  Please use --enable-libdir=/path to specifcy location." >&2;}
    { (exit 1); exit 1; }; }
 fi
-
-
-libdir=""
-for f in /usr/local/mysql/lib/mysql /usr/local/mysql/lib  /usr/local/lib/mysql /usr/lib/mysql
-do
-    if test -d $f
-    then
-        libdir=$f
-        break
-    fi
-done
-
-# Check whether --enable-libdir was given.
-if test "${enable_libdir+set}" = set; then
-  enableval=$enable_libdir; libdir="$enableval"
-fi
-
-
 
 
 #

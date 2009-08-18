@@ -53,9 +53,6 @@ AC_MSG_RESULT(found)
 # Libraries
 #
 
-AC_CHECK_LIB(ldap, ldap_open, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
-AC_CHECK_LIB(lber, ber_pvt_opt_on, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
-
 libdir=""
 for f in /usr/local/lib /usr/lib /usr/local/openldap/lib /usr/local/ldap/lib
 do
@@ -68,10 +65,16 @@ done
 
 AC_ARG_ENABLE(libdir,
     [  --enable-libdir=DIR     Your OpenLDAP 'lib' directory.],
-    libdir="$enableval",
+    [ 
+	  libdir="$enableval"
+	  LDFLAGS="$LDFLAGS -L$libdir"
+    ]
 )
 
 AC_SUBST(libdir)
+
+AC_CHECK_LIB(ldap, ldap_open, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
+AC_CHECK_LIB(lber, ber_pvt_opt_on, [], [ AC_MSG_ERROR(Can't locate LDAP libraries.  Please use --enable-libdir=/path to specify location.) ])
 
 #
 # Headers
@@ -89,7 +92,10 @@ done
 
 AC_ARG_ENABLE(incdir,
     [  --enable-incdir=DIR     Your OpenLDAP 'include' directory.],
-    incdir="$enableval",
+    [ 
+	   incdir="$enableval"
+	   CFLAGS="$CFLAGS -I$incdir"
+    ]
 )
 
 AC_SUBST(incdir)

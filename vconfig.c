@@ -51,6 +51,7 @@ struct __setting_ settings[] = {
    { 'U', ST_STRING,  "vpopmail UID (string)",   VPOPUSER },
    { 'G', ST_STRING,  "vpopmail GID (string)",   VPOPGROUP },
    { 'q', ST_STRING,  "qmail directory",         QMAILDIR },
+   { 'v', ST_STRING,  "vpopmail version",		 PACKAGE_VERSION },
    {   0, ST_NONE,    NULL,                      NULL }
 };
 
