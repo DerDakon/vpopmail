@@ -63,6 +63,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated version definition strings
   - Updated vconfig output not to terminate with spaces
   - Added group.h to install headers
+  - Added 'Polling::Day age' to vusaged configuration
+  - Added 'Polling::Maximum age' to vusaged configuration
+  - Updated vusaged to configurably delay polling for users by a factor of how many days since they've authenticated
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
