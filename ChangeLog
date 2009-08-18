@@ -55,6 +55,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added mailbox group code
   - Added vconfig binary for outputting hardcoded paths, strings, and integers
   - Many domains configuration had been lost in the shuffle; Fixed
+  - Removed old VALIAS ifdefs in vdelivermail
+  - Removed old VALIAS ifdefs in dotqmail2valias
+  - Updated dotqmail2valias to check if backend module provides native valias support
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

@@ -133,7 +133,6 @@ int main(int argc, char **argv)
         vexiterr (EXIT_BOUNCE, "mail is looping");
     }
  
-#ifdef VALIAS
     /* process valiases if configured */
     if ( process_valias() == 1 )
         vexiterr (EXIT_OK, "vdelivermail: valiases processed");
@@ -141,7 +140,6 @@ int main(int argc, char **argv)
     /* if the database is down, deferr */
     if ( verrori == VA_NO_AUTH_CONNECTION )
         vexiterr (EXIT_DEFER, "vdelivermail: deferred, database down");
-#endif
 
     /* get the user from vpopmail database */
     if ((vpw=vauth_getpw(TheUser, TheDomain)) != NULL ) {
@@ -247,7 +245,6 @@ void get_arguments(int argc, char **argv)
 
 }
 
-#ifdef VALIAS
 /* 
  * Process any valiases for this user@domain
  * 
@@ -326,7 +323,6 @@ int process_valias(void)
     /* Return whether we found an alias or not */
     return(found);
 }
-#endif
 
 /* Forks off qmail-inject.  Returns PID of child, or 0 for failure. */
 pid_t qmail_inject_open(char *address)
