@@ -55,7 +55,6 @@ AC_MSG_RESULT(found)
 
 AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(z, compress)
-AC_CHECK_LIB(mysqlclient, mysql_real_connect, [], [ AC_MSG_ERROR(Can't find MySQL library.  Please use --enable-libdir=/path to specifcy location.) ])
 
 libdir=""
 for f in /usr/local/mysql/lib/mysql /usr/local/mysql/lib  /usr/local/lib/mysql /usr/lib/mysql
@@ -63,16 +62,21 @@ do
     if test -d $f
     then
         libdir=$f
+		LDFLAGS="$LDFLAGS -L$libdir"
         break
     fi
 done
 
 AC_ARG_ENABLE(libdir,
     [  --enable-libdir=DIR     Your MySQL 'lib' directory.],
-    libdir="$enableval",
+	[
+	  libdir="$enableval"
+	  LDFLAGS="$LDFLAGS -L$libdir"
+    ]
 )
 
 AC_SUBST(libdir)
+AC_CHECK_LIB(mysqlclient, mysql_real_connect, [], [ AC_MSG_ERROR(Can't find MySQL library.  Please use --enable-libdir=/path to specifcy location.) ])
 
 #
 # Authentication logging
