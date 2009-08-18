@@ -60,6 +60,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated dotqmail2valias to check if backend module provides native valias support
   - Added vpopmail version output to vconfig
   - Updated library and include path detection for MySQL and LDAP
+  - Updated version definition strings
+  - Updated vconfig output not to terminate with spaces
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
