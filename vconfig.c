@@ -25,8 +25,8 @@
 */
 
 #define ST_NONE    0
-#define ST_STRING  1	/* Pointer to a string						*/
-#define ST_INTEGER 2	/* A 32 bit value -- Even on 64 bit systems */
+#define ST_STRING  1	/* Pointer to a string */
+#define ST_INTEGER 2	/* A 32 bit value      */
 
 /*
    Setting structure
