@@ -21,6 +21,7 @@
 #ifndef __USER_H_
    #define __USER_H_
 
+#include <time.h>
 #include "storage.h"
 #include "domain.h"
 #include "userstore.h"
@@ -37,7 +38,7 @@
 
 typedef struct __user_ {
    char *user,
-                *home;                          // Home directory of user
+		*home;                          // Home directory of user
 
    domain_t *domain;
    userstore_t *userstore;
