@@ -32,6 +32,7 @@
 #include "vpopmail.h"
 #include "vauthmodule.h"
 #include "vauth.h"
+#include "vpalias.h"
 
 /* Default behavior is to do nothing if there are already valias table 
  * entries for a dotqmail file to be processed.  Define one of the 
@@ -69,10 +70,6 @@ void strreplace (char *s, char c1, char c2)
 int main(int argc, char *argv[])
 {
    int ret;
-#ifndef VALIAS
-	fprintf (stderr, "You must enable valiases (./configure --enable-valias) to use this program.\n");
-	return -1;
-#endif
 
 	ret = vauth_load_module(NULL);
 	if (!ret)
@@ -81,6 +78,11 @@ int main(int argc, char *argv[])
 	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );
 	}
+
+	if (valias_select == vpalias_select) {
+	   fprintf(stderr, "Your backend module does not support valias natively\n");
+	   return -1;
+    }
 
 	get_options(argc,argv);
 
