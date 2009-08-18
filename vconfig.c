@@ -60,13 +60,14 @@ static void usage(const char *);
 int main(int argc, char *argv[])
 {
    const char *p = NULL;
-   int i = 0, ac = 0, newline = 0;
+   int i = 0, ac = 0, newline = 0, num = 0;
 
    if (argc < 2) {
 	  usage(argv[0]);
 	  return 1;
    }
 
+   num = 0;
    newline = 1;
 
    for (ac = 1; ac < argc; ac++) {
@@ -89,13 +90,18 @@ int main(int argc, char *argv[])
 			continue;
 		 }
 
+		 if (num > 0)
+			putchar(' ');
+
 		 switch(settings[i].type) {
 			case ST_STRING:
-			   printf("%s ", (char *)settings[i].value);
+			   num++;
+			   printf("%s", (char *)settings[i].value);
 			   break;
 
 			case ST_INTEGER:
-			   printf("%lu ", (unsigned long)(settings[i].value));
+			   num++;
+			   printf("%lu", (unsigned long)(settings[i].value));
 			   break;
 			
 			default:
