@@ -18,15 +18,19 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
 #include "config.h"
+#include "vpopmail.h"
 
 /*
    Setting types
 */
 
-#define ST_NONE    0
-#define ST_STRING  1	/* Pointer to a string */
-#define ST_INTEGER 2	/* A 32 bit value      */
+#define ST_NONE     0
+#define ST_STRING   1	 /* Pointer to a string */
+#define ST_INTEGER  2	 /* A 32 bit value      */
+#define ST_FUNCTION 3    /* Function call       */
 
 /*
    Setting structure
@@ -40,32 +44,41 @@ struct __setting_ {
    void *value;
 };
 
+static const char *f_uid(void);
+static const char *f_gid(void);
+
 struct __setting_ settings[] = {
-   { 'b', ST_STRING,  "Binary directory",        VPOPMAIL_DIR_BIN },
-   { 'c', ST_STRING,  "Configuration directory", VPOPMAIL_DIR_ETC },
-   { 'i', ST_STRING,  "Includes directory",      VPOPMAIL_DIR_INCLUDE },
-   { 'l', ST_STRING,  "Library directory",       VPOPMAIL_DIR_LIB },
-   { 'm', ST_STRING,  "Module directory",        VPOPMAIL_DIR_LIB },
-   { 'u', ST_INTEGER, "vpopmail UID (integer)",  (void *)VPOPMAILUID },
-   { 'g', ST_INTEGER, "vpopmail GID (integer)",  (void *)VPOPMAILGID },
-   { 'U', ST_STRING,  "vpopmail UID (string)",   VPOPUSER },
-   { 'G', ST_STRING,  "vpopmail GID (string)",   VPOPGROUP },
-   { 'q', ST_STRING,  "qmail directory",         QMAILDIR },
-   { 'v', ST_STRING,  "vpopmail version",		 PACKAGE_VERSION },
-   {   0, ST_NONE,    NULL,                      NULL }
+   { 'b', ST_STRING,   "Binary directory",        VPOPMAIL_DIR_BIN },
+   { 'c', ST_STRING,   "Configuration directory", VPOPMAIL_DIR_ETC },
+   { 'i', ST_STRING,   "Includes directory",      VPOPMAIL_DIR_INCLUDE },
+   { 'l', ST_STRING,   "Library directory",       VPOPMAIL_DIR_LIB },
+   { 'm', ST_STRING,   "Module directory",        VPOPMAIL_DIR_LIB },
+   { 'u', ST_FUNCTION, "vpopmail UID (integer)",  f_uid },
+   { 'g', ST_FUNCTION, "vpopmail GID (integer)",  f_gid },
+   { 'U', ST_STRING,   "vpopmail UID (string)",   VPOPUSER },
+   { 'G', ST_STRING,   "vpopmail GID (string)",   VPOPGROUP },
+   { 'q', ST_STRING,   "qmail directory",         QMAILDIR },
+   { 'v', ST_STRING,   "vpopmail version",		  PACKAGE_VERSION },
+   {   0, ST_NONE,     NULL,                      NULL }
 };
 
 static void usage(const char *);
 
 int main(int argc, char *argv[])
 {
+   uid_t uid = -1;
+   gid_t gid = -1;
    const char *p = NULL;
-   int i = 0, ac = 0, newline = 0, num = 0;
+   const char *fret = NULL;
+   const char *(*func)(void);
+   int i = 0, ac = 0, newline = 0, num = 0, ret = 0;
 
    if (argc < 2) {
 	  usage(argv[0]);
 	  return 1;
    }
+
+   vpopmail_uidgid(&uid, &gid);
 
    num = 0;
    newline = 1;
@@ -103,6 +116,23 @@ int main(int argc, char *argv[])
 			   num++;
 			   printf("%lu", (unsigned long)(settings[i].value));
 			   break;
+
+			case ST_FUNCTION:
+			   num++;
+			   func = settings[i].value;
+
+			   if (func) {
+				  fret = func();
+				  if (fret)
+					 printf("%s", fret);
+				  else
+					 printf("NA");
+			   }
+
+			   else
+				  printf("NA");
+
+			   break;
 			
 			default:
 			   fprintf(stderr, "vconfig: unknown type '%d'\n", settings[i].type);
@@ -130,3 +160,40 @@ static void usage(const char *argv0)
 	  printf("          %c %s\n",
 			settings[i].c, settings[i].desc);
 }
+
+static const char *f_uid(void)
+{
+   int ret = 0;
+   uid_t uid = -1;
+   static char b_uid[32] = { 0 };
+
+   memset(b_uid, 0, sizeof(b_uid));
+
+   ret = vpopmail_uidgid(&uid, NULL);
+   if (!ret) {
+	  fprintf(stderr, "f_uid: vpopmail_uidgid failed\n");
+	  return b_uid;
+   }
+
+   snprintf(b_uid, sizeof(b_uid), "%d", uid);
+   return b_uid;
+}
+
+static const char *f_gid(void)
+{
+   int ret = 0;
+   uid_t gid = -1;
+   static char b_gid[32] = { 0 };
+
+   memset(b_gid, 0, sizeof(b_gid));
+
+   ret = vpopmail_uidgid(NULL, &gid);
+   if (!ret) {
+	  fprintf(stderr, "f_gid: vpopmail_uidgid failed\n");
+	  return b_gid;
+   }
+
+   snprintf(b_gid, sizeof(b_gid), "%d", gid);
+   return b_gid;
+}
+

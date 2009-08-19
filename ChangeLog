@@ -67,6 +67,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added 'Polling::Maximum age' to vusaged configuration
   - Updated vusaged to configurably delay polling for users by a factor of how many days since they've authenticated
   - Added reading and writing of user usage at startup and shutdown of vusage daemon
+  - Added vpopmail_uidgid function to load, cache, and return vpopmail user UID and GID values
+  - Updated various functions to use vpopmail_uidgid rather than use VPOPMAILUID and VPOPMAILGID defines
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

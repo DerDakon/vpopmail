@@ -129,8 +129,8 @@ vmoddomain: vmoddomain.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
 boxgroup: boxgroup.o libvpopmail.so
 	$(LINK) -o $@ $+ $(LLIBS)
-vconfig: vconfig.o
-	$(LINK) -o $@ $+
+vconfig: vconfig.o libvpopmail.so
+	$(LINK) -o $@ $+ $(LLIBS)
 
 #
 # Objects
@@ -232,7 +232,7 @@ vmoddomain.o: $(DEPS) vmoddomain.c config.h vpopmail.h file_lock.h
 	$(CCC) -o $@ -c $*.c
 boxgroup.o: $(DEPS) boxgroup.c vpopmail.h group.h
 	$(CCC) -o $@ -c $*.c
-vconfig.o: $(DEPS) vconfig.c config.h
+vconfig.o: $(DEPS) vconfig.c config.h vpopmail.h
 	$(CCC) -o $@ -c $*.c
 
 #

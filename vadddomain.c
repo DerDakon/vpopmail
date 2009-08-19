@@ -150,6 +150,7 @@ void get_options(int argc,char **argv)
 {
  int c;
  int errflag;
+ int ret = 0;
  struct passwd *mypw;
  extern char *optarg;
  extern int optind;
@@ -161,8 +162,11 @@ void get_options(int argc,char **argv)
     memset(Dir, 0, sizeof(Dir));
     memset(BounceEmail, 0, sizeof(BounceEmail));
 
-    Uid = VPOPMAILUID;
-    Gid = VPOPMAILGID;
+	ret = vpopmail_uidgid(&Uid, &Gid);
+	if (!ret) {
+	   fprintf(stderr, "cannot determine my uid or gid\n");
+	   return;
+	  }
 
     Apop = USE_POP;
     Bounce = 1;

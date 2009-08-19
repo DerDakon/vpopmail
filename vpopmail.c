@@ -635,13 +635,19 @@ domain_entry *get_domain_entries (const char *match_real)
 int vadduser( char *username, char *domain, char *password, char *gecos, 
               int apop )
 {
+   int ret;
  char Dir[MAX_BUFF];
  char *user_hash;
  char calling_dir [MAX_BUFF];
- uid_t uid = VPOPMAILUID;
- gid_t gid = VPOPMAILGID;
+ uid_t uid = -1;
+ gid_t gid = -1;
  struct vlimits limits;
  char quota[50];
+
+ ret = vpopmail_uidgid(&uid, &gid);
+ if (!ret)
+	return(VA_UNKNOWN_UIDGID);
+	
 
 #ifdef ONCHANGE_SCRIPT
  int temp_onchange;
@@ -2947,6 +2953,8 @@ char *verror(int va_err )
     return("can't delete catchall account");
    case VA_NO_AUTH_MODULE:
 	return("no authentication module loaded");
+   case VA_UNKNOWN_UIDGID:
+	return("cannot determine my uid or gid");
    default:
     return("Unknown error");
   }
@@ -3575,8 +3583,10 @@ int update_rules()
 {
  FILE *fs;
  long unsigned pid;
- int wstat;
+ int wstat, ret;
  char tmpbuf1[MAX_BUFF];
+ uid_t uid = -1;
+ gid_t gid = -1;
 
 #ifndef USE_SQL
  char tmpbuf2[MAX_BUFF];
@@ -3586,6 +3596,12 @@ int update_rules()
 #ifndef REBUILD_TCPSERVER
   return(0);
 #endif
+
+  ret = vpopmail_uidgid(&uid, &gid);
+  if (!ret) {
+	 fprintf(stderr, "update_rules: vpopmail_uidgid failed\n");
+	 return VA_UNKNOWN_UIDGID;
+   }
 
   umask(VPOPMAIL_TCPRULES_UMASK);
 
@@ -3655,7 +3671,7 @@ int update_rules()
 
   /* correctly set the ownership of the tcp.smtp.cdb file */
   snprintf(tmpbuf1, sizeof(tmpbuf1), "%s.cdb", TCP_FILE);
-  chown(tmpbuf1,VPOPMAILUID,VPOPMAILGID);
+  chown(tmpbuf1,uid,gid);
 
   return(0);
 }
@@ -4374,4 +4390,34 @@ struct vqpasswd *vauth_getpw_long(const char *email)
 	  return NULL;
 
    return vauth_getpw(user, domain);
+}
+
+/*
+   Load, cache, and return vpopmail uid:gid
+*/
+
+int vpopmail_uidgid(uid_t *uid, gid_t *gid)
+{
+   struct passwd *pw = NULL;
+   static uid_t c_uid = -1;
+   static gid_t c_gid = -1;
+
+   if ((c_uid == -1) || (c_gid == -1)) {
+	  pw = getpwnam(VPOPUSER);
+	  if (pw == NULL) {
+		 fprintf(stderr, "vpopmail_uidgid: cannot find user '%s'\n", VPOPUSER);
+		 return 0;
+	  }
+
+	  c_uid = pw->pw_uid;
+	  c_gid = pw->pw_gid;
+   }
+
+   if (uid)
+	  *uid = c_uid;
+
+   if (gid)
+	  *gid = c_gid;
+
+   return 1;
 }

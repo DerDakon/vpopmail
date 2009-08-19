@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <sys/types.h>
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
@@ -44,6 +45,8 @@ int main()
 #endif /* ndef USE_SQL */
  time_t mytime;
  time_t clear_minutes;
+ uid_t uid = -1;
+ gid_t gid = -1;
 
    ret = vauth_load_module(NULL);
    if (!ret)
@@ -52,6 +55,10 @@ int main()
 	if( vauth_open( 0 )) {
 		vexiterror( stderr, "Initial open." );
 	}
+
+	ret = vpopmail_uidgid(&uid, &gid);
+	if (!ret)
+	   vexiterror(stderr, "cannot determine my uid or gid");
 
 	clear_minutes = RELAY_CLEAR_MINUTES * 60;
 	mytime = time(NULL);
@@ -97,7 +104,7 @@ int main()
 		/* replace open-relay with open-relay.tmp */
 		rename(OPEN_SMTP_TMP_FILE, OPEN_SMTP_CUR_FILE);
 		/* set correct permissions on file */
-		chown(OPEN_SMTP_CUR_FILE,VPOPMAILUID,VPOPMAILGID);
+		chown(OPEN_SMTP_CUR_FILE,&uid,&gid);
 	}
 #endif
 	/* Now, regardless of backend, build a new tcp.smtp.cdb file
