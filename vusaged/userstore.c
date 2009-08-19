@@ -157,6 +157,7 @@ userstore_t *userstore_load(const char *path)
 	  return NULL;
    }
 
+#if 0
    /*
 	  Poll to initialize userstore contents
    */
@@ -166,12 +167,14 @@ userstore_t *userstore_load(const char *path)
 	  userstore_free(u);
 	  return NULL;
    }
+#endif
 
    /*
 	  Set last updated time
    */
 
    u->last_updated = time(NULL);
+
    return u;
 }
 

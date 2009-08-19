@@ -21,11 +21,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
+#include <errno.h>
 #include <vauth.h>
 #include <vauthmodule.h>
+#include <conf.h>
 #include "path.h"
 #include "storage.h"
 #include "cache.h"
@@ -39,10 +45,68 @@
 */
 
 static user_t *userlist = NULL;
+static storage_t userlist_num = 0;
+
+/*
+   Location of storage file
+*/
+
+static const char *user_storage = NULL;
 
 static user_t *user_load(const char *);
 static void user_remove(user_t *);
 static void user_free(user_t *);
+static int user_storage_load(void);
+static inline int user_userlist_add(user_t *);
+
+/*
+   Initialize user system
+*/
+
+int user_init(config_t *config)
+{
+   int ret = 0;
+   const char *s = NULL;
+
+#ifdef ASSERT_DEBUG
+   assert(config != NULL);
+#endif
+
+   /*
+	  Initialize userlist
+   */
+
+   userlist_num = 0;
+   userlist = NULL;
+
+   /*
+	  Load configurations
+   */
+
+   s = config_fetch_by_name(config, "Storage", "Filename");
+   if ((s) && (*s)) {
+	  if (strlen(s) >= 256) {
+		 fprintf(stderr, "user_init: Storage::Filename: value too long\n");
+		 return 0;
+	  }
+
+	  user_storage = strdup(s);
+	  if (user_storage == NULL) {
+		 fprintf(stderr, "user_init: strdup failed\n");
+		 return 0;
+	  }
+   }
+
+   /*
+	  Try to load saved data, if any
+   */
+
+   ret = user_storage_load();
+   if (!ret)
+	  fprintf(stderr, "user_init: warning: user_storage_load failed\n");
+
+   return 1;
+}
 
 /*
    Return a user handle from email address
@@ -309,16 +373,10 @@ static user_t *user_load(const char *email)
 	  Add to userlist
    */
 
-   if (userlist)
-	  userlist->prev = u;
-
-   u->next = userlist;
-   userlist = u;
-
-   ret = cache_add(email, u);
+   ret = user_userlist_add(u);
    if (!ret) {
 	  user_free(u);
-	  fprintf(stderr, "user_get: cache_add failed\n");
+	  fprintf(stderr, "user_load: user_userlist_add failed\n");
 	  return NULL;
    }
 
@@ -334,6 +392,7 @@ static void user_remove(user_t *u)
 #ifdef ASSERT_DEBUG
    assert(u != NULL);
    assert(userlist != NULL);
+   assert(userlist_num > 0);
 #endif
 
    if (u->next)
@@ -344,6 +403,8 @@ static void user_remove(user_t *u)
 
    if (u == userlist)
 	  userlist = u->next;
+
+   userlist_num--;
 }
 
 /*
@@ -481,6 +542,420 @@ int user_verify(user_t *u)
    /*
 	  User is a vpopmail user
    */
+
+   return 1;
+}
+
+/*
+   Load saved user list data
+*/
+
+static int user_storage_load(void)
+{
+   int fd = 0, ret = 0;
+   ssize_t rret = 0;
+   storage_t num = 0;
+   user_t *u = NULL;
+   user_storage_header_t header;
+   user_storage_entry_t entry;
+   domain_t *d = NULL;
+
+   /*
+	  No storage
+   */
+
+   if (user_storage == NULL)
+	  return 1;
+
+   /*
+	  Open database
+   */
+
+   fd = open(user_storage, O_RDONLY);
+   if (fd == -1) {
+	  if (errno != ENOENT) {
+		 fprintf(stderr, "user_storage_load: open(%s) failed: %d\n", user_storage, errno);
+		 return 0;
+	  }
+
+	  /*
+		 No database file exists
+	  */
+
+	  return 1;
+   }
+
+   printf("user: loading database: %s\n", user_storage);
+   
+   /*
+	  Read header
+   */
+
+   rret = read(fd, &header, sizeof(header));
+   if (rret != sizeof(header)) {
+	  fprintf(stderr, "user_storage_load: read failed: %d (errno = %d)\n", rret, errno);
+	  close(fd);
+	  return 0;
+   }
+
+   /*
+	  Check initial values
+   */
+
+   if (strncmp(header.id, USER_STORAGE_ID, 3)) {
+	  close(fd);
+	  printf("user: not a vusaged database file\n");
+	  return 0;
+   }
+
+   if (header.version != 0x01) {
+	  close(fd);
+	  printf("user: don't know how to handle version %d database files\n", header.version);
+	  return 0;
+   }
+
+   /*
+	  Fix values
+   */
+
+   header.num_entries = ntohll(header.num_entries);
+
+   printf("user: loading %llu entries\n", header.num_entries);
+
+   /*
+	  Load entries
+   */
+
+   for (num = 0; num < header.num_entries; num++) {
+	  /*
+		 Read entry
+	  */
+
+	  rret = read(fd, &entry, sizeof(entry));
+	  if (rret != sizeof(entry)) {
+		 fprintf(stderr, "user_storage_load: read failed: %d\n", errno);
+		 break;
+	  }
+
+	  /*
+		 Fix values
+	  */
+
+	  entry.bytes = ntohll(entry.bytes);
+	  entry.count = ntohll(entry.count);
+
+	  /*
+		 Load domain
+	  */
+
+	  d = domain_load(entry.domain);
+	  if (d == NULL) {
+		 fprintf(stderr, "user_storage_load: domain_load failed\n");
+		 break;
+	  }
+
+	  /*
+		 Manually load user
+	  */
+
+	  u = malloc(sizeof(user_t));
+	  if (u == NULL) {
+		 fprintf(stderr, "user_storage_load: malloc failed\n");
+		 break;
+	  }
+
+	  memset(u, 0, sizeof(user_t));
+
+	  /*
+		 Copy entry values
+	  */
+
+	  u->home = strdup(entry.home);
+	  if (u->home == NULL) {
+		 fprintf(stderr, "user_storage_load: strdup failed\n");
+		 user_free(u);
+		 break;
+	  }
+
+	  u->user = strdup(entry.user);
+	  if (u->user == NULL) {
+		 fprintf(stderr, "user_storage_load: strdup failed\n");
+		 user_free(u);
+		 break;
+	  }
+
+	  /*
+		 Set domain
+	  */
+
+	  u->domain = d;
+
+	  /*
+		 Allocate userstore
+	  */
+
+	  u->userstore = userstore_load(u->home);
+	  if (u->userstore == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "user_storage_load: userstore_load failed\n");
+		 break;
+	  }
+
+	  /*
+		 Manually set usage counts
+	  */
+
+	  u->userstore->usage = entry.bytes;
+	  u->userstore->count = entry.count;
+
+	  /*
+		 Manually skip a poll period
+	  */
+
+	  u->userstore->time_taken = 1;
+
+	  /*
+		 Update domain
+	  */
+
+	  ret = domain_update(u->domain, 0, entry.bytes, 0, entry.count);
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "user_load_storage: domain_update failed\n");
+		 break;
+	  }
+
+	  /*
+		 Add to userlist
+	  */
+
+	  ret = user_userlist_add(u);
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "user_load_storage: user_userlist_add failed\n");
+		 break;
+	  }
+
+#ifdef USER_DEBUG
+	  printf("user: database: loaded %s@%s; usage=%llu; count=%llu;\n", u->user, u->domain->domain, u->userstore->usage, u->userstore->count);
+#endif
+   }
+
+   /*
+	  Done
+   */
+
+   close(fd);
+
+   /*
+	  Check number of read entries vs number of reported entries
+   */
+
+   if (num != header.num_entries)
+	  printf("user: warning: loaded %llu/%llu entries\n", num, header.num_entries);
+   else
+	  printf("user: database loaded\n");
+
+   return 1;
+}
+
+/*
+   Save user list data
+*/
+
+int user_storage_save(void)
+{
+   int fd = 0, ret = 0;
+   user_t *u = NULL;
+   storage_t num = 0;
+   user_storage_entry_t entry;
+   user_storage_header_t header;
+
+   /*
+	  No storage configured
+   */
+
+   if (user_storage == NULL)
+	  return 1;
+
+   printf("user: saving database\n");
+
+   /*
+	  Truncate storage file
+   */
+
+   fd = open(user_storage, O_WRONLY|O_CREAT|O_TRUNC, 0600);
+   if (fd == -1) {
+	  fprintf(stderr, "user_storage_save: open(%s) failed: %d\n", user_storage, errno);
+	  return 0;
+   }
+
+   /*
+	  Fill header
+   */
+
+   memset(&header, 0, sizeof(header));
+
+   header.version = 1;
+   memcpy(header.id, USER_STORAGE_ID, 3);
+   header.num_entries = htonll(userlist_num);
+
+   /*
+	  Write header
+   */
+
+   ret = write(fd, &header, sizeof(header));
+   if (ret != sizeof(header)) {
+	  unlink(user_storage);
+	  close(fd);
+	  fprintf(stderr, "user_storage_save: write failed: %d\n", errno);
+	  return 0;
+   }
+
+   /*
+	  Fix values
+   */
+
+   header.num_entries = ntohll(header.num_entries);
+
+   /*
+	  Write userlist
+   */
+
+   /*
+	  Run through userlist
+   */
+
+   num = 0;
+   for (u = userlist; u; u = u->next) {
+	  /*
+		 Form address
+	  */
+
+	  if (u->user == NULL) {
+		 printf("user: warning: invalid entry in database\n");
+		 continue;
+	  }
+
+	  if ((u->domain == NULL) || (u->domain->domain == NULL)) {
+		 printf("user: warning: invalid entry in database\n");
+		 continue;
+	  }
+
+	  /*
+		 Fill entry structure
+	  */
+
+	  ret = strlen(u->user);
+	  if (ret >= sizeof(entry.user)) {
+		 printf("user: warning: long entry in database\n");
+		 continue;
+	  }
+
+	  memset(entry.user, 0, sizeof(entry.user));
+	  memcpy(entry.user, u->user, ret);
+
+	  ret = strlen(u->domain->domain);
+	  if (ret >= sizeof(entry.domain)) {
+		 printf("user: warning: long entry in database\n");
+		 continue;
+	  }
+
+	  memset(entry.domain, 0, sizeof(entry.domain));
+	  memcpy(entry.domain, u->domain->domain, ret);
+
+	  ret = strlen(u->home);
+	  if (ret >= sizeof(entry.home)) {
+		 printf("user: warning: long entry in database\n");
+		 continue;
+	  }
+
+	  memset(entry.home, 0, sizeof(entry.home));
+	  memcpy(entry.home, u->home, ret);
+
+	  if (u->userstore) {
+		 entry.bytes = htonll(u->userstore->usage);
+		 entry.count = htonll(u->userstore->count);
+	  }
+
+	  else {
+		 entry.bytes = 0;
+		 entry.count = 0;
+	  }
+
+	  /*
+		 Write entry
+	  */
+
+	  ret = write(fd, &entry, sizeof(user_storage_entry_t));
+	  if (ret != sizeof(user_storage_entry_t)) {
+		 unlink(user_storage);
+		 close(fd);
+		 fprintf(stderr, "user_storage_save: write failed: %d\n", errno);
+		 return 0;
+	  }
+
+	  num++;
+   }
+
+   /*
+	  Done
+   */
+
+   close(fd);
+
+   /*
+	  Sanity check
+   */
+
+   if (num != userlist_num)
+	  printf("user: warning: saved %llu/%llu entries\n", num, userlist_num);
+   else
+	  printf("user: saved %llu user(s)\n", userlist_num);
+
+   return 1;
+}
+
+/*
+   Add user to userlist
+*/
+
+static inline int user_userlist_add(user_t *u)
+{
+   int ret = 0;
+   char b[384] = { 0 };
+
+#ifdef ASSERT_DEBUG
+   assert(u != NULL);
+   assert(u->domain != NULL);
+   assert(u->domain->domain != NULL);
+   assert(u->home != NULL);
+   assert(u->user != NULL);
+#endif
+
+   if (userlist)
+	  userlist->prev = u;
+
+   u->next = userlist;
+   userlist = u;
+
+   userlist_num++;
+
+   /*
+	  Add to cache
+   */
+
+   ret = snprintf(b, sizeof(b), "%s@%s", u->user, u->domain->domain);
+   if (ret >= sizeof(b)) {
+	  fprintf(stderr, "user_userlist_add: address too long\n");
+	  return 0;
+   }
+
+   ret = cache_add(b, u);
+   if (!ret) {
+	  fprintf(stderr, "user_userlist_add: cache_add failed\n");
+	  return 0;
+   }
 
    return 1;
 }

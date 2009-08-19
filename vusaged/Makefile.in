@@ -21,7 +21,7 @@ vusaged: ../libvpopmail.so vusaged.o socket.o grow.o signal.o packet.o query.o c
 ../libvpopmail.so:
 	(cd ..;make)
 
-vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h
+vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h user.h
 	$(CC) $(DEFS) -o vusaged.o -c vusaged.c
 
 socket.o: $(DEPS) socket.c socket.h packet.h grow.h
