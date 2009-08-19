@@ -22,6 +22,7 @@
    #define __USER_H_
 
 #include <time.h>
+#include "config.h"
 #include "storage.h"
 #include "domain.h"
 #include "userstore.h"
@@ -30,7 +31,7 @@
    Maximum length of a username
 */
 
-#define USER_MAX_USERNAME 512
+#define USER_MAX_USERNAME 384
 
 /*
    User structure
@@ -45,6 +46,33 @@ typedef struct __user_ {
    struct __user_ *next, *prev;
 } user_t;
 
+/*
+   Saved user database header
+*/
+
+#define USER_STORAGE_ID "vDB"
+
+typedef struct __user_storage_header_ {
+   unsigned char id[3];
+   unsigned char version;
+   storage_t num_entries;
+} user_storage_header_t;
+
+/*
+   Saved user entry
+   Minus address
+*/
+
+typedef struct __user_storage_entry_ {
+   unsigned char user[128],
+				 domain[256],
+				 home[256];
+
+   storage_t bytes,
+			 count;
+} user_storage_entry_t;
+
+int user_init(config_t *);
 user_t *user_get(const char *);
 storage_t user_usage(user_t *);
 storage_t user_get_usage(const char *);
@@ -52,5 +80,6 @@ int user_get_use(const char *, storage_t *, storage_t *);
 int user_poll(user_t *);
 user_t *user_get_userlist(void);
 int user_verify(user_t *);
+int user_storage_save(void);
 
 #endif

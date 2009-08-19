@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include "user.h"
 #include "conf.h"
 #include "signal.h"
 #include "socket.h"
@@ -93,9 +94,17 @@ int main(int argc, char *argv[])
 	  return 1;
    }
 
+   ret = user_init(config);
+   if (!ret) {
+	  fprintf(stderr, "user_init failed\n");
+	  return 1;
+   }
+
    config_kill(config);
 
    printf("vusaged: begin\n");
+
+   queue_begin();
 
    /*
 	  Begin processing of queries
@@ -118,10 +127,16 @@ int main(int argc, char *argv[])
    */
 
    ret = queue_shutdown();
-   if (!ret) {
+   if (!ret)
 	  fprintf(stderr, "queue_shutdown failed\n");
-	  return 1;
-   }
+
+   /*
+	  Save userlist
+   */
+
+   ret = user_storage_save();
+   if (!ret)
+	  fprintf(stderr, "user_storage_save failed\n");
 
    printf("vusaged: end\n");
    return 0;
