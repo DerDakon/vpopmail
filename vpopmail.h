@@ -118,6 +118,7 @@
 #define VA_CANNOT_CREATE_TABLE          -44
 #define VA_CANNOT_DELETE_CATCHALL       -55
 #define VA_NO_AUTH_MODULE				-66
+#define VA_UNKNOWN_UIDGID				-67
 
 
 /* gid flags */
@@ -369,3 +370,5 @@ char *backfill(char *, char *, char *, int);
 #endif
 
 struct vqpasswd *vauth_getpw_long(const char *);
+
+int vpopmail_uidgid(uid_t *, gid_t *);

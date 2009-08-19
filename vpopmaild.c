@@ -948,6 +948,14 @@ int add_domain()
  char *domain;
  char *password;
  int   ret;
+ uid_t uid = -1;
+ gid_t gid = -1;
+
+   ret = vpopmail_uidgid(&uid, &gid);
+   if (!ret) {
+	  show_error(ERR_UNKNOWN_UIDGID, 2000);
+	  return -1;
+    }
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
     show_error( ERR_NOT_AUTHORIZED, 801 );
@@ -964,7 +972,7 @@ int add_domain()
     return(-1);
   }
 
-  if ((ret=vadddomain(domain,VPOPMAIL_DIR_DOMAINS,VPOPMAILUID,VPOPMAILGID))!=VA_SUCCESS){
+  if ((ret=vadddomain(domain,VPOPMAIL_DIR_DOMAINS,uid,gid))!=VA_SUCCESS){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0.804 %s" RET_CRLF, verror(ret));
     return(-1);
   }
@@ -1377,8 +1385,17 @@ int validate_path(char *newpath, char *path)
 
 int mk_dir()
 {
+   int ret = 0;
   char *olddir;
   char dir[MAXPATH];
+  uid_t uid = -1;
+  gid_t gid = -1;
+
+  ret = vpopmail_uidgid(&uid, &gid);
+  if (!ret) {
+	 show_error(ERR_UNKNOWN_UIDGID, 2002);
+	 return -1;
+   }
 
   /* must supply directory parameter */
   if ((olddir=strtok(NULL,TOKENS))==NULL) {
@@ -1397,7 +1414,7 @@ int mk_dir()
   }
 
   /* Change ownership */
-  if ( chown(dir,VPOPMAILUID,VPOPMAILGID) == -1 ) {
+  if ( chown(dir,uid,gid) == -1 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0.1603 %s" RET_CRLF, 
       strerror(errno));
     return(-1);

@@ -332,11 +332,13 @@
 /* "" */
 #undef VPOPMAILDIR
 
+#if 0
 /* "" */
 #undef VPOPMAILGID
 
 /* "" */
 #undef VPOPMAILUID
+#endif
 
 /* "" */
 #undef VPOPUSER
