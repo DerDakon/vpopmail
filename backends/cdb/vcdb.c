@@ -1118,18 +1118,25 @@ char *get_lastauthip( struct vqpasswd *pw, char *domain)
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid)
 {
+   int ret = 0;
+   uid_t c_uid = -1;
  static char dir_control_file[MAX_DIR_NAME];
  struct passwd *pw;
 
+   ret = vpopmail_uidgid(&c_uid, NULL);
+   if (!ret) {
+	  fprintf(stderr, "dc_filename: vpopmail_uidgid failed\n");
+	  return "";
+   }
+      
     /* if we are lucky the domain is in the assign file */
     if ( vget_assign(domain,dir_control_file,MAX_DIR_NAME,NULL,NULL)!=NULL ) { 
 	strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME);
 
     /* it isn't in the assign file so we have to get it from /etc/passwd */
     } else {
-      
         /* save some time if this is the vpopmail user */
-        if ( uid == VPOPMAILUID ) {
+        if ( uid == c_uid) {
             strncpy(dir_control_file, VPOPMAIL_DIR_DOMAINS, MAX_DIR_NAME);
 
         /* for other users, look them up in /etc/passwd */
