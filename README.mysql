@@ -1,0 +1,98 @@
+
+NOTE: make sure you are running the latest stable release of mysql.
+If you have 3.22 installed, you will need to upgrade. The dir_control
+table in vpopmail uses a "unique index (domain)" syntax which isn't
+supported in the 3.22 releases. Thanks to Chris Scheller for
+tracking this down.
+
+vpopmail now supports mysql. Here is a brief outline on how to
+get it running.
+
+There are some things you need to edit by hand to get it to work.
+
+1) edit vmysql.h
+
+Change these lines to match the configuration on your network
+
+#define MYSQL_UPDATE_SERVER "localhost"
+#define MYSQL_UPDATE_USER   "root"
+#define MYSQL_UPDATE_PASSWD "secret"
+
+#define MYSQL_READ_SERVER   "localhost"
+#define MYSQL_READ_USER     "root"
+#define MYSQL_READ_PASSWD   "secret"
+
+If you are NOT using mysql replication then set both of
+these sets to be your primary mysql server information.
+
+If you ARE using mysql replication then set the UPDATE
+set to be your master mysql server and set the READ
+set to be your local mysql server.
+
+2) configure options for mysql support.
+
+--enable-mysql=y
+
+First thing. This turns on mysql code and authentication module.
+
+Now if you aren't lucky and your mysql include and libraries aren't
+in the "default" locations, you will need to use these options.
+
+If your include files are not in /usr/include/mysql or 
+/usr/local/include/mysql, add the following configuration option:
+
+--enable-incdir=/path-to-your-include-dir
+
+If your library files are not in /usr/lib/mysql or in 
+/usr/local/lib/myqsl , add the following configuration option:
+
+--enable-libdir=/path-to-your-lib-dir
+
+On my machine I do:
+$ ./configure --enable-mysql=y
+
+3) make the software 
+
+$ make
+
+4) install as root
+
+$ su
+# make install-strip
+
+
+If you have domains that are already setup as cdb modules and
+you want to convert them to sql:
+
+1) Convert your current virtual domains to sql.
+
+use the vconvert program. You can convert one domain at a time,
+or convert them all.
+
+# ./vconvert -c -m
+this will convert them all from the vpasswd.cdb format to the default
+single table database
+
+# ./vconvert -c -m virtualdomain1 virtualdomain2 ...
+will convert the list of virtual domains from vpasswd.cdb layout to
+single table database
+
+What does the conversion program do? First it creates a table with the name
+of the domain. domain names with "-" or "." are converted to "_". Mysql
+doesn't like "-" or "." in table names.  For example: test-dom.com domain 
+gets a table named test_dom_com
+
+Next, the conversion program reads the contents of the vpasswd file and
+adds those records to the mysql database.
+
+Table customization (optional)
+1) Customizing the fields in the sql tables.
+
+It is possible to add additional fields to the database table layout.
+vpopmail won't touch these additional fields, but they would be available
+for any other programs to access and use.
+
+Edit vmysql.h and add fields to either SMALL_TABLE_LAYOUT or LARGE_TABLE_LAYOUT 
+be sure not to delete any of the fields. Each field in the default layout
+is required for vpopmail. 
+

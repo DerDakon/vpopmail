@@ -1,0 +1,14 @@
+
+Edit voracle.h and set the service, user and password information.
+
+Then run: proc voracle.pc
+
+proc or Pro-C is oracle's precompiler.
+See your oracle documetation for more
+information. 
+
+You might also need to create the tables by hand
+
+relay table
+
+

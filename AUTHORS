@@ -1,0 +1,213 @@
+See <http://sourceforge.net/projects/vpopmail/> for up to date information 
+on vpopmail releases and developers.
+
+See the ChangeLog for full details on each authors contribution to 
+vpopmail.
+
+Tom Collins <tom@tomlogic.com>
+      Current Package Maintainer
+
+Ken Jones <kbo@inter7.com>
+      Previous Package Maintainer 
+
+Bill Shupp <hostmaster@shupp.org>
+      many many things. Please see the ChangeLog
+
+Edoardo Serra  vpopml at connecting dot to dot it
+      automatically create maildir in vpopbull if it doesn't exist
+
+Brian Kolaci <bk@kola.com>
+      added limits functions to vpopmail api:
+          int vget_limits( char *domain, struct vlimits *limits )
+          int vset_limits( char *domain, struct vlimits *limits )
+          int vdel_limits( char *domain )
+      performance improvements to vopen_smtp_relay() for sql modules
+
+Andrew Kohlsmith akohlsmith-vpopmail at benshaw dot com
+      Updates to the PostgreSQL module
+
+Steve Fulton
+      added error return codes 100 and 99 to vdelivermail
+
+Paul Kremer pkremer at dullboy dot gms dot lu
+       set ldap protocol version before each ldap_simple_bind_s call.
+
+Justin Heesemann jh at ionium dot org
+       --enable-users-big-dir option.
+
+Rui Barreiros <rui@websolut.net>
+       fixed alias domains problems
+
+"Chris Bunnell" <cbunnell@sonicisp.net>
+        reverse the check in vdelivermail for user over quota.
+        messages of less than 1000 bytes were not updating the
+        .current_size file. 
+
+"David Wartell" <david@actionwebservices.com>
+        Code to make vdelfiles work correctly on Solaris. In Linux
+        unlink'ing a directory returns an error. In solaris it doesn't.
+        Solaris requires 
+
+"Antonio Dias" <accdias@sst.com.br> 
+        Debugging of new 4.10 version. 
+        Fixes for vdominfo to work with vcdb and vldap modules.
+        Fix for file locking ifdefs in file_lock.c
+        Fix for vcdb.c dc_filename to use strncat not strncpy
+        another switch in vcdb.c from strncpy to strncat
+        compilers complain if vdelivermail.c doesn't end with an exit()
+        vaddomain instead of vadddomain in vadddomain help
+
+"Marcus Williams" <marcus@quintic.co.uk>
+        some vdelivermail.c lseek calls had the parameters out of order
+        optimization vdelivermail Maildir code and syncronization of
+        the files.
+        coda fs changes for link/rename
+        temporary version of open_command for vdelivermail
+        seek patch (U of Maryland wrote the original code)
+
+"Matt Simerson" <mpsimerson@hostpro.com>
+        tcpserver patches and mysql module changes to greatly
+        increase the efficency of roaming users.
+
+"Maxim Krikuha" <maxim@sibtel.ru>
+        - update vdelivermail.c to support .no-user.msg file in either 
+          the domains directory or under the vpopmail home domains directory.
+
+Boris Manojlovic <steki@verat.net>
+        - New ldap code and ldap directory with ldap files
+        - for MD5 passwords in vpopmail.c mkpasswd3() routine
+          use more than 2 random chars in salt
+        - vldap.c support MD5 passwords
+
+"Casey Zacek" <cz@neospire.net>
+        - vmysql.c had a typo (missing comma) in vcreate_dir_control().  
+          Added identifiers to all the vmysql error messages.
+        - got the mysql alias code "a changin'"
+
+"Jan Pavlík" <gandie@rootshell.cz>
+        add #define MYSQL_PORT 0 to vmysql.h in case folks
+        want to hard code the port number. The default of
+        0 lets mysql read my.cnf files to set the port number.
+        5 or 6 real_connects in the vmysql.c file changed 
+
+"Vladimir Kabanov" <vova@farpost.com>
+        vdelivermail.c Delivered-To: header fix for users
+        in sub directories.
+
+"Richard T. Wareing" <rwareing@requestnetworks.com>
+        vmysql getall function returning incorrect gecos field
+
+"Daniel Savard" <daniel.savard@gespro.com>
+        fixes to 4.10 vcdb.c module for errors on dir_control processing
+
+"chris" <macgyver@sonicisp.net>
+        After much debugging work Chris found in vadddomain it 
+        lower cases the directory. This breaks directories that
+        have upper cases in them, like /RAID
+
+"Rick Stanley" <sysadmin@rsi-ny.com>
+        Code to change the delivered to line from a maildir path
+        to a email address. 
+
+"Ryan Duda" <rpd@123.net>
+	Extensive testing, and I mean extensive.
+        put in vclose before exits in vchkpw.c and vdelivermail.c
+        vchkpw wasn't getting the pw_uid and pw_gid 
+
+Daniel Savard <daniel.savard@gespro.com>
+       change to vpopmail.c vgetent function for CLEAR_PASS
+
+"Tim Hasson" <tim@aidasystems.com>
+        README.ldap documentation and testing.
+
+Jay Swackhamer <jswack@wonder.ca>
+	IP alias lookup code
+
+Kyle Christensen <mute@snip.net>
+	Complainer, Contributor of junk
+
+Markus Wuebben <markus@dinet.de>
+	Mysql error code
+
+Eric Peters <eric@peters.org>
+	Mysql connection optimization
+	"we'd tell you but then we'd have to kill you"
+	New file locking code 
+        Change to support changing "domains" directory name with
+          new code and new configure option
+
+Joey Miller <joeym@inficad.com>
+	Optimization for tcprules rebuilding. Don't rebuild if IP already there.
+	Used with --enable-roaming-users=y option
+	
+Phil <phil@omegahosting.com>
+	Found vmysql.c bug that caused vconvert to add an extra dir level
+	when converting from cdb to mysql
+
+Ondøej Surý <ondrej@sury.cz> 
+	Many changes and code fixes. 
+
+Matthias Henze <matthias@mhcsoftware.de>
+	vdelivermail filter code
+
+Timothy Ritchey <tim.ritchey@vacuumgenesis.com>
+	fixed case sensitivity in aliased domains
+
+Markus Wuebben <wuebben@ID-PRO.de>
+	input checking added to safestring.c scopy for null src
+
+Bryan Orthner <borthner@rongenet.sk.ca>
+	place the tcp.smtp.tmp file in the open-smtp file directory.
+	this avoids child crashed when run as non-root.
+
+Krzysztof Dabrowski <brushlst@pol.pl>
+	code to add multiuser uid/gid functionality to vpopmail.
+	allows domains to be created under /etc/passwd users home
+	directories (other than vpopmail) so normal file system
+	quotas can apply.
+
+Sean Truman <sean.truman@prodigysolutions.com>
+	mysql code to set a time stamp when a user authenticates
+        big dir hashing of domains
+        mysql replication code
+
+Thomas Foerster <puckwork@madz.net>
+	new mysql code for logging pop authentication with vchkpw program
+
+Boian Bonev <boian@bonev.com>
+	found problem and a fix for putenv() usage in vchkpw.c. 
+	replaced with setenv().
+ 
+Andrea Cerrito <cerrito@centromultimediale.it>
+	new idea for --enable-coda=y support and new code in vdelivermail.c
+
+SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp>
+	solaris wants optarg and optin declared as externs
+
+"Nathan" <nathan@0x00.org>
+	fixed file descriptor leak in vget_assign()
+
+"Filippo Carletti" <filippo@mobilia.it>
+	code review of vdelivermail.c and vpopmail.c, pointed out
+	some inconsistances and fixes. Pointed out that if mysql
+	is down then vdelivermail should return temporary failure.
+
+"Justin Heesemann" <jh@ionium.org>
+	New code for cdb_to_sql function in vconvert. Very slick!
+
+Steve Wolfe <nw@codon.com>
+        While trying to compile vpopmail-5.0pre6 with --enable-password=y, 
+        I got:
+/usr/src/vpopmail-5.0pre6/vchkpw.c:397: undefined reference to 'log'
+        it looks like the line should actually use vlog(), not log().
+
+Donal Diamond <donal.diamond@eircom.net>
+        more error checking on mysql/alias processing to deferr the
+        email if the mysql server is down.
+
+Nicholas L. Nigay <nnigay@cboss.ru>
+        - Fix for "qmaildir" path being hardcoded in configure.in
+        - Fix for incorrect file size in quota warning message file name
+
+Chris Johnson <sixie@nccnet.co.uk>
+	Original Author
