@@ -1,0 +1,34 @@
+vadduser.c:        vpw->pw_passwd = EncryptedPasswd;
+vcdb.c:    vpw->pw_shell = quota;
+vcdb.c:	snprintf(tmpbuf, MAX_BUFF, "%s/lastauth", vpw->pw_dir);
+vchkpw.c:      if ( vmake_maildir(TheDomain, vpw->pw_dir )!= VA_SUCCESS ) {
+vchkpw.c:  if ( vpw->pw_dir == NULL || vpw->pw_dir[0]==0 ) {
+vchkpw.c:    if ( make_user_dir(vpw->pw_name, TheDomain, pw_uid, pw_gid)==NULL){
+vchkpw.c:    cramaccepted = authcram(ThePass,TheResponse,vpw->pw_clear_passwd);
+vchkpw.c:    apopaccepted = authapop(ThePass,TheResponse,vpw->pw_clear_passwd);
+vchkpw.c:  if ( vpw->pw_passwd==NULL||vpw->pw_passwd[0]==0) {
+vchkpw.c:    vpw->pw_passwd = TheCrypted;
+vchkpw.c:    vpw->pw_clear_passwd = ThePass;
+vchkpw.c:  if ( vpw->pw_passwd==NULL||vpw->pw_passwd[0]==0) {
+vchkpw.c:  if ( (cramaccepted != 0 ) &&  (apopaccepted != 0 ) && strcmp(crypt(ThePass,vpw->pw_passwd),vpw->pw_passwd) != 0 ) {
+vchkpw.c:  if ( vpw->pw_clear_passwd==NULL||vpw->pw_clear_passwd[0]==0) {
+vchkpw.c:    vpw->pw_clear_passwd = ThePass;
+vchkpw.c:  if ( ( vpw->pw_gid & NO_POP ) && ConnType == POP_CONN ) {
+vchkpw.c:  if ( ( vpw->pw_gid & NO_SMTP ) && ConnType == SMTP_CONN ) {
+vchkpw.c:  if ( (vpw->pw_gid & NO_RELAY)==0 && LocalPort!=25 && LocalPort!=465 ) {
+vchkpw.c:  pw_dir = vpw->pw_dir;
+vdelivermail.c:    if (vpw->pw_gid & BOUNCE_MAIL ) {
+vdelivermail.c:    if ( vpw->pw_dir == NULL || vpw->pw_dir[0]==0 ) {
+vdelivermail.c:        if ( make_user_dir(vpw->pw_name, TheDomain, 
+vdelivermail.c:    if ( stat(vpw->pw_dir, &mystatbuf ) == -1 ) {
+vdelivermail.c:        if ( vmake_maildir(TheDomain, vpw->pw_dir )!= VA_SUCCESS ) {
+vdelivermail.c:    if ( check_forward_deliver(vpw->pw_dir) == 1 ) {
+vdelivermail.c:    snprintf(TheDir, AUTH_SIZE, "%s/Maildir/", vpw->pw_dir);
+vdelivermail.c:    if ( deliver_mail(TheDir, vpw->pw_shell) != 0 ) {
+vldap.c:	sprintf(tmpbuf, "%s/lastauth", vpw->pw_dir);
+vqmaillocal.c:    if (vpw->pw_gid & BOUNCE_MAIL ) {
+vqmaillocal.c:    if ( vpw->pw_dir == NULL || vpw->pw_dir[0]==0 ) {
+vqmaillocal.c:        if ( make_user_dir(vpw->pw_name, TheDomain, pw_uid, pw_gid)==NULL){
+vqmaillocal.c:    if ( check_forward_deliver(vpw->pw_dir) == 1 ) {
+vqmaillocal.c:    snprintf(TheDir, AUTH_SIZE, "%s/Maildir/", vpw->pw_dir);
+vqmaillocal.c:    if ( deliver_mail(TheDir, vpw->pw_shell) != 0 ) {

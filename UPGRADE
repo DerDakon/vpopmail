@@ -1,0 +1,99 @@
+REMINDER:
+
+When recompiling vpopmail, you need to recompile all binaries that link 
+into the vpopmail libraries.  These include QmailAdmin and qmail-smtpd (if 
+you have the chkuser patch applied).
+
+Upgrading to vpopmail-5.3
+-------------------------
+Differences between 5.2.x and 5.3.x will be detailed in an upcoming 
+release.
+
+Upgrading to vpopmail-5.2
+-------------------------
+Everything should be backwardly compatible with
+the following exceptions:
+
+1. Changes have been made to the way aliased domains
+   are managed. We have tested backwards compatibility
+   and can find no problems. 
+
+2. Changes have been made to the mysql table formats.
+   Everything now uses fixed sized columns instead of
+   varchars for efficency. Your current setup should
+   work fine.
+
+3. Clear text passwords are now enabled by default.
+   If you are running mysql read UPGRADE.tren if
+   you want to use clear text passwords. basicly
+   you need to update the table definition. This
+   can be done on a running system, for example:
+ALTER TABLE vpopmail ADD COLUMN pw_clear_passwd char(16);
+
+
+Upgrading to vpopmail-5.0 or above
+----------------------------------
+Please also read UPGRADE.tren
+
+Reports from site administrators indicate that
+vpopmail can be upgraded cleanly with no problems.
+They were able to upgrade to vpopmail-5.0 while
+the system remained in production. No need to
+reboot or restart email. 
+
+As is always recommended, you should back up the
+files that will be over written. You only need
+to backup the ~vpopmail/bin directory. No other
+files are over written. 
+
+The last thing the development community (me included)
+is to end up answering alot of emails about problems
+upgrading to 5.0 from older versions. So, we tried
+to make it as easy as possible.
+
+The configure options that work for most sites is:
+
+./configure ; make ; make install-strip
+
+If you are running a mysql, ldap or anything besides
+the default vpasswd(cdb) module follow the normal
+directions in the INSTALL file.
+
+If you are using pop authentication before relay,
+otherwise known as roaming-users add the
+
+--enable-roaming-users=y option
+
+If you are running mysql add:
+
+--enable-mysql=y option
+
+If you think email for jack-test@domain.com should go
+should be delivered to jack@domain.com mailbox add:
+
+--enable-qmail-ext=y option
+
+
+If you are running a site which has many users (more than 10,000)
+AND you plan on *never* having more than 10 domains on your machine
+AND you are running mysql/or sql database THEN you may want to consider
+using --enable-many-domains=n 
+This option optimizes SQL table normalization. 
+The default --enable-many-domains=y is what most sites need.
+
+
+If you are moving an old mail system over to a new vpopmail 5.0
+system then might want to use
+
+
+Upgrading to vpopmail-4.9.8 with mysql module:
+
+If you were running vpopmail before 4.9.8 and are
+upgrading to 4.9.8 or newer you might want to
+run the vcdir program that is in the contrib
+directory. See the contrib/vcdir.README file 
+for more details.
+
+
+Quotas
+Please read README.quotas for information about the new softquota mechanism.
