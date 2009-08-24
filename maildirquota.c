@@ -91,7 +91,7 @@ struct vlimits limits;
 		/* locate the domainname */
 		while (*(--p) != '/')
 			;
-		strncpy(domain, ++p, sizeof(domain));
+		snprintf(domain, sizeof(domain), "%s", ++p);
 		if ((p = strchr(domain, '/')) != NULL)
 			*p = '\0';
 
@@ -148,9 +148,7 @@ struct dirent *de;
 		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
 			continue;
 
-		strncpy(checkdir, dir, sizeof(checkdir));
-		strncat(checkdir, de->d_name, sizeof(checkdir));
-		strncat(checkdir, "/Maildir/", sizeof(checkdir));
+		snprintf(checkdir, sizeof(checkdir), "%s%s/Maildir/", dir, de->d_name);
 		tries = 5;
 		while (tries-- && readuserquota(checkdir, sizep, cntp))
 		{
@@ -282,7 +280,7 @@ struct  stat    stat_buf;
 int     quotafd;
 char    quotawarnmsg[500];
 
-        snprintf(quotawarnmsg, 500, "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
+        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
 
         if (stat(quotawarnmsg, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) &&
                 stat_buf.st_size > 0 && *q)

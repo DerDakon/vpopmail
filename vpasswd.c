@@ -30,33 +30,30 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
 char User[MAX_BUFF];
 char Domain[MAX_BUFF];
 char Passwd[MAX_BUFF];
-char TmpBuf1[MAX_BUFF];
 int apop;
 
 void usage();
 void get_options(int argc,char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int i;
 
 	get_options(argc,argv);
 
-        if ( (i = parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
+        if ( (i = parse_email( Email, User, Domain, sizeof(User))) != 0 ) {
             printf("Error: %s\n", verror(i));
             vexit(i);
         }
 
 	if ( strlen(Passwd) <= 0 ) {
-		strncpy( Passwd, vgetpasswd(Email), MAX_BUFF);
+		snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd(Email));
 	}
 
 	if ( (i=vpasswd( User, Domain, Passwd, apop )) != 0 ) {
@@ -79,10 +76,9 @@ void get_options(int argc,char **argv)
  int errflag;
  extern int optind;
 
-	memset(Email, 0, MAX_BUFF);
-	memset(Passwd, 0, MAX_BUFF);
-	memset(Domain, 0, MAX_BUFF);
-	memset(TmpBuf1, 0, MAX_BUFF);
+	memset(Email, 0, sizeof(Email));
+	memset(Passwd, 0, sizeof(Passwd));
+	memset(Domain, 0, sizeof(Domain));
 	apop = USE_POP;
 
 	errflag = 0;
@@ -97,10 +93,15 @@ void get_options(int argc,char **argv)
 		}
 	}
 
-	if ( optind < argc ) strncpy(Email, argv[optind], MAX_BUFF);
-	++optind;
-	if ( optind < argc ) strncpy(Passwd, argv[optind], MAX_BUFF);
-	++optind;
+	if ( optind < argc ) {
+	  snprintf(Email, sizeof(Email), "%s", argv[optind]);
+      	  ++optind;
+        }
+
+	if ( optind < argc ) {
+	  snprintf(Passwd, sizeof(Passwd), "%s", argv[optind]);
+	  ++optind;
+        }
 
 	if ( Email[0] == 0 ) { 
 		usage();

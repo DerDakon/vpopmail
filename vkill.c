@@ -25,7 +25,7 @@
 #include "config.h"
 #include "vpopmail.h"
 
-#define MAX_BUFF 200
+#define MAX_BUFF 256
 char ProcessName[MAX_BUFF];
 
 void usage();
@@ -51,7 +51,7 @@ void get_options(int argc,char **argv)
  int errflag;
  extern int optind;
 
-  memset(ProcessName, 0, MAX_BUFF);
+  memset(ProcessName, 0, sizeof(ProcessName));
 
   errflag = 0;
   while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
@@ -66,12 +66,12 @@ void get_options(int argc,char **argv)
   }
 
   if ( optind < argc  ) {
-    strncpy(ProcessName, argv[optind], MAX_BUFF);
+    snprintf(ProcessName, sizeof(ProcessName), "%s", argv[optind]);
     ++optind;
   }
 
   if ( ProcessName[0] == 0 || errflag == 1 ) { 
     usage();
-    exit(-1);
+    vexit(-1);
   }
 }

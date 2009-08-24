@@ -30,22 +30,22 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 char Domain[MAX_BUFF];
 
 void usage();
 void get_options(int argc,char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int err;
 
 	get_options(argc,argv);
+
 	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
 		printf("Error: %s\n", verror(err));
 	}
+
 	return(vexit(err));
 }
 
@@ -61,10 +61,10 @@ void get_options(int argc,char **argv)
  int c;
  int errflag;
 
-	memset(Domain, 0, MAX_BUFF);
+	memset(Domain, 0, sizeof(Domain));
 
 	errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
+	while( !errflag && (c=getopt(argc,argv,"v")) != -1 ) {
 		switch(c) {
 			case 'v':
 				printf("version: %s\n", VERSION);
@@ -76,12 +76,10 @@ void get_options(int argc,char **argv)
 	}
 
 	if ( optind < argc ) {
-		strncpy(Domain, argv[optind], MAX_BUFF);
+		snprintf(Domain, sizeof(Domain), "%s", argv[optind]);
 		++optind;
-	}
-
-	if ( Domain[0] == 0 ) { 
+	} else {
 		usage();
-		vexit(-1);
+		vexit(0);
 	}
 }

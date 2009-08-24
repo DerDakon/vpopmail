@@ -34,10 +34,9 @@
 #include "maildirquota.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
-char User[MAX_BUFF];
 char Domain[MAX_BUFF];
 
 int DisplayName;
@@ -57,21 +56,26 @@ void get_options(int argc, char **argv);
 void display_user(struct vqpasswd *mypw, char *domain);
 char *format_maildirquota(const char *q);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  struct vqpasswd *mypw;
  int first;
  int i;
 
+ char User[MAX_BUFF];
+
     get_options(argc,argv);
 
+    /* did we want to view an entire domain? */
     if (Domain[0] == 0 ) {
-        if ( (i=parse_email( Email, User, Domain, MAX_BUFF)) != 0 ) {
+        /* didnt want to view a whole domain,
+         * so try extracting Email into User and Domain
+         */
+        if ( (i=parse_email( Email, User, Domain, sizeof(User))) != 0 ) {
             printf("Error: %s\n", verror(i));
             vexit(i);
         }
+        /* get the passwd entry for this user */
 	if ( (mypw = vauth_getpw( User, Domain )) == NULL ) {
 		if ( Domain[0] == 0 || strlen(Domain)==0) {
 			printf("no such user %s\n", User);
@@ -80,12 +84,15 @@ int main(argc,argv)
 		}
 		vexit(-1);
 	}
+        /* display this user's settings */
 	display_user(mypw, Domain);
 	vclose();
     } else {
+        /* we want to see the entire domain */
 	first = 1;
-	while( (mypw=vauth_getall(Domain, first, 0))){
+	while( (mypw=vauth_getall(Domain, first, 1))) {
 		first = 0;
+		/* display each user in the domain */
 		display_user(mypw, Domain);
 	}
     }
@@ -97,6 +104,7 @@ void usage()
 	printf("vuserinfo: usage: [options] email_address\n");
 	printf("options: -v (print version number)\n");
 	printf("         -a (display all fields, this is the default)\n");
+	printf("         -n (display name field)\n");
 	printf("         -p (display crypted password)\n");
 	printf("         -u (display uid field)\n");
 	printf("         -g (display gid field)\n");
@@ -110,7 +118,7 @@ void usage()
 #ifdef ENABLE_AUTH_LOGGING
 	printf("         -l (display last authentication time)\n");
 #endif
-
+	printf("         -D domainname (show all users on this domain)\n");
 }
 
 void get_options(int argc, char **argv)
@@ -131,15 +139,14 @@ void get_options(int argc, char **argv)
 	DisplayLastAuth = 0;
 	DisplayAll = 1;
 
-	memset(User, 0, MAX_BUFF);
-	memset(Email, 0, MAX_BUFF);
-	memset(Domain, 0, MAX_BUFF);
+	memset(Email, 0, sizeof(Email));
+	memset(Domain, 0, sizeof(Domain));
 
 	errflag = 0;
     while( !errflag && (c=getopt(argc,argv,"anpugcdqQvlD:C")) != -1 ) {
 		switch(c) {
 			case 'D':
-				strncpy(Domain, optarg, MAX_BUFF);
+				snprintf(Domain, sizeof(Domain), "%s", optarg);
 				break;
 			case 'v':
 				printf("version: %s\n", VERSION);
@@ -199,7 +206,7 @@ void get_options(int argc, char **argv)
 	}
 
 	if ( optind < argc ) { 
-		strncpy(Email, argv[optind], MAX_BUFF);
+		snprintf(Email, sizeof(Email), "%s", argv[optind]);
 		++optind;
 	}
 
@@ -258,7 +265,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("dir:       %s\n", mypw->pw_dir);
         printf("quota:     %s\n", mypw->pw_shell);
 
-        sprintf(maildir, "%s/Maildir", mypw->pw_dir);
+        snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
         if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
             printf("usage:     %d%%\n", 
                 vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
@@ -326,7 +333,7 @@ void display_user(struct vqpasswd *mypw, char *domain)
         if ( DisplayDir ) printf("%s\n", mypw->pw_dir);
         if ( DisplayQuota ) printf("%s\n", mypw->pw_shell);
         if ( DisplayQuotaUsage ) {
-            sprintf(maildir, "%s/Maildir", mypw->pw_dir);
+            snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
             if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
                 printf("%d%%\n", 
                     vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));

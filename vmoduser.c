@@ -30,11 +30,9 @@
 #include "vauth.h"
 
 
-#define MAX_BUFF 500
+#define MAX_BUFF 256
 
 char Email[MAX_BUFF];
-char User[MAX_BUFF];
-char Domain[MAX_BUFF];
 char Gecos[MAX_BUFF];
 char Dir[MAX_BUFF];
 char Passwd[MAX_BUFF];
@@ -48,13 +46,13 @@ int ClearFlags;
 void usage();
 void get_options(int argc,char **argv);
 
-int main(argc,argv)
- int argc;
- char *argv[];
+int main(int argc, char *argv[])
 {
  int i; 
  static int virgin = 1;
  struct vqpasswd *mypw;
+ char User[MAX_BUFF];
+ char Domain[MAX_BUFF];
 
     get_options(argc,argv);
 
@@ -159,14 +157,13 @@ void get_options(int argc,char **argv)
  double q;
  int i;
 
-    memset(User, 0, MAX_BUFF);
-    memset(Email, 0, MAX_BUFF);
-    memset(Domain, 0, MAX_BUFF);
-    memset(Gecos, 0, MAX_BUFF);
-    memset(Dir, 0, MAX_BUFF);
-    memset(Passwd, 0, MAX_BUFF);
-    memset(Crypted, 0, MAX_BUFF);
-    memset(Quota, 0, MAX_BUFF);
+    memset(Email, 0, sizeof(Email));
+    memset(Gecos, 0, sizeof(Gecos));
+    memset(Dir, 0, sizeof(Dir));
+    memset(Passwd, 0, sizeof(Passwd));
+    memset(Crypted, 0, sizeof(Crypted));
+    memset(Quota, 0, sizeof(Quota));
+
     ClearFlags = 0;
     QuotaFlag = 0;
     NoMakeIndex = 0;
@@ -184,16 +181,16 @@ void get_options(int argc,char **argv)
                 ClearFlags = 1;
                 break;
             case 'e':
-                strncpy( Crypted, optarg, MAX_BUFF-1);
+		snprintf(Crypted, sizeof(Crypted), "%s", optarg);
                 break;
             case 'C':
-                strncpy( Passwd, optarg, MAX_BUFF-1);
+                snprintf(Passwd, sizeof(Passwd), "%s", optarg);
                 break;
             case 'D':
-                strncpy( Dir, optarg, MAX_BUFF-1);
+		snprintf(Dir, sizeof(Dir), "%s", optarg);
 		break;
             case 'c':
-                strncpy( Gecos, optarg, MAX_BUFF-1);
+		snprintf(Gecos, sizeof(Gecos), "%s", optarg);
                 break;
             case 'q':
                 QuotaFlag = 1;
@@ -203,21 +200,26 @@ void get_options(int argc,char **argv)
 		 * "NOQUOTA" (no quota)
 		 * "1048576S,1000C" (1 MB size, 1000 message limit)
 		 */
-                strncpy( Quota, optarg, MAX_BUFF-1);
+                /* Michael Bowe 15th Aug 2003
+                 * Mmmm rather than having code here, we would be better off using
+                 * the existing function format_maildirquota() from vpopmail.c
+                 * if possible. There is a sourceforge tracker open for this [775757]
+                 */
+		snprintf(Quota, sizeof(Quota), "%s", optarg);
 		i = strlen (Quota);
 		if ((Quota[i-1] == 'B') || (Quota[i-1] == 'b')) {
 		    Quota[--i] = 0;
 		}
 	        q = atof(Quota);
 		if ((Quota[i-1] == 'M') || (Quota[i-1] == 'm')) {
-		    sprintf (Quota, "%.0fS", q * 1024 * 1024);
+		    snprintf (Quota, sizeof(Quota), "%.0fS", q * 1024 * 1024);
 		} else if ((Quota[i-1] == 'K') || (Quota[i-1] == 'k')) {
-		    sprintf (Quota, "%.0fS", q * 1024);
+		    snprintf (Quota, sizeof(Quota), "%.0fS", q * 1024);
 		} else if ((Quota[i-1] == 'S') || (Quota[i-1] == 's') ||
 		    (Quota[i-1] == 'C') || (Quota[i-1] == 'c')) {
 		    /* don't make any changes */
 		} else if (q > 0) {
-		    sprintf (Quota, "%.0fS", q);
+		    snprintf (Quota, sizeof(Quota), "%.0fS", q);
 		} /* else don't make any changes */
                 break;
             case 'd':
@@ -269,7 +271,7 @@ void get_options(int argc,char **argv)
     }
 
     if ( optind < argc ) {
-        strncpy(Email, argv[optind], MAX_BUFF);
+	snprintf(Email, sizeof(Email), "%s", argv[optind]);
         ++optind;
     }
 

@@ -1,7 +1,26 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.3.25 - released ????
+5.3.26 - released 26-Aug-03
+
+	Michael Bowe
+	- Recoding work with the main focus of :
+		* Ensuring strings are null terminated
+		* Checking the return value of important function calls
+		* Eliminating buffer overflow opportunities
+		* Adding comprehensive comments to source files
+	  Files that have been reviewed so far :
+		clearopensmtp.c, vaddaliasdomain.c, vadddomain.c, vadduser.c,
+		valias.c, vconvert.c, vdeldomain.c, vdeloldusers.c,
+		vdeluser.c, vdominfo.c, vipmap.c, vkill.c, vlimits.c, 
+		vmkpasswd.c, vmoddomlimits.c, vmoduser.c, vpasswd.c, 
+		vpopbull.c, vpopmail.c, vsetuserquota.c, vuserinfo.c
+	  Files that still require a review :
+		vactivedir.c, vcdb.c, vchkpw.c, vdelivermail.c, 
+		vldap.c, vmysql.c, vpalias.c, vpgsql.c, vqmaillocal.c, 
+		vsybase.c	
+
+5.3.25 - released 26-Aug-03
 	*** WARNING: MySQL settings are now stored in         ***
 	*** ~vpopmail/etc/vpopmail.mysql instead of vmysql.h! ***
 	*** Read README.mysql for details.                    ***

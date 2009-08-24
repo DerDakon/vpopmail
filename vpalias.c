@@ -56,12 +56,12 @@ char *valias_select( char *alias, char *domain )
       return( NULL );
     }
 
-    if ( strlen(alias) > MAX_PW_NAME ) {
+    if ( strlen(alias) >= MAX_PW_NAME ) {
       verrori = VA_USER_NAME_TOO_LONG;
       return( NULL );
     }
 
-    if ( strlen(domain) > MAX_PW_DOMAIN ) {
+    if ( strlen(domain) >= MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
     }
@@ -72,7 +72,7 @@ char *valias_select( char *alias, char *domain )
 	printf("invalid domain, not in qmail assign file\n");
 	return(NULL);
     }
-    snprintf(tmpbuf, 156, "%s/.qmail-%s", tmpstr, alias);
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s/.qmail-%s", tmpstr, alias);
     if ( (alias_fs = fopen(tmpbuf, "r")) == NULL ) {
     	return(NULL);
     }
@@ -109,17 +109,17 @@ int valias_insert( char *alias, char *domain, char *alias_line)
     if ( alias == NULL ) return(VA_NULL_POINTER);
     if ( domain == NULL ) return(VA_NULL_POINTER);
     if ( alias_line == NULL ) return(VA_NULL_POINTER);
-    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
-    if ( strlen(alias_line) > MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
+    if ( strlen(alias) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+    if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+    if ( strlen(alias_line) >= MAX_ALIAS_LINE ) return(VA_ALIAS_LINE_TOO_LONG);
 
-    if ((tmpstr = vget_assign(domain, Dir, 156, &uid, &gid )) == NULL) {
+    if ((tmpstr = vget_assign(domain, Dir, sizeof(Dir), &uid, &gid )) == NULL) {
 	printf("invalid domain, not in qmail assign file\n");
 	return(-1);
     }
-    strcat(Dir, "/.qmail-");
+    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
     for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
-    strcat(Dir, alias);
+    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
 	
     if ( (fs = fopen(Dir, "a")) == NULL ) {
 	return(-1);
@@ -142,16 +142,16 @@ int valias_delete( char *alias, char *domain)
 
     if ( alias == NULL ) return(VA_NULL_POINTER); 
     if ( domain == NULL ) return(VA_NULL_POINTER);
-    if ( strlen(alias) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
-    if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
+    if ( strlen(alias) >= MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
+    if ( strlen(domain) >= MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
 
     if ((tmpstr = vget_assign(domain, Dir, 156, &uid, &gid )) == NULL) {
 	printf("invalid domain, not in qmail assign file\n");
 	return(-1);
     }
-    strcat(Dir, "/.qmail-");
+    strncat(Dir, "/.qmail-", sizeof(Dir)-strlen(Dir)-1);
     for(i=0;alias[i]!=0;++i) if ( alias[i] == '.' ) alias[i] = ':';
-    strcat(Dir, alias);
+    strncat(Dir, alias, sizeof(Dir)-strlen(Dir)-1);
     return(unlink(Dir));
 }
 
@@ -170,12 +170,12 @@ char *valias_select_all( char *alias, char *domain )
       return( NULL );
     }
   
-    if ( strlen(alias) > MAX_PW_NAME ) {
+    if ( strlen(alias) >= MAX_PW_NAME ) {
       verrori = VA_USER_NAME_TOO_LONG;
       return( NULL );
     }
 
-    if ( strlen(domain) > MAX_PW_DOMAIN ) {
+    if ( strlen(domain) >= MAX_PW_DOMAIN ) {
       verrori = VA_DOMAIN_NAME_TOO_LONG;
       return( NULL );
     }
@@ -185,7 +185,7 @@ char *valias_select_all( char *alias, char *domain )
         alias_fs = NULL;
     }
 
-    if ((vget_assign(domain, Dir, 156, &uid, &gid )) == NULL) {
+    if ((vget_assign(domain, Dir, sizeof(Dir), &uid, &gid )) == NULL) {
 	printf("invalid domain, not in qmail assign file\n");
 	return(NULL);
     }
@@ -207,7 +207,7 @@ char *valias_select_all_next(char *alias)
       return( NULL );
     }
   
-    if ( strlen(alias) > MAX_PW_NAME ) {
+    if ( strlen(alias) >= MAX_PW_NAME ) {
       verrori = VA_USER_NAME_TOO_LONG;
       return( NULL );
     }
@@ -220,6 +220,10 @@ char *valias_select_all_next(char *alias)
     		for(tmpstr=alias_line;*tmpstr!=0;++tmpstr) {
 			if ( *tmpstr == '\n') *tmpstr = 0;
     		}
+		/* Michael Bowe 21st Aug 2003
+		 * Chance of buffer overflow here,
+                 * because we dont know the size of alias
+                 */
 		strcpy(alias, &mydirent->d_name[7]);
                 for(i=0;alias[i]!=0;++i) if (alias[i]==':') alias[i]='.';
     		return(alias_line);
@@ -229,7 +233,7 @@ char *valias_select_all_next(char *alias)
     while((mydirent=readdir(mydir))!=NULL){
         if ( strncmp(mydirent->d_name,".qmail-", 6) == 0 &&
              strcmp(mydirent->d_name, ".qmail-default") != 0 ) {
-		snprintf(FileName, 156, "%s/%s", Dir, mydirent->d_name);
+		snprintf(FileName, sizeof(FileName), "%s/%s", Dir, mydirent->d_name);
     		if ( (alias_fs = fopen(FileName, "r")) == NULL ) {
     			return(NULL);
     		}
@@ -240,6 +244,10 @@ char *valias_select_all_next(char *alias)
     		for(tmpstr=alias_line;*tmpstr!=0;++tmpstr) {
 			if ( *tmpstr == '\n') *tmpstr = 0;
     		}
+                /* Michael Bowe 21st Aug 2003
+                 * Chance of buffer overflow here,
+                 * because we dont know the size of alias
+                 */
 		strcpy(alias, &mydirent->d_name[7]);
                 for(i=0;alias[i]!=0;++i) if (alias[i]==':') alias[i]='.';
     		return(alias_line);

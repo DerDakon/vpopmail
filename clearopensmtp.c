@@ -27,19 +27,19 @@
 #ifdef POP_AUTH_OPEN_RELAY
 
 #ifndef USE_MYSQL
-#define MAX_BUFF 200
+#define MAX_BUFF 256
 static char TmpBuf1[MAX_BUFF];
 static char TmpBuf2[MAX_BUFF];
-#endif
+#endif /* ndef USE_MYSQL */
 
 int main()
 {
 #ifndef USE_MYSQL
- FILE *fs;
- FILE *fs1;
+ FILE *fs_smtp_cur;
+ FILE *fs_smtp_tmp;
  char *tmpstr;
  time_t file_time;
-#endif
+#endif /* ndef USE_MYSQL */
  time_t mytime;
  time_t clear_minutes;
 
@@ -47,35 +47,58 @@ int main()
 	mytime = time(NULL);
 
 #ifdef USE_MYSQL
+        /* scan the relays table in mysql, and purge out any
+         * entries that are older than our specified timestamp
+         */
 	vclear_open_smtp(clear_minutes, mytime);
 #else
-	fs = fopen(OPEN_SMTP_CUR_FILE, "r+");
-	if ( fs != NULL ) {
+        /* OPEN_SMTP_CUR_FILE is typically ~vpopmail/etc/open-smtp */
+	fs_smtp_cur = fopen(OPEN_SMTP_CUR_FILE, "r+");
+	if ( fs_smtp_cur != NULL ) {
 
-		fs1 = fopen(OPEN_SMTP_TMP_FILE, "w+");
-		if ( fs1 == NULL ) {
-			return(0);
+                /* OPEN_SMTP_TMP_FILE is typically ~vpopmail/etc/open-smtp.tmp */
+ 		/* create this file */
+		fs_smtp_tmp = fopen(OPEN_SMTP_TMP_FILE, "w+");
+		if ( fs_smtp_tmp == NULL ) {
+			printf ("Error, could not create open-smtp.tmp\n");
+			vexit(-1);
 		}
 
-		while ( fgets(TmpBuf1, MAX_BUFF, fs ) != NULL ) {
-			strncpy(TmpBuf2, TmpBuf1, MAX_BUFF);
+		/* read in the contents of the open-smtp file */
+		while ( fgets(TmpBuf1, MAX_BUFF, fs_smtp_cur ) != NULL ) {
+			/* format is x.x.x.x:ALLOW,RELAYCLIENT="",RBLSMTPD=""<TAB>timestamp */
+			snprintf(TmpBuf2, sizeof(TmpBuf2), "%s", TmpBuf1);
+
 			tmpstr = strtok( TmpBuf2, "\t");
 			tmpstr = strtok( NULL, "\t");
+			/* extract the timestamp for this line */
 			if ( tmpstr != NULL ) {
+				/* compare the timestamp to see if it is not too old */
 				file_time = atoi(tmpstr);
 				if ( file_time + clear_minutes > mytime) {
-					fputs(TmpBuf1, fs1);
+					/* if not too old, copy line out to .tmp file */
+					fputs(TmpBuf1, fs_smtp_tmp);
 				}
 			}
 		}
-		fclose(fs);
-		fclose(fs1);
+		fclose(fs_smtp_cur);
+		fclose(fs_smtp_tmp);
 
+		/* replace open-relay with open-relay.tmp */
 		rename(OPEN_SMTP_TMP_FILE, OPEN_SMTP_CUR_FILE);
+		/* set correct permissions on file */
 		chown(OPEN_SMTP_CUR_FILE,VPOPMAILUID,VPOPMAILGID);
 	}
 #endif
-
+	/* Now, regardless of backend, build a new tcp.smtp.cdb file
+	 *
+	 * For mysql this involves combining the tcp.smtp file with
+         * the contents of the relay table.
+         * For cdb this involves combining the tcp.smtp file with
+         * the contents of the open-relay file.
+         * The resultant file will then be compiled by the tcprules tool
+         * to make a new tcp.smtp.cdb file for tcpserver to use
+         */
 	update_rules();
 	return(vexit(0));
 }
@@ -85,4 +108,4 @@ int main()
 	printf("vpopmail not configure with --enable-roaming-users=y\n");
 	return(vexit(0));
 }
-#endif
+#endif /* POP_AUTH_OPEN_RELAY */
