@@ -1026,7 +1026,7 @@ int vset_lastauth(char *user, char *domain, char *remoteip )
  uid_t uid;
  gid_t gid;
 
-	vpw = vauth_getpw( user, domain );
+	if( (vpw = vauth_getpw( user, domain )) == NULL) return(0);
 
 	tmpbuf = malloc(MAX_BUFF);
 	snprintf(tmpbuf, MAX_BUFF, "%s/lastauth", vpw->pw_dir);

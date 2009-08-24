@@ -1012,51 +1012,45 @@ int parse_email( email, user, domain, buff_size )
  int  buff_size;
 {
  int i;
- int j;
- int k;
- int found;
+ int n;
+ int len;
+ char *at = NULL;
 
-    for( i=0,j=0,found=0; found==0 && j<buff_size && email[i]!=0; ++i,++j) {
-        for(k=0;ATCHARS[k]!=0;++k){
-            if ( email[i] == ATCHARS[k] ) {
-                found = 1;
-                continue;
-            }
-        }
-        if ( found == 0 )  { 
-          user[j] = email[i];
-        }
-    }
-    user[j] = 0;
-    lowerit(user);
+  lowerit(email);
 
+  len = strlen(ATCHARS);
+  for(i=0;i<len; ++i ) if ((at=strchr(email,ATCHARS[i]))) break;
+
+  if ( at!=NULL ) {
+    n = at - email + 1;
+    if ( n > buff_size ) n = buff_size;
+    strncpy(user, email, n);
+    user[n-1] = 0;
+    strncpy(domain, ++at, buff_size);
+    domain[buff_size-1] = 0;
+  } else {
+    strncpy(user, email, buff_size);
+    user[buff_size-1] = 0;
     domain[0] = 0;
-    if (email[i]!=0) {
-        for(j=0;j<buff_size&&email[i]!=0&&email[i]!='@';++i,++j) {
-            domain[j] = email[i];
-        }
-        domain[j] = 0;
-        lowerit(domain);
-    }
+  }
 
-    if ( is_username_valid( user ) != 0 ) {
-       printf("user invalid %s\n", user);
-       return(-1);
-    }
+  if ( is_username_valid( user ) != 0 ) {
+    printf("user invalid %s\n", user);
+    return(-1);
+  }
 
-    if ( is_domain_valid( domain ) != 0 ) {
-       printf("domain invalid %s\n", domain);
-       return(-1);
-    }
+  if ( is_domain_valid( domain ) != 0 ) {
+    printf("domain invalid %s\n", domain);
+    return(-1);
+  }
 
-    /* if the domain is blank put in the default domain 
-     * if it was configured with --enable-default-domain=something
-     */
-    vset_default_domain(domain);
+  /* if the domain is blank put in the default domain 
+   * if it was configured with --enable-default-domain=something
+   */
+  vset_default_domain(domain);
+  vget_real_domain(domain, buff_size);
 
-    vget_real_domain(domain, buff_size);
-
-    return(0);
+  return(0);
 } 
 
 /*
@@ -1408,13 +1402,7 @@ struct vqpasswd *vgetent(FILE *pw)
     if (fgets(line,sizeof(line),pw) == NULL) return NULL;
 
     for (i=0; line[i] != 0; i++) if (line[i] == ':') j++;
-
-#ifdef CLEAR_PASS
-    /* Must count the clear password field */
-    if ( j != 7) return NULL;
-#else
-    if ( j != 6) return NULL;
-#endif
+    if (j < 6) return NULL;
 
     tmpstr = line;
     pwent.pw_name   = line;
@@ -1449,9 +1437,9 @@ struct vqpasswd *vgetent(FILE *pw)
     *tmpstr = 0; ++tmpstr;
 
 #ifdef CLEAR_PASS
-    pwent.pw_clear_passwd  = tmpstr; 
-    while (*tmpstr!=0 && *tmpstr!=':' && *tmpstr!='\n') ++tmpstr;
-    *tmpstr = 0; ++tmpstr;
+    pwent.pw_clear_passwd  = tmpstr;
+    while (*tmpstr!=0 && *tmpstr!='\n') ++tmpstr;
+    if (*tmpstr) { *tmpstr = 0; ++tmpstr; }
 #endif
 
     return &pwent;
@@ -1695,6 +1683,14 @@ void vset_default_domain( char *domain )
 	}
 #ifdef IP_ALIAS_DOMAINS
 	tmpstr = getenv("TCPLOCALIP");
+
+  /* courier-imap uses IPv6 */
+  if ( tmpstr != NULL &&  tmpstr[0] == ':') {
+    tmpstr +=2;
+    while(*tmpstr!=':') ++tmpstr;
+    ++tmpstr;
+  }
+
 	memset(host,0,156);
 	if ( vget_ip_map(tmpstr,host,156)==0 && !host_in_locals(host)){
 		if ( strlen(host) > 0 ) {

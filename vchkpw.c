@@ -170,9 +170,8 @@ int main( int argc, char **argv)
      }
     }
 
-    /* The the VCHKPW_USER variable */
-    strncpy(envbuf1,VCHKPW_USER,MAX_ENV_BUF);
-    strncat(envbuf1,TheUser,MAX_ENV_BUF);
+    /* The the USER variable */
+    snprintf (envbuf1, sizeof(envbuf1), "%s%s", VCHKPW_USER, TheUser);
     if ( putenv(envbuf1) == -1 ) {
         snprintf(LogLine, LOG_LINE_SIZE, 
             "vchkpw: putenv(USER) failed errno %d %s@%s:%s", 
@@ -182,8 +181,7 @@ int main( int argc, char **argv)
     }
 
     /* Now HOME */
-    strncpy(envbuf2,VCHKPW_HOME,MAX_ENV_BUF);
-    strncat(envbuf2,pw_dir,MAX_ENV_BUF);
+    snprintf (envbuf2, sizeof(envbuf2), "%s%s", VCHKPW_HOME, pw_dir);
     if ( putenv(envbuf2) == -1 ) {
         snprintf(LogLine, LOG_LINE_SIZE, 
             "vchkpw: putenv(HOME) failed errno %d %s@%s:%s", 
@@ -193,7 +191,8 @@ int main( int argc, char **argv)
     }
 
     /* Now SHELL */
-    strncpy(envbuf3,VCHKPW_SHELL,MAX_ENV_BUF);
+    strncpy(envbuf3,VCHKPW_SHELL,sizeof(envbuf3));
+    envbuf3[sizeof(envbuf3)-1] = 0;   /* make sure it's NULL terminated */
     if ( putenv(envbuf3) == -1 ) {
         snprintf(LogLine, LOG_LINE_SIZE, 
             "vchkpw: putenv(SHELL) failed errno %d %s@%s:%s", 
@@ -203,8 +202,7 @@ int main( int argc, char **argv)
     }
 
     /* Now VPOPUSER */
-    strncpy(envbuf4,VCHKPW_VPOPUSER,MAX_ENV_BUF);
-    strncat(envbuf4,TheName,MAX_ENV_BUF);
+    snprintf (envbuf4, sizeof(envbuf4), "%s%s", VCHKPW_VPOPUSER, TheName);
     if ( putenv(envbuf4) == -1 ) {
         snprintf(LogLine, LOG_LINE_SIZE,
             "vchkpw: putenv(VPOPUSER) failed errno %d %s@%s:%s", 
@@ -382,14 +380,13 @@ void login_virtual_user()
             "vchkpw: pop access denied %s@%s:%s", 
             TheUser, TheDomain, IpAddr);
 	vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
-        vchkpw_exit(0);
+        vchkpw_exit(1);
     }
 
     /* They are authenticated, log the success if configured */
     snprintf(LogLine, LOG_LINE_SIZE, "vchkpw: login success %s@%s:%s",
       TheUser, TheDomain, IpAddr);
     vlog(VLOG_AUTH, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
-
 
     /* If authentication logging is enabled
      * update the authentication time on the account
@@ -485,11 +482,30 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheNa
         syslog(LOG_NOTICE,sysc(LogLine));
     }
 #ifdef ENABLE_MYSQL_LOGGING
-    /* always log to mysql if mysql logging is enabled and it is not internal error */
-    if ( (ENABLE_MYSQL_LOGGING > 0) && (verror != VLOG_ERROR_INTERNAL) ) {
-        if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-            syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
-        }
-    }
+  /* always log to mysql if mysql logging is enabled and it
+   * is not internal error
+   */
+
+  if ( (verror == VLOG_ERROR_PASSWD) && ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || ENABLE_LOGGING==4 ) ) {
+      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+          syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      }
+  } else if ( verror == VLOG_ERROR_INTERNAL ) {
+      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      }
+  } else if ( verror == VLOG_ERROR_LOGON ) {
+      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      }
+  } else if ( verror == VLOG_ERROR_ACCESS ) {
+      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      }
+  } else if ( verror == VLOG_AUTH && ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
+      if ( (logmysql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
+        syslog(LOG_NOTICE,"vchkpw: can't write MySQL logs");
+      }
+  }
 #endif
 }

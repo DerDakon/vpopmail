@@ -51,11 +51,11 @@ pw_clear_passwd char(16), \
 primary key (pw_name, pw_domain ) "
 #else
 #define TABLE_LAYOUT "pw_name char(32) not null, \
-pw_domain char(64) not null, 
+pw_domain char(64) not null, \
 pw_passwd char(40), \
 pw_uid int, pw_gid int, \
 pw_gecos char(48), \
-pw_dir char(160), 
+pw_dir char(160), \
 pw_shell char(20), \
 primary key (pw_name, pw_domain ) "
 #endif

@@ -1,8 +1,5 @@
 /*
- * vconvert
- * part of the vpopmail package
- * 
- * Copyright (C) 1999,2001 Inter7 Internet Technologies, Inc.
+ * Copyright (C) 1999-2002 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +40,13 @@ int do_all_domains();
 
 #define MAX_BUFF 500
 
+#define QMAIL_ASSIGN "/var/qmail/users/assign"
+
 char User[MAX_BUFF];
 char Passwd[MAX_BUFF];
 char Quota[MAX_BUFF];
 char Gecos[MAX_BUFF];
+char Dir[MAX_BUFF];
 
 #define MYSQL_SITE_ARG "-m"
 #define CDB_SITE_ARG   "-c"
@@ -104,41 +104,36 @@ int main(int argc, char *argv[])
 
 int do_all_domains()
 {
- DIR *mydir;
- char domain[100];
- struct dirent *mydirent;
+ FILE *fs;
+ static char tmpbuf[400];
+ int i;
 
-	if ( chdir(VPOPMAILDIR) != 0 ) {
-		perror("vmysqlconv: change dir to vpopmail home");
-		return(-1);
-	}
-	if ( chdir(DOMAINS_DIR) != 0 ) {
-		perror("vmysqlconv: change dir to vpopmail home");
-		return(-1);
-	}
-
-	mydir = opendir(".");
-	if ( mydir == NULL ) {
-		perror("vmysqlconv: opendir failed");
-		return(-1);
-	}
-
-	while((mydirent=readdir(mydir))!=NULL){
-		if ( strncmp(mydirent->d_name,".", 1)==0) continue;
-		strncpy( domain, mydirent->d_name, 100);
-		printf("converting %s ", domain);
-		if ( conv_domain( domain ) != 0 ) {
-			printf("domain conversion failed\n");
-		} else {
-			printf("done\n");
-		}
-	}
-	closedir(mydir);
-	return(0);
+    if ( (fs=fopen(QMAIL_ASSIGN, "r"))==NULL ) {
+       char error_buf[200];
+       sprintf(error_buf, "could not open qmail assign file at %s", QMAIL_ASSIGN);
+       perror(error_buf);
+       return(-1);
+    }
+    while ( fgets(tmpbuf,400,fs) != NULL ) {
+        for(i=1;tmpbuf[i]!=':';++i);
+        tmpbuf[i-1] = 0;
+	if ( tmpbuf[1] != '\n' ) {
+            printf("converting %s ...", &tmpbuf[1] );
+            if ( conv_domain( &tmpbuf[1] ) != 0 ) {
+                printf("domain conversion failed\n");
+            } else {
+                printf("done\n");
+            }
+        }
+    }
+    fclose(fs);
+    return(0);
 }
+
 
 int conv_domain( char *domain )
 {
+
 	switch ( FromFormat ) {
 		case SQWEBMAIL_SITE:
 			return(set_sqwebmail_pass( domain));
@@ -172,6 +167,7 @@ int conv_domain( char *domain )
 			printf("unknown converstion\n");
 			return(-1);
 	}
+	printf(".");
 }
 
 int cdb_to_default( char *domain )
@@ -181,10 +177,56 @@ int cdb_to_default( char *domain )
  char tmpbuf[200];
  struct vqpasswd *pw;
 
+ int domain_str_len = strlen( domain );
+ char domain_dir[200];
+ FILE *assign_fs;
+ static char assignbuf[400];
+ int i, colon_count, dir_count;
+ int bFoundDomain = 0;
+
+    if ( (assign_fs=fopen(QMAIL_ASSIGN, "r"))==NULL ) {
+       char error_buf[200];
+       sprintf(error_buf, "could not open qmail assign file at %s", QMAIL_ASSIGN);
+       perror(error_buf);
+       return(-1);
+    }
+    while ( fgets(assignbuf,400,assign_fs) != NULL && !bFoundDomain )
+    {
+	/* search for the matching domain record */
+	if ( strncmp( domain, &assignbuf[1], domain_str_len ) == 0 )
+	{
+		bFoundDomain = 1;
+
+		/* found match, now get directory */
+		for ( i=1, colon_count = 0;
+		      colon_count < 4;
+		      colon_count++, i++ )
+		{
+			for( ; 
+			     assignbuf[i]!=':';
+			     ++i )
+				; /* skip non-colon characters */
+		}
+	
+		/* found 4th colon, so get the directory name */
+		for( dir_count = 0; 
+		     assignbuf[i]!=':';
+		     ++i, dir_count++ )
+		{
+			domain_dir[dir_count] = assignbuf[i];
+		}
+		domain_dir[dir_count] = 0;  /* null termination */
+	}
+    }
+    
+    fclose(assign_fs);
+
+
 	vauth_deldomain(domain);
 	vauth_adddomain(domain);
 
-	snprintf(tmpbuf, 200, "%s/%s/%s/vpasswd", VPOPMAILDIR, DOMAINS_DIR, domain);
+        vget_assign(domain, Dir, 156, NULL, NULL );
+	snprintf(tmpbuf, 200, "%s/vpasswd", Dir);
 	fs = fopen(tmpbuf,"r");
 	if ( fs == NULL ) {
 		return(-1);
@@ -206,8 +248,8 @@ int sql_to_cdb( char *domain)
  FILE *fs;
  char tmpbuf[255];
 
-
-	snprintf(tmpbuf, 255, "%s/%s/%s/vpasswd", VPOPMAILDIR, DOMAINS_DIR, domain);
+        vget_assign(domain, Dir, 156, NULL, NULL );
+	snprintf(tmpbuf, 255, "%s/vpasswd", Dir);
 	if ( (fs = fopen(tmpbuf,"w")) == NULL ) {
 		printf("could not open vpasswd file %s\n", tmpbuf);
 		return(-1);
@@ -247,7 +289,7 @@ int etc_to_default( char *domain )
 		passwd = malloc(i);
 		strncpy( passwd, smypw->sp_pwdp, i );
 #else
-		i = strlen(mypw->pw_name)+1;
+		i = strlen(mypw->pw_passwd)+1;
 		passwd = malloc(i);
 		strncpy( passwd, mypw->pw_passwd, i );
 #endif
@@ -272,8 +314,8 @@ int etc_to_default( char *domain )
 void usage()
 {
 	fprintf(stdout, "vconvert: usage\n");
-	fprintf(stdout, " The first option sets which format to convert FROM");
-	fprintf(stdout, " the second option sets which format to convert TO");
+	fprintf(stdout, " The first option sets which format to convert FROM,\n");
+	fprintf(stdout, " the second option sets which format to convert TO.\n");
 	fprintf(stdout, " -e = etc format\n"); 
 	fprintf(stdout, " -c = cdb format\n"); 
 	fprintf(stdout, " -m = sql format\n"); 
@@ -408,3 +450,4 @@ int set_sqwebmail_pass( char *domain)
 	}
 	return(0);
 }
+

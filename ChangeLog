@@ -1,3 +1,57 @@
+5.2.2   "Michael Bowe" <mbowe@pipeline.com.au>
+         - Back ported these fixes from 5.3.23 and earlier for an interim
+           stable release :
+
+           vmysql.h 
+             - fix missing backslashes [5.3.21]
+             - fix for logging being too verbose [5.3.14]
+
+           vcdb.c
+             - vset_lastauth() - fix for unchecked return of vauth_getpw()
+               [5.3.17]
+
+           vldap.c
+             - vset_lastauth() - fix for unchecked return of vauth_getpw()
+               [5.3.24]
+
+           vchkpw.c 
+             - fix buffer overflows USER/HOME [5.3.22]
+             - fix exit codes for NO_POP [5.3.7]
+             - fix mysql logging being too verbose [5.3.14]
+
+           vpopmail.c
+             - replace parse_email() to fix courier/sqwebmail authdaemon 
+               probslems [v5.3.5]
+             - vgetent() - support for old vpaddwd files without cleartext 
+               field [5.3.20]
+             - vset_default_domain() - support courier's IPv6 TCPLOCALIP
+               [5.3.12]
+
+           vdelivermail.c
+             - main() - add support for autoresoponder's error 99 and 100
+               [5.3.9]
+             - process_valias() - catch error on return from deliver_mail()
+               [5.3.21]
+             - deliver_mail() - Process progs before maildirs [5.3.10],
+               Add support for comments [5.3.21]
+             - check_forward_deliver() - add support for comments [5.3.21]
+             - usernotfound() - replace with newer version to handle 
+               catchalls etc [5.3.21]
+             - maildirtoemail() - fix to handle hashed userdirs [v5.3.22]
+
+           vpopbull.c
+             - replace with newest version [5.3.17]
+
+           vconvert.c
+             - replace with newest versions [5.3.23]
+
+           cdb_seek.c
+             - remove "extern int errno" [5.3.24]
+
+         - replace qmail-pop3d-maildirquota.patch with qmail-maildir++.patch
+
+         - update ChangeLog
+
 5.2.1
 05/18/02   "Bill Shupp" <hostmaster@shupp.org>
          - Back ported these fixes from 5.3.6 for an interim stable release:

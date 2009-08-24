@@ -949,7 +949,7 @@ int vset_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time
  uid_t uid;
  gid_t gid;
 
-	vpw = vauth_getpw( user, domain );
+	if( (vpw = vauth_getpw( user, domain )) == NULL) return(0);
 
 	tmpbuf = malloc(MAX_BUFF);
 	sprintf(tmpbuf, "%s/lastauth", vpw->pw_dir);
