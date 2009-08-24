@@ -28,6 +28,7 @@
 #include <signal.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 #include "vauth.h"
 
 
@@ -44,6 +45,11 @@ void get_options(int argc,char **argv);
 int main(int argc, char *argv[])
 {
  int i;
+
+ i = vauth_load_module(NULL);
+ if (!i)
+	  vexiterror(stderr, "could not load authentication module");
+
 
 	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );

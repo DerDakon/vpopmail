@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>		// for uid_t
+#include "vauth.h"
 
 /*  Enable expanded debug information.  Consider these for ./configure options  */
 //  Show entry and parms when hitting vpopmail library functions
@@ -116,6 +117,8 @@
 #define VA_CANNOT_CREATE_DATABASE       -43
 #define VA_CANNOT_CREATE_TABLE          -44
 #define VA_CANNOT_DELETE_CATCHALL       -55
+#define VA_NO_AUTH_MODULE				-66
+#define VA_UNKNOWN_UIDGID				-67
 
 
 /* gid flags */
@@ -256,10 +259,12 @@ void   listGetError( char *buff, const int size, const int status );
 
 /*  Low level string support  */
 int parse_email( char *, char *, char *, int);
+int parse_email_safe(const char *, char *, int, char *, int);
 char *vrandom_pass (char *buffer, int len);
 int is_username_valid( char *user );
 int is_domain_valid( char *domain );
 char *maildir_to_email(const char *maildir);
+int user_domain_to_email(const char *, const char *, char *, int);
 
 
 /*  Operational Overhead  */
@@ -305,6 +310,7 @@ int r_mkdir(char *, uid_t uid, gid_t gid);
 struct vqpasswd *vgetent(FILE *);
 char *default_domain();
 void vset_default_domain( char *);
+void vset_default_domain_safe(char *, int);
 void vupdate_rules(int);
 void vclear_open_smtp(time_t, time_t);
 char *verror(int);
@@ -321,8 +327,6 @@ int vfd_move(int,int);
 int update_rules();
 char *vversion(char *);
 int vcheck_vqpw(struct vqpasswd *inpw, char *domain);
-char *vgen_pass(int len);
-int vvalidchar( char inchar );
 char *format_maildirquota(const char *q);
 char *date_header();
 int qnprintf (char *buffer, size_t size, const char *format, ...);
@@ -364,3 +368,7 @@ int call_onchange();
 #ifdef USERS_BIG_DIR
 char *backfill(char *, char *, char *, int);
 #endif
+
+struct vqpasswd *vauth_getpw_long(const char *);
+
+int vpopmail_uidgid(uid_t *, gid_t *);

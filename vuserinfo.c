@@ -32,7 +32,10 @@
 #endif
 #include "vpopmail.h"
 #include "vauth.h"
+#include "quota.h"
+#include "storage.h"
 #include "maildirquota.h"
+#include "vauthmodule.h"
 
 
 char Email[MAX_BUFF];
@@ -55,7 +58,6 @@ gid_t pw_gid;
 void usage();
 void get_options(int argc, char **argv);
 void display_user(struct vqpasswd *mypw, char *domain);
-char *format_maildirquota(const char *q);
 
 int main(int argc, char *argv[])
 {
@@ -64,6 +66,11 @@ int main(int argc, char *argv[])
  int i;
 
  char User[MAX_BUFF];
+
+   i = vauth_load_module(NULL);
+   if (!i)
+	  vexiterror(stderr, "could not load authentication module");
+
 
     if( vauth_open( 0 )) {
         vexiterror( stderr, "Initial open." );
@@ -273,7 +280,9 @@ void display_lastlogin (struct vqpasswd *pw, char *domain)
 
 void display_user(struct vqpasswd *mypw, char *domain)
 {
- char maildir[MAX_BUFF];
+   int ret = 0, usage = 0;
+   storage_t bytes = 0, count = 0, squota = 0, cquota = 0;
+ char maildir[MAX_BUFF], email[512] = { 0 };
 
     if ( DisplayAll ) {
         printf("name:   %s\n", mypw->pw_name);
@@ -316,12 +325,19 @@ void display_user(struct vqpasswd *mypw, char *domain)
         printf("quota:     %s\n", mypw->pw_shell);
 
         snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
-        if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
-            printf("usage:     %d%%\n", 
-                vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
-        } else {
-            printf("usage:     %s\n", mypw->pw_shell);
-        }
+
+		    usage = 0;
+
+		    memset(email, 0, sizeof(email));
+			ret = user_domain_to_email(mypw->pw_name, domain, email, sizeof(email));
+			if (ret) {
+			   quota_get_usage(email, &bytes, &count);
+			   quota_mtos(mypw->pw_shell, &squota, &cquota);
+			   usage = quota_percent(bytes, count, squota, cquota);
+			}
+
+            printf("usage:     %d%% (%llu byte(s) in %llu file(s))\n", usage, bytes, count);
+
         display_lastlogin (mypw, domain);
     } else {
         if ( DisplayName ) printf("%s\n", mypw->pw_name);
@@ -337,8 +353,14 @@ void display_user(struct vqpasswd *mypw, char *domain)
         if ( DisplayQuotaUsage ) {
             snprintf(maildir, sizeof(maildir), "%s/Maildir", mypw->pw_dir);
             if((strcmp(mypw->pw_shell, "NOQUOTA"))) {
-                printf("%d%%\n", 
-                    vmaildir_readquota(maildir, format_maildirquota(mypw->pw_shell)));
+			   usage = 0;
+
+			   memset(email, 0, sizeof(email));
+			   ret = user_domain_to_email(mypw->pw_name, domain, email, sizeof(email));
+			   if (ret)
+				  usage = quota_usage(email, mypw->pw_shell);
+
+                printf("%d%%\n",  usage);
             } else {
                 printf("%s\n", mypw->pw_shell);
             }

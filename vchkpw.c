@@ -31,6 +31,7 @@
 #include "vlog.h"
 #include "vauth.h"
 #include "vlimits.h"
+#include "vauthmodule.h"
 
 /* for cram-md5 */
 #include "global.h"
@@ -111,7 +112,19 @@ int ConnType = 0;
 
 int main( int argc, char **argv)
 {
+   int ret;
  char *tmpstr;
+
+ ret = vauth_load_module(NULL);
+ if (!ret)
+   vexiterror(stderr, "could not load authentication module");
+
+ if (argc < 2) {
+      fprintf(stderr, "%s: vchkpw is only for talking with qmail-popup and qmail-pop3d. \
+It is not for runnning on the command line.\n", VchkpwLogName);
+      vchkpw_exit(11);
+   }
+
 
   if ( (IpAddr = get_remote_ip())  == NULL) IpAddr="";
   if ( (tmpstr = getenv("TCPLOCALPORT")) == NULL) LocalPort = 0;
@@ -689,20 +702,20 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
   if ( (verror == VLOG_ERROR_PASSWD) && 
        ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || 
          ENABLE_LOGGING==4 ) ) {
-    syslog(LOG_NOTICE,sysc(LogLine));
+    syslog(LOG_NOTICE,"%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_LOGON ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_ACCESS ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
 
   } else if ( verror == VLOG_AUTH && 
             ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s", sysc(LogLine));
   }
 
 #ifdef ENABLE_SQL_LOGGING

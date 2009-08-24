@@ -38,7 +38,8 @@ typedef struct __userstore_ {
    struct stat st;
 
    time_t last_updated,
-		  time_taken;
+		  time_taken,
+		  lastauth;
 
    int num_directories;
    directory_t **directory;

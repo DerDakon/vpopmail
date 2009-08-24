@@ -28,6 +28,7 @@
 #include "vpopmail.h"
 #include "vauth.h"
 #include "vlimits.h"
+#include "vauthmodule.h"
 
 
 #include "vpopmaild.msg"
@@ -288,6 +289,12 @@ int main(int argc, char **argv)
   int failures = 0;
   int attempts = 0;
 
+  i = vauth_load_module(NULL);
+  if (!i)
+	  vexiterror(stderr, "could not load authentication module");
+
+
+
   if( vauth_open( 1 )) {
     show_error( ERR_CANT_OPEN_AUTH, 101 );
     wait_write();
@@ -435,11 +442,11 @@ int login()
   AuthVpw.pw_shell = strdup(tmpvpw->pw_shell);
   AuthVpw.pw_clear_passwd = strdup(tmpvpw->pw_clear_passwd);
 
-  snprintf( TheUserDir, sizeof(TheUserDir), AuthVpw.pw_dir);
-  snprintf( TheDomainDir, sizeof(TheDomainDir), 
+  snprintf( TheUserDir, sizeof(TheUserDir), "%s", AuthVpw.pw_dir);
+  snprintf( TheDomainDir, sizeof(TheDomainDir),  "%s",
     vget_assign(TheDomain,NULL,0,&uid,&gid));
-  snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
-    VPOPMAILDIR);
+  snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s", 
+    VPOPMAIL_DIR_DOMAINS);
 
   if ( AuthVpw.pw_gid & SA_ADMIN )
     logged_in = 3;
@@ -456,7 +463,15 @@ int login()
     snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
     wait_write();
 
-    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir %s" RET_CRLF, VPOPMAILDIR);
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_bin %s" RET_CRLF, VPOPMAIL_DIR_BIN);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_etc %s" RET_CRLF, VPOPMAIL_DIR_ETC);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_lib %s" RET_CRLF, VPOPMAIL_DIR_LIB);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_include %s" RET_CRLF, VPOPMAIL_DIR_INCLUDE);
+    wait_write();
+    snprintf(WriteBuf,sizeof(WriteBuf), "vpopmail_dir_domains %s" RET_CRLF, VPOPMAIL_DIR_DOMAINS);
     wait_write();
 
     snprintf(WriteBuf,sizeof(WriteBuf), "domain_dir %s" RET_CRLF, TheDomainDir);
@@ -933,6 +948,14 @@ int add_domain()
  char *domain;
  char *password;
  int   ret;
+ uid_t uid = -1;
+ gid_t gid = -1;
+
+   ret = vpopmail_uidgid(&uid, &gid);
+   if (!ret) {
+	  show_error(ERR_UNKNOWN_UIDGID, 2000);
+	  return -1;
+    }
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
     show_error( ERR_NOT_AUTHORIZED, 801 );
@@ -949,7 +972,7 @@ int add_domain()
     return(-1);
   }
 
-  if ((ret=vadddomain(domain,VPOPMAILDIR,VPOPMAILUID,VPOPMAILGID))!=VA_SUCCESS){
+  if ((ret=vadddomain(domain,VPOPMAIL_DIR_DOMAINS,uid,gid))!=VA_SUCCESS){
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0.804 %s" RET_CRLF, verror(ret));
     return(-1);
   }
@@ -1279,7 +1302,7 @@ int validate_path(char *newpath, char *path)
 
   /* expand the path */
   if ( path[0] == '/' ) {
-    snprintf(newpath, MAXPATH, path);
+    snprintf(newpath, MAXPATH, "%s", path);
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
@@ -1325,7 +1348,7 @@ int validate_path(char *newpath, char *path)
           return(8);
         }
       }
-      snprintf(newpath, MAXPATH, myvpw->pw_dir);
+      snprintf(newpath, MAXPATH, "%s", myvpw->pw_dir);
       strncat(newpath, &path[i], MAXPATH );
     } else {     /*  may be domain name   */
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
@@ -1336,7 +1359,7 @@ int validate_path(char *newpath, char *path)
         show_error( ERR_NOT_AUTH_DOMAIN, 1509 );
         return(9);
       } 
-      snprintf(newpath, MAXPATH, thedir);
+      snprintf(newpath, MAXPATH, "%s", thedir);
       strncat(newpath, &path[i], MAXPATH );
     }
   }
@@ -1362,8 +1385,17 @@ int validate_path(char *newpath, char *path)
 
 int mk_dir()
 {
+   int ret = 0;
   char *olddir;
   char dir[MAXPATH];
+  uid_t uid = -1;
+  gid_t gid = -1;
+
+  ret = vpopmail_uidgid(&uid, &gid);
+  if (!ret) {
+	 show_error(ERR_UNKNOWN_UIDGID, 2002);
+	 return -1;
+   }
 
   /* must supply directory parameter */
   if ((olddir=strtok(NULL,TOKENS))==NULL) {
@@ -1382,7 +1414,7 @@ int mk_dir()
   }
 
   /* Change ownership */
-  if ( chown(dir,VPOPMAILUID,VPOPMAILGID) == -1 ) {
+  if ( chown(dir,uid,gid) == -1 ) {
     snprintf(WriteBuf,sizeof(WriteBuf),RET_ERR "0.1603 %s" RET_CRLF, 
       strerror(errno));
     return(-1);
@@ -1457,7 +1489,7 @@ int list_dir()
       printf("error on stat of %s\n", mydirent->d_name);
       exit(-1);
     }
-    snprintf( WriteBuf, sizeof(WriteBuf), mydirent->d_name);
+    snprintf( WriteBuf, sizeof(WriteBuf), "%s", mydirent->d_name);
     if ( S_ISREG(statbuf.st_mode ) ) {
       strncat(WriteBuf," file", sizeof(WriteBuf));
     } else if ( S_ISDIR(statbuf.st_mode ) ) {
@@ -1604,7 +1636,7 @@ int read_file()
   while(fgets(tmpbuf,sizeof(tmpbuf),fs)!=NULL){
     if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || strcmp(tmpbuf, ".\n") == 0 ) {
       snprintf(WriteBuf, sizeof(WriteBuf), ".");
-      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf));
+      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf)-strlen(WriteBuf)-1);
     } else {
       memcpy(WriteBuf,tmpbuf,sizeof(tmpbuf));
     }
@@ -2391,7 +2423,7 @@ int set_limits()
     return(-1);
   }
 
-  snprintf(domain,sizeof(domain), param);
+  snprintf(domain,sizeof(domain), "%s", param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
     show_error( ERR_NO_GET_LIMITS, 3505 );

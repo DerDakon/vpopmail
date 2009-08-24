@@ -30,7 +30,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-
+#include "vauthmodule.h"
 
 #define MSG_BUF_SIZE  32768
 #define TOKENS ":\r\n"
@@ -69,6 +69,11 @@ int main(int argc, char *argv[])
  char *domain_dir = NULL;
  static struct stat statbuf;
  domain_entry *entry;
+ int ret;
+
+  ret = vauth_load_module(NULL);
+  if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
   memset(TmpBuf,0,sizeof(TmpBuf));
   memset(MsgBuf,0,sizeof(MsgBuf));
@@ -80,6 +85,7 @@ int main(int argc, char *argv[])
     usage();
     vexit(-1);
   }
+
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
@@ -214,6 +220,7 @@ int copy_email( fs_file, filename, domain, pwent)
  char *domain;
  struct vqpasswd *pwent;
 {
+   int ret = 0;
  static char tmpbuf[MAX_BUFF];
  static char tmpbuf1[MAX_BUFF];
  FILE *fs;
@@ -221,6 +228,12 @@ int copy_email( fs_file, filename, domain, pwent)
  struct stat mystatbuf;
  uid_t uid;
  gid_t gid;
+
+ ret = vpopmail_uidgid(&uid, &gid);
+ if (!ret) {
+	fprintf(stderr, "vpopmail_uidgid failed\n");
+	return -1;
+ }
 
     /* At this point, we know that the user exists in the auth backend.
      * Now we need to run some other checks before we can copy the
@@ -310,7 +323,7 @@ int copy_email( fs_file, filename, domain, pwent)
 		return -1;
 	}
 	/* fix permissions */
-	chown(tmpbuf, VPOPMAILUID, VPOPMAILGID);
+	chown(tmpbuf, uid, gid);
 	chmod(tmpbuf, 0600);
 	return(0);
 }

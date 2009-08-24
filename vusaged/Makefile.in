@@ -1,16 +1,27 @@
-CC=@PTHREAD_CC@
-CFLAGS=@CPPFLAGS@ 
-DEFS=$(CFLAGS) @PTHREAD_CFLAGS@
-LIBS=@LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @LIBS@
-DEPS=Makefile
-BINS=vusaged
+#
+# $Id$
+# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+#
+
+CC = @PTHREAD_CC@
+CFLAGS = @CFLAGS@ -I..
+DEFS = $(CFLAGS) @PTHREAD_CFLAGS@
+LIBS = -L.. -lvpopmail @VUSAGEDLIBS@ @LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @LIBS@
+INSTALL = install
+DEPS = Makefile
+BINS = vusaged
+VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
+VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 
 all: $(BINS)
 
-vusaged: vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o
+vusaged: ../libvpopmail.so vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o
 	$(CC) -o vusaged vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o $(LIBS)
 
-vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h
+../libvpopmail.so:
+	(cd ..;make)
+
+vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h user.h
 	$(CC) $(DEFS) -o vusaged.o -c vusaged.c
 
 socket.o: $(DEPS) socket.c socket.h packet.h grow.h
@@ -44,8 +55,8 @@ clean:
 	rm -f *.o *.core core $(BINS)
 
 distclean: clean
-	rm -rf config.log config.status Makefile autom4te.cache
+	rm -rf config.log config.status Makefile autom4te.cache contrib/rc.vusaged
 
-#install: $(BINS)
-#	cp -f $(BINS) $(VPOPMAIL_HOME)/bin
-#	cp -f etc/vusaged.conf etc/vusagec.conf $(VPOPMAIL_HOME)/etc
+install: $(BINS)
+	$(INSTALL) -s -m 0700 vusaged $(DESTDIR)$(VPOPMAIL_DIR_BIN)/vusaged
+	if test ! -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusaged.conf; then $(INSTALL) -m 0600 etc/vusaged.conf $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vusaged.conf; fi

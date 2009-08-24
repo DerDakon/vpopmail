@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <vpopmail.h>
 #include <vauth.h>
+#include <vauthmodule.h>
 #include "conf.h"
 #include "domain.h"
 #include "userstore.h"
@@ -87,6 +88,16 @@ int queue_init(config_t *config)
 #endif
 
    /*
+	  Initialize vpopmail module
+   */
+
+   ret = vauth_load_module(NULL);
+   if (!ret) {
+	  fprintf(stderr, "queue_init: vauth_load_module failed\n");
+	  return 0;
+   }
+
+   /*
 	  Initialize
    */
 
@@ -136,6 +147,12 @@ int queue_init(config_t *config)
 	  fprintf(stderr, "queue_init: Queue::Max Queue Size: invalid configuration: %s\n", str);
 	  return 0;
    }
+
+   /*
+	  Lock queue so controller waits to begin processing
+   */
+
+   queue_lock();
 
    /*
 	  Allocate thread array and begin workers
@@ -369,112 +386,126 @@ static void *queue_controller(void *self)
 
    e = NULL;
 
-   printf("controller: stage one\n");
-
    /*
-	  Stage one: Run through the entire list of users and domains
-	             rather hastily
+	  Wait to begin processing
    */
 
-   while(1) {
-	  if (shutdown_flag)
-		 break;
+   queue_lock();
+   queue_unlock();
+
+   /*
+	  If userlist is empty, begin a stage one load
+   */
+
+   if (user_get_userlist() == NULL) {
+
+	  printf("controller: stage one\n");
 
 	  /*
-		 Fill the queue with work
+		 Stage one: Run through the entire list of users and domains
+			        rather hastily
 	  */
 
 	  while(1) {
 		 if (shutdown_flag)
 			break;
 
-		 queue_lock();
-
-		 if (queue_size >= queue_max_size) {
-			queue_unlock();
-			break;
-		 }
-
 		 /*
-			Next user
-		 */
-	  
-		 if (e) {
-			vpw = vauth_getall(e->realdomain, 0, 1);
-#ifdef QUEUE_DEBUG
-			if (vpw)
-			   printf("controller: next %s@%s\n", vpw->pw_name, e->realdomain);
-			else
-			   printf("controller: finished %s\n", e->realdomain);
-#endif
-		 }
-			
-		 /*
-			Next domain
+			Fill the queue with work
 		 */
 
-		 if ((e == NULL) || (vpw == NULL)) {
-			e = get_domain_entries(e == NULL ? "" : NULL);
-#ifdef QUEUE_DEBUG
-			if (e)
-			   printf("controller: polling %s\n", e->realdomain);
-			else
-			   printf("controller: done\n");
-#endif
+		 while(1) {
+			if (shutdown_flag)
+			   break;
 
-			/*
-			   No more domains
-			*/
+			queue_lock();
 
-			if (e == NULL) {
+			if (queue_size >= queue_max_size) {
 			   queue_unlock();
 			   break;
 			}
 
 			/*
-			   Get first user
+			   Next user
+			*/
+	  
+			if (e) {
+			   vpw = vauth_getall(e->realdomain, 0, 1);
+#ifdef QUEUE_DEBUG
+			   if (vpw)
+				  printf("controller: next %s@%s\n", vpw->pw_name, e->realdomain);
+			   else
+				  printf("controller: finished %s\n", e->realdomain);
+#endif
+			}
+			
+			/*
+			   Next domain
 			*/
 
-			vpw = vauth_getall(e->realdomain, 1, 1);
+			if ((e == NULL) || (vpw == NULL)) {
+			   e = get_domain_entries(e == NULL ? "" : NULL);
 #ifdef QUEUE_DEBUG
-			if (vpw)
-			   printf("controller: next %s@%s\n", vpw->pw_name, e->realdomain);
-			else
-			   printf("controller: %s has no users\n", e->realdomain);
+			   if (e)
+				  printf("controller: polling %s\n", e->realdomain);
+			   else
+				  printf("controller: done\n");
 #endif
-		 }
 
-		 if (vpw == NULL) {
+			   /*
+				  No more domains
+			   */
+
+			   if (e == NULL) {
+				  queue_unlock();
+				  break;
+			   }
+
+			   /*
+				  Get first user
+			   */
+
+			   vpw = vauth_getall(e->realdomain, 1, 1);
+#ifdef QUEUE_DEBUG
+			   if (vpw)
+				  printf("controller: next %s@%s\n", vpw->pw_name, e->realdomain);
+			   else
+				  printf("controller: %s has no users\n", e->realdomain);
+#endif
+			}
+
+			if (vpw == NULL) {
+			   queue_unlock();
+			   continue;
+			}
+
+			/*
+			   Add to the queue
+			*/
+
+			memset(b, 0, sizeof(b));
+			snprintf(b, sizeof(b), "%s@%s", vpw->pw_name, e->realdomain);
+
+			u = user_get(b);
+			if (u == NULL)
+			   fprintf(stderr, "controller: user_get(%s) failed\n", b);
+			else
+			   queue_push(u);
+
 			queue_unlock();
-			continue;
 		 }
 
 		 /*
-			Add to the queue
+			Move on to stage two
 		 */
 
-		 memset(b, 0, sizeof(b));
-		 snprintf(b, sizeof(b), "%s@%s", vpw->pw_name, e->realdomain);
+		 if (e == NULL)
+			break;
 
-		 u = user_get(b);
-		 if (u == NULL)
-			fprintf(stderr, "controller: user_get(%s) failed\n", b);
-		 else
-			queue_push(u);
-
-		 queue_unlock();
+		 ret = shutdown_wait(1);
+		 if (ret)
+			break;
 	  }
-
-	  /*
-		 Move on to stage two
-	  */
-
-	  if (e == NULL)
-		 break;
-
-	  ret = shutdown_wait(1);
-	  if (ret)
-		 break;
    }
 
    if (!shutdown_flag)
@@ -753,4 +784,13 @@ static inline void queue_free(queue_t *q)
 #endif
 
    free(q);
+}
+
+/*
+   Mark begin processing
+*/
+
+void queue_begin(void)
+{
+   queue_unlock();
 }

@@ -43,6 +43,8 @@
 #include "seek.h"
 #endif
 #include "vlimits.h"
+#include "vauthmodule.h"
+#include "quota.h"
 
 /* Globals */
 #define AUTH_SIZE 300
@@ -98,7 +100,7 @@ void run_command(char *prog);
 void checkuser(void);
 void usernotfound(void);
 int is_loop_match( const char *dt, const char *address);
-int deliver_quota_warning(const char *dir, const char *q);
+int deliver_quota_warning(const char *dir);
 
 
 /* print an error string and then exit
@@ -117,7 +119,12 @@ int vexiterr (int err, char *errstr)
  */
 int main(int argc, char **argv)
 {
+   int ret;
     char loopcheck[255];
+
+	ret =vauth_load_module(NULL);
+	if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
 
     /* get the arguments to the program and setup things */
     get_arguments(argc, argv);
@@ -126,7 +133,6 @@ int main(int argc, char **argv)
         vexiterr (EXIT_BOUNCE, "mail is looping");
     }
  
-#ifdef VALIAS
     /* process valiases if configured */
     if ( process_valias() == 1 )
         vexiterr (EXIT_OK, "vdelivermail: valiases processed");
@@ -134,7 +140,6 @@ int main(int argc, char **argv)
     /* if the database is down, deferr */
     if ( verrori == VA_NO_AUTH_CONNECTION )
         vexiterr (EXIT_DEFER, "vdelivermail: deferred, database down");
-#endif
 
     /* get the user from vpopmail database */
     if ((vpw=vauth_getpw(TheUser, TheDomain)) != NULL ) {
@@ -240,7 +245,6 @@ void get_arguments(int argc, char **argv)
 
 }
 
-#ifdef VALIAS
 /* 
  * Process any valiases for this user@domain
  * 
@@ -319,7 +323,6 @@ int process_valias(void)
     /* Return whether we found an alias or not */
     return(found);
 }
-#endif
 
 /* Forks off qmail-inject.  Returns PID of child, or 0 for failure. */
 pid_t qmail_inject_open(char *address)
@@ -353,7 +356,7 @@ pid_t qmail_inject_open(char *address)
 
 int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerlen, char *address)
 {
-  char msgbuf[4096];
+  char msgbuf[MSG_BUF_SIZE];
   ssize_t file_count;
   struct vlimits limits;
 #ifdef SPAMASSASSIN
@@ -392,7 +395,7 @@ int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerl
             dup2(pim[1], 1);
             close(pim[1]);
             if (execl(SPAMC_PROG, SPAMC_PROG, "-f", "-u",
-                 address, 0) == -1) {
+                 address, NULL) == -1) {
               while ((file_count = read(0, msgbuf, MSG_BUF_SIZE)) > 0) {
                 write(1, msgbuf, file_count);
               }
@@ -563,11 +566,9 @@ int deliver_to_maildir (
                 /* not a critical error */
                 printf("unlink failed %s errno = %d\n", local_file_tmp, errno);
             }
-            if (*quota) maildir_addquota (maildir, -1, quota, msgsize, 1);
             return 0;
         } else if (rename(local_file_tmp, local_file_new) == 0) {
             /* file was successfully delivered */
-            if (*quota) maildir_addquota (maildir, -1, quota, msgsize, 1);
             return 0;
         } else {
             /* even rename failed, time to give up */
@@ -589,7 +590,7 @@ int deliver_to_maildir (
 void deliver_mail(char *address, char *quota)
 {
  pid_t inject_pid = 0;
- int child;
+ int child, qcheck = 0, ret = 0;
  unsigned int xcode;
  FILE *fs;
  char tmp_file[256];
@@ -598,6 +599,8 @@ void deliver_mail(char *address, char *quota)
 #ifdef MAILDROP
  struct vlimits limits;
 #endif
+
+   qcheck = -1;
 
     /* This is a comment, ignore it */
     if ( *address == '#' ) return;
@@ -636,12 +639,14 @@ void deliver_mail(char *address, char *quota)
           read_quota_from_maildir (address, maildirquota, sizeof(maildirquota));
           quota = maildirquota;
         }
+
+		email = maildir_to_email(address);
         
         /* if the user has a quota set */
 #ifdef MAILDROP
        vget_limits(TheDomain, &limits);
        if ( vpw==NULL ) {
-         parse_email(maildir_to_email(address), TheUser, TheDomain, AUTH_SIZE);
+         parse_email(email, TheUser, TheDomain, AUTH_SIZE);
          vpw=vauth_getpw(TheUser, TheDomain);
        }
        if ( vpw!=NULL && (limits.disable_spamassassin==1 ||
@@ -652,13 +657,17 @@ void deliver_mail(char *address, char *quota)
             /* If the user is over their quota, return it back
              * to the sender.
              */
-            if (user_over_maildirquota(address,format_maildirquota(quota))==1) {
+
+		    email = maildir_to_email(address);
+			qcheck = quota_check(email);
+			if (qcheck == 1) {
+			   //if (user_over_maildirquota(address,format_maildirquota(quota))==1) {
 
                 /* check for over quota message in domain */
                 snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
                 if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                     /* if no domain over quota then check in vpopmail dir */
-                    snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
+                    snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",VPOPMAIL_DIR_DOMAINS);
                     fs=fopen(tmp_file, "r");
                 }
 
@@ -670,13 +679,13 @@ void deliver_mail(char *address, char *quota)
                     }
                     fclose(fs);
                 }
-                deliver_quota_warning(address, format_maildirquota(quota));
+                deliver_quota_warning(address);
                 vexiterr (EXIT_OVERQUOTA, "");
             }
             if (QUOTA_WARN_PERCENT >= 0 &&
-                vmaildir_readquota(address, format_maildirquota(quota))
+			     quota_usage(email, quota)
                     >= QUOTA_WARN_PERCENT) {
-                deliver_quota_warning(address, format_maildirquota(quota));
+                deliver_quota_warning(address);
             }
         }
 #ifdef MAILDROP
@@ -685,13 +694,20 @@ void deliver_mail(char *address, char *quota)
 
 #ifdef DOMAIN_QUOTAS
     /* bk: check domain quota */
-        if (domain_over_maildirquota(address)==1)
+		if (qcheck == -1) {
+		   ret = quota_check_domain(TheDomain);
+		   if (ret)
+			  qcheck = 2;
+	    }
+
+//        if (domain_over_maildirquota(address)==1)
+	    if (qcheck == 2)
         {
             /* check for over quota message in domain */
             snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",TheDomainDir);
             if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                 /* if no domain over quota then check in vpopmail dir */
-                snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.over-quota.msg",VPOPMAILDIR,DOMAINS_DIR);
+                snprintf(tmp_file, sizeof(tmp_file), "%s/.over-quota.msg",VPOPMAIL_DIR_DOMAINS);
                 fs=fopen(tmp_file, "r");
             }
 
@@ -703,12 +719,14 @@ void deliver_mail(char *address, char *quota)
                 }
                 fclose(fs);
             }
-            deliver_quota_warning(address, format_maildirquota(quota));
+            deliver_quota_warning(address);
             vexiterr (EXIT_OVERQUOTA, "");
         }
 #endif
 
         /* Get the email address from the maildir */
+		// done above
+
         email = maildir_to_email(address);
 
         /* Set the Delivered-To: header */
@@ -821,7 +839,7 @@ int check_forward_deliver(char *dir)
     chdir(dir);
 
 #ifdef QMAIL_EXT
-    fs = NULL;
+	fs = NULL;
 
     /* format the file name */
     if (strlen(TheExt)) {
@@ -839,10 +857,10 @@ int check_forward_deliver(char *dir)
                 }
             }
         }
-    }
-	
+    } 
+
 	if (fs == NULL)
-        fs = fopen(".qmail","r");
+       fs = fopen(".qmail","r");
 #else
     fs = fopen(".qmail","r");
 #endif
@@ -1096,7 +1114,7 @@ void usernotfound()
         snprintf(tmp_file, sizeof(tmp_file), "%s/.no-user.msg",TheDomainDir);
         if ( (fs=fopen(tmp_file, "r")) == NULL ) {
             /* if no domain no user then check in vpopmail dir */
-            snprintf(tmp_file, sizeof(tmp_file), "%s/%s/.no-user.msg",VPOPMAILDIR,DOMAINS_DIR);
+            snprintf(tmp_file, sizeof(tmp_file), "%s/.no-user.msg",VPOPMAIL_DIR_DOMAINS);
             fs=fopen(tmp_file, "r");
         }
         if ( fs == NULL ) {
@@ -1134,7 +1152,7 @@ void usernotfound()
  * -2 = system failure
  * -3 = mail is looping 
  */
-int deliver_quota_warning(const char *dir, const char *q)
+int deliver_quota_warning(const char *dir)
 {
  time_t tm;
  int fd, read_fd;
@@ -1166,7 +1184,7 @@ int deliver_quota_warning(const char *dir, const char *q)
            (stat(quotawarnmsg, &sb) != 0)) {
 
         /* if that fails look in vpopmail dir */
-        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/%s/.quotawarn.msg", VPOPMAILDIR, DOMAINS_DIR);
+        snprintf(quotawarnmsg, sizeof(quotawarnmsg), "%s/.quotawarn.msg", VPOPMAIL_DIR_DOMAINS);
         if ( ((read_fd = open(quotawarnmsg, O_RDONLY)) < 0) || 
               (stat(quotawarnmsg, &sb) != 0)) {
             return 0;

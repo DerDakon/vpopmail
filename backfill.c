@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 /*
  * Generic remove a line from a file utility

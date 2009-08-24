@@ -42,7 +42,22 @@
 
 #define USERSTORE_AGE 1
 
+/*
+   How much by which to age a userstore poll per every day a user
+   has not authenticated
+*/
+
+#define USERSTORE_DAY_AGE 3
+
+/*
+   Maximum age
+*/
+
+#define USERSTORE_MAX_AGE 720
+
 static int userstore_age = USERSTORE_AGE;
+static int userstore_day_age = USERSTORE_DAY_AGE;
+static int userstore_max_age = USERSTORE_MAX_AGE;
 
 static int userstore_find_directories(userstore_t *);
 static int userstore_monitors_directory(userstore_t *, const char *);
@@ -68,6 +83,30 @@ int userstore_init(config_t *config)
 
 	  if (userstore_age == -1) {
 		 fprintf(stderr, "userstore_init: invalid configuration: Polling::Age Factor: %s\n", str);
+		 return 0;
+	  }
+   }
+
+   userstore_day_age = USERSTORE_DAY_AGE;
+
+   str = config_fetch_by_name(config, "Polling", "Day Age");
+   if (str) {
+	  userstore_day_age = atoi(str);
+
+	  if (userstore_day_age == -1) {
+		 fprintf(stderr, "userstore_init: invalid configuration: Polling::Day Age: %s\n", str);
+		 return 0;
+	  }
+   }
+
+   userstore_max_age = USERSTORE_MAX_AGE;
+
+   str = config_fetch_by_name(config, "Polling", "Maximum Age");
+   if (str) {
+	  userstore_max_age = atoi(str);
+
+	  if (userstore_max_age == -1) {
+		 fprintf(stderr, "userstore_init: invalid configuration: Polling::Maximum Age: %s\n", str);
 		 return 0;
 	  }
    }
@@ -118,6 +157,7 @@ userstore_t *userstore_load(const char *path)
 	  return NULL;
    }
 
+#if 0
    /*
 	  Poll to initialize userstore contents
    */
@@ -127,12 +167,14 @@ userstore_t *userstore_load(const char *path)
 	  userstore_free(u);
 	  return NULL;
    }
+#endif
 
    /*
 	  Set last updated time
    */
 
    u->last_updated = time(NULL);
+
    return u;
 }
 
@@ -163,9 +205,10 @@ void userstore_free(userstore_t *u)
 int userstore_poll(userstore_t *u)
 {
    int i = 0, ret = 0;
+   char lastauth[255] = { 0 };
    storage_t usage = 0, count = 0;
    struct stat st;
-   time_t tstart = 0, tend = 0;
+   time_t tstart = 0, tend = 0, tdays = 0;
 
 #ifdef ASSERT_DEBUG
    assert(u != NULL);
@@ -282,8 +325,35 @@ int userstore_poll(userstore_t *u)
 	  Age the userstore entry
    */
 
-   tend = time(NULL);
+   tend = u->last_updated;
    u->time_taken = ((tend - tstart) * userstore_age);
+
+   /*
+	  Add to the age by number of days since last authentication
+   */
+
+   tdays = 0;
+
+   snprintf(lastauth, sizeof(lastauth), "%s/../lastauth", u->path);
+   ret = stat(lastauth, &st);
+   if (ret != -1) {
+	  tdays = ((tend - (time_t)st.st_mtime) / (time_t)60 / (time_t)60 / (time_t)24);
+
+#ifdef ASSERT_DEBUG
+	  assert(tdays >= 0);
+#endif
+
+	  u->time_taken += (tdays * userstore_day_age);
+   }
+
+   /*
+	  Enforce the maximum
+   */
+
+   if (userstore_max_age) {
+	  if (u->time_taken > userstore_max_age)
+		 u->time_taken = userstore_max_age;
+   }
 
 #ifdef ASSERT_DEBUG
    assert(u->time_taken >= 0);
@@ -291,7 +361,7 @@ int userstore_poll(userstore_t *u)
 
 #ifdef USERSTORE_DEBUG
    if (u->time_taken)
-	  printf("userstore_poll: aged %p:%s by %lu seconds\n", u, u->path, u->time_taken);
+	  printf("userstore_poll: aged %p:%s by %lu seconds (%lu days aged)\n", u, u->path, u->time_taken, tdays);
 #endif
 
    return 1;

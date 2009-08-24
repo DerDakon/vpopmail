@@ -24,6 +24,9 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vlimits.h"
+#include "quota.h"
+#include "vauthmodule.h"
 
 
 char Domain[MAX_BUFF];
@@ -39,6 +42,7 @@ int DisplayDir;
 int DisplayAll;
 int DisplayTotalUsers;
 int DisplayRealDomain;
+int DisplayQuota;
 
 void usage();
 void get_options(int argc, char **argv);
@@ -52,6 +56,12 @@ extern vdir_type vdir;
 
 int main(int argc, char *argv[])
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
     if( vauth_open( 0 )) {
         vexiterror( stderr, "Initial open." );
     }
@@ -79,6 +89,7 @@ void usage()
     printf("         -d (display domain directory)\n");
     printf("         -t (display total users)\n");
     printf("         -r (display real domain)\n");
+	printf("         -q (display quota usage)\n");
 }
 
 void get_options(int argc, char **argv)
@@ -94,11 +105,12 @@ void get_options(int argc, char **argv)
     DisplayTotalUsers = 0;
     DisplayAll = 1;
 	DisplayRealDomain = 0;
+	DisplayQuota = 0;
 
     memset(Domain, 0, sizeof(Domain));
 
     errflag = 0;
-    while( !errflag && (c=getopt(argc,argv,"vanugdtr")) != -1 ) {
+    while( !errflag && (c=getopt(argc,argv,"vanugdtrq")) != -1 ) {
         switch(c) {
             case 'v':
                 printf("version: %s\n", VERSION);
@@ -130,6 +142,9 @@ void get_options(int argc, char **argv)
                 DisplayRealDomain = 1;
 				DisplayAll = 0;
                 break;
+			case 'q':
+				DisplayQuota = 1;
+				DisplayAll = 0;
             default:
                 errflag = 1;
                 break;
@@ -149,6 +164,11 @@ void get_options(int argc, char **argv)
 
 void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdomain)
 {
+   int ret = 0;
+   struct vlimits vl;
+   storage_t bytes = 0, count = 0;
+   char b[256] = { 0 };
+
     if ( DisplayAll ) {
         if(strcmp(domain, realdomain)==0)
             printf("domain: %s\n", domain);
@@ -160,6 +180,27 @@ void display_domain(char *domain, char *dir, uid_t uid, gid_t gid, char *realdom
         open_big_dir(realdomain, uid, gid);
         printf("users:  %lu\n",  vdir.cur_users);
         close_big_dir(realdomain,uid,gid);
+
+		ret = vget_limits(realdomain, &vl);
+		if (!ret)
+		   printf("quota:  S=%llu,C=%llu\n", (storage_t)(((storage_t)vl.diskquota)*((storage_t)1000000)), (storage_t)(vl.maxmsgcount));
+
+		 else
+			printf("quota:  NOQUOTA\n");
+
+		 ret = strlen(realdomain);
+		 if (ret <= (sizeof(b) - 2)) {
+			memcpy((b + 1), realdomain, ret);
+			*b = '@';
+			*(b + ret + 1) = '\0';
+
+			quota_get_usage(b, &bytes, &count);
+		 }
+
+		 printf("usage:  %d%% (%llu byte(s) in %llu file(s))\n",
+			   quota_percent(bytes, count, (storage_t)((storage_t)vl.diskquota * ((storage_t)1000000)), vl.maxmsgcount),
+			   bytes, count);
+
     } else {
         if ( DisplayName ) {
           if(strcmp(domain, realdomain)==0)
@@ -236,7 +277,7 @@ void display_one_domain( char * Domain )
     }
 
     for(i=0;i<aliascount;i++) {
- 	printf ("alias: %s\n", aliases[i]);
+ 	printf ("alias:  %s\n", aliases[i]);
         free( aliases[i] );
     } 
 }

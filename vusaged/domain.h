@@ -28,7 +28,7 @@
    Maximum length of a domain name
 */
 
-#define DOMAIN_MAX_DOMAIN 512
+#define DOMAIN_MAX_DOMAIN 256
 
 /*
    Domain structure

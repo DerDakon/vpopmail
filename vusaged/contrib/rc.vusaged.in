@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# $Id$
+# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+#
 # vusaged		Starts and stops the vpopmail usage daemon
 #
 # chkconfig: 345 80 30
@@ -8,7 +11,7 @@
 #
 
 PIDFILE=/var/run/vusaged.pid
-VUSAGED=/home/vpopmail/bin/vusaged
+VUSAGED=@vpopmaildir@/bin/vusaged
 
 case "$1" in
    start)

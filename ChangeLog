@@ -1,7 +1,89 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.28 - Current
+5.5.0 - Current
+  Matt Brookings
+  - Updated build scripts considerably
+  - Updated to build vusaged
+  - Fixed some format string bugs
+  - Updated config code to use VPOPMAILDIR rather than getpwnam(vpopmail)
+  - New quota functions added in quota.c
+  - Updated vdominfo and vuserinfo to show more detailed quota statistics and to use new quota API
+  - Updated vdelivermail to use new quota API
+  - Added warnings in functions that utilize old quota code to help identify changes that need to be made
+  - Added new more efficient, safer alternatives to current vpopmail API to be fully replaced later
+  - Updated vdeloldusers to allow option to ignore users with .qmail file
+  - Updated to build and install libvpopmail.so
+  - Added backend module support
+  - Updated CDB module
+  - Updated MySQL module
+  - Updated LDAP module
+  - Updated PostgreSQL module
+  - Updated vuserinfo to always show usage
+  - Updated vauthmodule.h to be included by vauth.h except if VAUTH_MODULE is defined
+  - Defined VAUTH_MODULE under working modules
+  - Updated module code to automatically call vauth_load_module and to catch calls to vauth_open and vclose
+  - Fixed result comparison bug in quota_check
+  - Added IP alias domain functionality to modules
+  - Updated some formatting in vdominfo output in regards to alias domains
+  - Updated backend module code to support valias
+  - Added initial FHS compliance
+  - Removed authvchkpw because we do not support Courier-MTA any longer
+  - Added vmoduserflags binary
+  - Fixed bug in configure scripts that reset CFLAGS to empty if specified at configure time
+  - Changed usage output for vmoddomain
+  - Removed vfilter flag from vmoddomain source
+  - Renamed --enable-vpopuser and --enable-vpopgroup to --with-vpopuser and --with-vpopgroup
+  - Added use of --with-vpopuser and --with-vpopgroup in the various Makefiles
+  - Added support of --enable-auth-logging
+  - Added -fPIC to libvpopmail object compiler flags
+  - Fixed some unused variables
+  - Fixed some headers that needed to be included in various files
+  - Added DESTDIR support
+  - Updated configure script to include crypt.h when testing for MD5 support
+  - Updated Makefiles to only chown when root, and mkdir when root or DESTDIR is set
+  - Updated detection and auto-creation of tcp.smtp inside configure.ac to work with DESTDIR correctly
+  - Updated backend Makefiles to not chown when not root
+  - Fixed bug in vauth_open wrapper that returned success instead of failure if vauth_load_module failed
+  - Updated LDAP and MySQL configure scripts to fail if required libraries not found
+  - Updated vauth_load_module to use dlerror() to report errors when dlopen() fails
+  - Re-added passing of -R<vpopmail lib dir> to linker
+  - Updated some MySQL and PostgreSQL deletion queries related to lastauth/vlog not to
+    trigger a failure condition if the table doesn't exist
+  - Updated vdelivermail to process vpopmail-style .qmail files for users with
+    dashes in their username when qmail-ext is enabled
+  - Added mailbox group code
+  - Added vconfig binary for outputting hardcoded paths, strings, and integers
+  - Many domains configuration had been lost in the shuffle; Fixed
+  - Removed old VALIAS ifdefs in vdelivermail
+  - Removed old VALIAS ifdefs in dotqmail2valias
+  - Updated dotqmail2valias to check if backend module provides native valias support
+  - Added vpopmail version output to vconfig
+  - Updated library and include path detection for MySQL and LDAP
+  - Updated version definition strings
+  - Updated vconfig output not to terminate with spaces
+  - Added group.h to install headers
+  - Added 'Polling::Day age' to vusaged configuration
+  - Added 'Polling::Maximum age' to vusaged configuration
+  - Updated vusaged to configurably delay polling for users by a factor of how many days since they've authenticated
+  - Added reading and writing of user usage at startup and shutdown of vusage daemon
+  - Added vpopmail_uidgid function to load, cache, and return vpopmail user UID and GID values
+  - Updated various functions to use vpopmail_uidgid rather than use VPOPMAILUID and VPOPMAILGID defines
+
+  Manvendra Bhangui <mbhangui@users.sourceforge.net>
+  - Added vmoddomain
+
+  Luis Felipe Silveira da Silva <felipe@bsd.com.br>
+  - Updated to provide maildrop flag in vlimits MySQL
+
+  aledr <matrixworkstation@gmail.com>
+  - Fixed input formatting in vpopmaild
+  - Fixed bounds issue in vdelivermail
+  - Updated MySQL module to use "INSERT INTO .. ON DUPLICATE KEY UPDATE" instead of "REPLACE INTO"
+  - Fixed overflow in PostgreSQL module
+  - Updated MySQL queries to use uppercase characters for SQL syntax
+
+5.4.28 - Released 10-Mar-2009
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient
    - Added vusage client API to libvpopmail

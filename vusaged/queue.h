@@ -29,5 +29,6 @@ int queue_shutdown(void);
 int queue_push(user_t *);
 void queue_wake(void);
 int queue_check_newuser(const char *);
+void queue_begin(void);
 
 #endif

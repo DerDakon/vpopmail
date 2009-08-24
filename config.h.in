@@ -242,6 +242,8 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+#undef VPOPMAIL_VERSION
+#undef VERSION
 
 /* "" */
 #undef POP_AUTH_OPEN_RELAY
@@ -321,9 +323,6 @@
 /* "" */
 #undef VALIAS
 
-/* Version number of package */
-#undef VERSION
-
 /* "" */
 #undef VLIMITS_DEFAULT_FILE
 
@@ -333,11 +332,13 @@
 /* "" */
 #undef VPOPMAILDIR
 
+#if 0
 /* "" */
 #undef VPOPMAILGID
 
 /* "" */
 #undef VPOPMAILUID
+#endif
 
 /* "" */
 #undef VPOPUSER
@@ -368,3 +369,9 @@
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
+
+#undef VPOPMAIL_DIR_BIN
+#undef VPOPMAIL_DIR_ETC
+#undef VPOPMAIL_DIR_DOMAINS
+#undef VPOPMAIL_DIR_INCLUDE
+#undef VPOPMAIL_DIR_LIB

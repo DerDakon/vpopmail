@@ -25,6 +25,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 void usage();
 void get_options(int argc,char **argv);
@@ -39,10 +40,16 @@ char Domain[MAX_BUFF];
 
 int main(int argc, char *argv[])
 {
+   int ret;
 #ifdef IP_ALIAS_DOMAINS
  int result;
  int first;
 #endif
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );

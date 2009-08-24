@@ -28,6 +28,7 @@
 #include <signal.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 #include "vauth.h"
 
 int force=0;
@@ -45,6 +46,11 @@ int main(int argc, char *argv[])
  char *aliases[MAX_DOM_ALIAS];
  char parent[MAX_BUFF];
  int  i, aliascount=0, doit=1;
+
+   err = vauth_load_module(NULL);
+   if (!err)
+	  vexiterror(stderr, "could not load authentication module");
+
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
