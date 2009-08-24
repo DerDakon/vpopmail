@@ -1,0 +1,105 @@
+#undef PS_COMMAND
+
+#undef ENABLE_PASSWD
+
+#undef HAS_SHADOW
+
+#undef TCP_FILE
+
+#undef ADMIN
+
+#undef USE_CDB
+
+#undef USE_SYBASE
+
+#undef USE_ACTIVE_DIR
+
+#undef USE_ORACLE
+
+#undef USE_POSTGRES
+
+#undef USE_LDAP
+
+#undef MD5_PASSWORDS
+
+#undef SQWEBMAIL_PASS
+
+#undef USE_MYSQL
+
+#undef MYSQL_REPLICATION
+
+#undef USE_SQL
+
+#undef MANY_DOMAINS
+
+#undef DEFAULT_DOMAIN
+
+#undef UCSPI_DIR
+
+#undef ENABLE_AUTH_LOGGING
+
+#undef ENABLE_LEARN_PASSWORDS
+
+#undef ENABLE_MYSQL_LOGGING
+
+#undef ENABLE_MYSQL_LIMITS
+
+#undef CLEAR_PASS
+
+#undef VALIAS
+
+#undef FILE_LOCKING
+
+#undef FILE_SYNC
+
+#undef ENABLE_LOGGING
+
+#undef LOG_NAME
+
+#undef OPEN_SMTP_CUR_FILE
+
+#undef OPEN_SMTP_TMP_FILE
+
+#undef OPEN_SMTP_LOK_FILE
+
+#undef TCPRULES_PROG
+
+#undef RELAY_CLEAR_MINUTES
+
+#undef IP_ALIAS_DOMAINS
+
+#undef HARD_QUOTA
+
+#undef DOMAIN_QUOTAS
+
+#undef QMAIL_EXT
+
+#undef REBUILD_TCPSERVER
+
+#undef VPOPUSER
+
+#undef VPOPGROUP
+
+#undef APOP_FILE
+
+#undef QMAILNEWU
+
+#undef QMAILINJECT
+
+#undef QMAILNEWMRH
+
+#undef QMAILDIR
+
+#undef VPOPMAILDIR
+
+#undef VPOPMAILUID
+
+#undef VPOPMAILGID
+
+#undef DOMAINS_DIR
+
+#undef POP_AUTH_OPEN_RELAY
+
+#undef USERS_BIG_DIR
+
+#undef MAKE_SEEKABLE

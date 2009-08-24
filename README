@@ -1,0 +1,16 @@
+For general installation instructions see INSTALL file
+
+For people upgrading please read UPGRADE
+
+For help with LDAP see README.ldap
+
+For help with mysql see README.mysql
+
+For help with oracle see README.oracle
+
+For help with quotas see README.quotas
+
+For help with sybase see README.sybase
+
+For help on how to replace qmail-local with
+a vpopmail version see README.vqmaillocal
