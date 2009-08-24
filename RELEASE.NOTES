@@ -1,0 +1,58 @@
+Version 4.9.7 Release Notes
+
+FILE I/O and LOCKING CODE
+------------------------------------------------------------------
+The file i/o locking code has been audited. All code was changed to
+update files by opening the orignal file in read only mode, unless
+it is the first time, then create it. Then open a temp file with
+a .pid extension. Make all the changes to the temp file. Then use
+the rename(2) function call to automically move the new file over
+the old file. This is similar to how some qmail file modification
+is done.
+
+No read locks are requested for read only i/o.
+
+Write locks are requested for modify i/o.
+
+To reduce the locking load on the file system, a lock is
+not requested for the .dir-control file. If we miss counting
+a user during a simulatious user addition, it's not the
+end of the world. The number of user entry in that file
+is not meant to be exact. It is more of a guide line on
+how to spread out user directories across the vpopmail 
+3 level user directory tree.
+
+This should reduce the over all file i/o synchronicity 
+requirements. And hence reduce the possiblity of lost
+file data (like loosing a complete vpasswd user file!!!)
+
+At least we are using the more reliable rename(2) function.
+
+IP ALIAS DOMAIN IP TO DOMAIN NAME MAPPING NO LONGER USES DNS
+------------------------------------------------------------
+
+We've provided new features to have a self contained 
+ip to domain name mapping for ip aliased domains.
+
+IP to domain name lookup is no longer provided by tcpservers
+TCPLOCALHOST environment variable.
+
+Instead we provide 4 new api functions to manage ip to domain mapping.
+They are conditionally compiled in if --enable-ip-alias-domains=y 
+is selected at configure time. Otherwise these functions are not
+compiled into the source.
+
+from vauth.h
+/* these routines are used to admin ip aliased domains */
+#ifdef IP_ALIAS_DOMAINS
+int vget_ip_map( char *ip, char *domain, int domain_size);
+int vadd_ip_map( char *ip, char *domain);
+int vdel_ip_map( char *ip, char *domain);
+int vshow_ip_map( int first, char *ip, char *domain);
+#endif
+
+A command line program can be used to show/add/del ip to
+domain mapping, vipdomain.
+
+The vget_ip_map function is used by vdelivermail and vchkpw
+and are designed to be fast and safe.
