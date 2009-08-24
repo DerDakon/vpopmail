@@ -61,7 +61,7 @@ Two additional packages support the vpopmail package:
 
 qmailadmin provides a simple web based administration interface 
 for pop account maintence, forwards, aliases, mailing lists 
-and autoresponders.  http://www.inter7.com/qmailadmin/
+and autoresponders.  http://sourceforge.net/projects/qmailadmin/
 
 Sqwebmail provides a hot mail type web email system which
 reads directly from the disks Maildirs, local, NFS or NAS.
@@ -342,7 +342,7 @@ qmails:x:509:504::/var/qmail:/bin/bash
     To see all the available options run vpopmail with no options.
     It will print out a complete list.
 
-14. Is there a mailing list available for vpopmail package?
+14. Is there a mailing list available for vpopmail users?
 
     Yes. Send a message to vchkpw-subscribe@inter7.com
 

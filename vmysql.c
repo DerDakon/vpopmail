@@ -15,6 +15,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+ 
+/* TODO
+
+Add error result for "unable to read vpopmail.mysql" and return it
+
+*/ 
+ 
 #include <pwd.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -94,6 +101,92 @@ void vcreate_lastauth_table();
 #endif
 
 /* 
+ * get mysql connection info
+ */
+int load_connection_info() {
+    FILE *fp;
+    char conn_info[256];
+    char config[256];
+    int eof;
+    static int loaded = 0;
+    char *port;
+    char delimiters[] = "|\n";
+    char *conf_read, *conf_update;
+
+    if (loaded) return 0;
+    loaded = 1;
+
+    sprintf(config, "%s/etc/%s", VPOPMAILDIR, "vpopmail.mysql");
+
+    fp = fopen(config, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "vmysql: can't read settings from %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
+    }
+    
+    /* skip comments and blank lines */
+    do {
+        eof = (fgets (conn_info, sizeof(conn_info), fp) == NULL);
+    } while (!eof && ((*conn_info == '#') || (*conn_info == '\n')));
+
+    if (eof) {
+        /* no valid data read, return error */
+        fprintf(stderr, "vmysql: no valid settings in %s\n", config);
+        return(VA_NO_AUTH_CONNECTION);
+    }
+
+    conf_read = strdup(conn_info);
+    MYSQL_READ_SERVER = strtok(conf_read, delimiters);
+    if (MYSQL_READ_SERVER == NULL) return VA_PARSE_ERROR;
+    port = strtok(NULL, delimiters);
+    if (port == NULL) return VA_PARSE_ERROR;
+    MYSQL_READ_PORT = atoi(port);
+    MYSQL_READ_USER = strtok(NULL, delimiters);
+    if (MYSQL_READ_USER == NULL) return VA_PARSE_ERROR;
+    MYSQL_READ_PASSWD = strtok(NULL, delimiters);
+    if (MYSQL_READ_PASSWD == NULL) return VA_PARSE_ERROR;
+    MYSQL_READ_DATABASE = strtok(NULL, delimiters);
+    if (MYSQL_READ_DATABASE == NULL) return VA_PARSE_ERROR;
+    
+    /* skip comments and blank lines */
+    do {
+        eof = (fgets (conn_info, sizeof(conn_info), fp) == NULL);
+    } while (!eof && ((*conn_info == '#') || (*conn_info == '\n')));
+    
+    if (eof) {
+        /* re-use read-only settings for update */
+        MYSQL_UPDATE_SERVER = MYSQL_READ_SERVER;
+        MYSQL_UPDATE_PORT = MYSQL_READ_PORT;
+        MYSQL_UPDATE_USER = MYSQL_READ_USER;
+        MYSQL_UPDATE_PASSWD = MYSQL_READ_PASSWD;
+        MYSQL_UPDATE_DATABASE = MYSQL_READ_DATABASE;
+    } else {
+        conf_update = strdup(conn_info);
+        MYSQL_UPDATE_SERVER = strtok(conf_update, delimiters);
+        if (MYSQL_UPDATE_SERVER == NULL) return VA_PARSE_ERROR;
+        port = strtok(NULL, delimiters);
+        if (port == NULL) return VA_PARSE_ERROR;
+        MYSQL_UPDATE_PORT = atoi(port);
+        MYSQL_UPDATE_USER = strtok(NULL, delimiters);
+        if (MYSQL_UPDATE_USER == NULL) return VA_PARSE_ERROR;
+        MYSQL_UPDATE_PASSWD = strtok(NULL, delimiters);
+        if (MYSQL_UPDATE_PASSWD == NULL) return VA_PARSE_ERROR;
+        MYSQL_UPDATE_DATABASE = strtok(NULL, delimiters);
+        if (MYSQL_UPDATE_DATABASE == NULL) return VA_PARSE_ERROR;
+    }
+
+/* useful debugging info
+    printf ("read settings: server:%s port:%d user:%s pw:%s db:%s\n",
+        MYSQL_READ_SERVER, MYSQL_READ_PORT, MYSQL_READ_USER,
+        MYSQL_READ_PASSWD, MYSQL_READ_DATABASE);
+    printf ("update settings: server:%s port:%d user:%s pw:%s db:%s\n",
+        MYSQL_UPDATE_SERVER, MYSQL_UPDATE_PORT, MYSQL_UPDATE_USER,
+	MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE);    
+*/
+    return 0;
+}
+
+/* 
  * Open a connection to mysql for updates
  */
 int vauth_open_update()
@@ -103,21 +196,23 @@ int vauth_open_update()
     if ( update_open != 0 ) return(0);
     update_open = 1;
 
-    verrori = 0;
+    verrori = load_connection_info();
+    if (verrori) return -1;
+	
     mysql_init(&mysql_update);
     mysql_options(&mysql_update, MYSQL_OPT_CONNECT_TIMEOUT, (char *)&timeout);
 
     /* Try to connect to the mysql update server with the specified database. */
-    if (!(mysql_real_connect(&mysql_update,MYSQL_UPDATE_SERVER,
-            MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD,
-            MYSQL_DATABASE, MYSQL_VPORT,NULL,0))) {
+    if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
+            MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD,
+            MYSQL_UPDATE_DATABASE, MYSQL_UPDATE_PORT, NULL, 0))) {
 
         /* Could not connect to the update mysql server with the database
          * so try to connect with no database specified
          */
-        if (!(mysql_real_connect(&mysql_update,MYSQL_UPDATE_SERVER,
-                MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD, NULL, MYSQL_VPORT,
-                NULL,0))) {
+        if (!(mysql_real_connect(&mysql_update, MYSQL_UPDATE_SERVER,
+                MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, NULL, MYSQL_UPDATE_PORT,
+                NULL, 0))) {
 
             /* if we can not connect, report a error and return */
             verrori = VA_NO_AUTH_CONNECTION;
@@ -126,21 +221,21 @@ int vauth_open_update()
 
         /* we were able to connect, so create the database */ 
         snprintf( SqlBufUpdate, SQL_BUF_SIZE, 
-            "create database %s", MYSQL_DATABASE );
+            "create database %s", MYSQL_UPDATE_DATABASE );
         if (mysql_query(&mysql_update,SqlBufUpdate)) {
 
             /* we could not create the database
              * so report the error and return 
              */
-            printf("vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
+            fprintf(stderr, "vmysql: sql error[1]: %s\n", mysql_error(&mysql_update));
             return(-1);
         } 
         res_update = mysql_store_result(&mysql_update);
         mysql_free_result(res_update);
 
         /* set the database */ 
-        if (mysql_select_db(&mysql_update,MYSQL_DATABASE)) {
-            fprintf(stderr, "could not enter %s database\n", MYSQL_DATABASE);
+        if (mysql_select_db(&mysql_update, MYSQL_UPDATE_DATABASE)) {
+            fprintf(stderr, "could not enter %s database\n", MYSQL_UPDATE_DATABASE);
             return(-1);
         }    
     }
@@ -158,15 +253,16 @@ int vauth_open_read()
     read_open = 1;
     
     /* connect to mysql and set the database */
+    verrori = load_connection_info();
+    if (verrori) return -1;
     mysql_init(&mysql_read);
-    if (!(mysql_real_connect(&mysql_read,MYSQL_READ_SERVER, 
-            MYSQL_READ_USER,MYSQL_READ_PASSWD,MYSQL_DATABASE, 
-            MYSQL_VPORT ,NULL,0))) {
-
+    if (!(mysql_real_connect(&mysql_read, MYSQL_READ_SERVER, 
+            MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
+            MYSQL_READ_PORT, NULL, 0))) {
         /* we could not connect, at least try the update server */
-        if (!(mysql_real_connect(&mysql_read,MYSQL_UPDATE_SERVER, 
-            MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD,MYSQL_DATABASE,
-            MYSQL_VPORT,NULL,0))) {
+        if (!(mysql_real_connect(&mysql_read, MYSQL_UPDATE_SERVER, 
+            MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE,
+            MYSQL_READ_PORT, NULL, 0))) {
             verrori = VA_NO_AUTH_CONNECTION;
             return( VA_NO_AUTH_CONNECTION );
         }
@@ -190,15 +286,16 @@ int vauth_open_read_getall()
     read_getall_open = 1;
     
     /* connect to mysql and set the database */
+    verrori = load_connection_info();
+    if (verrori) return -1;
     mysql_init(&mysql_read_getall);
-    if (!(mysql_real_connect(&mysql_read_getall,MYSQL_READ_SERVER, 
-            MYSQL_READ_USER,MYSQL_READ_PASSWD, MYSQL_DATABASE, 
-            MYSQL_VPORT,NULL,0))) {
-
+    if (!(mysql_real_connect(&mysql_read_getall, MYSQL_READ_SERVER, 
+            MYSQL_READ_USER, MYSQL_READ_PASSWD, MYSQL_READ_DATABASE, 
+            MYSQL_READ_PORT, NULL, 0))) {
         /* we could not connect, at least try the update server */
-        if (!(mysql_real_connect(&mysql_read_getall,MYSQL_UPDATE_SERVER, 
-            MYSQL_UPDATE_USER,MYSQL_UPDATE_PASSWD, MYSQL_DATABASE, 
-            MYSQL_VPORT,NULL,0))) {
+        if (!(mysql_real_connect(&mysql_read_getall, MYSQL_UPDATE_SERVER, 
+            MYSQL_UPDATE_USER, MYSQL_UPDATE_PASSWD, MYSQL_UPDATE_DATABASE, 
+            MYSQL_UPDATE_PORT, NULL, 0))) {
             verrori = VA_NO_AUTH_CONNECTION;
             return(-1);
         }
@@ -325,6 +422,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
  uid_t myuid;
  uid_t uid;
  gid_t gid;
+ struct vlimits limits;
 
     vget_assign(domain,NULL,0,&uid,&gid);
     myuid = geteuid();
@@ -343,7 +441,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     strncpy(in_domain, domain, 155);
 
     vset_default_domain( in_domain );
-    /*vget_real_domain(in_domain, 100);*/
 
 #ifndef MANY_DOMAINS
     domstr = vauth_munch_domain( in_domain );
@@ -360,7 +457,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 );
 
     if (mysql_query(&mysql_read,SqlBufRead)) {
-        printf("vmysql: sql error[3]: %s\n", mysql_error(&mysql_update));
+        printf("vmysql: sql error[3]: %s\n", mysql_error(&mysql_read));
         return(NULL);
     }
 
@@ -404,6 +501,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
         return(NULL);
     }
     mysql_free_result(res_read);
+    /* this is necessary to enforce the qmailadmin-limits
+       a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
+       unless the user has the V_OVERRIDE flag set
+    */
+    if (vget_limits (in_domain,&limits) == 0) {
+        if (! vpw.pw_gid && V_OVERRIDE) {
+            vpw.pw_gid |= vlimits_get_gid_mask (&limits);
+        }
+    }
     return(&vpw);
 }
 
@@ -559,7 +665,7 @@ struct vqpasswd *vauth_getall(char *domain, int first, int sortit)
         res_read = NULL;
 
         if (mysql_query(&mysql_read_getall,SqlBufRead)) {
-            printf("vmysql: sql error[5]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[5]: %s\n", mysql_error(&mysql_read_getall));
             return(NULL);
         }
 
@@ -747,7 +853,7 @@ void vupdate_rules(int fdm)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_relay_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[8]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[8]: %s\n", mysql_error(&mysql_read));
             return;
         }
     }
@@ -1137,7 +1243,7 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[g]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[g]: %s\n", mysql_error(&mysql_read));
             return(0);
         }
     }
@@ -1162,7 +1268,7 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_lastauth_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[h]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[h]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1207,7 +1313,7 @@ where alias = \"%s\" and domain = \"%s\"", alias, domain );
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[j]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[j]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1318,7 +1424,7 @@ char *valias_select_all( char *alias, char *domain )
     if (mysql_query(&mysql_read,SqlBufRead)) {
         vcreate_valias_table();
         if (mysql_query(&mysql_read,SqlBufRead)) {
-            printf("vmysql: sql error[o]: %s\n", mysql_error(&mysql_update));
+            printf("vmysql: sql error[o]: %s\n", mysql_error(&mysql_read));
             return(NULL);
         }
     }
@@ -1444,11 +1550,13 @@ int vget_limits(const char *domain, struct vlimits *limits)
     }
 
     if (mysql_num_rows(res_read) == 0) {
-        fprintf(stderr, "vmysql: can't find limits for domain '%s', using defaults.\n", domain);
-        return -1;
-    }
+        /* this should not be a fatal error: upgrading gets extremly annoying elsewise. */
+        /*fprintf(stderr, "vmysql: can't find limits for domain '%s', using defaults.\n", domain);
+        return -1;*/
+        /* instead, we return the result of our attempt of reading the limits from the default limits file */
+        return vlimits_read_limits_file (VLIMITS_DEFAULT_FILE, limits);
 
-    if ((row = mysql_fetch_row(res_read)) != NULL) {
+    } else if ((row = mysql_fetch_row(res_read)) != NULL) {
         int perm = atol(row[20]);
 
         limits->maxpopaccounts = atoi(row[0]);

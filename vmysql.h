@@ -18,20 +18,43 @@
 #ifndef VPOPMAIL_MYSQL_H
 #define VPOPMAIL_MYSQL_H
 
-/* Edit to match your set up */ 
-#define MYSQL_UPDATE_SERVER "localhost"
-#define MYSQL_UPDATE_USER   "root"
-#define MYSQL_UPDATE_PASSWD "secret"
+/* NOTE: As of vpopmail 5.3.25, MySQL connection info is stored in
+   ~vpopmail/etc/vpopmail.mysql.  The format of the file is as follows:
+   
+   read server|read port|read user|read password|read database
+   update server|update port|update user|update password|update database
+   
+   Comments (lines starting with '#') are allowed.  The first line contains
+   connection information for READING from the database.  The second (optional)
+   line contains connection information for UPDATING the database.  If the
+   second line is left out, then vpopmail will use the same settings for
+   reading and updating.
+   
+   Port should be the actual port, or 0 for default.
+   
+   For example:
+   
+   # This is the MySQL configuration file for vpopmail.
+   localhost|0|readonly|somepass|vpopmail
+   localhost|0|root|secret|vpopmail
+   
+ */
 
-#define MYSQL_READ_SERVER   "localhost"
-#define MYSQL_READ_USER     "root"
-#define MYSQL_READ_PASSWD   "secret"
-/* End of setup section*/
+char *MYSQL_READ_SERVER;
+int MYSQL_READ_PORT;
+char *MYSQL_READ_USER;
+char *MYSQL_READ_PASSWD;
+char *MYSQL_READ_DATABASE;
+
+char *MYSQL_UPDATE_SERVER;
+int MYSQL_UPDATE_PORT;
+char *MYSQL_UPDATE_USER;
+char *MYSQL_UPDATE_PASSWD;
+int MYSQL_UPDATE_VPORT;
+char *MYSQL_UPDATE_DATABASE;
 
 /* defaults - no need to change */
-#define MYSQL_VPORT 0
 #define MYSQL_DEFAULT_TABLE "vpopmail"
-#define MYSQL_DATABASE "vpopmail"
 #define MYSQL_DOT_CHAR '_'
 #define MYSQL_LARGE_USERS_TABLE "users"
 

@@ -174,8 +174,6 @@ void get_arguments(int argc, char **argv)
     TheUserExt[i] = 0;
 #endif
 
-    /*vget_real_domain(TheDomain,AUTH_SIZE);*/
-
 }
 
 #ifdef VALIAS

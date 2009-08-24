@@ -1,31 +1,79 @@
+Numbers in square brackets ([]) are tracker items on SourceForge with patch
+or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
+
+5.3.25 - released ????
+	*** WARNING: MySQL settings are now stored in         ***
+	*** ~vpopmail/etc/vpopmail.mysql instead of vmysql.h! ***
+	*** Read README.mysql for details.                    ***
+
+	Tom Collins
+	- Fix code in vdelivermail.c that builds Delivered-To header on
+	  catchall emails.  (strips "domain-" from "domain-user@domain")
+	  [785604]
+	- Convert vpgsql.c from DOS to Unix format (strip \r). [785680]
+	- Modified Makefile.am to allow installs to /usr/local instead
+	  of /home/vpopmail (uses install, doesn't chmod/chown). [787551]
+	- Polished vpopmail-5.2-vmysql.patch ported by Oden. [791405]
+	- If configured to use MySQL, Makefile.am creates a sample
+	  vpopmail.mysql if one doesn't exist and makes it read/write for
+	  vpopmail.vchkpw only.
+	- Added tracker item numbers to ChangeLog for all closed trackers.
+	- Updated INSTALL and FAQ with links to SourceForge.
+
+	Oden Eriksson
+	- Ported vpopmail-5.2-vmysql.patch to 5.3.24. [778502, 791405]
+	- Added sparse documentation how to use it.
+
+	Justin Heesemann
+	- Fix vdominfo to show correct domain for alias domains when
+	  displaying all domains. [785241]
+	- Add vmoddomlimits program to modify domain limits.  Works
+	  for both vlimits and .qmailadmin-limits methods.
+	- Add V_OVERRIDE user flag for users who aren't affected by
+	  domain limits (.qmailadmin-limits or vlimits).
+	- Update authentication modules to apply domain limits to users.
+	  (Currently disabled pending solution to SF BUG 795688.)
+
+	Evren Yurtesen
+	- Add cleartext support to vconvert (when converting MySQL to
+	  cdb). [785690]
+
+	Michael Bowe
+	- More cleanup in vget_assign() calls. [785735]
+	- Allow vget_assign() to return real domain when passed alias.
+	  [785682]
+	- Fix error messages in vmysql.c. [792959]
+
 5.3.24 - released 6-Aug-03
 
 	Tom Collins
 	- Removed all references to timezone to be POSIX compliant.  Now
-	  uses gmtime() with +0000 for date header.
+	  uses gmtime() with +0000 for date header. [777401]
 	- Fixed bug in my updated vget_assign that caused segfaults
-	  in many cases (including running vadddomain and vdeldomain).
+	  in many cases (including vadddomain and vdeldomain). [777980]
 
 	Michael Bowe
 	- Update vget_assign calls with NULL directory pointer to use 
-	  0 for buffer size.
+	  0 for buffer size. [774525]
 	- Add missing backslashes (\) to vpgsql.h (see 5.3.21 vmysql.h).
+	  [777923]
 	- Check for NULL return when calling vauth_getpw() in vldap.c.
+	  [781882]
 
 	Charles Boening
-	- Update configure.in to work for pgsql compiles.
-	- Add --enable-pgsql-logging configure option.
-	- Add vauth_crypt() to vpgsql.c.
+	- Update configure.in to work for pgsql compiles. [777851]
+	- Add --enable-pgsql-logging configure option. [777851]
+	- Add vauth_crypt() to vpgsql.c. [777851]
 
 	Yann St. Arnaud
 	- Remove #ifdef FOOB from vchkpw.c to re-enable 
-	  ENABLE_LEARN_PASSWORDS feature.
+	  ENABLE_LEARN_PASSWORDS feature. [783824]
 
 	Jens Jahr
-	- Support for clear text passwords when using LDAP.
+	- Support for clear text passwords when using LDAP. [783908]
 
 	Oden Eriksson
-	- Remove unnecessary errno declaration in cdb/cdb_seek.c.
+	- Remove unnecessary errno declaration in cdb/cdb_seek.c. [784024]
 
 	Evren Yurtesen
 	- Added contrib/sendmail2vpopmail.pl for converting from sendmail
@@ -35,12 +83,13 @@
 
 	Tom Collins
 	- Removed timezone declaration to correct compile problem on 
-	  FreeBSD.
+	  FreeBSD. [777401]
 
 5.3.22 - released 24-Jul-03
 
 	Moshe Jacobson
 	- Fix maildir_to_email() to work with hashed domain directories.
+	  [773315]
 
 	Matt Berardi
 	- Add 2 second timeout on MySQL connections.
@@ -51,14 +100,14 @@
 	- Fix vsetuserquota to include status messages.
 
 	Tom Collins
-	- Add Date header to over quota warning message.
+	- Add Date header to over quota warning message. [773318]
 	- Fix possible buffer overflows when setting envbuf[1-4] in 
-	  vchkpw.c. (bug spotted by Michael Bowe)
+	  vchkpw.c. (bug spotted by Michael Bowe) [774528]
 	- Remove error messages from vmysql.c that could interfere with
 	  POP or SMTP AUTH client sessions.
 	- Switched from using --enable-default-domain to storing default
 	  domain in ~vpopmail/etc/defaultdomain.  This should provide
-	  flexibility when compiling packages for distribution.
+	  flexibility when compiling packages for distribution. [775751]
 
 5.3.21 - released 17-Jul-03
 
@@ -83,6 +132,7 @@
 
 	Michael Bowe
 	- Remove debug printfs from vdelivermail on overquota bounces.
+	  [773312]
 
 	Jeff Hedlund
 	- Ignore comments when processing .qmail files.
@@ -93,7 +143,6 @@
 	Tom Collins
 	- Fix usage formatting on vconvert.
 	- Support for MB/KB quota formats in vmoduser.
-
 
 5.3.20
 4/01/03  Tom Collins 
@@ -357,7 +406,7 @@
 
 
 04/03/02   Tim at timtasi dot com
-         - much better parse_email function
+         - much better parse_email function [774404]
 
 5.3.4
 04/02/02 - Doh! syntax error in vmysql.c, fixed
@@ -2702,3 +2751,4 @@ dec 10 - added run time support for setting default domain. Create a
 3.4.1
 
 - Fixed case insensitivity problem
+

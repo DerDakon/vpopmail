@@ -32,8 +32,6 @@
 
 #undef MANY_DOMAINS
 
-#undef DEFAULT_DOMAIN
-
 #undef UCSPI_DIR
 
 #undef ENABLE_AUTH_LOGGING
@@ -65,6 +63,8 @@
 #undef OPEN_SMTP_TMP_FILE
 
 #undef OPEN_SMTP_LOK_FILE
+
+#undef VLIMITS_DEFAULT_FILE
 
 #undef TCPRULES_PROG
 

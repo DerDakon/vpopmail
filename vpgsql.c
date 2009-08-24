@@ -248,6 +248,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   static struct vqpasswd vpw;
   int err;
   PGresult *pgres;
+  struct vlimits limits;
 
   verrori = 0;
   if ( (err=vauth_open()) != 0 ) {
@@ -262,7 +263,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   strncpy(in_domain, domain, mem_size);
 
   vset_default_domain( in_domain );
-  /*vget_real_domain(in_domain, 100);*/
 
 #ifndef MANY_DOMAINS
   domstr = vauth_munch_domain( in_domain );
@@ -318,6 +318,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   if ( PQgetvalue( pgres, 0, 7 ) != 0 )
     strncpy(vpw.pw_clear_passwd, PQgetvalue( pgres, 0, 7 ),SMALL_BUFF);
 #endif
+  /* this is necessary to enforce the qmailadmin-limits
+     a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
+     unless the user has the V_OVERRIDE flag set
+  */
+  if (vget_limits (in_domain,&limits) == 0) {
+    if (! vpw.pw_gid && V_OVERRIDE) {
+      vpw.pw_gid |= vlimits_get_gid_mask (&limits);
+    }
+  }
   return(&vpw);
 }
 
@@ -558,7 +567,7 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
   err = vcheck_vqpw(inpw, domain);
   if ( err != 0 ) return(err);
 
-  vget_assign(domain,NULL,156,&uid,&gid);
+  vget_assign(domain,NULL,0,&uid,&gid);
   myuid = geteuid();
   if ( myuid != 0 && myuid != uid ) {
     return(VA_BAD_UID);

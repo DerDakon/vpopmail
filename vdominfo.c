@@ -174,9 +174,14 @@ void display_all_domains()
 
     while( fgets(TmpBuf, MAX_BUFF, fs) != NULL ) {
 	if ( (tmpstr=strtok(TmpBuf, TOKENS)) == NULL ) continue;
+        /* users/assign looks like
+        +alias.domain.com-:real.domain.com:89:89:/var/vpopmail/domains/real.domain.com:-::
+        so we have to drop the leading '+' and the trailing "-" */
+        strncpy( Domain, tmpstr+1, MAX_BUFF);
+        Domain[MAX_BUFF-1] = 0;
+        Domain[strlen(Domain)-1] = 0;
 
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
-	strncpy( Domain, tmpstr, MAX_BUFF);
 
 	if ( (tmpstr=strtok(NULL, TOKENS)) == NULL ) continue;
 	Uid = atol(tmpstr);

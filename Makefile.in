@@ -63,6 +63,7 @@ CC = @CC@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+USE_MYSQL = @USE_MYSQL@
 VERSION = @VERSION@
 auth_inc = @auth_inc@
 auth_libs = @auth_libs@
@@ -79,6 +80,10 @@ noinst_LIBRARIES = libvpopmail.a
 COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
 CONFIG_CLEAN_FILES = vauth.c
 
+AM_INSTALL_PROGRAM_FLAGS = -o @vpopuser@ -m 711 -g @vpopgroup@ 
+
+MYSQLCONF = $(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
+
 libvpopmail_a_SOURCES = $(COMMONSOURCES) 
 libvpopmail_a_LIBADD = cdb/*.o
 
@@ -86,7 +91,7 @@ vpopmailbindir = @vpopmaildir@/bin
 vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
  vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
  vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
- vdominfo vconvert vqmaillocal vkill
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits
 
 
 vuserinfo_SOURCES = vuserinfo.c maildirquota.c
@@ -151,6 +156,9 @@ vmkpasswd_LDADD = libvpopmail.a  @auth_libs@
 
 vipmap_SOURCES = vipmap.c 
 vipmap_LDADD = libvpopmail.a  @auth_libs@
+
+vmoddomlimits_SOURCES = vmoddomlimits.c
+vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
 
 DEFS = -I. @auth_inc@ 
 
@@ -232,6 +240,9 @@ vqmaillocal_LDFLAGS =
 vkill_OBJECTS =  vkill.o
 vkill_DEPENDENCIES =  libvpopmail.a
 vkill_LDFLAGS = 
+vmoddomlimits_OBJECTS =  vmoddomlimits.o
+vmoddomlimits_DEPENDENCIES =  libvpopmail.a
+vmoddomlimits_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -246,8 +257,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-SOURCES = $(libvpopmail_a_SOURCES) $(vchkpw_SOURCES) $(vdelivermail_SOURCES) $(clearopensmtp_SOURCES) $(vadddomain_SOURCES) $(vdeldomain_SOURCES) $(vpasswd_SOURCES) $(vadduser_SOURCES) $(vdeluser_SOURCES) $(vaddaliasdomain_SOURCES) $(vsetuserquota_SOURCES) $(vpopbull_SOURCES) $(vdeloldusers_SOURCES) $(vmoduser_SOURCES) $(valias_SOURCES) $(vuserinfo_SOURCES) $(vmkpasswd_SOURCES) $(vipmap_SOURCES) $(vdominfo_SOURCES) $(vconvert_SOURCES) $(vqmaillocal_SOURCES) $(vkill_SOURCES)
-OBJECTS = $(libvpopmail_a_OBJECTS) $(vchkpw_OBJECTS) $(vdelivermail_OBJECTS) $(clearopensmtp_OBJECTS) $(vadddomain_OBJECTS) $(vdeldomain_OBJECTS) $(vpasswd_OBJECTS) $(vadduser_OBJECTS) $(vdeluser_OBJECTS) $(vaddaliasdomain_OBJECTS) $(vsetuserquota_OBJECTS) $(vpopbull_OBJECTS) $(vdeloldusers_OBJECTS) $(vmoduser_OBJECTS) $(valias_OBJECTS) $(vuserinfo_OBJECTS) $(vmkpasswd_OBJECTS) $(vipmap_OBJECTS) $(vdominfo_OBJECTS) $(vconvert_OBJECTS) $(vqmaillocal_OBJECTS) $(vkill_OBJECTS)
+SOURCES = $(libvpopmail_a_SOURCES) $(vchkpw_SOURCES) $(vdelivermail_SOURCES) $(clearopensmtp_SOURCES) $(vadddomain_SOURCES) $(vdeldomain_SOURCES) $(vpasswd_SOURCES) $(vadduser_SOURCES) $(vdeluser_SOURCES) $(vaddaliasdomain_SOURCES) $(vsetuserquota_SOURCES) $(vpopbull_SOURCES) $(vdeloldusers_SOURCES) $(vmoduser_SOURCES) $(valias_SOURCES) $(vuserinfo_SOURCES) $(vmkpasswd_SOURCES) $(vipmap_SOURCES) $(vdominfo_SOURCES) $(vconvert_SOURCES) $(vqmaillocal_SOURCES) $(vkill_SOURCES) $(vmoddomlimits_SOURCES)
+OBJECTS = $(libvpopmail_a_OBJECTS) $(vchkpw_OBJECTS) $(vdelivermail_OBJECTS) $(clearopensmtp_OBJECTS) $(vadddomain_OBJECTS) $(vdeldomain_OBJECTS) $(vpasswd_OBJECTS) $(vadduser_OBJECTS) $(vdeluser_OBJECTS) $(vaddaliasdomain_OBJECTS) $(vsetuserquota_OBJECTS) $(vpopbull_OBJECTS) $(vdeloldusers_OBJECTS) $(vmoduser_OBJECTS) $(valias_OBJECTS) $(vuserinfo_OBJECTS) $(vmkpasswd_OBJECTS) $(vipmap_OBJECTS) $(vdominfo_OBJECTS) $(vconvert_OBJECTS) $(vqmaillocal_OBJECTS) $(vkill_OBJECTS) $(vmoddomlimits_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -436,6 +447,10 @@ vqmaillocal: $(vqmaillocal_OBJECTS) $(vqmaillocal_DEPENDENCIES)
 vkill: $(vkill_OBJECTS) $(vkill_DEPENDENCIES)
 	@rm -f vkill
 	$(LINK) $(vkill_LDFLAGS) $(vkill_OBJECTS) $(vkill_LDADD) $(LIBS)
+
+vmoddomlimits: $(vmoddomlimits_OBJECTS) $(vmoddomlimits_DEPENDENCIES)
+	@rm -f vmoddomlimits
+	$(LINK) $(vmoddomlimits_LDFLAGS) $(vmoddomlimits_OBJECTS) $(vmoddomlimits_LDADD) $(LIBS)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -680,49 +695,46 @@ mostlyclean distclean maintainer-clean
 @SET_MAKE@
 
 install-data-local:
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/@domains_dir@
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/lib
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/include
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/doc
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/etc
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/doc/man_html
-	$(mkinstalldirs)  $(DESTDIR)@vpopmaildir@/doc/doc_html
+	$(INSTALL) -d --group=@vpopgroup@ --mode=0700 --owner=@vpopuser@ \
+	  $(DESTDIR)@vpopmaildir@/@domains_dir@
 
-	cp libvpopmail.a  $(DESTDIR)@vpopmaildir@/lib
-	chown root        $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
-	chmod og-rw       $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/etc
 
-	cp vpopmail.h     $(DESTDIR)@vpopmaildir@/include
-	cp config.h       $(DESTDIR)@vpopmaildir@/include
-	cp config.h       $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
-	cp vauth.h        $(DESTDIR)@vpopmaildir@/include
-	cp vlimits.h      $(DESTDIR)@vpopmaildir@/include
-	cp doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html
-	cp doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html
+	if test "@USE_MYSQL@" = "1"; then \
+	  if test ! -r $(MYSQLCONF); then \
+	    echo "# MySQL settings, line 1 is config for read-only," > $(MYSQLCONF); \
+	    echo "# line 2 is config for update.  Settings for each" >> $(MYSQLCONF); \
+	    echo "# line: server|port|user|password|database" >> $(MYSQLCONF); \
+	    echo "localhost|0|root|secret|vpopmail" >> $(MYSQLCONF); \
+	  fi ; \
+	  chown @vpopuser@  $(MYSQLCONF) ; \
+	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
+	  chmod 0600        $(MYSQLCONF) ; \
+	fi
 
-	chmod 755 $(DESTDIR)@vpopmaildir@
-	chmod 755 $(DESTDIR)@vpopmaildir@/include
-	chmod 755 $(DESTDIR)@vpopmaildir@/etc
-	chmod 755 $(DESTDIR)@vpopmaildir@/doc
-	chmod 755 $(DESTDIR)@vpopmaildir@/doc/man_html
-	chmod 755 $(DESTDIR)@vpopmaildir@/doc/doc_html
-	chmod 755 $(DESTDIR)@vpopmaildir@/bin
-	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
-	chmod 711 $(DESTDIR)@vpopmaildir@/bin/*
-	chmod 444 $(DESTDIR)@vpopmaildir@/include/*
-	chmod 444 $(DESTDIR)@vpopmaildir@/doc/doc_html/*
+	$(INSTALL) --owner=root --mode=0600 --group=root -D \
+	  libvpopmail.a $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
 
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ -D \
+	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
+
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  vpopmail.h config.h vauth.h vlimits.h \
+	  $(DESTDIR)@vpopmaildir@/include/
+
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
+
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
+
+fix-priv:
 	@echo "If the recursive chown is taking a long time"
 	@echo "go ahead and break out of it by pressing control-C"
 	@echo "this is the last stage of the install and can be skipped" 
-	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/include
-	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/include
-	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/etc
-	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/etc
-	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/bin
-	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/bin
-	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/doc
-	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/doc
+	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/@domains_dir@
 	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/@domains_dir@
 

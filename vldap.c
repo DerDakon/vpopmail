@@ -67,7 +67,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
   uid_t myuid; 
   uid_t uid; 
   gid_t gid;
-
+  struct vlimits limits;
 
   verrori = 0;
   lowerit(user);
@@ -283,6 +283,15 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
    ldap_value_free(vals);
   } 
 #endif
+  /* this is necessary to enforce the qmailadmin-limits
+     a gid_mask is created from the qmailadmin-limits, which is then ORed againt the users gid field,
+     unless the user has the V_OVERRIDE flag set
+  */
+  if (vget_limits (in_domain,&limits) == 0) {
+  	if (! vpw->pw_gid && V_OVERRIDE) {
+  		vpw->pw_gid |= vlimits_get_gid_mask (&limits);
+  	}
+  }
 
  return vpw;
 

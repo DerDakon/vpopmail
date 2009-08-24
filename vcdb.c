@@ -40,6 +40,7 @@
 #include "vauth.h"
 #include "vcdb.h"
 #include "file_lock.h"
+#include "vlimits.h"
 
 #define TOKENS " \n"
 
@@ -222,6 +223,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 #ifdef FILE_LOCKING
  FILE *lock_fs;
 #endif
+ struct vlimits limits;
 
     verrori = 0;
     lowerit(user);
@@ -310,7 +312,11 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     fprintf (stderr,"                     pw_dir    = %s\n",pwent.pw_dir);
     fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
 #endif
-
+    if (vget_limits (in_domain,&limits) == 0) {
+        if (! pwent.pw_gid && V_OVERRIDE) {
+            pwent.pw_gid = pwent.pw_gid | vlimits_get_gid_mask (&limits);
+        }
+    }
     return(&pwent);
 }
 
