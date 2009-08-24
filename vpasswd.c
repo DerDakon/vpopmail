@@ -77,7 +77,6 @@ void get_options(int argc,char **argv)
 {
  int c;
  int errflag;
- extern char *optarg;
  extern int optind;
 
 	memset(Email, 0, MAX_BUFF);

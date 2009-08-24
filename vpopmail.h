@@ -18,6 +18,8 @@
 #ifndef VPOPMAIL_VPOPMAIL_H
 #define VPOPMAIL_VPOPMAIL_H
 
+#define DEFAULT_DOMAIN default_domain()
+
 /* max field sizes */
 #define MAX_PW_NAME         32
 #define MAX_PW_DOMAIN       64
@@ -132,6 +134,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid);
 int r_mkdir(char *, uid_t uid, gid_t gid);
 struct vqpasswd *vgetent(FILE *);
 int pw_comp(char *, char *, char *, int);
+char *default_domain();
 void vset_default_domain( char *);
 int vopen_smtp_relay();	
 void vupdate_rules(int);

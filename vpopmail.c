@@ -93,6 +93,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  int i;
  char *domain_sub_dir;
  char tmpbuf[156];
+ char Dir[156];
+ char *tmpstr;
 
   /* we only do lower case */
   lowerit(domain);
@@ -113,7 +115,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     chdir(TmpBuf1);
     return(VA_DOMAIN_ALREADY_EXISTS);
   }
-
+  
   /* set our file creation mask for machines where the
    * sysadmin has tightened default permissions
    */
@@ -191,7 +193,19 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   r_chown(TmpBuf, uid, gid);
 
   /* ask the authentication module to add the domain entry */
-  vauth_adddomain( domain );
+  /* until now we checked if domain already exists in cdb and
+  setup all dirs, but vauth_adddomain may __fail__ so we need to check */
+  if (vauth_adddomain( domain ) != VA_SUCCESS ) {
+    vdelfiles(DomainSubDir);
+  	tmpstr = vget_assign(domain, Dir, 156, &uid, &gid );
+  	del_domain_assign(domain, domain, Dir, uid, gid);
+  	del_control(domain);
+  	vdel_dir_control(domain);
+  	/* send a HUP signal to qmail-send process to reread control files */
+  	signal_process("qmail-send", SIGHUP);
+    return (VA_NO_AUTH_CONNECTION);
+  }	
+
 
   /* ask qmail to re-read it's new control files */
   if ( OptimizeAddDomain == 0 ) {
@@ -241,12 +255,15 @@ int vdeldomain( char *domain )
 
     /* delete the domain from the filesystem */ 
     } else {
+      /* call the auth module to delete the domain from the storage */
+	  /* Note !! We must del domain from auth module __before__ we delete it from
+	  fs, because deletion from auth module may fail !!!! */
+      if (vauth_deldomain(domain) != VA_SUCCESS ) 
+		return(VA_NO_AUTH_CONNECTION);
       if ( vdelfiles(Dir) != 0 ) {
-        printf("could not delete directory %s\n", domain);
+        printf("could not delete directory %s, please clean up manually\n", domain);
         return(VA_BAD_DIR);
       }
-      /* call the auth module to delete the domain from the storage */
-      vauth_deldomain(domain);
     }
   }
   /* Actually the real_domain and domain are switched, before, the real_domain
@@ -1030,12 +1047,12 @@ int parse_email( email, user, domain, buff_size )
   }
 
   if ( is_username_valid( user ) != 0 ) {
-    printf("user invalid %s\n", user);
+    /* printf("user invalid %s\n", user); */
     return(-1);
   }
 
   if ( is_domain_valid( domain ) != 0 ) {
-    printf("domain invalid %s\n", domain);
+    /* printf("domain invalid %s\n", domain); */
     return(-1);
   }
 
@@ -1335,6 +1352,7 @@ int update_file(filename, update_line)
 int vsetuserquota( char *username, char *domain, char *quota )
 {
  struct vqpasswd *mypw;
+ int ret;
 
   if ( strlen(username) > MAX_PW_NAME ) return(VA_USER_NAME_TOO_LONG);
 #ifdef USERS_BIG_DIR  
@@ -1345,7 +1363,10 @@ int vsetuserquota( char *username, char *domain, char *quota )
 
   lowerit(username);
   lowerit(domain);
-  vauth_setquota( username, domain, quota);
+  ret = vauth_setquota( username, domain, quota);
+  if (ret != VA_SUCCESS ) {
+ 	return(ret);
+	}
   mypw = vauth_getpw( username, domain );
   remove_maildirsize(mypw->pw_dir);
   return(0);
@@ -1597,12 +1618,42 @@ struct vqpasswd *vauth_user(char *user, char *domain, char* password, char *apop
 
 }
 
+/* default_domain()
+   returns a pointer to a string, up to 156 bytes, containing
+   the default domain (or blank if not set).  Loads from
+   ~vpopmail/etc/defaultdomain.  Only loads once per program
+   execution.
+*/
+char *default_domain()
+{
+  static int init = 0;
+  static char d[156];
+  char path[256];
+  int dlen;
+  FILE *fs;
+
+  if (!init) {
+    init++;
+    memset(d, 0, sizeof(d));
+    sprintf (path, "%s/etc/defaultdomain", VPOPMAILDIR);
+    fs = fopen (path, "r");
+    if (fs != NULL) {
+      fgets (d, sizeof(d) - 1, fs);
+      fclose (fs);
+      dlen = strlen(d) - 1;
+      if (d[dlen] == '\n') { d[dlen] = '\0'; }
+    }
+  }
+
+  return d;
+}
+
 /*
- * Set the default domain from either the DEFAULT_DOMAIN
+ * If domain is blank, set it to the VPOPMAIL_DOMAIN environment
+ * variable, an ip alias domain, or the default domain.
  */
 void vset_default_domain( char *domain ) 
 {
- int i;
  char *tmpstr;
 #ifdef IP_ALIAS_DOMAINS
  char host[156];
@@ -1635,9 +1686,7 @@ void vset_default_domain( char *domain )
   }
 #endif
 
-  if ( (i=strlen(DEFAULT_DOMAIN)) > 0 ) {
-    strncpy(domain,DEFAULT_DOMAIN, i+1);
-  }
+  strncpy(domain, DEFAULT_DOMAIN, 156);
 }
 
 #ifdef IP_ALIAS_DOMAINS
@@ -1830,6 +1879,7 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
 
   if ( domain == NULL || *domain == 0) return(NULL);
 
+  /* if domain matches last lookup, use cached values */
   lowerit(domain);
   if ( in_domain_size != 0 && 
        in_domain!=NULL && in_dir!=NULL &&
@@ -1841,7 +1891,9 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
     return(in_dir);
   }
 
+  /* this is a new lookup, free memory from last lookup if necc. */
   if ( in_domain != NULL ) free(in_domain);
+  if ( in_dir != NULL ) free(in_dir);
 
   in_domain_size = 156;
   in_domain = malloc(in_domain_size);
@@ -1885,7 +1937,6 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
     ++ptr;
 
     if ( dir!=NULL ) strncpy( dir, ptr, dir_len);
-    if ( in_dir != NULL ) free(in_dir);
     in_dir_size = strlen(ptr)+1;
     in_dir = malloc(in_dir_size);
     strncpy( in_dir, ptr, in_dir_size);
@@ -1895,14 +1946,12 @@ char *vget_assign(char *domain, char *dir, int dir_len, uid_t *uid, gid_t *gid)
     fclose(fs);
     return(in_dir);
   } else {
-    if ( in_domain != NULL ) free(in_domain);
-    in_domain = NULL;
+    free(in_domain);
     in_domain_size = 0;
   }
   fclose(fs);
   free(tmpstr);
   return(NULL);
-
 }
 
 int vget_real_domain(char *domain, int len )
@@ -1917,10 +1966,8 @@ int vget_real_domain(char *domain, int len )
 
   /* process the default domain 
   if ( domain[0] == 0 ) {
-    if ( strlen(DEFAULT_DOMAIN) > 0 ) {
-      strncpy(domain, DEFAULT_DOMAIN, len);
-      return(0);
-    }
+    strncpy(domain, DEFAULT_DOMAIN, len);
+    domain[len-1] = '\0';
     return(0);
   }
   */

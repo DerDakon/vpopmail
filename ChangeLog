@@ -1,3 +1,26 @@
+5.3.22 - released 24-Jul-03
+
+	Moshe Jacobson
+	- Fix maildir_to_email() to work with hashed domain directories.
+
+	Matt Berardi
+	- Add 2 second timeout on MySQL connections.
+
+	Jens Jahr
+	- Check for failure when calling auth module.
+	- Fix vadddomain/vdeldomain when the auth module call fails.
+	- Fix vsetuserquota to include status messages.
+
+	Tom Collins
+	- Add Date header to over quota warning message.
+	- Fix possible buffer overflows when setting envbuf[1-4] in 
+	  vchkpw.c. (bug spotted by Michael Bowe)
+	- Remove error messages from vmysql.c that could interfere with
+	  POP or SMTP AUTH client sessions.
+	- Switched from using --enable-default-domain to storing default
+	  domain in ~vpopmail/etc/defaultdomain.  This should provide
+	  flexibility when compiling packages for distribution.
+
 5.3.21 - released 17-Jul-03
 
 	Ole Gjerde
@@ -10,7 +33,7 @@
 	Maurice Snellen
 	- When logging POP3 logins, now includes system accounts.
 
-	Emris and Jeff Hedlund
+	Emris
 	- Ignore comments when processing .qmail files.
 
 	Moshe Jacobson

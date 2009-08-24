@@ -47,6 +47,7 @@ int main(argc,argv)
  char *argv[];
 {
  int i;
+ int ret;
  static int virgin;
  struct vqpasswd *mypw;
 
@@ -66,11 +67,18 @@ int main(argc,argv)
 		/* this is a domain */
 		strncpy( Domain, Email, MAX_BUFF);
 		virgin = 1;
+  		if ( vget_assign(Domain, NULL, 156, NULL, NULL)==NULL) {
+			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
+   			vexit(VA_DOMAIN_DOES_NOT_EXIST);
+		}
 
 		/* walk through the whole domain */
 		while( (mypw=vauth_getall(Domain, virgin, 0)) != NULL ) {
 			virgin = 0;
-			vauth_setquota( mypw->pw_name, Domain, Quota );
+			if ((ret = vauth_setquota( mypw->pw_name, Domain, Quota )) != VA_SUCCESS) {
+			printf("Error: %s\n", verror(ret));
+			vexit(ret);
+			}
 		}
 
 	/* just a single user */
@@ -79,7 +87,14 @@ int main(argc,argv)
                     printf("Error: %s\n", verror(i));
                     vexit(i);
                 }
-		vsetuserquota( User, Domain, Quota ); 
+  		if ( vget_assign(Domain, NULL, 156, NULL, NULL)==NULL) {
+			printf("Error: %s\n", verror(VA_DOMAIN_DOES_NOT_EXIST));
+   			vexit(VA_DOMAIN_DOES_NOT_EXIST);
+		}
+		if ((ret = vauth_setquota( User, Domain, Quota )) != VA_SUCCESS) {
+			printf("Error: %s\n", verror(ret));
+			vexit(ret);
+			}
 	}
 	return(vexit(0));
 

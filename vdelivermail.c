@@ -90,6 +90,7 @@ void checkuser(void);
 void usernotfound(void);
 int is_loop_match( char *dt, char *address);
 int deliver_quota_warning(const char *dir, const char *q);
+char *date_header();
 
 static char local_file[156];
 static char local_file_new[156];
@@ -553,12 +554,12 @@ int deliver_mail(char *address, char *quota)
  
         /* Set the Delivered-To: header */
         if ( strcmp( address, bounce) == 0 ) {
-            snprintf(DeliveredTo, AUTH_SIZE, 
+            snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s@%s\n", getenv("RPLINE"), 
                  TheUser, TheDomain);
         } else {
         
-            snprintf(DeliveredTo, AUTH_SIZE, 
+            snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s\n", getenv("RPLINE"), 
                 maildir_to_email(address));
         }
@@ -585,7 +586,7 @@ int deliver_mail(char *address, char *quota)
                 if (*address=='&') ++address;
                 dtline = address;
             }
-            snprintf(DeliveredTo, AUTH_SIZE, 
+            snprintf(DeliveredTo, sizeof(DeliveredTo), 
                 "%sDelivered-To: %s\n", getenv("RPLINE"), dtline);
     }
 
@@ -966,7 +967,9 @@ char *maildir_to_email(char *maildir)
 
     if(!last) return "";
 
-    for( pnt = last + (strlen(DOMAINS_DIR)+2); (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
+    pnt = last + strlen(DOMAINS_DIR) + 2;
+    while ( *(pnt+1) == '/' ) pnt+=2;  /* skip over hash directory names */
+    for( ; (*pnt && *pnt != '/' && j < 255); ++pnt, ++j ) {
       email[j] = *pnt;
     }
 
@@ -1180,14 +1183,15 @@ int deliver_quota_warning(const char *dir, const char *q)
             errno, local_file);
         return(-2);
     }
+
     if ( strcmp( dir, bounce) == 0 ) {
-        snprintf(DeliveredTo, AUTH_SIZE, 
-            "%s%s", getenv("RPLINE"), getenv("DTLINE"));
+        snprintf(DeliveredTo, sizeof(DeliveredTo), 
+            "%s%s%s", getenv("RPLINE"), getenv("DTLINE"), date_header());
     } else {
         strcpy(newdir, dir);
-        snprintf(DeliveredTo, AUTH_SIZE, 
-            "%sDelivered-To: %s\n", getenv("RPLINE"), 
-            maildir_to_email(newdir));
+        snprintf(DeliveredTo, sizeof(DeliveredTo), 
+            "%sDelivered-To: %s\n%s", getenv("RPLINE"), 
+            maildir_to_email(newdir), date_header());
     }
 
 
@@ -1307,3 +1311,38 @@ int is_loop_match( char *dt, char *address)
    /* we have a match */
    return(1);
 }
+
+/* prints a 39 character Date: header to buf with trailing
+ newline and NULL */
+char *date_header()
+{
+  time_t now;
+  struct tm *tm;
+  unsigned int tz;
+  extern long timezone;
+
+  static char *montab[12] = {
+  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+  };
+  static char *wday[7] = {
+  "Sun","Mon","Tue","Wed","Thu","Fri","Sat"
+  };
+  static char dh[39];
+
+  /* set timezone variable (seconds west of GMT) */
+  tzset();
+  tz = (unsigned int) abs(timezone / 60);
+
+  /* look up current time and fill tm structure */
+  time(&now);
+  tm = localtime(&now);
+
+  snprintf (dh, sizeof(dh),
+    "Date: %s, %02u %s %u %02u:%02u:%02u %s%02u%02u\n",
+    wday[tm->tm_wday], tm->tm_mday, montab[tm->tm_mon], tm->tm_year + 1900,
+    tm->tm_hour, tm->tm_min, tm->tm_sec, timezone > 0 ? "-" : "+",
+    tz / 60, tz % 60 * 100 / 60);
+
+  return dh;
+}
+

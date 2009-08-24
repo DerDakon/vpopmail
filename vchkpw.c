@@ -146,7 +146,7 @@ int main( int argc, char **argv)
   read_user_pass();
 
   if ( parse_email( TheName, TheUser, TheDomain, AUTH_SIZE) != 0 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, 
+    snprintf(LogLine, sizeof(LogLine), 
       "%s: invalid user/domain characters %s:%s", 
       VchkpwLogName, TheName, IpAddr);
 
@@ -173,7 +173,7 @@ int main( int argc, char **argv)
 #endif
 
   } else {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: vpopmail user not found %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: vpopmail user not found %s@%s:%s", 
             VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_LOGON, TheUser, TheDomain, ThePass, 
                            TheName, IpAddr, LogLine);
@@ -185,7 +185,7 @@ int main( int argc, char **argv)
 
   /* Set the programs effective group id */ 
   if ( ConnType != SMTP_CONN && setgid(pw_gid) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: setgid %lu failed errno %d %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: setgid %lu failed errno %d %s@%s:%s", 
       VchkpwLogName, (long unsigned)pw_gid, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
                               TheName, IpAddr, LogLine);
@@ -194,7 +194,7 @@ int main( int argc, char **argv)
 
   /* Set the programs effective user id */ 
   if ( ConnType != SMTP_CONN && setuid(pw_uid) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: setuid %lu failed errno %d %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: setuid %lu failed errno %d %s@%s:%s", 
       VchkpwLogName, (long unsigned)pw_uid, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
                                 TheName, IpAddr, LogLine);
@@ -207,7 +207,7 @@ int main( int argc, char **argv)
   if (ConnType != SMTP_CONN &&  chdir(pw_dir) == -1) {
     if ( vpw!=NULL) { 
       if ( vmake_maildir(TheDomain, vpw->pw_dir )!= VA_SUCCESS ) {
-        snprintf(LogLine, LOG_LINE_SIZE, 
+        snprintf(LogLine, sizeof(LogLine), 
           "%s: autocreate dir errno %d %s %s@%s:%s", 
           VchkpwLogName, errno, pw_dir, TheUser, TheDomain, IpAddr);
         vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
@@ -216,7 +216,7 @@ int main( int argc, char **argv)
       }
       chdir(pw_dir);
     } else {
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: chdir failed errno %d %s %s@%s:%s", 
+      snprintf(LogLine, sizeof(LogLine), "%s: chdir failed errno %d %s %s@%s:%s", 
         VchkpwLogName, errno, pw_dir, TheUser, TheDomain, IpAddr);
       vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
                                 TheName, IpAddr, LogLine);
@@ -225,10 +225,9 @@ int main( int argc, char **argv)
   }
 
   /* The the USER variable */
-  strncpy(envbuf1,VCHKPW_USER,MAX_ENV_BUF);
-  strncat(envbuf1,TheUser,MAX_ENV_BUF);
+  snprintf (envbuf1, sizeof(envbuf1), "%s%s", VCHKPW_USER, TheUser);
   if ( putenv(envbuf1) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, 
+    snprintf(LogLine, sizeof(LogLine), 
       "%s: putenv(USER) failed errno %d %s@%s:%s", 
       VchkpwLogName, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
@@ -237,10 +236,9 @@ int main( int argc, char **argv)
   }
 
   /* Now HOME */
-  strncpy(envbuf2,VCHKPW_HOME,MAX_ENV_BUF);
-  strncat(envbuf2,pw_dir,MAX_ENV_BUF);
+  snprintf (envbuf2, sizeof(envbuf2), "%s%s", VCHKPW_HOME, pw_dir);
   if ( putenv(envbuf2) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, 
+    snprintf(LogLine, sizeof(LogLine), 
       "%s: putenv(HOME) failed errno %d %s@%s:%s", 
       VchkpwLogName, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
@@ -249,9 +247,10 @@ int main( int argc, char **argv)
   }
 
   /* Now SHELL */
-  strncpy(envbuf3,VCHKPW_SHELL,MAX_ENV_BUF);
+  strncpy(envbuf3,VCHKPW_SHELL,sizeof(envbuf3));
+  envbuf3[sizeof(envbuf3)-1] = 0;   /* make sure it's NULL terminated */
   if ( putenv(envbuf3) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, 
+    snprintf(LogLine, sizeof(LogLine), 
       "%s: putenv(SHELL) failed errno %d %s@%s:%s", 
       VchkpwLogName, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
@@ -260,10 +259,9 @@ int main( int argc, char **argv)
   }
 
   /* Now VPOPUSER */
-  strncpy(envbuf4,VCHKPW_VPOPUSER,MAX_ENV_BUF);
-  strncat(envbuf4,TheName,MAX_ENV_BUF);
+  snprintf (envbuf4, sizeof(envbuf4), "%s%s", VCHKPW_VPOPUSER, TheName);
   if ( putenv(envbuf4) == -1 ) {
-    snprintf(LogLine, LOG_LINE_SIZE,
+    snprintf(LogLine, sizeof(LogLine),
       "%s: putenv(VPOPUSER) failed errno %d %s@%s:%s", 
       VchkpwLogName, errno, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
@@ -351,7 +349,7 @@ It is not for runnning on the command line.\n", VchkpwLogName);
   }
 
   if ( TheName[0] == 0 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: null user name given %s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: null user name given %s:%s", 
       VchkpwLogName, TheName, IpAddr);
     vlog(VLOG_ERROR_LOGON, TheUser, TheDomain, ThePass, 
                            TheName, IpAddr, LogLine);
@@ -359,7 +357,7 @@ It is not for runnning on the command line.\n", VchkpwLogName);
   }
 
   if ( ThePass[0] == 0 ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: null password given %s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: null password given %s:%s", 
       VchkpwLogName, TheName, IpAddr);
     vlog(VLOG_ERROR_PASSWD, TheUser, TheDomain, ThePass, 
                             TheName, IpAddr, LogLine);
@@ -378,7 +376,7 @@ void login_virtual_user()
 
     /* if making a new directory failed log the error and exit */
     if ( make_user_dir(vpw->pw_name, TheDomain, pw_uid, pw_gid)==NULL){
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: dir auto create failed %s@%s:%s", 
+      snprintf(LogLine, sizeof(LogLine), "%s: dir auto create failed %s@%s:%s", 
         VchkpwLogName, TheUser, TheDomain, IpAddr);
       vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
                                 TheName, IpAddr, LogLine);
@@ -414,7 +412,7 @@ void login_virtual_user()
   }
 #else
   if ( vpw->pw_passwd==NULL||vpw->pw_passwd[0]==0) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: user has no password %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: user has no password %s@%s:%s", 
       VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_INTERNAL, TheUser, TheDomain, ThePass, 
                               TheName, IpAddr, LogLine);
@@ -433,11 +431,11 @@ void login_virtual_user()
        vauth_crypt(TheUser, TheDomain, ThePass, vpw) != 0 ) {
 
     if ( ENABLE_LOGGING==1||ENABLE_LOGGING==2){
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: password fail %s@%s:%s",
+      snprintf(LogLine, sizeof(LogLine), "%s: password fail %s@%s:%s",
         VchkpwLogName, TheUser, TheDomain, IpAddr);
 
     } else if ( ENABLE_LOGGING==3||ENABLE_LOGGING==4){
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: password fail (pass: '%s') %s@%s:%s",
+      snprintf(LogLine, sizeof(LogLine), "%s: password fail (pass: '%s') %s@%s:%s",
         VchkpwLogName, ThePass, TheUser, TheDomain, IpAddr);
     } else { 
       LogLine[0] = 0;
@@ -465,7 +463,7 @@ void login_virtual_user()
    * Check if they are allowed pop access 
    */
   if ( ( vpw->pw_gid & NO_POP ) && ConnType == POP_CONN ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: pop access denied %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: pop access denied %s@%s:%s", 
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
@@ -474,7 +472,7 @@ void login_virtual_user()
      /* Check if they are allowed smtp access 
       */
   if ( ( vpw->pw_gid & NO_SMTP ) && ConnType == SMTP_CONN ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: smtp access denied %s@%s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: smtp access denied %s@%s:%s", 
              VchkpwLogName, TheUser, TheDomain, IpAddr);
     vlog(VLOG_ERROR_ACCESS, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
     vchkpw_exit(1);
@@ -482,7 +480,7 @@ void login_virtual_user()
 
   /* show success but with no password */
   if ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4) { 
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: (%s) login success %s@%s:%s",
+    snprintf(LogLine, sizeof(LogLine), "%s: (%s) login success %s@%s:%s",
       VchkpwLogName, AuthType, TheUser, TheDomain, IpAddr);
     vlog(VLOG_AUTH, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
   }
@@ -519,7 +517,7 @@ void login_system_user()
  struct passwd *pw;
 
   if ((pw=getpwnam(TheUser)) == NULL ) {
-    snprintf(LogLine, LOG_LINE_SIZE, "%s: system user not found %s:%s", 
+    snprintf(LogLine, sizeof(LogLine), "%s: system user not found %s:%s", 
                       VchkpwLogName, TheUser, IpAddr);
     vlog(VLOG_ERROR_LOGON, TheUser, TheDomain, ThePass, 
                            TheName, IpAddr, LogLine);
@@ -528,7 +526,7 @@ void login_system_user()
 
 #ifdef HAS_SHADOW
   if ((spw = getspnam(TheUser)) == NULL) {
-    snprintf(LogLine, LOG_LINE_SIZE, 
+    snprintf(LogLine, sizeof(LogLine), 
       "%s: system user shadow entry not found %s:%s", 
       VchkpwLogName, TheName, IpAddr);
     vlog(VLOG_ERROR_LOGON, TheUser, TheDomain, ThePass, 
@@ -541,11 +539,12 @@ void login_system_user()
   if ( strcmp(crypt(ThePass,pw->pw_passwd),pw->pw_passwd) != 0 ) {
 #endif
     if (ENABLE_LOGGING==1||ENABLE_LOGGING==2) {
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: system password fail %s:%s", 
+      snprintf(LogLine, sizeof(LogLine), "%s: system password fail %s:%s", 
         VchkpwLogName, TheName, IpAddr);
 
     } else if (ENABLE_LOGGING==3||ENABLE_LOGGING==4) {
-      snprintf(LogLine, LOG_LINE_SIZE, "%s: system password fail (pass: '%s') %s:%s",
+      snprintf(LogLine, sizeof(LogLine),
+        "%s: system password fail (pass: '%s') %s:%s",
         VchkpwLogName, ThePass, TheName, IpAddr);
 
     } else { 
@@ -562,7 +561,8 @@ void login_system_user()
    
    /* show success but with no password */
    if ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4) {
-     snprintf(LogLine, LOG_LINE_SIZE, "%s: system password login success %s:%s",
+     snprintf(LogLine, sizeof(LogLine),
+       "%s: system password login success %s:%s",
        VchkpwLogName, TheUser, IpAddr);
      vlog(VLOG_AUTH, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
    }

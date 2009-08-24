@@ -57,14 +57,6 @@ static char vpasswd_lock_file[MAX_BUFF];
 static char vpasswd_dir[MAX_BUFF];
 static char TmpBuf1[MAX_BUFF];
 
-#define SMALL_BUFF 200
-static char IUser[SMALL_BUFF];
-static char IPass[SMALL_BUFF];
-static char IGecos[SMALL_BUFF];
-static char IDir[SMALL_BUFF];
-static char IShell[SMALL_BUFF];
-static char IClearPass[SMALL_BUFF];
-
 int make_vpasswd_cdb(char *domain)
 {
  char pwline[256];
@@ -218,9 +210,7 @@ int make_vpasswd_cdb(char *domain)
 
 struct vqpasswd *vauth_getpw(char *user, char *domain)
 {
- char *in_domain;
- int mem_size;
- int i;
+ char in_domain[156];
  static struct vqpasswd pwent;
  static char line[2048];
  char *ptr = NULL, *uid = NULL, *gid = NULL;
@@ -243,20 +233,14 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 	return(NULL);
     }
 
-    mem_size = strlen(domain);
-    i = strlen(DEFAULT_DOMAIN);
-    if ( mem_size < i ) mem_size = i; 
-    ++mem_size;
-
-    in_domain = calloc(mem_size, sizeof(char));
-    strncpy( in_domain, domain, mem_size);
+    strncpy( in_domain, domain, sizeof(in_domain));
+    in_domain[sizeof(in_domain)-1] = '\0';  /* ensure NULL termination */
 
     set_vpasswd_files( in_domain );
 
     if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
 #ifdef FILE_LOCKING
 		if ( (lock_fs = fopen(vpasswd_lock_file, "w+")) == NULL) {
-			free(in_domain);
 			return(NULL);
 		}
 		get_write_lock( lock_fs );
@@ -267,7 +251,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
 		fclose(lock_fs);
 #endif
         if ((pwf = fopen(vpasswd_cdb_file,"r")) == NULL) {
-            free(in_domain);
             return(NULL);
         }
     }
@@ -280,26 +263,23 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     switch (cdb_seek(fileno(pwf),user,strlen(user),&dlen)) {
         case -1:
             fclose(pwf);
-            free(in_domain);
             return NULL;
         case 0:
             fclose(pwf);
-            free(in_domain);
             return NULL;
     }
     if (fread(ptr,sizeof(char),dlen,pwf) != dlen) {
-        free(in_domain);
         return NULL;
     }
     fclose(pwf);
     line[(dlen+strlen(user)+1)] = 0;
 
-    pwent.pw_name   = IUser;
-    pwent.pw_passwd = IPass;
-    pwent.pw_gecos  = IGecos;
-    pwent.pw_dir    = IDir;
-    pwent.pw_shell  = IShell;
-    pwent.pw_clear_passwd  = IClearPass;
+    pwent.pw_name   = "";
+    pwent.pw_passwd = "";
+    pwent.pw_gecos  = "";
+    pwent.pw_dir    = "";
+    pwent.pw_shell  = "";
+    pwent.pw_clear_passwd  = "";
 
     ptr = line;
     pwent.pw_name    = line;
@@ -331,7 +311,6 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     fprintf (stderr,"                     pw_shell  = %s\n",pwent.pw_shell);
 #endif
 
-    free(in_domain);
     return(&pwent);
 }
 

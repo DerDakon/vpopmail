@@ -49,7 +49,6 @@ void get_options(int argc,char **argv)
 {
  int c;
  int errflag;
- extern char *optarg;
  extern int optind;
 
   memset(ProcessName, 0, MAX_BUFF);

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(vchkpw.c)
-AM_INIT_AUTOMAKE(vpopmail,5.3.21)
+AM_INIT_AUTOMAKE(vpopmail,5.3.22)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
@@ -493,10 +493,7 @@ AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir")
 AC_SUBST(domains_dir)
 
 defaultdomain=""
-AC_ARG_ENABLE(default-domain, [  --enable-default-domain=name   Default domain name, default is null.],
-    defaultdomain="$enableval",
-        [])
-AC_DEFINE_UNQUOTED(DEFAULT_DOMAIN,"$defaultdomain")
+AC_ARG_ENABLE(default-domain, [], defaultdomain="$enableval", [])
 
 incdir=""
 for f in /usr/local/include/mysql /usr/include/mysql
@@ -1313,10 +1310,17 @@ echo "        pop syslog = OFF"
 	  ;;
 esac
 
-echo "    default domain = $defaultdomain --enable-default-domain=$defaultdomain"
-
 echo "          auth inc = $auth_inc"
 echo "          auth lib = $auth_libs"
+
+if test "$defaultdomain" = ""
+then
+echo ""
+else
+echo "** --enable-default-domain has been deprecated.  Please set"
+echo "   ~vpopmail/etc/defaultdomain to your default domain. **"
+fi
+
 
 echo ""
 echo ""
