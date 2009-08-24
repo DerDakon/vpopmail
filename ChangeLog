@@ -1,3 +1,9 @@
+5.3.23 - released 25-Jul-03
+
+	Tom Collins
+	- Removed timezone declaration to correct compile problem on 
+	  FreeBSD.
+
 5.3.22 - released 24-Jul-03
 
 	Moshe Jacobson

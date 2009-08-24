@@ -1319,7 +1319,6 @@ char *date_header()
   time_t now;
   struct tm *tm;
   unsigned int tz;
-  extern long timezone;
 
   static char *montab[12] = {
   "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
