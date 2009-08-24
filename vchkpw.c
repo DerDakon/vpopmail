@@ -401,7 +401,6 @@ void login_virtual_user()
 #endif
 
 
-#ifdef FOOB
 #ifdef ENABLE_LEARN_PASSWORDS
   /* check for a valid vpopmail passwd field */
   if ( vpw->pw_passwd==NULL||vpw->pw_passwd[0]==0) {
@@ -418,7 +417,6 @@ void login_virtual_user()
                               TheName, IpAddr, LogLine);
     vchkpw_exit(15);
   }
-#endif
 #endif
 
 

@@ -50,6 +50,9 @@ static char *vldap_attrs[] = {
   "userPassword",
   "mailQuota",
   "mailMessageStore",  
-  NULL
+#ifdef CLEAR_PASS
+  "clearPassword",
+#endif
+NULL
 };
 #endif

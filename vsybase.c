@@ -548,7 +548,7 @@ int vauth_setpw_size( struct vqpasswd *inpw, char *domain, int site_size)
 	dbcancel(dbproc);
 
 #ifdef SQWEBMAIL_PASS
-	tmpstr = vget_assign(domain, NULL, 156, &uid, &gid );
+	tmpstr = vget_assign(domain, NULL, 0, &uid, &gid );
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
 

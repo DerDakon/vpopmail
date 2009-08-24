@@ -1194,17 +1194,14 @@ time_t vget_lastauth(struct vqpasswd *pw, char *domain)
 
   if ( (err=vauth_open()) != 0 ) return(err);
 
-  snprintf( SqlBufRead,  SQL_BUF_SIZE,
-   "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", 
-	    pw->pw_name, domain);
+  snprintf( SqlBufRead,  SQL_BUF_SIZE, "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", pw->pw_name, domain);
 
-  pgres=PQexec(pgc, SqlBufUpdate);
+  pgres=PQexec(pgc, SqlBufRead);
+
   if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
     if( pgres ) PQclear(pgres);
     vcreate_lastauth_table();
-    snprintf( SqlBufRead,  SQL_BUF_SIZE,
-      "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", 
-	      pw->pw_name, domain);
+    snprintf( SqlBufRead,  SQL_BUF_SIZE, "SELECT timestamp FROM lastauth WHERE userid='%s' AND domain='%s'", pw->pw_name, domain);
     pgres=PQexec(pgc, SqlBufUpdate);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf(stderr,"vpgsql: sql error[g]: %s\n", PQerrorMessage(pgc));
@@ -1229,16 +1226,14 @@ char *vget_lastauthip(struct vqpasswd *pw, char *domain)
 
   if ( vauth_open() != 0 ) return(NULL);
 
-  snprintf( SqlBufRead,  SQL_BUF_SIZE,
-	    "select remote_ip from lastauth where userid='%s' and domain='%s'", 
-	    pw->pw_name, domain);
-  pgres=PQexec(pgc, SqlBufUpdate);
+  snprintf( SqlBufRead,  SQL_BUF_SIZE, "select remote_ip from lastauth where userid='%s' and domain='%s'",  pw->pw_name, domain);
+
+  pgres=PQexec(pgc, SqlBufRead);
   if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
     if( pgres ) PQclear(pgres);
     vcreate_lastauth_table();
-    snprintf( SqlBufRead,  SQL_BUF_SIZE,
-      "select remote_ip from lastauth where userid='%s' and domain='%s'", 
-	      pw->pw_name, domain);
+    snprintf( SqlBufRead,  SQL_BUF_SIZE, "select remote_ip from lastauth where userid='%s' and domain='%s'", pw->pw_name, domain);
+
     pgres=PQexec(pgc, SqlBufUpdate);
     if ( !pgres || PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
       fprintf( stderr,"vpgsql: sql error[h]: %s\n", PQerrorMessage(pgc));
@@ -1516,5 +1511,12 @@ void vpgsql_escape( char *instr, char *outstr )
 
   /* make sure the terminating NULL char is included */
   *outstr++ = *instr++;
+}
+
+int vauth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
+{
+	  if ( vpw == NULL ) return(-1);
+
+	    return(strcmp(crypt(clear_pass,vpw->pw_passwd),vpw->pw_passwd));
 }
 

@@ -1318,7 +1318,6 @@ char *date_header()
 {
   time_t now;
   struct tm *tm;
-  unsigned int tz;
 
   static char *montab[12] = {
   "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
@@ -1328,19 +1327,14 @@ char *date_header()
   };
   static char dh[39];
 
-  /* set timezone variable (seconds west of GMT) */
-  tzset();
-  tz = (unsigned int) abs(timezone / 60);
-
   /* look up current time and fill tm structure */
   time(&now);
-  tm = localtime(&now);
+  tm = gmtime(&now);
 
   snprintf (dh, sizeof(dh),
-    "Date: %s, %02u %s %u %02u:%02u:%02u %s%02u%02u\n",
+    "Date: %s, %02u %s %u %02u:%02u:%02u +0000\n",
     wday[tm->tm_wday], tm->tm_mday, montab[tm->tm_mon], tm->tm_year + 1900,
-    tm->tm_hour, tm->tm_min, tm->tm_sec, timezone > 0 ? "-" : "+",
-    tz / 60, tz % 60 * 100 / 60);
+    tm->tm_hour, tm->tm_min, tm->tm_sec);
 
   return dh;
 }

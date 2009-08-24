@@ -22,7 +22,7 @@
 
 /* Edit to match your set up */
 #define DB "vpopmail"
-#define PG_CONNECT "user=vpopmail dbname=" DB
+#define PG_CONNECT "user=postgres dbname=" DB
 
 // char replacing spaces and dashes
 #define SQL_DOT_CHAR    '_'
@@ -40,15 +40,16 @@ pw_gecos varchar(48), \
 pw_dir varchar(160), \
 pw_shell varchar(20), \
 pw_clear_passwd varchar(16), \
-id serial not null UNIQUE, \
-PRIMARY KEY (pw_name,pw_domain)"
+id integer DEFAULT nextval('\"vpopmail_id_seq\"'::text) NOT NULL, \
+UNIQUE(\"id\"), \
+PRIMARY KEY(\"pw_domain\", \"pw_name\")"
 #else
 #define TABLE_LAYOUT "pw_name varchar(32) NOT NULL, \
-pw_domain varchar(64) NOT NULL, 
+pw_domain varchar(64) NOT NULL, \
 pw_passwd varchar(40), \
 pw_uid int4, pw_gid int4, \
 pw_gecos varchar(48), \
-pw_dir varchar(160), 
+pw_dir varchar(160), \
 pw_shell varchar(20), \
 PRIMARY KEY (pw_name, pw_domain ) "
 #endif
