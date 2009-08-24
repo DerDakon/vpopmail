@@ -41,6 +41,7 @@
 #define ERR_NOT_IMPLEMENT       36   // Not implemented yet
 #define ERR_IP_REQUIRED         37   // Not implemented yet
 #define ERR_INVALID_DOMAIN      38   // Not implemented yet
+#define ERR_UNKNOWN_UIDGID	    39   // Cannot determine my uid or gid
 
 
 
@@ -84,4 +85,5 @@ const char *ErrorMessages[] = {
    "Could not get limits",                            //  NO_GET_LIMITS       34   
    "Could not set limits",                            //  NO_SET_LIMITS       35   
    "Not Implemented yet",                             //  NOT_IMPLEMENT       36   
+   "Cannot determine my UID or GID"					  //  ERR_UNKNOWN_UIDGID  37
 };

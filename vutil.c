@@ -45,6 +45,7 @@
 #include <signal.h>
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 
 //////////////////////////////////////////////////////////////////////

@@ -1,0 +1,10 @@
+A full backup of vpopmail would include the following items:
+
+  ~vpopmail/domains
+  ~vpopmail/etc
+  ~qmail/control
+  ~qmail/users
+
+You can get away with just backing up ~vpopmail/domains if need be,
+because the rest of the information can be generated from the mail
+store.

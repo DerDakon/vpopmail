@@ -25,6 +25,7 @@
 #include <string.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 
 char ProcessName[MAX_BUFF];
 
@@ -33,6 +34,12 @@ void get_options(int argc,char **argv);
 
 int main(int argc,char **argv)
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
   get_options(argc,argv);
   signal_process(ProcessName,  SIGKILL);
   return(0);

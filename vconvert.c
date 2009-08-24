@@ -30,7 +30,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
-#include "vmysql.h"
+#include "vauthmodule.h"
 
 
 #ifdef HAS_SHADOW
@@ -80,6 +80,12 @@ int  PasswdFormat;
 
 int main(int argc, char *argv[])
 {
+   int ret;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
 	if( vauth_open( 1 )) {
 		vexiterror( stderr, "Initial open." );
 	}
@@ -463,19 +469,27 @@ int passwd_to_vpopmail( char *domain )
 
 int set_sqwebmail_pass( char *domain)
 {
+   int ret = 0;
  struct vqpasswd *pw;
+ uid_t uid;
+ gid_t gid;
 
 	if ( Debug == 1 ) {
 		printf("Setting sqwebmail passwords for %s\n", domain);
 	}
+
+	ret = vpopmail_uidgid(&uid, &gid);
+	if (!ret) {
+	   fprintf(stderr, "set_sqwebmail_pass: cannot determine my uid or gid\n");
+	   return VA_UNKNOWN_UIDGID;
+	  }
 
 	pw = vauth_getall(domain, 1, 0);
 	while( pw != NULL ) {
 		if ( Debug == 1 ) {
 			printf("%s\n", pw->pw_name);
 		}
-    		vsqwebmail_pass( pw->pw_dir, pw->pw_passwd, 
-			VPOPMAILUID, VPOPMAILGID);
+	    vsqwebmail_pass( pw->pw_dir, pw->pw_passwd, uid, gid);
 		pw = vauth_getall(domain, 0, 0);
 	}
 	return(0);

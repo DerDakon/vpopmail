@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <string.h>
 #include <pwd.h>
@@ -29,6 +30,7 @@
 #include "config.h"
 #include "vpopmail.h"
 #include "vauth.h"
+#include "vauthmodule.h"
 
 char Domain[MAX_BUFF];
 
@@ -36,8 +38,24 @@ void usage();
 
 int main(int argc, char *argv[])
 {
-#ifdef USE_CDB
- int i;
+   int i =0;
+   int ret = 0;
+   const char *modname = NULL;
+
+   ret = vauth_load_module(NULL);
+   if (!ret)
+	  vexiterror(stderr, "could not load authentication module");
+
+   modname = vauth_module_name();
+   if (modname == NULL) {
+	  vexiterror(stderr, "could not load authentication module");
+	  return(vexit(-1));
+   }
+
+   if (strcasecmp(modname, "cdb")) {
+	  printf("vmkpasswd: is only needed by the cdb authentication module\n"); 
+	  return(vexit(0));
+   }
 
 	if ( argc != 2 ) {  
 		usage();
@@ -53,18 +71,9 @@ int main(int argc, char *argv[])
 	}
 	lowerit(Domain);
 	return(vmkpasswd( Domain ));
-#else
-	usage();
-	return(vexit(0));
-#endif
-
 }
 
 void usage()
 {
-#ifdef USE_CDB
 	printf("vmkpasswd: usage: domain \n");
-#else
-	printf("vmkpasswd: is only needed by the cdb authentication module\n"); 
-#endif
 }

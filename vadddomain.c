@@ -28,6 +28,7 @@
 #include <signal.h>
 #include "config.h"
 #include "vpopmail.h"
+#include "vauthmodule.h"
 #include "vauth.h"
 
 
@@ -57,6 +58,10 @@ int main(int argc, char *argv[])
  gid_t a_gid;
 
  char TmpBuf1[MAX_BUFF];
+
+   err = vauth_load_module(NULL);
+   if (!err)
+	  vexiterror(stderr, "could not load authentication module");
  
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
@@ -96,11 +101,11 @@ int main(int argc, char *argv[])
 
             /* if catchall address is an email address... */
             if ( strstr(BounceEmail, "@") != NULL ) { 
-                fprintf(fs, "| %s/bin/vdelivermail '' %s\n", VPOPMAILDIR, 
+                fprintf(fs, "| %s/vdelivermail '' %s\n", VPOPMAIL_DIR_BIN, 
                     BounceEmail);
             /* No '@' - so assume catchall is a mailbox name */
             } else {
-                fprintf(fs, "| %s/bin/vdelivermail '' %s/%s\n", VPOPMAILDIR,
+                fprintf(fs, "| %s/vdelivermail '' %s/%s\n", VPOPMAIL_DIR_BIN,
                     a_dir, BounceEmail);
             }
 
@@ -145,6 +150,7 @@ void get_options(int argc,char **argv)
 {
  int c;
  int errflag;
+ int ret = 0;
  struct passwd *mypw;
  extern char *optarg;
  extern int optind;
@@ -156,8 +162,11 @@ void get_options(int argc,char **argv)
     memset(Dir, 0, sizeof(Dir));
     memset(BounceEmail, 0, sizeof(BounceEmail));
 
-    Uid = VPOPMAILUID;
-    Gid = VPOPMAILGID;
+	ret = vpopmail_uidgid(&Uid, &Gid);
+	if (!ret) {
+	   fprintf(stderr, "cannot determine my uid or gid\n");
+	   return;
+	  }
 
     Apop = USE_POP;
     Bounce = 1;
@@ -227,7 +236,9 @@ void get_options(int argc,char **argv)
 
     /* if a home dir hasnt been chosen, default to the vpopmail dir */
     if ( Dir[0] == 0 ) {
-	snprintf(Dir, sizeof(Dir), "%s", VPOPMAILDIR);
+	   // XXX TODO There is no VPOPMAILDIR anymore
+	   // What is this for?
+	snprintf(Dir, sizeof(Dir), "%s", VPOPMAIL_DIR_DOMAINS);
     }
 
     /* Grab the domain */
