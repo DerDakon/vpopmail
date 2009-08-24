@@ -559,6 +559,14 @@ void login_system_user()
    pw_uid = pw->pw_uid;
    pw_gid = pw->pw_gid;
    pw_dir = pw->pw_dir;
+   
+   /* show success but with no password */
+   if ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4) {
+     snprintf(LogLine, LOG_LINE_SIZE, "%s: system password login success %s:%s",
+       VchkpwLogName, TheUser, IpAddr);
+     vlog(VLOG_AUTH, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
+   }
+
 #ifdef POP_AUTH_OPEN_RELAY
    if ( LocalPort != 25 && LocalPort != 465 ) {
         open_smtp_relay();    

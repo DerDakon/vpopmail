@@ -1,3 +1,14 @@
+REMINDER:
+
+When recompiling vpopmail, you need to recompile all binaries that link 
+into the vpopmail libraries.  These include QmailAdmin and qmail-smtpd (if 
+you have the chkuser patch applied).
+
+Upgrading to vpopmail-5.3
+-------------------------
+Differences between 5.2.x and 5.3.x will be detailed in an upcoming 
+release.
+
 Upgrading to vpopmail-5.2
 -------------------------
 Everything should be backwardly compatible with

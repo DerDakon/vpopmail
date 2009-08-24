@@ -199,11 +199,15 @@ void get_options(int argc,char **argv)
                 QuotaFlag = 1;
 		/* properly handle the following formats:
 		 * "1M", "1024K", "1048576" (set 1 MB quota)
+		 * "1MB", "1024KB" (set 1 MB quota)
 		 * "NOQUOTA" (no quota)
 		 * "1048576S,1000C" (1 MB size, 1000 message limit)
 		 */
                 strncpy( Quota, optarg, MAX_BUFF-1);
 		i = strlen (Quota);
+		if ((Quota[i-1] == 'B') || (Quota[i-1] == 'b')) {
+		    Quota[--i] = 0;
+		}
 	        q = atof(Quota);
 		if ((Quota[i-1] == 'M') || (Quota[i-1] == 'm')) {
 		    sprintf (Quota, "%.0fS", q * 1024 * 1024);

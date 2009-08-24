@@ -117,11 +117,13 @@ int do_all_domains()
     while ( fgets(tmpbuf,400,fs) != NULL ) {
         for(i=1;tmpbuf[i]!=':';++i);
         tmpbuf[i-1] = 0;
-	if ( tmpbuf[1] != '\n' ) printf("converting %s ...", &tmpbuf[1] );
-        if ( conv_domain( &tmpbuf[1] ) != 0 ) {
-            printf("domain conversion failed\n");
-        } else {
-            printf("done\n");
+	if ( tmpbuf[1] != '\n' ) {
+            printf("converting %s ...", &tmpbuf[1] );
+            if ( conv_domain( &tmpbuf[1] ) != 0 ) {
+                printf("domain conversion failed\n");
+            } else {
+                printf("done\n");
+            }
         }
     }
     fclose(fs);
@@ -312,8 +314,8 @@ int etc_to_default( char *domain )
 void usage()
 {
 	fprintf(stdout, "vconvert: usage\n");
-	fprintf(stdout, " The first option sets which format to convert FROM");
-	fprintf(stdout, " the second option sets which format to convert TO");
+	fprintf(stdout, " The first option sets which format to convert FROM,\n");
+	fprintf(stdout, " the second option sets which format to convert TO.\n");
 	fprintf(stdout, " -e = etc format\n"); 
 	fprintf(stdout, " -c = cdb format\n"); 
 	fprintf(stdout, " -m = sql format\n"); 

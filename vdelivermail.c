@@ -246,6 +246,7 @@ void get_arguments(int argc, char **argv)
 int process_valias(void)
 {
  int found = 0;
+ int deliver_err;
  char *tmpstr;
  char tmpuser[350];
  char def[150];
@@ -279,7 +280,14 @@ int process_valias(void)
         found = 1;
 
         /* deliver the mail */
-        deliver_mail(tmpstr, "NOQUOTA");
+        deliver_err = deliver_mail(tmpstr, "NOQUOTA");
+        if (deliver_err == -2) {
+            printf("system error\n");
+            vexit(111);
+        } else if (deliver_err == -3) {
+            printf("mail is looping");
+            vexit(111);
+        }
 
         /* Get the next alias for this user@domain */
         tmpstr = valias_select_next();
@@ -301,7 +309,14 @@ int process_valias(void)
             found = 1;
 
             /* deliver the mail */
-            deliver_mail(tmpstr, "NOQUOTA");
+            deliver_err = deliver_mail(tmpstr, "NOQUOTA");
+            if (deliver_err == -2) {
+                printf("system error\n");
+                vexit(111);
+            } else if (deliver_err == -3) {
+                printf("mail is looping\n");
+                vexit(111);
+            }
 
             /* Get the next alias for this user@domain */
             tmpstr = valias_select_next();
@@ -449,6 +464,11 @@ int deliver_mail(char *address, char *quota)
         return(0);
       }
 
+    /* This is a comment, ignore it */
+    else if ( *address == '#' ) {
+        return(0);
+    }
+
     /* Contains /Maildir/ ? Then it must be a full or relative
      * path to a Maildir 
      */ 
@@ -457,18 +477,16 @@ int deliver_mail(char *address, char *quota)
         /* if the user has a quota set */
         if ( strncmp(quota, "NOQUOTA", 2) != 0 ) {
 
-            /* If the user is over thier quota, return it back
+            /* If the user is over their quota, return it back
              * to the sender.
              */
-	    printf("address: %s\n", address);
-	    printf("quota: %s\n", quota);
             if (user_over_maildirquota(address,format_maildirquota(quota))==1) {
 
                 /* check for over quota message in domain */
-                snprintf(tmp_file, 256, "%s/.over-quota.msg",TheDomainDir);
+                sprintf(tmp_file, "%s/.over-quota.msg",TheDomainDir);
                 if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                     /* if no domain over quota then check in vpopmail dir */
-                    snprintf(tmp_file, 256, "%s/domains/.over-quota.msg",VPOPMAILDIR);
+                    sprintf(tmp_file, "%s/domains/.over-quota.msg",VPOPMAILDIR);
                     fs=fopen(tmp_file, "r");
                 }
 
@@ -495,10 +513,10 @@ int deliver_mail(char *address, char *quota)
         if (domain_over_maildirquota(address)==1)
         {
             /* check for over quota message in domain */
-            snprintf(tmp_file, 256, "%s/.over-quota.msg",TheDomainDir);
+            sprintf(tmp_file, "%s/.over-quota.msg",TheDomainDir);
             if ( (fs=fopen(tmp_file, "r")) == NULL ) {
                 /* if no domain over quota then check in vpopmail dir */
-                snprintf(tmp_file, 256, "%s/domains/.over-quota.msg",VPOPMAILDIR);
+                sprintf(tmp_file, "%s/domains/.over-quota.msg",VPOPMAILDIR);
                 fs=fopen(tmp_file, "r");
             }
 
@@ -588,22 +606,7 @@ int deliver_mail(char *address, char *quota)
         close(write_fd);
         /* Check if the user is over quota */
         if ( errno == EDQUOT ) {
-	  snprintf(tmp_file, 256, "%s/.over-quota.msg", TheDomainDir);
-	  if ( (fs=fopen(tmp_file, "r")) == NULL ) {
-	    /* if no domain over quota then check in vpopmail dir */
-	    snprintf(tmp_file, 256, "%s/domains/.over-quota.msg", VPOPMAILDIR);
-	    fs=fopen(tmp_file, "r");
-	  }
-
-	  if ( fs == NULL ) {
-	    printf("domain is over quota\n");
-	  } else {
-	      while( fgets( tmp_file, 256, fs ) != NULL ) {
-	        fputs(tmp_file, stdout);
-	    }
-	    fclose(fs);
-	  }
-	  return(-1);
+            return(-1);
         } else {
             printf("failed to write delivered to line errno=%d\n",errno);
            return(errno);
@@ -626,25 +629,10 @@ int deliver_mail(char *address, char *quota)
 
             /* Check if the user is over quota */
             if ( errno == EDQUOT ) {
-	      snprintf(tmp_file, 256, "%s/.over-quota.msg", TheDomainDir);
-	      if ( (fs=fopen(tmp_file, "r")) == NULL ) {
-		/* if no domain over quota then check in vpopmail dir */
-		snprintf(tmp_file, 256, "%s/domains/.over-quota.msg",VPOPMAILDIR);
-		fs=fopen(tmp_file, "r");
-	      }
-
-	      if ( fs == NULL ) {
-		printf("domain is over quota\n");
-	      } else {
-		  while( fgets( tmp_file, 256, fs ) != NULL ) {
-		    fputs(tmp_file, stdout);
-		}
-		fclose(fs);
-	      }
-	      return(-1);
+                return(-1);
             } else {
-	        printf("write failed errno = %d\n", errno);
-	        return(errno);
+                printf("write failed errno = %d\n", errno);
+                return(errno);
             }
         }
     }
@@ -721,7 +709,7 @@ int check_forward_deliver(char *dir)
  FILE *fs;
  int i;
  int return_value = 0;
-
+ int deliver_err;
    
     chdir(dir);
 
@@ -737,6 +725,7 @@ int check_forward_deliver(char *dir)
 
     /* read the file, line by line */
     while ( fgets(qmail_line, 500, fs ) != NULL ) {
+        if (*qmail_line == '#') continue;
 
         /* remove the trailing new line */
         for(i=0;qmail_line[i]!=0;++i) {
@@ -748,7 +737,14 @@ int check_forward_deliver(char *dir)
          */
         if ( strcmp( qmail_line, tmpbuf) == 0 ) continue;
 
-        deliver_mail(qmail_line, "NOQUOTA");
+        deliver_err = deliver_mail(qmail_line, "NOQUOTA");
+        if (deliver_err == -2) {
+            printf("system error\n");
+            vexit(111);
+        } else if (deliver_err == -3) {
+            printf("mail is looping\n");
+            vexit(111);
+        }
         return_value = 1;
     }
 
@@ -1033,10 +1029,6 @@ void checkuser()
 void usernotfound() 
 {
  int ret;
- static char tmpuser[AUTH_SIZE];
- static char tmpdomain[AUTH_SIZE];
- static uid_t uid;
- static gid_t gid;
 
     /* If they want to delete email for non existant users
      * then just exit 0. Qmail will delete the email for us
@@ -1076,18 +1068,12 @@ void usernotfound()
 
     /* check if it is a path add the /Maildir/ for delivery */
     if ( bounce[0] == '/' ) {
-        strcat( bounce, "/Maildir/");
+        strcat( bounce, "/");
         printf ("user does not exist, but will deliver to %s\n", bounce);
-    } else {
-        /* check if the forward is local and just deliver */
-        parse_email( bounce, tmpuser, tmpdomain, AUTH_SIZE);
-        if ( (vpw = vauth_getpw(tmpuser, tmpdomain)) != NULL ) {
-            vget_assign(tmpdomain,NULL,0,&uid,&gid);
-            if ( uid == TheDomainUid && gid == TheDomainGid ) {
-                checkuser();
-                return;
-            }
-        }
+        if( check_forward_deliver(bounce) == 1 )
+            vexit(0);
+        else
+            strcat( bounce, "/Maildir/");
     }
 
     ret = deliver_mail(bounce, "NOQUOTA" );

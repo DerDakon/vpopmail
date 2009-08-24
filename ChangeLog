@@ -1,11 +1,39 @@
-5.3.20
-4/02/03  Albert Weichselbraun
-         - vpopmail+system-quotas: if user is over system quota no error
-           message is returned. Use over-quota-msg code to return an 
-           informational bounce.
-         - replace sprintf's with snprintf's in vdelivermail.c
+5.3.21 - released 17-Jul-03
 
- 
+	Ole Gjerde
+	- Check return code from vdeliver_mail in valias code and exit
+	  appropriately on errors.  Previously, mail could be lost.
+
+	Cory Wright (and others)
+	- Fix missing "\" in multi-line #define in vmysql.h.
+
+	Maurice Snellen
+	- When logging POP3 logins, now includes system accounts.
+
+	Emris and Jeff Hedlund
+	- Ignore comments when processing .qmail files.
+
+	Moshe Jacobson
+	- Allow colons in cleartext passwords (vqpasswd() in vpopmail.c).
+
+	Jonas Thomsen
+	- Ignore final '.' in users/assign when running 'vconvert -c -m'.
+
+	Michael Bowe
+	- Remove debug printfs from vdelivermail on overquota bounces.
+
+	Jeff Hedlund
+	- Ignore comments when processing .qmail files.
+	- Process .qmail file when delivering to local (Maildir) catchall.
+	- vdelivermail now properly sets $EXT@$HOST and sets Deliver-To
+	  header on local deliveries.
+
+	Tom Collins
+	- Fix usage formatting on vconvert.
+	- Support for MB/KB quota formats in vmoduser.
+
+
+5.3.20
 4/01/03  Tom Collins 
          - If there isn't a limits entry for the domain in MySQL, it uses 
            potentially random settings (nothing initializes the limits 
