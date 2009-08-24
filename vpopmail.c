@@ -1587,7 +1587,7 @@ int compile_morercpthosts()
 struct vqpasswd *vgetent(FILE *pw)
 {
     static struct vqpasswd pwent;
-    char line[MAX_BUFF];
+    static char line[MAX_BUFF];
     int i=0,j=0;
     char *tmpstr;
     char *tmpstr1;
@@ -2930,62 +2930,85 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
 
 /************************************************************************/
 
-/* Michael Bowe 15th Aug 2003 
- * Mmm, is this the best code for this job?
- * There is also a similar block in vmoduser.c
- * We would be best to have only one function doing this job
- * Is this one or the vmoduser.c one better? Or should we combine
- * the best features of each.
- * Also, do we need to add formatting to the other tools that can
- * set quotas, eg vadduser.c, vpopmail.c's vsetuserquota()
- */
+                /* properly handle the following formats:
+                 * "1M", "1024K", "1048576" (set 1 MB quota)
+                 * "1MB", "1024KB" (set 1 MB quota)
+                 * "NOQUOTA" (no quota)
+                 * "1mbs,1000C" (1 MB size, 1000 message limit)
+                 * "1048576S,1000C" (1 MB size, 1000 message limit)
+                 * "1000C,10MBS" (10 MB size, 1000 message limit)
+                 */
+
 char *format_maildirquota(const char *q) {
 int     i;
-int     per_user_limit;
-static char    tempquota[MAX_BUFF]; 
+double	quota_size;
+long	quota_count;
+char	*p;
+static char    tempquota[128];
 
-    /* translate the quota to a number, or leave it */
-    i = strlen(q) - 1;
-    tempquota[0] = '\0'; /* make sure tempquota is 0 length */
- 
-    /* No comma, and last char of quota string != 'S'... */
-    if(strstr(q, ",") == NULL && q[i] != 'S') {
-        /* Assume quota is a number. So convert the string to number */
-        per_user_limit = atol(q);
-        /* Now check for k,K,m,M units */
-        for(i=0;q[i]!=0;++i) {
-            if ( q[i] == 'k' || q[i] == 'K' ) {
-                /* found kilobyte units */
-                per_user_limit = per_user_limit * 1024;
-                /* format the value in bytes with S on the end : nnnS */
-                snprintf(tempquota, sizeof(tempquota), "%dS", per_user_limit);
-                break;
-            }
-            if ( q[i] == 'm' || q[i] == 'M' ) {
-                /* found megabyte units */
-                per_user_limit = per_user_limit * 1048576;
-                /* format the value in bytes with S on the end : nnnS */
-                snprintf(tempquota, sizeof(tempquota), "%dS", per_user_limit);
-                break;
-            }
-        }
-
-        /* if tempquota is still null at this point, then no units were found,
-         * so assume the input was in bytes. format it out as nnnS 
-         */
-        if(strlen(tempquota) == 0) {
-            snprintf(tempquota, sizeof(tempquota), "%sS", q);
-        }
-    } else {
-         /* if we made it here, then either there was a comma in the quota,
-          * or the quota ended with an 'S'
-          * so we will leave the quota string alone in this case
-          */
-         snprintf(tempquota, sizeof(tempquota), "%s", q);
+    if (strcmp (q, "NOQUOTA") == 0) {
+      strcat (tempquota, "NOQUOTA");
+      return tempquota;
     }
 
-    return(tempquota);
+    /* translate the quota to a number, or leave it */
+    quota_size = -1.0;
+    quota_count = -1;
+    snprintf (tempquota, sizeof(tempquota), "%s", q);
+    p = strtok (tempquota, ",");
+    while (p != NULL) {
+      i = strlen(p) - 1;
+      if (p[i] == 'C') { /* specify a limit on the number of messages (COUNT) */
+        quota_count = atol(p);
+      } else { /* specify a limit on the size */
+        /* strip optional trailing S */
+        if ((p[i] == 'S') || (p[i] == 's')) p[i--] = '\0';
+        /* strip optional trailing B (for KB, MB) */
+        if ((p[i] == 'B') || (p[i] == 'b')) p[i--] = '\0';
+
+        quota_size = atof(p);
+        if ((p[i] == 'M') || (p[i] == 'm')) quota_size *= 1024 * 1024;
+        if ((p[i] == 'K') || (p[i] == 'k')) quota_size *= 1024;
+      }
+      p = strtok (NULL, ",");
+    }
+
+    if (quota_count == -1)
+      if (quota_size == -1.0) strcpy (tempquota, ""); /* invalid quota */
+      else sprintf (tempquota, "%.0fS", quota_size);
+    else if (quota_size == -1.0)
+      sprintf (tempquota, "%luC", quota_count);
+    else
+      sprintf (tempquota, "%.0fS,%luC", quota_size, quota_count);
+
+    return tempquota;
 }
 
 /************************************************************************/
+
+/* returns a 39 character Date: header with trailing newline and NULL */
+char *date_header()
+{
+  static char dh[39];
+  time_t now;
+  struct tm *tm;
+
+  static char *montab[12] = {
+  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+  };
+  static char *wday[7] = {
+  "Sun","Mon","Tue","Wed","Thu","Fri","Sat"
+  };
+
+  /* look up current time and fill tm structure */
+  time(&now);
+  tm = gmtime(&now);
+
+  snprintf (dh, sizeof(dh),
+    "Date: %s, %02u %s %u %02u:%02u:%02u +0000\n",
+    wday[tm->tm_wday], tm->tm_mday, montab[tm->tm_mon], tm->tm_year + 1900,
+    tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+  return dh;
+}
 

@@ -42,6 +42,7 @@ char AliasLine[MAX_BUFF];
 #define VALIAS_DELETE 2
 
 int AliasAction;
+int AliasExists;
 
 void usage();
 void get_options(int argc,char **argv);
@@ -56,12 +57,14 @@ int main(int argc, char *argv[])
 	case VALIAS_SELECT:
 		/* did the user nominate an email address or a domain? */
 		if ( strstr(Email, "@") == NULL ) {
+			/* display all aliases for domain */
 			tmpalias = valias_select_all( Alias, Email );
 			while (tmpalias != NULL ) {
 				printf("%s@%s -> %s\n", Alias, Email, tmpalias);
 				tmpalias = valias_select_all_next(Alias);
 			}
 		} else {
+			/* display aliases for Alias@Domain */
 			tmpalias = valias_select( Alias, Domain );
 			while (tmpalias != NULL ) {
 				printf("%s@%s -> %s\n", Alias, Domain,tmpalias);
@@ -71,7 +74,19 @@ int main(int argc, char *argv[])
 		break;
 
 	case VALIAS_INSERT:
-		valias_insert( Alias, Domain, AliasLine );
+		/* check to see if it already exists */
+		AliasExists = 0;
+		tmpalias = valias_select_all( Alias, Domain );
+		while (tmpalias != NULL ) {
+			if (strcmp (tmpalias, AliasLine) == 0) AliasExists = 1;
+			tmpalias = valias_select_next();
+		}
+		if (AliasExists) {
+			printf ("Error: alias %s -> %s already exists.\n",
+				Email, AliasLine);
+		} else {
+			valias_insert( Alias, Domain, AliasLine );
+		}
 		break;
 
 	case VALIAS_DELETE:
@@ -92,6 +107,9 @@ void usage()
 	printf("         -s ( show aliases, can use just domain )\n");
 	printf("         -d ( delete alias )\n");
 	printf("         -i alias_line (insert alias line)\n");
+	printf("\n");
+	printf("Example: valias -i fred@inter7.com bob@inter7.com\n");
+	printf("         (adds alias from bob@inter7.com to fred@inter7.com\n");
 }
 
 void get_options(int argc,char **argv)

@@ -232,7 +232,7 @@ void get_options(int argc,char **argv)
     if ( optind < argc ) {
 	snprintf(Passwd, sizeof(Passwd), "%s", argv[optind]);
 	++optind;
-    } else {
+    } else if (!RandomPw) {
       /* if no postmaster password specified, then prompt user to enter one */
 	snprintf(Passwd, sizeof(Passwd), "%s", vgetpasswd("postmaster"));
     }

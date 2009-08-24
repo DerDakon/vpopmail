@@ -683,7 +683,7 @@ int vopen_smtp_relay()
 void vupdate_rules(int fdm)
 {
   PGresult *pgres;
-  const char re[]=":allow,RELAYCLIENT=\"\"\n";
+  const char re[]=":allow,RELAYCLIENT=\"\",RBLSMTPD=\"\"\n";
   register unsigned i=0, n, len=strlen(re)+1;
   char *buf=NULL;
 
