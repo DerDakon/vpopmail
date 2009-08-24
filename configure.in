@@ -1,0 +1,1350 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(vchkpw.c)
+AM_INIT_AUTOMAKE(vpopmail,5.3.29)
+AM_CONFIG_HEADER(config.h)
+AC_CANONICAL_HOST
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_RANLIB
+
+AC_ISC_POSIX
+AC_AIX
+
+USE_CDB=1
+
+if test "$GCC" = yes ; then
+        CXXFLAGS="$CXXFLAGS -Wall"
+        CFLAGS="$CFLAGS -Wall"
+fi
+
+case "$host" in
+  *-*-sunos4.1.1*)
+idcommand="/usr/xpg4/bin/id -u"
+   ;;
+ *-*-solaris2.8*)
+idcommand="/usr/xpg4/bin/id -u"
+   ;;
+  *-*-solaris*)
+idcommand="/usr/xpg4/bin/id -u"
+   ;;
+  *)
+idcommand="id -u"
+  ;;
+esac
+
+if test `$idcommand` != "0"
+then
+    AC_MSG_WARN(=== vpopmail must be configured as root. ===)
+    AC_MSG_WARN(=== please switch to the root user and  ===)
+    AC_MSG_WARN(=== run ./configure. Thanks ===)
+    AC_MSG_ERROR(aborted.)
+fi
+
+qmaildir=""
+for f in /var/qmail
+do
+    if test -d $f
+    then
+        qmaildir=$f
+    fi
+done
+
+AC_ARG_ENABLE(qmaildir, [  --enable-qmaildir=dir   directory where qmail control and user directories are installed. default is /var/qmail],
+    qmaildir="$enableval",
+    [
+        if test "$qmaildir" = ""
+        then
+            AC_MSG_ERROR([Unable to find your qmaildir directory, specify --enable-qmaildir.])
+        fi
+    ] )
+AC_DEFINE_UNQUOTED(QMAILDIR,"$qmaildir","")
+
+qmailnewu=""
+for f in "$qmaildir"/bin/qmail-newu /usr/sbin/qmail-newu
+do
+    if test -f $f
+    then
+        qmailnewu=$f
+    fi
+done
+AC_ARG_ENABLE(qmail-newu, [  --enable-qmail-newu=path Full path to qmail-newu program],
+    qmailnewu="$enableval",
+    [
+        if test "$qmailnewu" = ""
+        then
+            AC_MSG_ERROR([Unable to find your qmail-newu file, specify --enable-qmail-newu.])
+        fi
+    ] )
+
+if test ! -f "$qmailnewu"
+then
+    AC_MSG_ERROR([Unable to find your qmail-newu file, specify --enable-qmail-newu=/full/path/to/qmail-newu])
+fi
+
+AC_DEFINE_UNQUOTED(QMAILNEWU,"$qmailnewu","")
+
+qmailinject=""
+for f in "$qmaildir"/bin/qmail-inject /usr/sbin/qmail-inject /usr/bin/qmail-inject
+do
+    if test -f $f
+    then
+        qmailinject=$f
+    fi
+done
+AC_ARG_ENABLE(qmail-inject, [  --enable-qmail-inject=path Full path to qmail-inject program],
+    qmailinject="$enableval",
+    [
+        if test "$qmailinject" = ""
+        then
+            AC_MSG_ERROR([Unable to find your qmailinject file, specify --enable-qmail-inject.])
+        fi
+    ] )
+if test ! -f "$qmailinject"
+then
+    AC_MSG_ERROR([Unable to find your qmail-inject file, specify --enable-qmail-inject=/full/path/to/qmail-inject])
+fi
+
+AC_DEFINE_UNQUOTED(QMAILINJECT,"$qmailinject","")
+
+qmailnewmrh=""
+for f in "$qmaildir"/bin/qmail-newmrh /usr/sbin/qmail-newmrh
+do
+    if test -f $f
+    then
+        qmailnewmrh=$f
+    fi
+done
+AC_ARG_ENABLE(qmail-newmrh, [  --enable-qmail-newmrh=path Full path to qmail-newmrh program],
+    qmailnewmrh="$enableval",
+    [
+        if test "$qmailnewmrh" = ""
+        then
+            AC_MSG_ERROR([Unable to find your qmail-newmrh file, specify --enable-qmail-newmrh.])
+        fi
+    ] )
+if test ! -f "$qmailnewmrh"
+then
+    AC_MSG_ERROR([Unable to find your qmail-newmrh file, specify --enable-qmail-qmail-newmrh=/full/path/to/qmail-newmrh])
+fi
+
+AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh","")
+
+
+vpopuser="vpopmail"
+AC_ARG_ENABLE(vpopuser, [  --enable-vpopuser=vpopmail   user vchkpw was installed as.],
+    vpopuser="$enableval",
+    [
+        if test "$vpopuser" = ""
+        then
+            AC_MSG_ERROR([Unable to find your vpopuser user, specify --enable-vpopuser.])
+        fi
+    ] )
+AC_DEFINE_UNQUOTED(VPOPUSER,"$vpopuser","")
+AC_SUBST(vpopuser)
+echo $vpopuser > vpopusername
+
+vpopgroup="vchkpw"
+AC_ARG_ENABLE(vpopgroup, [  --enable-vpopgroup=vchkpw   group vchkpw was installed as.],
+    vpopgroup="$enableval",
+    [
+        if test "$vpopgroup" = ""
+        then
+            AC_MSG_ERROR([Unable to find your vpopgroup group, specify --enable-vpopgroup.])
+        fi
+    ] )
+AC_DEFINE_UNQUOTED(VPOPGROUP,"$vpopgroup","")
+AC_SUBST(vpopgroup)
+
+AC_TRY_RUN( [
+
+#include <stdio.h>
+#include <pwd.h>
+#include <stdlib.h>
+
+int main()
+{
+struct passwd *pw;
+char tmpbuf[100];
+FILE *f;
+
+	unlink("vpopmail.dir");
+	unlink("vpopmail.uid");
+	unlink("vpopmail.gid");
+
+        if ( (f=fopen("vpopusername","r+"))==NULL) {
+		printf("No vpopmail user found.\n");
+		printf("Please add the vchkpw group and\n");
+		printf("vpopmail user. Then run configure again\n");
+                return(0);
+	}
+
+        fgets(tmpbuf,100,f);
+        fclose(f);
+        tmpbuf[strlen(tmpbuf)-1] = 0;
+
+	if (( pw=getpwnam(tmpbuf)) != 0 ) {
+		f=fopen("vpopmail.dir","a+");
+		fprintf(f,"%s\n", pw->pw_dir);
+		fclose(f);
+
+		f=fopen("vpopmail.uid", "a+");
+		fprintf(f,"%d\n", pw->pw_uid);
+		fclose(f);
+
+		f=fopen("vpopmail.gid", "a+");
+		fprintf(f,"%d\n", pw->pw_gid);
+		fclose(f);
+	} else {
+		printf("No vpopmail user found.\n");
+		printf("Please add the vchkpw group and\n");
+		printf("vpopmail user. Then run configure again\n");
+	}
+	return(0);
+}
+],
+    AC_MSG_RESULT(yes),
+    AC_MSG_RESULT(no)
+    AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.),
+    AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.))
+
+if test ! -f vpopmail.uid
+then
+        AC_MSG_ERROR(No vpopmail user.)
+fi
+
+if test ! -f vpopmail.gid
+then
+        AC_MSG_ERROR(No vpopmail group.)
+fi
+
+if test ! -f vpopmail.dir
+then
+        AC_MSG_ERROR(No vpopmail home directory user.)
+fi
+
+vpopmaildir=`cat vpopmail.dir`
+AC_SUBST(vpopmaildir)
+AC_DEFINE_UNQUOTED(VPOPMAILDIR,"$vpopmaildir","")
+rm -f vpopmail.dir
+
+vpopmailuid=`cat vpopmail.uid`
+AC_DEFINE_UNQUOTED(VPOPMAILUID,$vpopmailuid,"")
+rm -f vpopmail.uid
+
+vpopmailgid=`cat vpopmail.gid`
+AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid,"")
+rm -f vpopmail.gid
+rm -f vpopusername 
+
+vlimits_default="$vpopmaildir/etc/vlimits.default"
+
+AC_DEFINE_UNQUOTED(VLIMITS_DEFAULT_FILE,"$vlimits_default","")
+
+if test ! -d $vpopmaildir/etc
+then 
+	mkdir $vpopmaildir/etc
+	chown $vpopmailuid "$vpopmaildir"/etc 
+	chgrp $vpopmailgid "$vpopmaildir"/etc 
+        chmod 755 "$vpopmaildir"/etc
+        AC_MSG_WARN( making a vpopmail etc directory )
+fi
+
+AC_ARG_ENABLE(roaming-users,
+        [  --enable-roaming-users=n|y   Enable or disable open relay after pop authentication. Default is no],
+        POPRELAY=$enableval,
+                [
+                        POPRELAY=no
+                ])
+case $POPRELAY in
+1*|y*|Y*)
+		POPRELAY=1
+		AC_DEFINE_UNQUOTED(POP_AUTH_OPEN_RELAY,$POPRELAY,"")
+for f in /usr/local/bin/tcprules /usr/bin/tcprules
+do
+    if test -f $f
+    then
+        tcprules_prog=$f
+    fi
+done
+
+AC_ARG_ENABLE(tcprules-prog, [  --enable-tcprules-prog=/usr/local/bin/tcprules   where is your tcprules program.],
+    tcprules_prog="$enableval",
+    [
+        if test "$tcprules_prog" = ""
+        then
+            AC_MSG_ERROR([Unable to find your tcprules prog, specify --enable-tcprules-prog.])
+        fi
+    ] )
+if test ! -f "$tcprules_prog"
+then
+    AC_MSG_ERROR([Unable to find your tcprulesfile, specify --enable-tcprules-prog=/full/path/to/tcprules])
+fi
+AC_DEFINE_UNQUOTED(TCPRULES_PROG,"$tcprules_prog","")
+
+tcpserver_file=""
+for f in "$vpopmaildir"/etc/tcp.smtp /etc/tcp.smtp /etc/tcprules.d/qmail-smtpd
+do
+    if test -f $f
+    then
+        tcpserver_file=$f
+		break
+    fi
+done
+
+AC_ARG_ENABLE(tcpserver_file, [  --enable-tcpserver-file=/home/vpopmail/etc/tcp.smtp  File where tcpserver -x relay information is stored.],
+    tcpserver_file="$enableval",
+    [
+        if test "$tcpserver_file" = ""
+        then
+	    echo "127.:allow,RELAYCLIENT=\"\"" > "$vpopmaildir"/etc/tcp.smtp
+    	    tcpserver_file="$vpopmaildir"/etc/tcp.smtp
+	
+            AC_MSG_WARN([Unable to find your tcpserver relay file.])
+            AC_MSG_WARN([Creating tcp.smtp in "$vpopmaildir"/etc/tcp.smtp.])
+        fi
+    ] )
+AC_DEFINE_UNQUOTED(TCP_FILE,"$tcpserver_file","")
+
+open_smtp_cur="$vpopmaildir/etc/open-smtp"
+open_smtp_tmp="$vpopmaildir/etc/open-smtp.tmp"
+open_smtp_lok="$vpopmaildir/etc/open-smtp.lock"
+AC_DEFINE_UNQUOTED(OPEN_SMTP_CUR_FILE,"$open_smtp_cur","")
+AC_DEFINE_UNQUOTED(OPEN_SMTP_TMP_FILE,"$open_smtp_tmp","")
+AC_DEFINE_UNQUOTED(OPEN_SMTP_LOK_FILE,"$open_smtp_lok","")
+
+        ;;
+*)
+        ;;
+esac
+
+tcprules_prog=""
+
+
+relay_clear_minutes="180"
+AC_ARG_ENABLE(relay-clear-minutes, [  --enable-relay-clear-minutes=180   expire time for roaming users after pop authentication.],
+    relay_clear_minutes="$enableval", )
+AC_DEFINE_UNQUOTED(RELAY_CLEAR_MINUTES,$relay_clear_minutes,"")
+
+AC_ARG_ENABLE(learn-passwords,
+        [  --enable-learn-passwords=y|n   Turn on (y) or off (n, default) if password is blank, learn password when they pop auth.],
+        ENABLE_LEARN_PASSWORDS=$enableval,
+                [
+                        ENABLE_LEARN_PASSWORDS=n
+                ])
+
+case $ENABLE_LEARN_PASSWORDS in
+1*|y*|Y*)
+      ENABLE_LEARN_PASSWORDS=1
+	  AC_DEFINE_UNQUOTED(ENABLE_LEARN_PASSWORDS,$ENABLE_LEARN_PASSWORDS,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(md5-passwords,
+        [  --enable-md5-passwords=y|n   Turn on (y default ) or off (n) to store encrypted passwords as md5.],
+        ENABLE_MD5_PASSWORDS=$enableval,
+                [
+                        ENABLE_MD5_PASSWORDS=y
+                ])
+
+case $ENABLE_MD5_PASSWORDS in
+1*|y*|Y*)
+      ENABLE_MD5_PASSWORDS=1
+	  AC_DEFINE_UNQUOTED(MD5_PASSWORDS,$ENABLE_MD5_PASSWORDS,"")
+      ;;
+*)
+	  ;;
+esac
+
+
+AC_ARG_ENABLE(auth-logging,
+        [  --enable-auth-logging=y|n   Turn on (y) or off (n, default) logging authentication attempts, only valid for mysql and oracle],
+        ENABLE_AUTH_LOGGING=$enableval,
+                [
+                        ENABLE_AUTH_LOGGING=y
+                ])
+
+case $ENABLE_AUTH_LOGGING in
+1*|y*|Y*)
+      ENABLE_AUTH_LOGGING=1
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,$ENABLE_AUTH_LOGGING,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(mysql-logging,
+        [  --enable-mysql-logging=y|n   Turn on (y) or off (n, default) logging detailed authentication attempts, only valid for mysql],
+        ENABLE_MYSQL_LOGGING=$enableval,
+                [
+                        ENABLE_MYSQL_LOGGING=n
+                ])
+
+case $ENABLE_MYSQL_LOGGING in
+1*|y*|Y*)
+      ENABLE_MYSQL_LOGGING=1
+          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LOGGING,$ENABLE_MYSQL_LOGGING,"")
+      ;;
+*)
+          ;;
+esac
+
+AC_ARG_ENABLE(mysql-limits,
+        [  --enable-mysql-limits=y|n   Turn on (y) or off (n, default) mysql handling of .qmailadmin-limits ],
+        ENABLE_MYSQL_LIMITS=$enableval,
+                [
+                        ENABLE_MYSQL_LIMITS=n
+                ])
+
+case $ENABLE_MYSQL_LIMITS in
+1*|y*|Y*)
+      ENABLE_MYSQL_LIMITS=1
+          AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,$ENABLE_MYSQL_LIMITS,"")
+      ;;
+*)
+          ;;
+esac
+
+AC_ARG_ENABLE(pgsql-logging,
+        [  --enable-pgsql-logging=y|n   Turn on (y) or off (n, default) logging detailed authentication attempts, only valid for PostgreSQL],
+        ENABLE_PGSQL_LOGGING=$enableval,
+                [
+                        ENABLE_PGSQL_LOGGING=n
+                ])
+
+case $ENABLE_PGSQL_LOGGING in
+1*|y*|Y*)
+      ENABLE_PGSQL_LOGGING=1
+          AC_DEFINE_UNQUOTED(ENABLE_PGSQL_LOGGING,$ENABLE_PGSQL_LOGGING,"")
+      ;;
+*)
+          ;;
+esac
+
+
+
+AC_ARG_ENABLE(clear-passwd,
+        [  --enable-clear-passwd=n|y  Turn on (y) or off (y, default) storing clear text passwords],
+        CLEAR_PASS=$enableval,
+                [
+                        CLEAR_PASS=y
+                ])
+
+case $CLEAR_PASS in
+1*|y*|Y*)
+      CLEAR_PASS=1
+	  AC_DEFINE_UNQUOTED(CLEAR_PASS,$CLEAR_PASS,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(users-big-dir,
+        [  --enable-users-big-dir=n|y  Turn on (y) or off (y, default) using big dirs for users],
+        USERS_BIG_DIR=$enableval,
+                [
+                        USERS_BIG_DIR=y
+                ])
+
+case $USERS_BIG_DIR in
+1*|y*|Y*)
+      USERS_BIG_DIR=1
+	  AC_DEFINE_UNQUOTED(USERS_BIG_DIR,$USERS_BIG_DIR,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(logging,
+        [  --enable-logging=e|y|n|p|v   Turn on (y) or off (n) logging to syslog, (e) only log errors, include passwords in errors (p) , (v) verbose success and errors with passwords],
+        ENABLE_LOGGING=$enableval,
+                [
+                        ENABLE_LOGGING=e
+                ])
+
+case $ENABLE_LOGGING in
+1*|y*|Y*)
+      ENABLE_LOGGING=1
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
+      ;;
+e*|E*)
+      ENABLE_LOGGING=2
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
+	  ;;
+p*|P*)
+      ENABLE_LOGGING=3
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
+	  ;;
+v*|V*)
+       ENABLE_LOGGING=4
+          AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
+          ;;
+*)
+      ENABLE_LOGGING=0
+	  AC_DEFINE_UNQUOTED(ENABLE_LOGGING,$ENABLE_LOGGING,"")
+	  ;;
+esac
+
+AC_ARG_ENABLE(sqwebmail-pass,
+        [  --enable-sqwebmail-pass=y|n   Turn on support for sqwebmail passwords (y) or off (n) default is no. For sqwebmail-3.0 and above use default no],
+        ENABLE_SQWEBMAIL_PASS=$enableval,
+                [
+                        ENABLE_SQWEBMAIL_PASS=n
+                ])
+
+case $ENABLE_SQWEBMAIL_PASS in
+1*|y*|Y*)
+	  ENABLE_SQWEBMAIL_PASS=1 
+	  AC_DEFINE_UNQUOTED(SQWEBMAIL_PASS,$ENABLE_SQWEBMAIL_PASS,"")
+	  ;;
+*)
+esac
+
+log_name="vpopmail"
+AC_ARG_ENABLE(log-name, [  --enable-log-name=vpopmail   set syslog name.],
+    log_name="$enableval", )
+AC_DEFINE_UNQUOTED(LOG_NAME,"$log_name","")
+
+domains_dir="domains"
+AC_ARG_ENABLE(domains-dir, [  --enable-domains-dir=domains   set domains directory name for ~vpopmail/[domains]/user/.],
+    domains_dir="$enableval", )
+AC_DEFINE_UNQUOTED(DOMAINS_DIR,"$domains_dir","")
+AC_SUBST(domains_dir)
+
+defaultdomain=""
+AC_ARG_ENABLE(default-domain, [], defaultdomain="$enableval", [])
+
+incdir=""
+for f in /usr/local/include/mysql /usr/include/mysql /usr/local/mysql/include
+do
+    if test -d $f
+    then
+        incdir=$f
+    fi
+done
+
+AC_ARG_ENABLE(incdir, [  --enable-incdir="" Directory where auth include files are.],
+    incdir="$enableval",
+    [])
+
+libdir=""
+for f in /usr/local/lib/mysql /usr/lib/mysql /usr/local/mysql/lib
+do
+    if test -d $f
+    then
+        libdir=$f
+    fi
+done
+AC_ARG_ENABLE(libdir, [  --enable-libdir=path-to-auth-libs Directory where auth libs are.],
+    libdir="$enableval",
+	[])
+
+case "$host" in
+  *-*-solaris*)
+extralibflags="-R$libdir"
+echo "Solaris install detected.  Using extralibflags for linking: $extralibflags"
+   ;;
+  *)
+extralibflags=""
+  ;;
+esac
+
+
+libs="mysqlclient"
+AC_ARG_ENABLE(libs, [  --enable-libs=mysqlclient libraries for sql linking.],
+    libs="$enableval",
+	[])
+
+
+AC_ARG_ENABLE(mysql,
+        [  --enable-mysql=n|y   use mysql, default is no],
+        USE_MYSQL=$enableval,
+                [
+                        USE_MYSQL=no
+                ])
+case $USE_MYSQL in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_SQL=1
+		USE_MYSQL=1
+		rm -rf vauth.c
+		ln -sf vmysql.c vauth.c 
+		AC_SUBST(USE_MYSQL)
+		AC_DEFINE_UNQUOTED(USE_SQL,$USE_SQL,"")
+		AC_DEFINE_UNQUOTED(USE_MYSQL,$USE_MYSQL,"")
+		AC_CHECK_LIB(m,floor)
+		AC_CHECK_LIB(z,compress)
+
+        if test "$incdir" = ""
+        then
+            AC_MSG_ERROR([Unable to find your inc dir, specify --enable-incdir.])
+        fi
+
+		auth_inc="-I$incdir"
+		AC_SUBST(auth_inc)
+
+        if test "$libdir" = ""
+        then
+            AC_MSG_ERROR([Unable to find your sql libraries dir, specify --enable-libdir.])
+        fi
+		auth_libs="-L$libdir $extralibflags -lmysqlclient -lz"
+		AC_SUBST(auth_libs)
+        ;;
+*)
+        USE_MYSQL=0
+        ;;
+esac
+
+AC_ARG_ENABLE(mysql-replication,
+        [  --enable-mysql-replication=n|y  Turn on (y) or off (n, default) enable mysql replication],
+        MYSQL_REPLICATION=$enableval,
+                [
+                        MYSQL_REPLICATION=n
+                ])
+
+case $MYSQL_REPLICATION in
+1*|y*|Y*)
+        if test $USE_MYSQL != 1
+	then
+		echo "mysql replication is only supported in the mysql module"
+	else 	
+      		MYSQL_REPLICATION=1
+		AC_DEFINE_UNQUOTED(MYSQL_REPLICATION,$MYSQL_REPLICATION,"")
+	fi
+      ;;
+*)
+	  ;;
+esac
+
+
+AC_ARG_ENABLE(valias,
+        [  --enable-valias=n|y  Turn on (y) or off (n, default) enable mysql alias processing],
+        VALIAS=$enableval,
+                [
+                        VALIAS=n
+                ])
+
+case $VALIAS in
+1*|y*|Y*)
+        if test $USE_MYSQL != 1
+	then
+		echo "valias is only supported in the mysql module"
+	else 	
+      		VALIAS=1
+		AC_DEFINE_UNQUOTED(VALIAS,$VALIAS,"")
+	fi
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(file-locking,
+        [  --enable-file-locking=n|y  Turn on (y) or off (y, default) enable file locking],
+        FILE_LOCKING=$enableval,
+                [
+                        FILE_LOCKING=y
+                ])
+
+case $FILE_LOCKING in
+1*|y*|Y*)
+	FILE_LOCKING=1
+	AC_DEFINE_UNQUOTED(FILE_LOCKING,$FILE_LOCKING,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(file-sync,
+        [  --enable-file-sync=y|n  Turn on (y) or off (n default) enable file sync],
+        FILE_SYNC=$enableval,
+                [
+                        FILE_SYNC=n
+                ])
+
+case $FILE_SYNC in
+1*|y*|Y*)
+	FILE_SYNC=1
+	AC_DEFINE_UNQUOTED(FILE_SYNC,$FILE_SYNC,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(make-seekable,
+        [  --enable-make-seekable=n|y  If input to vdelivermail is not seekable, make it seekable.  Default is (y)],
+        MAKE_SEEKABLE=$enableval,
+                [
+                        MAKE_SEEKABLE=y
+                ])
+
+case $MAKE_SEEKABLE in
+1*|y*|Y*)
+	MAKE_SEEKABLE=1
+	AC_DEFINE_UNQUOTED(MAKE_SEEKABLE,$MAKE_SEEKABLE,"")
+      ;;
+*)
+	  ;;
+esac
+
+AC_ARG_ENABLE(many-domains,
+        [  --enable-many-domains=n|Y   Default is yes which stores all users in one table, no creates a table for each virtual domain.],
+        MANY_DOMAINS=$enableval,
+                [
+                        MANY_DOMAINS=yes
+                ])
+case $MANY_DOMAINS in
+1*|y*|Y*)
+		MANY_DOMAINS=1
+		AC_DEFINE_UNQUOTED(MANY_DOMAINS,$MANY_DOMAINS,"")
+        ;;
+*)
+		MANY_DOMAINS=0
+        ;;
+esac
+
+AC_ARG_ENABLE(ldap,
+        [  --enable-ldap=n|y   use ldap, default is no],
+        USE_LDAP=$enableval,
+                [
+                        USE_LDAP=no
+                ])
+case $USE_LDAP in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_LDAP=1
+		rm -rf vauth.c
+		ln -sf vldap.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_LDAP,$USE_LDAP,"")
+		auth_libs="-L/usr/local/lib -lldap -llber -lresolv"
+		AC_SUBST(auth_libs)
+		auth_inc="-I/usr/local/include"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(oracle,
+        [  --enable-oracle=n|y   use oracle, default is no],
+        USE_ORACLE=$enableval,
+                [
+                        USE_ORACLE=no
+                ])
+case $USE_ORACLE in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_SQL=1
+		USE_ORACLE=1
+		rm -rf vauth.c
+		ln -sf voracle.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_ORACLE,$USE_ORACLE,"")
+		auth_libs="-L$libdir -lclntsh -lclient8" 
+		AC_SUBST(auth_libs)
+		auth_inc="-I$incdir"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+pgconfig=""
+for f in /usr/local/pgsql/bin/pg_config /usr/local/bin/pg_config /usr/bin/pg_config
+do
+	if test -f $f
+	then
+		pgconfig=$f
+		break
+	fi
+done
+AC_ARG_ENABLE(postgres,
+        [  --enable-postgres=n|y   use postgres, default is no],
+        USE_POSTGRES=$enableval,
+                [
+                        USE_POSTGRES=no
+                ])
+case $USE_POSTGRES in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_SQL=1
+		USE_POSTGRES=1
+		rm -rf vauth.c
+		ln -sf vpgsql.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_POSTGRES,$USE_POSTGRES,"")
+
+		if test "$pgconfig" = ""
+		then
+			AC_MSG_ERROR([Unable to locate the pg_config program.])
+		fi
+
+		auth_libs="-L`$pgconfig --libdir` -lpq " 
+		AC_SUBST(auth_libs)
+		auth_inc="-I`$pgconfig --includedir`"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(sybase,
+        [  --enable-sybase=n|y   use sybase, default is no],
+        USE_SYBASE=$enableval,
+                [
+                        USE_SYBASE=no
+                ])
+case $USE_SYBASE in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_SQL=1
+		USE_SYBASE=1
+		rm -rf vauth.c
+		ln -sf vsybase.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_SYBASE,$USE_SYBASE,"")
+		auth_libs="-L/opt/sybase/lib -lsybdb -lm"
+		AC_SUBST(auth_libs)
+		auth_inc="-I/opt/sybase/include"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(active-directory,
+        [  --enable-active-directory=n|y   use active directory, default is no],
+        USE_ACTIVE_DIR=$enableval,
+                [
+                        USE_ACTIVE_DIR=no
+                ])
+case $USE_ACTIVE_DIR in
+1*|y*|Y*)
+		USE_CDB=0
+		USE_ACTIVE_DIR=1
+		rm -rf vauth.c
+		ln -sf vactivedir.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_ACTIVE_DIR,$USE_ACTIVE_DIR,"")
+		authlib=""
+		AC_SUBST(authlib)
+		auth_inc=""
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+case $USE_CDB in
+1*|y*|Y*)
+		rm -rf vauth.c
+		ln -sf vcdb.c vauth.c 
+		AC_DEFINE_UNQUOTED(USE_CDB,$USE_CDB,"")
+		authlib=""
+		AC_SUBST(authlib)
+		auth_inc="-Icdb"
+		AC_SUBST(auth_inc)
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(qmail-ext,
+        [  --enable-qmail-ext=y|n   enable qmail email address extensions (default no). ],
+        QMAIL_EXT=$enableval,
+                [
+                        QMAIL_EXT=n
+                ])
+case $QMAIL_EXT in
+1*|y*|Y*)
+		QMAIL_EXT=1
+		AC_DEFINE_UNQUOTED(QMAIL_EXT,$QMAIL_EXT,"")
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(rebuild-tcpserver-file,
+        [  --enable-rebuild-tcpserver-file=y|n   enable rebuilding of tcpserver relay control file(default yes). ],
+        REBUILD_TCPSERVER=$enableval,
+                [
+                        REBUILD_TCPSERVER=y
+                ])
+case $REBUILD_TCPSERVER in
+1*|y*|Y*)
+		REBUILD_TCPSERVER=1
+		AC_DEFINE_UNQUOTED(REBUILD_TCPSERVER,$REBUILD_TCPSERVER,"")
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(ip-alias-domains,
+        [  --enable-ip-alias-domains=y|n   enable virutal domain lookup via reverse ip address lookup for virtual domains. ],
+        IPALIAS=$enableval,
+                [
+                        IPALIAS=no
+                ])
+case $IPALIAS in
+1*|y*|Y*)
+		IPALIAS=1
+		AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,$IPALIAS,"")
+        ;;
+*)
+        ;;
+esac
+
+AC_ARG_ENABLE(passwd,
+        [  --enable-passwd=y|n   Enable or disable /etc/passwd (or shadow) authentication. Default is no],
+        ENABLE_PASSWD=$enableval,
+                [
+                        ENABLE_PASSWD=no
+                ])
+
+AC_CHECK_LIB(crypt, crypt)
+AC_CHECK_LIB(nsl, gethostbyaddr)
+AC_CHECK_LIB(socket, getsockname)
+
+case $ENABLE_PASSWD in
+1*|y*|Y*)
+        ENABLE_PASSWD=1
+        AC_CHECK_HEADERS(shadow.h)
+        HAS_SHADOW_H=0
+        AC_CHECK_HEADER(shadow.h,
+                [
+                        HAS_SHADOW_H=1;
+                ] )
+        if test $HAS_SHADOW_H = 1
+        then
+                AC_CHECK_LIB(shadow, setspent)
+        fi
+		AC_DEFINE_UNQUOTED(ENABLE_PASSWD,$ENABLE_PASSWD,"")
+        ;;
+*)
+        ENABLE_PASSWD=0
+        ;;
+esac
+
+if test -f /etc/shadow 
+then
+	HAS_SHADOW=1
+	AC_DEFINE_UNQUOTED(HAS_SHADOW,$HAS_SHADOW,"")
+fi
+
+
+case "$host" in
+  *-*-sunos4.1.1*)
+	PS_COMMAND="ps -aux"
+    ;;
+  *-*-solaris*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-sunos*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-sgi-5*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-ibm-aix*)
+	PS_COMMAND="ps -ef"
+    ;;
+  mips-dec-mach3*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-dec-ultrix*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-hpux*)
+	PS_COMMAND="ps -eaf"
+    ;;
+  alpha-dec-osf*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-nextstep*)
+	PS_COMMAND="ps -ef"
+    ;;
+  i*86-*-bsdi*)
+	PS_COMMAND="ps axww"
+    ;;
+  i*86-unknown-bsd*)
+	PS_COMMAND="ps -ef"
+    ;;
+  m68k-sony-newsos*)
+	PS_COMMAND="ps -ef"
+    ;;
+  mips-sony-bsd*)
+	PS_COMMAND="ps -ef"
+    ;;
+  m68k-apple-aux*)
+	PS_COMMAND="ps -ef"
+    ;;
+  m88k-dg-dgux*)
+	PS_COMMAND="ps -ef"
+    ;;
+  t3e-*-*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-cray-unicos*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-sysv4*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-machten*)
+	PS_COMMAND="ps -ef"
+    ;;
+  i*86-unknown-sco*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-convex-bsd*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-sequent-ptx*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-sequent-dynix*|*-sequent-ptx*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *-*-freebsd*)
+	PS_COMMAND="ps aux"
+    ;;
+  *-*-netbsd*)
+	PS_COMMAND="ps aux"
+    ;;
+  *-*-openbsd*)
+	PS_COMMAND="ps -aux"
+    ;;
+  *-*-IRIX*)
+	PS_COMMAND="ps -ef"
+    ;;
+  *)
+	PS_COMMAND="ps axww"
+    ;;
+esac
+AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
+
+
+AC_ARG_ENABLE(hardquota,
+        [  --enable-hardquota],
+                [
+    AC_MSG_ERROR(use --enable-defaultquota instead of --enable-hardquota)
+                ])
+
+AC_ARG_ENABLE(defaultquota,
+        [  --enable-defaultquota=# or n  where # is the quota as defined in README.quotas.  NOT y, do not use Y, y is BAD],
+        ENABLE_HARD_QUOTA=$enableval,
+                [
+                        ENABLE_HARD_QUOTA=0
+                ])
+
+case $ENABLE_HARD_QUOTA in
+0*|n*|N*)
+      ;;
+*)
+	  AC_DEFINE_UNQUOTED(HARD_QUOTA,"$ENABLE_HARD_QUOTA","")
+	  ;;
+esac
+
+AC_ARG_ENABLE(domainquotas,
+        [  --enable-domainquotas=y|n  Turn on (y) or off (n, default) non-system domain quotas.   See README.quotas for more info.],
+        ENABLE_DOMAIN_QUOTAS=$enableval,
+                [
+                        ENABLE_DOMAIN_QUOTAS=0
+                ])
+
+case $ENABLE_DOMAIN_QUOTAS in
+0*|n*|N*)
+      ;;
+*)
+      ENABLE_DOMAIN_QUOTAS=1
+	  AC_DEFINE_UNQUOTED(DOMAIN_QUOTAS,$ENABLE_DOMAIN_QUOTAS,"")
+	  ;;
+esac
+
+dnl Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS(unistd.h sys/varargs.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(getcwd mkdir strdup strstr fdatasync sigaction )
+
+AC_OUTPUT(Makefile)
+
+echo "./configure \\" > vpopmail.config.sh
+
+echo "           $PACKAGE $VERSION           "
+echo "            Current settings"
+echo "---------------------------------------"
+echo ""
+echo "vpopmail directory = "$vpopmaildir""
+echo "               uid = "$vpopmailuid""
+echo "               gid = "$vpopmailgid""
+
+case $IPALIAS in
+1*|y*|Y*)
+echo "          ip alias = ON  --enable-ip-alias-domains=y"
+echo " --enable-ip-alias-domains=y \\" >> vpopmail.config.sh
+        ;;
+*)
+echo "          ip alias = OFF --enable-ip-alias-domains=n (default)"
+        ;;
+esac
+
+case $QMAIL_EXT in
+1*|y*|Y*)
+echo "address extentions = ON  --enable-qmail-ext=y"
+echo " --enable-qmail-ext=y \\" >> vpopmail.config.sh
+        ;;
+*)
+echo "address extentions = OFF --enable-qmail-ext=n (default)"
+        ;;
+esac
+
+case $REBUILD_TCPSERVER in
+1*|y*|Y*)
+echo "rebuild tcpserver file = YES  --enable-rebuild-tcpserver-file=y (default)"
+echo " --enable-rebuild-tcpserver-file=y \\" >> vpopmail.config.sh
+        ;;
+*)
+echo "rebuild tcpserver file = NO --enable-rebuild-tcpserver-file=n"
+        ;;
+esac
+
+case $POPRELAY in
+1*|y*|Y*)
+echo " --enable-roaming-users=y \\" >> vpopmail.config.sh
+echo "     roaming users = ON  --enable-roaming-users=y"
+echo "    tcpserver file = $tcpserver_file"
+echo "    open_smtp file = $open_smtp_cur"
+        ;;
+*)
+echo "     roaming users = OFF --enable-roaming-users=n (default)"
+        ;;
+esac
+
+case $ENABLE_HARD_QUOTA in
+0*|n*|N*)
+echo "        user quota = OFF --enable-defaultquota=NOQUOTA (default)"
+      ;;
+*)
+echo "        user quota = $ENABLE_HARD_QUOTA -enable-hardquota=$ENABLE_HARD_QUOTA"
+echo " --enable-defaultquota=$ENABLE_HARD_QUOTA \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $ENABLE_DOMAIN_QUOTAS in
+0*|n*|N*)
+echo "     domain quotas = OFF --enable-domainquotas=n (default)"
+      ;;
+*)
+echo "     domain quotas = ON  --enable-domainquotas=y"
+echo " --enable-domainquotas=y \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+if test $USE_MYSQL = 1 
+then
+echo "       auth module = mysql --enable-mysql=y"
+echo " --enable-mysql=y \\" >> vpopmail.config.sh
+case $MYSQL_REPLICATION in
+1*|y*|Y*)
+echo " mysql replication = ON  --enable-mysql-replication=y" 
+echo " --enable-mysql-replication=y \\" >> vpopmail.config.sh
+	  ;;
+*)
+echo " mysql replication = OFF --enable-mysql-replication=n (default)" 
+	  ;;
+esac
+
+
+fi
+
+if test $MANY_DOMAINS = 1 
+then 
+echo "table optimization = many domains --enable-many-domains=y (default)"
+else
+echo "table optimization = one domain with many users --enable-many-domains=n"
+echo " --enable-many-domains=n \\" >> vpopmail.config.sh
+fi
+
+if test $USE_ORACLE = 1 
+then
+echo "       auth module = oracle --enable-oracle=y"
+echo " --enable-oracle=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_POSTGRES = 1 
+then
+echo "       auth module = postgres --enable-postgres=y"
+echo " --enable-postgres=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_SYBASE = 1 
+then
+echo "       auth module = sybase --enable-sybase=y"
+echo " --enable-sybase=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_LDAP = 1 
+then
+echo "       auth module = ldap --enable-ldap=y"
+echo " --enable-ldap=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_ACTIVE_DIR = 1 
+then
+echo "       auth module = active directory --enable-active-directory=y"
+echo " --enable-active-directory=y \\" >> vpopmail.config.sh
+fi
+
+if test $USE_CDB = 1 
+then
+echo "       auth module = cdb (default)"
+fi
+
+case $ENABLE_PASSWD in
+1*|y*|Y*)
+echo "  system passwords = ON  --enable-passwd=y"
+echo " --enable-passwd=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "  system passwords = OFF --enable-passwd=n (default)"
+	  ;;
+esac
+
+case $FILE_LOCKING in
+1*|y*|Y*)
+echo "      file locking = ON  --enable-file-locking=y (default)"
+      ;;
+*)
+echo "      file locking = OFF --enable-file-locking=n"
+echo " --enable-file-locking=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $FILE_SYNC in
+1*|y*|Y*)
+echo "         file sync = ON  --enable-file-sync=y enable vdelivermail fsync"
+echo " --enable-file-sync=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "         file sync = OFF --enable-file-sync=n disable vdelivermail fsync 
+                         (default)"
+echo " --enable-file-sync=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $MAKE_SEEKABLE in
+1*|y*|Y*)
+echo "     make seekable = ON  --enable-make-seekable=y (default)"
+      ;;
+*)
+echo "     make seekable = OFF --enable-make-seekable=n"
+echo " --enable-make-seekable=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $ENABLE_AUTH_LOGGING in
+1*|y*|Y*)
+echo "      auth logging = ON  --enable-auth-logging=y (default)"
+echo " --enable-auth-logging=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "      auth logging = OFF --enable-auth-logging=n"
+	  ;;
+esac
+
+case $ENABLE_MYSQL_LOGGING in
+1*|y*|Y*)
+echo "     mysql logging = ON  --enable-mysql-logging=y"
+echo " --enable-mysql-logging=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "     mysql logging = OFF --enable-mysql-logging=n (default)"
+          ;;
+esac
+
+case $CLEAR_PASS in
+1*|y*|Y*)
+echo "      clear passwd = ON  --enable-clear-passwd=y (default)"
+      ;;
+*)
+echo "      clear passwd = OFF --enable-clear-passwd=n"
+echo " --enable-clear-passwd=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $USERS_BIG_DIR in
+1*|y*|Y*)
+echo "     users big dir = ON  --enable-users-big-dir=y (default)"
+      ;;
+*)
+echo "     users big dir = OFF --enable-users-big-dir=n"
+echo " --enable-users-big-dir=n \\" >> vpopmail.config.sh
+	  ;;
+esac
+
+case $VALIAS in
+1*|y*|Y*)
+echo " valias processing = ON  --enable-valias=y"
+echo " --enable-valias=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo " valias processing = OFF --enable-valias=n"
+	  ;;
+esac
+
+case $ENABLE_MYSQL_LIMITS in
+1*|y*|Y*)
+echo "      mysql limits = ON  --enable-mysql-limits=y"
+echo " --enable-mysql-limits=y \\" >> vpopmail.config.sh
+      ;;
+*)
+echo "      mysql limits = OFF --enable-mysql-limits=n (default)"
+	  ;;
+esac
+
+
+case $ENABLE_LOGGING in
+1*|y*|Y*)
+echo "        pop syslog = show successful and failure login attempts"
+echo "                     --enable-logging=y"
+echo " --enable-logging=y \\" >> vpopmail.config.sh
+      ;;
+2*|e*|E*)
+echo "        pop syslog = show only failure attempts"
+echo "                     --enable-logging=e (default)"
+	  ;;
+3*|p*|P*)
+echo "        pop syslog = show failure attempts with clear text password" 
+echo "                     --enable-logging=p"
+echo " --enable-logging=p \\" >> vpopmail.config.sh
+	  ;;
+4*|v*|V*)
+echo "        pop syslog = log success and errors including passwords"
+echo "                     --enable-logging=v"
+echo " --enable-logging=v \\" >> vpopmail.config.sh
+	  ;;
+*)
+echo "        pop syslog = OFF"
+	  ;;
+esac
+
+echo "          auth inc = $auth_inc"
+echo "          auth lib = $auth_libs"
+
+if test "$defaultdomain" = ""
+then
+echo ""
+else
+echo "** --enable-default-domain has been deprecated.  Please set"
+echo "   ~vpopmail/etc/defaultdomain to your default domain. **"
+fi
+
+
+echo ""
+echo ""
+echo "" >> vpopmail.config.sh
