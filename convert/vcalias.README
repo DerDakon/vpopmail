@@ -1,0 +1,10 @@
+vcalias will read a domains .qmail files and
+load them up into the mysql table.
+
+After you are happy with the contents of the valias
+table. You should delete all of the .qmail files
+in the domain EXCEPT for the .qmail-default file.
+
+To make the file look at the Make.vcalias file.
+You might need to modify it for the locations
+of mysql include file and libraries.

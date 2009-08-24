@@ -1,0 +1,743 @@
+# Makefile.in generated automatically by automake 1.4-p5 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = .
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+CC = @CC@
+MAKEINFO = @MAKEINFO@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+USE_MYSQL = @USE_MYSQL@
+VERSION = @VERSION@
+auth_inc = @auth_inc@
+auth_libs = @auth_libs@
+authlib = @authlib@
+domains_dir = @domains_dir@
+vpopgroup = @vpopgroup@
+vpopmaildir = @vpopmaildir@
+vpopuser = @vpopuser@
+
+SUBDIRS = cdb
+
+noinst_LIBRARIES = libvpopmail.a
+
+COMMONSOURCES = vpopmail.c md5.c bigdir.c vauth.c file_lock.c vpalias.c seek.c vlimits.c maildirquota.c
+CONFIG_CLEAN_FILES = vauth.c
+
+AM_INSTALL_PROGRAM_FLAGS = -o @vpopuser@ -m 711 -g @vpopgroup@ 
+
+MYSQLCONF = $(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
+
+libvpopmail_a_SOURCES = $(COMMONSOURCES) 
+libvpopmail_a_LIBADD = cdb/*.o
+
+vpopmailbindir = @vpopmaildir@/bin
+vpopmailbin_PROGRAMS = vchkpw vdelivermail clearopensmtp vadddomain \
+ vdeldomain vpasswd vadduser vdeluser vaddaliasdomain vsetuserquota \
+ vpopbull vdeloldusers vmoduser valias vuserinfo vmkpasswd vipmap \
+ vdominfo vconvert vqmaillocal vkill vmoddomlimits
+
+
+vuserinfo_SOURCES = vuserinfo.c maildirquota.c
+vuserinfo_LDADD = libvpopmail.a @auth_libs@
+
+vdominfo_SOURCES = vdominfo.c
+vdominfo_LDADD = libvpopmail.a @auth_libs@
+
+vchkpw_SOURCES = vchkpw.c md5.c hmac_md5.c
+vchkpw_LDADD = libvpopmail.a @auth_libs@
+
+vdelivermail_SOURCES = vdelivermail.c maildirquota.c
+vdelivermail_LDADD = libvpopmail.a @auth_libs@
+
+vqmaillocal_SOURCES = vqmaillocal.c 
+vqmaillocal_LDADD = libvpopmail.a @auth_libs@
+
+vkill_SOURCES = vkill.c 
+vkill_LDADD = libvpopmail.a @auth_libs@
+
+clearopensmtp_SOURCES = clearopensmtp.c
+clearopensmtp_LDADD = libvpopmail.a @auth_libs@
+
+vadddomain_SOURCES = vadddomain.c 
+vadddomain_LDADD = libvpopmail.a @auth_libs@
+
+vdeldomain_SOURCES = vdeldomain.c 
+vdeldomain_LDADD = libvpopmail.a @auth_libs@
+
+vpasswd_SOURCES = vpasswd.c 
+vpasswd_LDADD = libvpopmail.a @auth_libs@
+
+vadduser_SOURCES = vadduser.c
+vadduser_LDADD = libvpopmail.a  @auth_libs@
+
+vdeluser_SOURCES = vdeluser.c 
+vdeluser_LDADD = libvpopmail.a @auth_libs@
+
+vaddaliasdomain_SOURCES = vaddaliasdomain.c 
+vaddaliasdomain_LDADD = libvpopmail.a @auth_libs@
+
+vsetuserquota_SOURCES = vsetuserquota.c 
+vsetuserquota_LDADD = libvpopmail.a @auth_libs@
+
+vpopbull_SOURCES = vpopbull.c 
+vpopbull_LDADD = libvpopmail.a @auth_libs@
+
+vdeloldusers_SOURCES = vdeloldusers.c 
+vdeloldusers_LDADD = libvpopmail.a @auth_libs@
+
+vconvert_SOURCES = vconvert.c 
+vconvert_LDADD = libvpopmail.a  @auth_libs@
+
+vmoduser_SOURCES = vmoduser.c 
+vmoduser_LDADD = libvpopmail.a  @auth_libs@
+
+valias_SOURCES = valias.c 
+valias_LDADD = libvpopmail.a  @auth_libs@
+
+vmkpasswd_SOURCES = vmkpasswd.c 
+vmkpasswd_LDADD = libvpopmail.a  @auth_libs@
+
+vipmap_SOURCES = vipmap.c 
+vipmap_LDADD = libvpopmail.a  @auth_libs@
+
+vmoddomlimits_SOURCES = vmoddomlimits.c
+vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
+
+DEFS = -I. @auth_inc@ 
+
+AUTOMAKE_OPTIONS = foreign no-dependencies
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = config.h
+LIBRARIES =  $(noinst_LIBRARIES)
+
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libvpopmail_a_DEPENDENCIES =  cdb/*.o
+libvpopmail_a_OBJECTS =  vpopmail.o md5.o bigdir.o vauth.o file_lock.o \
+vpalias.o seek.o vlimits.o maildirquota.o
+AR = ar
+PROGRAMS =  $(vpopmailbin_PROGRAMS)
+
+vchkpw_OBJECTS =  vchkpw.o md5.o hmac_md5.o
+vchkpw_DEPENDENCIES =  libvpopmail.a
+vchkpw_LDFLAGS = 
+vdelivermail_OBJECTS =  vdelivermail.o maildirquota.o
+vdelivermail_DEPENDENCIES =  libvpopmail.a
+vdelivermail_LDFLAGS = 
+clearopensmtp_OBJECTS =  clearopensmtp.o
+clearopensmtp_DEPENDENCIES =  libvpopmail.a
+clearopensmtp_LDFLAGS = 
+vadddomain_OBJECTS =  vadddomain.o
+vadddomain_DEPENDENCIES =  libvpopmail.a
+vadddomain_LDFLAGS = 
+vdeldomain_OBJECTS =  vdeldomain.o
+vdeldomain_DEPENDENCIES =  libvpopmail.a
+vdeldomain_LDFLAGS = 
+vpasswd_OBJECTS =  vpasswd.o
+vpasswd_DEPENDENCIES =  libvpopmail.a
+vpasswd_LDFLAGS = 
+vadduser_OBJECTS =  vadduser.o
+vadduser_DEPENDENCIES =  libvpopmail.a
+vadduser_LDFLAGS = 
+vdeluser_OBJECTS =  vdeluser.o
+vdeluser_DEPENDENCIES =  libvpopmail.a
+vdeluser_LDFLAGS = 
+vaddaliasdomain_OBJECTS =  vaddaliasdomain.o
+vaddaliasdomain_DEPENDENCIES =  libvpopmail.a
+vaddaliasdomain_LDFLAGS = 
+vsetuserquota_OBJECTS =  vsetuserquota.o
+vsetuserquota_DEPENDENCIES =  libvpopmail.a
+vsetuserquota_LDFLAGS = 
+vpopbull_OBJECTS =  vpopbull.o
+vpopbull_DEPENDENCIES =  libvpopmail.a
+vpopbull_LDFLAGS = 
+vdeloldusers_OBJECTS =  vdeloldusers.o
+vdeloldusers_DEPENDENCIES =  libvpopmail.a
+vdeloldusers_LDFLAGS = 
+vmoduser_OBJECTS =  vmoduser.o
+vmoduser_DEPENDENCIES =  libvpopmail.a
+vmoduser_LDFLAGS = 
+valias_OBJECTS =  valias.o
+valias_DEPENDENCIES =  libvpopmail.a
+valias_LDFLAGS = 
+vuserinfo_OBJECTS =  vuserinfo.o maildirquota.o
+vuserinfo_DEPENDENCIES =  libvpopmail.a
+vuserinfo_LDFLAGS = 
+vmkpasswd_OBJECTS =  vmkpasswd.o
+vmkpasswd_DEPENDENCIES =  libvpopmail.a
+vmkpasswd_LDFLAGS = 
+vipmap_OBJECTS =  vipmap.o
+vipmap_DEPENDENCIES =  libvpopmail.a
+vipmap_LDFLAGS = 
+vdominfo_OBJECTS =  vdominfo.o
+vdominfo_DEPENDENCIES =  libvpopmail.a
+vdominfo_LDFLAGS = 
+vconvert_OBJECTS =  vconvert.o
+vconvert_DEPENDENCIES =  libvpopmail.a
+vconvert_LDFLAGS = 
+vqmaillocal_OBJECTS =  vqmaillocal.o
+vqmaillocal_DEPENDENCIES =  libvpopmail.a
+vqmaillocal_LDFLAGS = 
+vkill_OBJECTS =  vkill.o
+vkill_DEPENDENCIES =  libvpopmail.a
+vkill_LDFLAGS = 
+vmoddomlimits_OBJECTS =  vmoddomlimits.o
+vmoddomlimits_DEPENDENCIES =  libvpopmail.a
+vmoddomlimits_LDFLAGS = 
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
+Makefile.am Makefile.in NEWS TODO acconfig.h aclocal.m4 config.guess \
+config.h.in config.sub configure configure.in install-sh missing \
+mkinstalldirs
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+SOURCES = $(libvpopmail_a_SOURCES) $(vchkpw_SOURCES) $(vdelivermail_SOURCES) $(clearopensmtp_SOURCES) $(vadddomain_SOURCES) $(vdeldomain_SOURCES) $(vpasswd_SOURCES) $(vadduser_SOURCES) $(vdeluser_SOURCES) $(vaddaliasdomain_SOURCES) $(vsetuserquota_SOURCES) $(vpopbull_SOURCES) $(vdeloldusers_SOURCES) $(vmoduser_SOURCES) $(valias_SOURCES) $(vuserinfo_SOURCES) $(vmkpasswd_SOURCES) $(vipmap_SOURCES) $(vdominfo_SOURCES) $(vconvert_SOURCES) $(vqmaillocal_SOURCES) $(vkill_SOURCES) $(vmoddomlimits_SOURCES)
+OBJECTS = $(libvpopmail_a_OBJECTS) $(vchkpw_OBJECTS) $(vdelivermail_OBJECTS) $(clearopensmtp_OBJECTS) $(vadddomain_OBJECTS) $(vdeldomain_OBJECTS) $(vpasswd_OBJECTS) $(vadduser_OBJECTS) $(vdeluser_OBJECTS) $(vaddaliasdomain_OBJECTS) $(vsetuserquota_OBJECTS) $(vpopbull_OBJECTS) $(vdeloldusers_OBJECTS) $(vmoduser_OBJECTS) $(valias_OBJECTS) $(vuserinfo_OBJECTS) $(vmkpasswd_OBJECTS) $(vipmap_OBJECTS) $(vdominfo_OBJECTS) $(vconvert_OBJECTS) $(vqmaillocal_OBJECTS) $(vkill_OBJECTS) $(vmoddomlimits_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+$(ACLOCAL_M4):  configure.in 
+	cd $(srcdir) && $(ACLOCAL)
+
+config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
+
+config.h: stamp-h
+	@if test ! -f $@; then \
+		rm -f stamp-h; \
+		$(MAKE) stamp-h; \
+	else :; fi
+stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES= CONFIG_HEADERS=config.h \
+	     $(SHELL) ./config.status
+	@echo timestamp > stamp-h 2> /dev/null
+$(srcdir)/config.h.in: $(srcdir)/stamp-h.in
+	@if test ! -f $@; then \
+		rm -f $(srcdir)/stamp-h.in; \
+		$(MAKE) $(srcdir)/stamp-h.in; \
+	else :; fi
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
+	cd $(top_srcdir) && $(AUTOHEADER)
+	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
+
+mostlyclean-hdr:
+
+clean-hdr:
+
+distclean-hdr:
+	-rm -f config.h
+
+maintainer-clean-hdr:
+
+mostlyclean-noinstLIBRARIES:
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+distclean-noinstLIBRARIES:
+
+maintainer-clean-noinstLIBRARIES:
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libvpopmail.a: $(libvpopmail_a_OBJECTS) $(libvpopmail_a_DEPENDENCIES)
+	-rm -f libvpopmail.a
+	$(AR) cru libvpopmail.a $(libvpopmail_a_OBJECTS) $(libvpopmail_a_LIBADD)
+	$(RANLIB) libvpopmail.a
+
+mostlyclean-vpopmailbinPROGRAMS:
+
+clean-vpopmailbinPROGRAMS:
+	-test -z "$(vpopmailbin_PROGRAMS)" || rm -f $(vpopmailbin_PROGRAMS)
+
+distclean-vpopmailbinPROGRAMS:
+
+maintainer-clean-vpopmailbinPROGRAMS:
+
+install-vpopmailbinPROGRAMS: $(vpopmailbin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(vpopmailbindir)
+	@list='$(vpopmailbin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	  else :; fi; \
+	done
+
+uninstall-vpopmailbinPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	list='$(vpopmailbin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(vpopmailbindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	done
+
+vchkpw: $(vchkpw_OBJECTS) $(vchkpw_DEPENDENCIES)
+	@rm -f vchkpw
+	$(LINK) $(vchkpw_LDFLAGS) $(vchkpw_OBJECTS) $(vchkpw_LDADD) $(LIBS)
+
+vdelivermail: $(vdelivermail_OBJECTS) $(vdelivermail_DEPENDENCIES)
+	@rm -f vdelivermail
+	$(LINK) $(vdelivermail_LDFLAGS) $(vdelivermail_OBJECTS) $(vdelivermail_LDADD) $(LIBS)
+
+clearopensmtp: $(clearopensmtp_OBJECTS) $(clearopensmtp_DEPENDENCIES)
+	@rm -f clearopensmtp
+	$(LINK) $(clearopensmtp_LDFLAGS) $(clearopensmtp_OBJECTS) $(clearopensmtp_LDADD) $(LIBS)
+
+vadddomain: $(vadddomain_OBJECTS) $(vadddomain_DEPENDENCIES)
+	@rm -f vadddomain
+	$(LINK) $(vadddomain_LDFLAGS) $(vadddomain_OBJECTS) $(vadddomain_LDADD) $(LIBS)
+
+vdeldomain: $(vdeldomain_OBJECTS) $(vdeldomain_DEPENDENCIES)
+	@rm -f vdeldomain
+	$(LINK) $(vdeldomain_LDFLAGS) $(vdeldomain_OBJECTS) $(vdeldomain_LDADD) $(LIBS)
+
+vpasswd: $(vpasswd_OBJECTS) $(vpasswd_DEPENDENCIES)
+	@rm -f vpasswd
+	$(LINK) $(vpasswd_LDFLAGS) $(vpasswd_OBJECTS) $(vpasswd_LDADD) $(LIBS)
+
+vadduser: $(vadduser_OBJECTS) $(vadduser_DEPENDENCIES)
+	@rm -f vadduser
+	$(LINK) $(vadduser_LDFLAGS) $(vadduser_OBJECTS) $(vadduser_LDADD) $(LIBS)
+
+vdeluser: $(vdeluser_OBJECTS) $(vdeluser_DEPENDENCIES)
+	@rm -f vdeluser
+	$(LINK) $(vdeluser_LDFLAGS) $(vdeluser_OBJECTS) $(vdeluser_LDADD) $(LIBS)
+
+vaddaliasdomain: $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_DEPENDENCIES)
+	@rm -f vaddaliasdomain
+	$(LINK) $(vaddaliasdomain_LDFLAGS) $(vaddaliasdomain_OBJECTS) $(vaddaliasdomain_LDADD) $(LIBS)
+
+vsetuserquota: $(vsetuserquota_OBJECTS) $(vsetuserquota_DEPENDENCIES)
+	@rm -f vsetuserquota
+	$(LINK) $(vsetuserquota_LDFLAGS) $(vsetuserquota_OBJECTS) $(vsetuserquota_LDADD) $(LIBS)
+
+vpopbull: $(vpopbull_OBJECTS) $(vpopbull_DEPENDENCIES)
+	@rm -f vpopbull
+	$(LINK) $(vpopbull_LDFLAGS) $(vpopbull_OBJECTS) $(vpopbull_LDADD) $(LIBS)
+
+vdeloldusers: $(vdeloldusers_OBJECTS) $(vdeloldusers_DEPENDENCIES)
+	@rm -f vdeloldusers
+	$(LINK) $(vdeloldusers_LDFLAGS) $(vdeloldusers_OBJECTS) $(vdeloldusers_LDADD) $(LIBS)
+
+vmoduser: $(vmoduser_OBJECTS) $(vmoduser_DEPENDENCIES)
+	@rm -f vmoduser
+	$(LINK) $(vmoduser_LDFLAGS) $(vmoduser_OBJECTS) $(vmoduser_LDADD) $(LIBS)
+
+valias: $(valias_OBJECTS) $(valias_DEPENDENCIES)
+	@rm -f valias
+	$(LINK) $(valias_LDFLAGS) $(valias_OBJECTS) $(valias_LDADD) $(LIBS)
+
+vuserinfo: $(vuserinfo_OBJECTS) $(vuserinfo_DEPENDENCIES)
+	@rm -f vuserinfo
+	$(LINK) $(vuserinfo_LDFLAGS) $(vuserinfo_OBJECTS) $(vuserinfo_LDADD) $(LIBS)
+
+vmkpasswd: $(vmkpasswd_OBJECTS) $(vmkpasswd_DEPENDENCIES)
+	@rm -f vmkpasswd
+	$(LINK) $(vmkpasswd_LDFLAGS) $(vmkpasswd_OBJECTS) $(vmkpasswd_LDADD) $(LIBS)
+
+vipmap: $(vipmap_OBJECTS) $(vipmap_DEPENDENCIES)
+	@rm -f vipmap
+	$(LINK) $(vipmap_LDFLAGS) $(vipmap_OBJECTS) $(vipmap_LDADD) $(LIBS)
+
+vdominfo: $(vdominfo_OBJECTS) $(vdominfo_DEPENDENCIES)
+	@rm -f vdominfo
+	$(LINK) $(vdominfo_LDFLAGS) $(vdominfo_OBJECTS) $(vdominfo_LDADD) $(LIBS)
+
+vconvert: $(vconvert_OBJECTS) $(vconvert_DEPENDENCIES)
+	@rm -f vconvert
+	$(LINK) $(vconvert_LDFLAGS) $(vconvert_OBJECTS) $(vconvert_LDADD) $(LIBS)
+
+vqmaillocal: $(vqmaillocal_OBJECTS) $(vqmaillocal_DEPENDENCIES)
+	@rm -f vqmaillocal
+	$(LINK) $(vqmaillocal_LDFLAGS) $(vqmaillocal_OBJECTS) $(vqmaillocal_LDADD) $(LIBS)
+
+vkill: $(vkill_OBJECTS) $(vkill_DEPENDENCIES)
+	@rm -f vkill
+	$(LINK) $(vkill_LDFLAGS) $(vkill_OBJECTS) $(vkill_LDADD) $(LIBS)
+
+vmoddomlimits: $(vmoddomlimits_OBJECTS) $(vmoddomlimits_DEPENDENCIES)
+	@rm -f vmoddomlimits
+	$(LINK) $(vmoddomlimits_LDFLAGS) $(vmoddomlimits_OBJECTS) $(vmoddomlimits_LDADD) $(LIBS)
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" != "." || dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)config.h.in$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(PACKAGE)-$(VERSION)
+top_distdir = $(distdir)
+
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	-rm -rf $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) $(AM_MAKEFLAGS) \
+	  && $(MAKE) $(AM_MAKEFLAGS) dvi \
+	  && $(MAKE) $(AM_MAKEFLAGS) check \
+	  && $(MAKE) $(AM_MAKEFLAGS) install \
+	  && $(MAKE) $(AM_MAKEFLAGS) installcheck \
+	  && $(MAKE) $(AM_MAKEFLAGS) dist
+	-rm -rf $(distdir)
+	@banner="$(distdir).tar.gz is ready for distribution"; \
+	dashes=`echo "$$banner" | sed s/./=/g`; \
+	echo "$$dashes"; \
+	echo "$$banner"; \
+	echo "$$dashes"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+distdir: $(DISTFILES)
+	-rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+all-recursive-am: config.h
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+
+install-exec-am:
+install-exec: install-exec-recursive
+
+install-data-am: install-vpopmailbinPROGRAMS install-data-local
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am: uninstall-vpopmailbinPROGRAMS
+uninstall: uninstall-recursive
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) config.h
+all-redirect: all-recursive-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
+	$(mkinstalldirs)  $(DESTDIR)$(vpopmailbindir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-hdr mostlyclean-noinstLIBRARIES \
+		mostlyclean-compile mostlyclean-vpopmailbinPROGRAMS \
+		mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-hdr clean-noinstLIBRARIES clean-compile \
+		clean-vpopmailbinPROGRAMS clean-tags clean-generic \
+		mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-hdr distclean-noinstLIBRARIES distclean-compile \
+		distclean-vpopmailbinPROGRAMS distclean-tags \
+		distclean-generic clean-am
+
+distclean: distclean-recursive
+	-rm -f config.status
+
+maintainer-clean-am:  maintainer-clean-hdr \
+		maintainer-clean-noinstLIBRARIES \
+		maintainer-clean-compile \
+		maintainer-clean-vpopmailbinPROGRAMS \
+		maintainer-clean-tags maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+	-rm -f config.status
+
+.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
+mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
+clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile mostlyclean-vpopmailbinPROGRAMS \
+distclean-vpopmailbinPROGRAMS clean-vpopmailbinPROGRAMS \
+maintainer-clean-vpopmailbinPROGRAMS uninstall-vpopmailbinPROGRAMS \
+install-vpopmailbinPROGRAMS install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
+install-exec-am install-exec install-data-local install-data-am \
+install-data install-am install uninstall-am uninstall all-redirect \
+all-am all installdirs-am installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
+
+
+@SET_MAKE@
+
+install-data-local:
+	$(INSTALL) -d --group=@vpopgroup@ --mode=0700 --owner=@vpopuser@ \
+	  $(DESTDIR)@vpopmaildir@/@domains_dir@
+
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/etc
+
+	if test "@USE_MYSQL@" = "1"; then \
+	  if test ! -r $(MYSQLCONF); then \
+	    echo "# MySQL settings, line 1 is config for read-only," > $(MYSQLCONF); \
+	    echo "# line 2 is config for update.  Settings for each" >> $(MYSQLCONF); \
+	    echo "# line: server|port|user|password|database" >> $(MYSQLCONF); \
+	    echo "localhost|0|root|secret|vpopmail" >> $(MYSQLCONF); \
+	  fi ; \
+	  chown @vpopuser@  $(MYSQLCONF) ; \
+	  chgrp @vpopgroup@ $(MYSQLCONF) ; \
+	  chmod 0600        $(MYSQLCONF) ; \
+	fi
+
+	$(INSTALL) --owner=root --mode=0600 --group=root -D \
+	  libvpopmail.a $(DESTDIR)@vpopmaildir@/lib/libvpopmail.a
+
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ -D \
+	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
+
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  vpopmail.h config.h vauth.h vlimits.h \
+	  $(DESTDIR)@vpopmaildir@/include/
+
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/man_html
+	$(INSTALL) -d $(DESTDIR)@vpopmaildir@/doc/doc_html
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  doc/man_html/* $(DESTDIR)@vpopmaildir@/doc/man_html/
+
+	$(INSTALL) --owner=@vpopuser@ --mode=0444 --group=@vpopgroup@ \
+	  doc/doc_html/* $(DESTDIR)@vpopmaildir@/doc/doc_html/
+
+fix-priv:
+	@echo "If the recursive chown is taking a long time"
+	@echo "go ahead and break out of it by pressing control-C"
+	@echo "this is the last stage of the install and can be skipped" 
+	chmod 700 $(DESTDIR)@vpopmaildir@/@domains_dir@
+	chown -R @vpopuser@  $(DESTDIR)@vpopmaildir@/@domains_dir@
+	chgrp -R @vpopgroup@ $(DESTDIR)@vpopmaildir@/@domains_dir@
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
