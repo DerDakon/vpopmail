@@ -1,0 +1,1 @@
+gcc -g vcalias.c -o vcalias -I.. -I/usr/include/mysql -L/usr/lib/mysql -L.. -lvpopmail -lmysqlclient -lcrypt -lz
