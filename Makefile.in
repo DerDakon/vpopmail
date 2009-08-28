@@ -407,6 +407,6 @@ distclean: clean
 	@if test -r backends/ldap/Makefile; then (cd backends/ldap;make distclean); fi
 	@if test -r backends/cdb/Makefile; then (cd backends/cdb;make distclean); fi
 	@if test -r backends/mysql/Makefile; then (cd backends/mysql;make distclean); fi
-	rm -rf config.h Makefile autom4te.cache config.log config.status backends/module.mk
+	rm -rf stamp-h1 config.h Makefile autom4te.cache config.log config.status backends/module.mk
 	(cd cdb;make distclean)
 	(cd vusaged; make distclean)

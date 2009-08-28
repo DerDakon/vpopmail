@@ -358,6 +358,9 @@ int auth_deldomain( char *domain )
   PGresult *pgres;
   char *tmpstr;
   int err;
+#ifdef ENABLE_SQL_LOGGING
+  char sqlBufUpdate[SQL_BUF_SIZE] = { 0 };
+#endif
     
   if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );
@@ -420,6 +423,9 @@ int auth_deluser( char *user, char *domain )
   PGresult *pgres;
   char *tmpstr;
   int err = 0;
+#ifdef ENABLE_SQL_LOGGING
+  char sqlBufUpdate[SQL_BUF_SIZE];
+#endif
     
   if ( (err=auth_open(1)) != 0 ) return(err);
   vset_default_domain( domain );

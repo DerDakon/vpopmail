@@ -82,13 +82,51 @@ AC_CHECK_LIB(mysqlclient, mysql_real_connect, [], [ AC_MSG_ERROR(Can't find MySQ
 # Authentication logging
 #
 
-AC_MSG_CHECKING(if authentication logging is enabled)
+AC_MSG_CHECKING(if authentication logging is disabled)
 
 AC_ARG_ENABLE(auth-logging,
-    [  --enable-auth-logging   Enable authentication logging],
+    [  --disable-auth-logging  Disable authentication logging],
+	[
+	   AC_MSG_RESULT(yes)
+    ],
+	[
+	  AC_MSG_RESULT(no)
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,1,"")
+    ],
+	[
+	  AC_MSG_RESULT(no)
+	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,1,"")
+    ]
+)
+
+#
+# SQL logging
+#
+
+AC_MSG_CHECKING(if SQL logging is enabled)
+
+AC_ARG_ENABLE(sql-logging,
+    [  --enable-sql-logging    Enable SQL logging],
 	[
 	  AC_MSG_RESULT(yes)
-	  AC_DEFINE_UNQUOTED(ENABLE_AUTH_LOGGING,1,"")
+	  AC_DEFINE_UNQUOTED(ENABLE_SQL_LOGGING,1,"")
+    ],
+	[
+	   AC_MSG_RESULT(no)
+    ]
+)
+
+#
+# MySQL limits
+#
+
+AC_MSG_CHECKING(if MySQL limits is enabled)
+
+AC_ARG_ENABLE(mysql-limits,
+    [  --enable-mysql-limits   Enable MySQL limits],
+	[
+	  AC_MSG_RESULT(yes)
+	  AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,1,"")
     ],
 	[
 	   AC_MSG_RESULT(no)
@@ -137,9 +175,9 @@ AC_SUBST(incdir)
 # Options
 #
 
-AC_MSG_CHECKING(whether to use valias)
+AC_MSG_CHECKING(whether to use native valias)
 AC_ARG_ENABLE(valias,
-			  [  --enable-valias         Enable storage of dotqmail data in the MySQL database ],
+			  [  --enable-valias         Enable native valias, storage of dotqmail data in the MySQL database ],
 			  [ 
 			    AC_DEFINE_UNQUOTED(VALIAS,1,"")
 			    AC_MSG_RESULT(yes)
