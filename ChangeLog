@@ -71,6 +71,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated various functions to use vpopmail_uidgid rather than use VPOPMAILUID and VPOPMAILGID defines
   - Fixed typo in configure script that said to use --with-vpopmail instead of --with-vpopuser
   - Updated user and group numerical discovery in configure script
+  - Re-added some missing configure flags for the MySQL and PostgreSQL modules
+  - Renamed module occurrences of 'valias' to 'native valias'
+  - Fixed a missing variable in PostgreSQL module with SQL logging enabled
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain

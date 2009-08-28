@@ -21,6 +21,8 @@
 
 #undef MANY_DOMAINS
 #undef VALIAS
+#undef ENABLE_SQL_LOGGING
+#undef ENABLE_AUTH_LOGGING
 
 #include "config.h"
 
