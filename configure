@@ -758,6 +758,8 @@ enable_defaultquota
 enable_default_domain
 enable_non_root_build
 enable_many_domains
+enable_vpopuser
+enable_vpopgroup
 enable_auth_logging
 '
       ac_precious_vars='build_alias
@@ -1427,9 +1429,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-vpopuser=USER     User name allocated to vpopmail vpopmail.
+  --with-vpopuser=USER     User name allocated to vpopmail
   --with-vpopgroup=GROUP   Group name allocated to vpopmail vchkpw.
-
 
 Some influential environment variables:
   CC          C compiler command
@@ -7205,23 +7206,14 @@ _ACEOF
 
 #----------------------------------------------------------------------
 
-{ $as_echo "$as_me:$LINENO: checking for valid vpopmail user and group" >&5
-$as_echo_n "checking for valid vpopmail user and group... " >&6; }
+{ $as_echo "$as_me:$LINENO: checking if vpopmail user and group settings are correct" >&5
+$as_echo_n "checking if vpopmail user and group settings are correct... " >&6; }
 
 vpopuser="vpopmail"
 
 # Check whether --with-vpopuser was given.
 if test "${with_vpopuser+set}" = set; then
-  withval=$with_vpopuser; vpopuser="$enableval"
-else
-
-        if test "$vpopuser" = ""
-        then
-            { { $as_echo "$as_me:$LINENO: error: Unable to find your vpopmail user, specify --with-vpopuser." >&5
-$as_echo "$as_me: error: Unable to find your vpopmail user, specify --with-vpopuser." >&2;}
-   { (exit 1); exit 1; }; }
-        fi
-
+  withval=$with_vpopuser;  vpopuser="$withval"
 
 fi
 
@@ -7239,16 +7231,7 @@ vpopgroup="vchkpw"
 
 # Check whether --with-vpopgroup was given.
 if test "${with_vpopgroup+set}" = set; then
-  withval=$with_vpopgroup; vpopgroup="$enableval"
-else
-
-        if test "$vpopgroup" = ""
-        then
-            { { $as_echo "$as_me:$LINENO: error: Unable to find your vpopmail group, specify --with-vpopgroup." >&5
-$as_echo "$as_me: error: Unable to find your vpopmail group, specify --with-vpopgroup." >&2;}
-   { (exit 1); exit 1; }; }
-        fi
-
+  withval=$with_vpopgroup;  vpopgroup="$withval"
 
 fi
 
@@ -7260,15 +7243,18 @@ _ACEOF
 
 
 
-{ $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
+echo $vpopgroup > vpopgroupname
 
-{ $as_echo "$as_me:$LINENO: checking whether password file entry for the vpopmail user exists" >&5
-$as_echo_n "checking whether password file entry for the vpopmail user exists... " >&6; }
+#
+# Check username, and save directory
+#
+
 if test "$cross_compiling" = yes; then
-  { { $as_echo "$as_me:$LINENO: error: Could not compile and run even a trivial ANSI C program - check CC." >&5
+
+	  { { $as_echo "$as_me:$LINENO: error: Could not compile and run even a trivial ANSI C program - check CC." >&5
 $as_echo "$as_me: error: Could not compile and run even a trivial ANSI C program - check CC." >&2;}
    { (exit 1); exit 1; }; }
+
 
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -7289,13 +7275,9 @@ cat >>conftest.$ac_ext <<_ACEOF
 
         unlink("vpopmail.dir");
         unlink("vpopmail.uid");
-        unlink("vpopmail.gid");
 
         if ( (f=fopen("vpopusername","r+"))==NULL) {
-                printf("No vpopmail user found.\n");
-                printf("Please add the vchkpw group and\n");
-                printf("vpopmail user. Then run configure again\n");
-                return(-1);
+                return(1);
         }
 
         fgets(tmpbuf,100,f);
@@ -7310,15 +7292,8 @@ cat >>conftest.$ac_ext <<_ACEOF
                 f=fopen("vpopmail.uid", "a+");
                 fprintf(f,"%d\n", pw->pw_uid);
                 fclose(f);
-
-                f=fopen("vpopmail.gid", "a+");
-                fprintf(f,"%d\n", pw->pw_gid);
-                fclose(f);
         } else {
-                printf("No vpopmail user found.\n");
-                printf("Please add the vchkpw group and\n");
-                printf("vpopmail user. Then run configure again\n");
-                return(-1);
+                return(1);
         }
         return(0);
   }
@@ -7346,7 +7321,8 @@ $as_echo "$ac_try_echo") >&5
   ac_status=$?
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  { $as_echo "$as_me:$LINENO: result: yes" >&5
+
+	  { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
 else
   $as_echo "$as_me: program exited with status $ac_status" >&5
@@ -7354,11 +7330,107 @@ $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
-{ $as_echo "$as_me:$LINENO: result: no" >&5
+
+	  { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
-    { { $as_echo "$as_me:$LINENO: error: Could not compile and run even a trivial ANSI C program - check CC." >&5
+	  { { $as_echo "$as_me:$LINENO: error: User '$vpopuser' does not exist" >&5
+$as_echo "$as_me: error: User '$vpopuser' does not exist" >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
+rm -rf conftest.dSYM
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+
+
+#
+# Check group
+#
+
+if test "$cross_compiling" = yes; then
+
+	  { { $as_echo "$as_me:$LINENO: error: Could not compile and run even a trivial ANSI C program - check CC." >&5
 $as_echo "$as_me: error: Could not compile and run even a trivial ANSI C program - check CC." >&2;}
    { (exit 1); exit 1; }; }
+
+
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+  #include <stdio.h>
+  #include <grp.h>
+  #include <stdlib.h>
+
+  int main() {
+    struct group *gr;
+    char tmpbuf[100];
+    FILE *f;
+
+        unlink("vpopmail.gid");
+
+        if ( (f=fopen("vpopgroupname","r+"))==NULL) {
+                return(1);
+        }
+
+        fgets(tmpbuf,100,f);
+        fclose(f);
+        tmpbuf[strlen(tmpbuf)-1] = 0;
+
+        if (( gr=getgrnam(tmpbuf)) != 0 ) {
+                f=fopen("vpopmail.gid", "a+");
+                fprintf(f,"%d\n", gr->gr_gid);
+                fclose(f);
+        } else {
+                return(1);
+        }
+        return(0);
+  }
+
+_ACEOF
+rm -f conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+	  { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+$as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+( exit $ac_status )
+
+	  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+	  { { $as_echo "$as_me:$LINENO: error: Group '$vpopgroup' does not exist" >&5
+$as_echo "$as_me: error: Group '$vpopgroup' does not exist" >&2;}
+   { (exit 1); exit 1; }; }
+
 fi
 rm -rf conftest.dSYM
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
@@ -7483,6 +7555,7 @@ _ACEOF
 
 rm -f vpopmail.gid
 rm -f vpopusername
+rm -f vpopgroupname
 
 #
 # Create etc directory if root
@@ -9770,24 +9843,22 @@ $as_echo "$as_me: error: Please use --enable-many-domains when building a backen
 fi
 
 
-
-# Check whether --with-vpopuser was given.
-if test "${with_vpopuser+set}" = set; then
-  withval=$with_vpopuser;
+# Check whether --enable-vpopuser was given.
+if test "${enable_vpopuser+set}" = set; then
+  enableval=$enable_vpopuser;
 			   { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
-			   { { $as_echo "$as_me:$LINENO: error: --enable-vpopuser is deprecated.  Please use --with-vpopmail" >&5
-$as_echo "$as_me: error: --enable-vpopuser is deprecated.  Please use --with-vpopmail" >&2;}
+			   { { $as_echo "$as_me:$LINENO: error: --enable-vpopuser is deprecated.  Please use --with-vpopuser" >&5
+$as_echo "$as_me: error: --enable-vpopuser is deprecated.  Please use --with-vpopuser" >&2;}
    { (exit 1); exit 1; }; }
 
 
 fi
 
 
-
-# Check whether --with-vpopgroup was given.
-if test "${with_vpopgroup+set}" = set; then
-  withval=$with_vpopgroup;
+# Check whether --enable-vpopgroup was given.
+if test "${enable_vpopgroup+set}" = set; then
+  enableval=$enable_vpopgroup;
 			   { $as_echo "$as_me:$LINENO: result: yes" >&5
 $as_echo "yes" >&6; }
 			   { { $as_echo "$as_me:$LINENO: error: --enable-vpopgroup is deprecated.  Please use --with-vpopgroup" >&5
@@ -11022,6 +11093,40 @@ $as_echo "$as_me: error: could not create $ac_file" >&2;}
 $as_echo "$as_me: error: could not create -" >&2;}
    { (exit 1); exit 1; }; }
   fi
+# Compute "$ac_file"'s index in $config_headers.
+_am_arg="$ac_file"
+_am_stamp_count=1
+for _am_header in $config_headers :; do
+  case $_am_header in
+    $_am_arg | $_am_arg:* )
+      break ;;
+    * )
+      _am_stamp_count=`expr $_am_stamp_count + 1` ;;
+  esac
+done
+echo "timestamp for $_am_arg" >`$as_dirname -- "$_am_arg" ||
+$as_expr X"$_am_arg" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$_am_arg" : 'X\(//\)[^/]' \| \
+	 X"$_am_arg" : 'X\(//\)$' \| \
+	 X"$_am_arg" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$_am_arg" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`/stamp-h$_am_stamp_count
  ;;
 
 

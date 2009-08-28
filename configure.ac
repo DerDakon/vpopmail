@@ -379,18 +379,12 @@ AC_DEFINE_UNQUOTED(QMAILNEWMRH,"$qmailnewmrh","")
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(for valid vpopmail user and group)
+AC_MSG_CHECKING(if vpopmail user and group settings are correct)
 
 vpopuser="vpopmail"
 AC_ARG_WITH(vpopuser,
-    [  --with-vpopuser=USER     User name allocated to vpopmail [vpopmail].],
-    vpopuser="$enableval",
-    [
-        if test "$vpopuser" = ""
-        then
-            AC_MSG_ERROR([Unable to find your vpopmail user, specify --with-vpopuser.])
-        fi
-    ]
+    [  --with-vpopuser=USER     User name allocated to vpopmail ],
+    [ vpopuser="$withval" ]
 )
 
 AC_DEFINE_UNQUOTED(VPOPUSER,"$vpopuser","")
@@ -401,21 +395,18 @@ echo $vpopuser > vpopusername
 vpopgroup="vchkpw"
 AC_ARG_WITH(vpopgroup,
     [  --with-vpopgroup=GROUP   Group name allocated to vpopmail [vchkpw].],
-    vpopgroup="$enableval",
-    [
-        if test "$vpopgroup" = ""
-        then
-            AC_MSG_ERROR([Unable to find your vpopmail group, specify --with-vpopgroup.])
-        fi
-    ]
+    [ vpopgroup="$withval" ]
 )
 
 AC_DEFINE_UNQUOTED(VPOPGROUP,"$vpopgroup","")
 AC_SUBST(vpopgroup)
 
-AC_MSG_RESULT(yes)
+echo $vpopgroup > vpopgroupname
 
-AC_MSG_CHECKING(whether password file entry for the vpopmail user exists)
+#
+# Check username, and save directory
+#
+
 AC_TRY_RUN( [
   #include <stdio.h>
   #include <pwd.h>
@@ -428,13 +419,9 @@ AC_TRY_RUN( [
 
         unlink("vpopmail.dir");
         unlink("vpopmail.uid");
-        unlink("vpopmail.gid");
 
         if ( (f=fopen("vpopusername","r+"))==NULL) {
-                printf("No vpopmail user found.\n");
-                printf("Please add the vchkpw group and\n");
-                printf("vpopmail user. Then run configure again\n");
-                return(-1);
+                return(1);
         }
 
         fgets(tmpbuf,100,f);
@@ -449,23 +436,66 @@ AC_TRY_RUN( [
                 f=fopen("vpopmail.uid", "a+");
                 fprintf(f,"%d\n", pw->pw_uid);
                 fclose(f);
-
-                f=fopen("vpopmail.gid", "a+");
-                fprintf(f,"%d\n", pw->pw_gid);
-                fclose(f);
         } else {
-                printf("No vpopmail user found.\n");
-                printf("Please add the vchkpw group and\n");
-                printf("vpopmail user. Then run configure again\n");
-                return(-1);
+                return(1);
         }
         return(0);
   }
   ],
-    AC_MSG_RESULT(yes),
-    AC_MSG_RESULT(no)
-    AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.),
-    AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.)
+  [
+	  AC_MSG_RESULT(yes) ],
+  [
+	  AC_MSG_RESULT(no)
+	  AC_MSG_ERROR(User '$vpopuser' does not exist)
+  ],
+  [
+	  AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.)
+  ]
+)
+
+#
+# Check group
+#
+
+AC_TRY_RUN( [
+  #include <stdio.h>
+  #include <grp.h>
+  #include <stdlib.h>
+
+  int main() {
+    struct group *gr;
+    char tmpbuf[100];
+    FILE *f;
+
+        unlink("vpopmail.gid");
+
+        if ( (f=fopen("vpopgroupname","r+"))==NULL) {
+                return(1);
+        }
+
+        fgets(tmpbuf,100,f);
+        fclose(f);
+        tmpbuf[strlen(tmpbuf)-1] = 0;
+
+        if (( gr=getgrnam(tmpbuf)) != 0 ) {
+                f=fopen("vpopmail.gid", "a+");
+                fprintf(f,"%d\n", gr->gr_gid);
+                fclose(f);
+        } else {
+                return(1);
+        }
+        return(0);
+  }
+  ],
+  [
+	  AC_MSG_RESULT(yes) ],
+  [
+	  AC_MSG_RESULT(no)
+	  AC_MSG_ERROR(Group '$vpopgroup' does not exist)
+  ],
+  [
+	  AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.)
+  ]
 )
 
 if test ! -f vpopmail.uid
@@ -541,6 +571,7 @@ vpopmailgid=`cat vpopmail.gid`
 AC_DEFINE_UNQUOTED(VPOPMAILGID,$vpopmailgid,"")
 rm -f vpopmail.gid
 rm -f vpopusername
+rm -f vpopgroupname
 
 #
 # Create etc directory if root
@@ -1644,14 +1675,14 @@ AC_ARG_ENABLE(many-domains, [],
     ]
 )
 
-AC_ARG_WITH(vpopuser, [],
+AC_ARG_ENABLE(vpopuser, [],
 			[
 			   AC_MSG_RESULT(yes)
-			   AC_MSG_ERROR(--enable-vpopuser is deprecated.  Please use --with-vpopmail)
+			   AC_MSG_ERROR(--enable-vpopuser is deprecated.  Please use --with-vpopuser)
 			]
 )
 
-AC_ARG_WITH(vpopgroup, [],
+AC_ARG_ENABLE(vpopgroup, [],
 			[
 			   AC_MSG_RESULT(yes)
 			   AC_MSG_ERROR(--enable-vpopgroup is deprecated.  Please use --with-vpopgroup)
