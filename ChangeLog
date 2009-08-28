@@ -69,6 +69,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Added reading and writing of user usage at startup and shutdown of vusage daemon
   - Added vpopmail_uidgid function to load, cache, and return vpopmail user UID and GID values
   - Updated various functions to use vpopmail_uidgid rather than use VPOPMAILUID and VPOPMAILGID defines
+  - Fixed typo in configure script that said to use --with-vpopmail instead of --with-vpopuser
+  - Updated user and group numerical discovery in configure script
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
