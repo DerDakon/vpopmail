@@ -692,11 +692,11 @@ void vauth_end_getall()
 char *vauth_munch_domain( char *domain )
 {
  int i;
- static char tmpbuf[50];
+ static char tmpbuf[512];
 
     if ( domain == NULL || domain[0] == 0 ) return(domain);
 
-    for(i=0;domain[i]!=0;++i){
+    for(i=0;domain[i]!=0 && i < (sizeof(tmpbuf) - 1);++i){
         tmpbuf[i] = domain[i];
         if ( domain[i] == '.' || domain[i] == '-' ) {
             tmpbuf[i] = ORACLE_DOT_CHAR;
