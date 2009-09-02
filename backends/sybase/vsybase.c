@@ -505,11 +505,11 @@ struct vqpasswd *vauth_getall_size(char *domain, int first, int sortit, int site
 char *vauth_munch_domain( char *domain )
 {
  int i;
- static char tmpbuf[50];
+ static char tmpbuf[512];
 
 	if ( domain == NULL || domain[0] == 0 ) return(domain);
 
-	for(i=0;domain[i]!=0;++i){
+	for(i=0;domain[i]!=0 && i < (sizeof(tmpbuf) - 1);++i){
 		tmpbuf[i] = domain[i];
 		if ( domain[i] == '.' || domain[i] == '-' ) {
 			tmpbuf[i] = SYBASE_DOT_CHAR;
