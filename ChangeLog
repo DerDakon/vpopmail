@@ -23,6 +23,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
      usernames when qmail-ext is enabled
    - Fixed bounds error in vauth_much_domain and increased buffer size for
      longer domain names
+   - Applied same fix to PostgreSQL module
 
    aledr <matrixworkstation@gmail.com>
    - Fixed overflow in PostgreSQL module
