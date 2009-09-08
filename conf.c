@@ -151,6 +151,9 @@ config_t *config_read(char *filename)
 
 void config_kill(config_t *c)
 {
+   if (c == NULL)
+	  return;
+
   if (c->filename)
      free(c->filename);
 
@@ -196,6 +199,9 @@ int config_begin_read(config_t *c, char *filename)
   int ret = 0;
   char b[255] = { 0 };
   FILE *stream = NULL;
+
+  if (c == NULL)
+	 return 0;
 
   if (c->filename) {
      free(c->filename);
@@ -248,6 +254,9 @@ void config_label_kill(config_t *c)
 {
   config_label_t *l = NULL, *ol = NULL;
 
+  if (c == NULL)
+	 return;
+
   l = c->labels;
   while(l) {
     ol = l;
@@ -269,6 +278,9 @@ void config_label_kill(config_t *c)
 void config_atom_kill(config_label_t *l)
 {
   config_atom_t *a = NULL, *ao = NULL;
+
+  if (l == NULL)
+	 return;
 
   a = l->atoms;
 
@@ -327,6 +339,9 @@ config_atom_t *config_atom_alloc(void)
 
 void config_atom_free(config_atom_t *a)
 {
+   if (a == NULL)
+	  return;
+
   if (a->name)
      free(a->name);
  
@@ -373,6 +388,9 @@ int config_contents(config_t *c, FILE *stream)
 {
   int ret = 0;
   char b[CONFIG_MAX_LINE] = { 0 }, *p = NULL;
+
+  if (c == NULL)
+	 return 0;
 
   c->line = 0;
 
@@ -488,6 +506,9 @@ void config_remove_comments(config_t *c, char *data)
   int len = 0;
   char *h = NULL, *t = NULL, *p = NULL, *s = NULL;
 
+  if (c == NULL)
+	 return;
+
   t = NULL;
   s = p = data;
   len = strlen(data);
@@ -552,6 +573,9 @@ int config_parse_label(config_t *c, char *newlabel, char *labeldata)
   int ret = 0;
   config_label_t *l = NULL;
   char *h = NULL, *t = NULL, *p = NULL;
+
+  if (c == NULL)
+	 return 0;
 
   /*
      Allocate the label, set it inside the linked list,
@@ -640,6 +664,9 @@ int config_parse_label_atom(config_t *c, config_label_t *l, char *data)
 {
   config_atom_t *a = NULL;
   char *p = NULL, *aname = NULL, *adata = NULL, *t = NULL;
+
+  if ((c == NULL) || (l == NULL))
+	 return 0;
 
   a = config_atom_alloc();
   if (a == NULL) {
@@ -730,6 +757,9 @@ char *config_fetch_by_name(config_t *c, char *label, char *aname)
   config_label_t *l = NULL;
   config_atom_t *a = NULL;
 
+  if (c == NULL)
+	 return NULL;
+
   if (c->labels == NULL)
      return NULL;
 
@@ -758,6 +788,9 @@ char *config_fetch_by_num(config_t *c, char *label, int num)
 {  
   int cur = 0;
 
+  if (c == NULL)
+	 return NULL;
+
   config_label_t *l = NULL;
   config_atom_t *a = NULL;
 
@@ -784,6 +817,9 @@ int config_parse_includes(config_t *c)
   int ret = 0;
   config_label_t *l = NULL;
   config_atom_t *a = NULL;
+
+  if (c == NULL)
+	 return 0;
 
   if (c->labels == NULL)
      return 0;
@@ -1025,6 +1061,9 @@ int config_reference(config_t *c, char *label)
 {
   config_label_t *l = NULL;
 
+  if (c == NULL)
+	 return 0;
+
   for (l = c->labels; l; l = l->next) {
       if (!(strcasecmp(l->name, label))) {
          c->ltail = l;
@@ -1044,6 +1083,9 @@ int config_reference(config_t *c, char *label)
 char *config_fetch(config_t *c, char *name)
 {
   config_atom_t *a = NULL;
+
+  if (c == NULL)
+	 return NULL;
 
   if (c->ltail == NULL)
      return NULL;
@@ -1066,6 +1108,9 @@ int config_next_reference(config_t *c)
 {
   char *lname = NULL;
   config_label_t *l = NULL;
+
+  if (c == NULL)
+	 return 0;
 
   if (c->ltail == NULL)
      return 0;
