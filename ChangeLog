@@ -75,6 +75,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Renamed module occurrences of 'valias' to 'native valias'
   - Fixed a missing variable in PostgreSQL module with SQL logging enabled
   - Fixed bounds issue and updated buffer size in auth_munch_domain in backend modules that define it
+  - Updated config API not to assume config pointer is not NULL
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
