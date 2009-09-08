@@ -74,6 +74,18 @@ void *client_connect(void)
 	  fprintf(stderr, "client_connect: warning: config_begin failed\n");
 
    /*
+	  Disabled?
+   */
+
+   str = config_fetch_by_name(config, "Server", "Disable");
+   if ((str) && (*str)) {
+	  if (!(strcasecmp(str, "True"))) {
+		 config_kill(config);
+		 return NULL;
+	  }
+   }
+
+   /*
 	  Get timeout
    */
 
@@ -97,6 +109,7 @@ void *client_connect(void)
    if (str) {
 	  ret = ippp_parse(str, &addr);
 	  if (!ret) {
+		 config_kill(config);
 		 fprintf(stderr, "client_connect: configuration error: Server::Remote: %s\n", str);
 		 return 0;
 	  }
@@ -105,6 +118,7 @@ void *client_connect(void)
    else {
 	  str = config_fetch_by_name(config, "Server", "Filename");
 	  if ((str) && (!(*str))) {
+		 config_kill(config);
 		 fprintf(stderr, "client_connect: configuration error: Server::Filename\n");
 		 return 0;
 	  }

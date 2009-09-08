@@ -1,7 +1,14 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.28 - Current
+5.4.29 - Current
+   Matt Brookings
+   - Released to address some segfault issues in 5.4.28
+   - Fixed bug in config API that assumes config pointer is not NULL
+   - Updated client API to check Server::Disable
+   - Updated client API to properly release configuration-related memory
+
+5.4.28 - Released 08-24-2009
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient
    - Added vusage client API to libvpopmail
