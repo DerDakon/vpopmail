@@ -76,6 +76,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed a missing variable in PostgreSQL module with SQL logging enabled
   - Fixed bounds issue and updated buffer size in auth_munch_domain in backend modules that define it
   - Updated config API not to assume config pointer is not NULL
+  - Updated client API to check Server::Disable in vusagec.conf
+  - Updated client API to properly release configuration-related memory
 
   Manvendra Bhangui <mbhangui@users.sourceforge.net>
   - Added vmoddomain
