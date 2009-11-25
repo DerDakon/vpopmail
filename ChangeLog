@@ -3,6 +3,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Renamed variable that is pre-defined in Solaris
+  - Fixed quota/limits comparison
   - Updated build scripts considerably
   - Updated to build vusaged
   - Fixed some format string bugs
