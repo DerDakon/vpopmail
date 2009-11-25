@@ -115,7 +115,7 @@ int quota_check_domain(const char *domain)
 	  Compare
    */
 
-   if (((vl.diskquota) && (bytes >= vl.diskquota)) || ((vl.maxmsgcount) && ((count >= vl.maxmsgcount))))
+   if (((vl.diskquota) && (bytes) && ((bytes/1000000) >= vl.diskquota)) || ((vl.maxmsgcount) && ((count >= vl.maxmsgcount))))
 	  return 1;
 
    return 0;
@@ -228,7 +228,7 @@ int quota_compare(const char *email, const char *quota)
    */
 
    if ((ret) && (usage != -1)) {
-	  if (((vl.diskquota) && (usage >= vl.diskquota)) || (((vl.maxmsgcount) && (count >= vl.maxmsgcount))))
+	  if (((vl.diskquota) && (usage) && ((usage/1000000) >= vl.diskquota)) || (((vl.maxmsgcount) && (count >= vl.maxmsgcount))))
 		 return 2;
    }
 

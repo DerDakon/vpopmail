@@ -451,7 +451,7 @@ int user_poll(user_t *u)
 
    if (u->userstore == NULL) {
 	  u->userstore = userstore_load(u->home);
-	  before = 0;
+	  before = cbefore = 0;
    }
 
    /*
