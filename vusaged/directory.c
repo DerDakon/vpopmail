@@ -33,7 +33,7 @@
 #endif
 #include "conf.h"
 #include "path.h"
-#include "storage.h"
+#include "../storage.h"
 #include "directory.h"
 
 /*

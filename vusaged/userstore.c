@@ -30,7 +30,7 @@
    #include <assert.h>
 #endif
 #include "path.h"
-#include "storage.h"
+#include "../storage.h"
 #include "directory.h"
 #include "list.h"
 #include "conf.h"

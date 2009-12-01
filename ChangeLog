@@ -3,6 +3,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Fixed a small build bug with cdb
+  - Updated vusaged subdirectory to use main source tree's copy of storage.h
+  - Fixed a number of issues with FreeBSD detection of endian and handling of 64bit values
+  - Fixed some pthreads detection issues on FreeBSD
   - Renamed variable that is pre-defined in Solaris
   - Fixed quota/limits comparison
   - Updated build scripts considerably

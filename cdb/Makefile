@@ -2,10 +2,10 @@
 
 SHELL=/bin/sh
 
-default: all
+default: uint32.h all
 
-install: all
-install-strip: all
+install: uint32.h all
+install-strip: uint32.h all
 
 cdb.a: \
 makelib cdb_hash.o cdb_unpack.o cdb_seek.o

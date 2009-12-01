@@ -39,6 +39,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 #include "conf.h"
 #include "packet.h"
 #include "grow.h"
@@ -308,7 +309,7 @@ int socket_init(config_t *config)
 		 }
 
 		 modes = atoi(str);
-		 if (modes == -1) {
+		 if ((modes == 0) || (errno == EINVAL)) {
 			fprintf(stderr, "socket_init: invalid configuration: Socket::Modes: %s\n", str);
 			return 0;
 		 }
