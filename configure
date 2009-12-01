@@ -615,9 +615,9 @@ OBJEXT
 EXEEXT
 ac_ct_CC
 CPPFLAGS
+CC
 LDFLAGS
 CFLAGS
-CC
 host_os
 host_vendor
 host_cpu
@@ -2810,6 +2810,26 @@ IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
+
+#
+# Default CFLAGS
+#
+
+if test -z "$CFLAGS"
+then
+   CFLAGS=""
+
+fi
+
+#
+# Default LDFLAGS
+#
+
+if test -z "$LDFLAGS"
+then
+   LDFLAGS=""
+
+fi
 
 #----------------------------------------------------------------------
 
@@ -5096,13 +5116,6 @@ $as_echo "$as_me: WARNING: === please switch to the root user and  ===" >&2;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: === run ./configure. Thanks ===" >&5
 $as_echo "$as_me: WARNING: === run ./configure. Thanks ===" >&2;}
   as_fn_error "aborted." "$LINENO" 5
-fi
-
-#----------------------------------------------------------------------
-
-if test "$GCC" = yes ; then
-  CXXFLAGS="$CXXFLAGS -Wall"
-  CFLAGS="$CFLAGS -Wall"
 fi
 
 #----------------------------------------------------------------------

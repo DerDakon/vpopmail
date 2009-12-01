@@ -10,6 +10,24 @@ AM_INIT_AUTOMAKE()
 
 AC_CANONICAL_HOST
 
+#
+# Default CFLAGS
+#
+
+if test -z "$CFLAGS"
+then
+   AC_SUBST(CFLAGS, "")
+fi
+
+#
+# Default LDFLAGS
+#
+
+if test -z "$LDFLAGS"
+then
+   AC_SUBST(LDFLAGS, "")
+fi
+
 #----------------------------------------------------------------------
 
 dnl Checks for programs.
@@ -115,13 +133,6 @@ then
   AC_MSG_WARN(=== please switch to the root user and  ===)
   AC_MSG_WARN(=== run ./configure. Thanks ===)
   AC_MSG_ERROR(aborted.)
-fi
-
-#----------------------------------------------------------------------
-
-if test "$GCC" = yes ; then
-  CXXFLAGS="$CXXFLAGS -Wall"
-  CFLAGS="$CFLAGS -Wall"
 fi
 
 #----------------------------------------------------------------------
