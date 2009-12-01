@@ -459,7 +459,7 @@ AC_TRY_RUN( [
   }
   ],
   [
-	  AC_MSG_RESULT(yes) ],
+	  ],
   [
 	  AC_MSG_RESULT(no)
 	  AC_MSG_ERROR(User '$vpopuser' does not exist)
@@ -504,7 +504,7 @@ AC_TRY_RUN( [
   }
   ],
   [
-	  AC_MSG_RESULT(yes) ],
+	  ],
   [
 	  AC_MSG_RESULT(no)
 	  AC_MSG_ERROR(Group '$vpopgroup' does not exist)
@@ -528,6 +528,8 @@ if test ! -f vpopmail.dir
 then
         AC_MSG_ERROR(No vpopmail home directory)
 fi
+
+AC_MSG_RESULT(yes)
 
 #
 # Determine directories
@@ -1563,7 +1565,7 @@ ACX_PTHREAD()
 
 AC_SUBST(vusagedbuild, "vusaged/vusaged")
 
-if test x"$acx_pthread_ok" == x"no"
+if test x"$acx_pthread_ok" = x"no"
 then
    AC_MSG_WARN([===                                                       ===])
    AC_MSG_WARN([===               pthreads not found                      ===])
