@@ -21,28 +21,50 @@
 #ifndef __STORAGE_H_
    #define __STORAGE_H_
 
+#include "config.h"
 #include <stdint.h>
 
 /*
    htonll() and ntohll()
 */
 
-#include <endian.h>
-#include <byteswap.h>
+#ifdef HAVE_ENDIAN_H
+	#include <endian.h>
+#endif
+
+#ifdef HAVE_BYTESWAP_H
+	#include <byteswap.h>
+#endif
+
+#ifdef HAVE_SYS_ENDIAN_H
+	#include <sys/endian.h>
+#endif
+
+#ifdef HAVE_MACHINE_ENDIAN_H
+	#include <machine/endian.h>
+#endif
 
 #if defined(__LITTLE_ENDIAN) || defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__)
 # ifndef ntohll
 # if defined(__DARWIN__)
 # define ntohll(_x_) NXSwapBigLongLongToHost(_x_)
 # else
-# define ntohll(_x_) __bswap_64(_x_)
+  #ifdef HAVE_BSWAP64
+	#define ntohll(_x_) bswap64(_x_)
+  #else
+	# define ntohll(_x_) __bswap_64(_x_)
+  #endif
 # endif
 # endif
 # ifndef htonll
 # if defined(__DARWIN__)
 # define htonll(_x_) NXSwapHostLongLongToBig(_x_)
 # else
-# define htonll(_x_) __bswap_64(_x_)
+  #ifdef HAVE_BSWAP64
+	#define htonll(_x_) bswap64(_x_)
+  #else
+	# define htonll(_x_) __bswap_64(_x_)
+  #endif
 # endif
 # endif
 #elif defined(__BIG_ENDIAN) || defined(_BIG_ENDIAN) || defined(__BIG_ENDIAN__)
@@ -61,11 +83,19 @@
 */
 
 #ifndef ntohll
-   #define ntohll(x) __bswap_64(x)
+	#ifdef HAVE_BSWAP64
+		#define ntohll(x) bswap64(x)
+	#else
+		#define ntohll(x) __bswap_64(x)
+	#endif
 #endif
 
 #ifndef htonll
-   #define htonll(x) __bswap_64(x)
+   #ifdef HAVE_BSWAP64
+   		#define htonll(x) bswap64(x)
+   #else
+		#define htonll(x) __bswap_64(x)
+   #endif
 #endif
 
 /*

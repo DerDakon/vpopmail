@@ -25,11 +25,11 @@ query.o: $(DEPS) query.c query.h user.h packet.h queue.h
 	$(CC) $(DEFS) -o query.o -c query.c
 cache.o: $(DEPS) cache.c cache.h uthash.h
 	$(CC) $(DEFS) -o cache.o -c cache.c
-user.o: $(DEPS) user.c user.h cache.h storage.h userstore.h path.h domain.h queue.h
+user.o: $(DEPS) user.c user.h cache.h ../storage.h userstore.h path.h domain.h queue.h
 	$(CC) $(DEFS) -o user.o -c user.c
-directory.o: $(DEPS) directory.c directory.h storage.h  path.h
+directory.o: $(DEPS) directory.c directory.h ../storage.h  path.h
 	$(CC) $(DEFS) -o directory.o -c directory.c
-userstore.o: $(DEPS) userstore.c userstore.h storage.h directory.h list.h path.h 
+userstore.o: $(DEPS) userstore.c userstore.h ../storage.h directory.h list.h path.h 
 	$(CC) $(DEFS) -o userstore.o -c userstore.c
 list.o: $(DEPS) list.c list.h
 	$(CC) $(DEFS) -o list.o -c list.c

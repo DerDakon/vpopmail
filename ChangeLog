@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.29 - Current
    Matt Brookings
+   - Numerous fixes to compile on FreeBSD
    - Released to address some segfault issues in 5.4.28
    - Fixed bug in config API that assumes config pointer is not NULL
    - Updated client API to check Server::Disable

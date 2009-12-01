@@ -21,8 +21,24 @@
 AC_INIT(vusage, 1.0.0)
 AC_PROG_CC
 AC_LANG(C)
-AC_SUBST(CFLAGS, "-Wall -funroll-loops")
-AC_SUBST(LDFLAGS, "")
+
+#
+# Default CFLAGS
+#
+
+if test -z "$CFLAGS"
+then
+   AC_SUBST(CFLAGS, "")
+fi
+
+#
+# Default LDFLAGS
+#
+
+if test -z "$LDFLAGS"
+then
+   AC_SUBST(LDFLAGS, "")
+fi
 
 #
 # Check for pthreads support
@@ -130,7 +146,7 @@ if test x"$PTHREAD_LIBS$PTHREAD_CFLAGS" != x; then
         AC_MSG_CHECKING([for pthread_join in LIBS=$PTHREAD_LIBS with CFLAGS=$PTHREAD_CFLAGS])
         AC_TRY_LINK_FUNC(pthread_join, acx_pthread_ok=yes)
         AC_MSG_RESULT($acx_pthread_ok)
-        if test x"$acx_pthread_ok" = xno; then
+        if test x"$acx_pthread_ok" = x"no"; then
                 PTHREAD_LIBS=""
                 PTHREAD_CFLAGS=""
         fi
@@ -185,7 +201,7 @@ case "${host_cpu}-${host_os}" in
         ;;
 esac
 
-if test x"$acx_pthread_ok" = xno; then
+if test x"$acx_pthread_ok" = x"no"; then
 for flag in $acx_pthread_flags; do
 
         case $flag in
@@ -200,7 +216,7 @@ for flag in $acx_pthread_flags; do
 
 		pthread-config)
 		AC_CHECK_PROG(acx_pthread_config, pthread-config, yes, no)
-		if test x"$acx_pthread_config" = xno; then continue; fi
+		if test x"$acx_pthread_config" = x"no"; then continue; fi
 		PTHREAD_CFLAGS="`pthread-config --cflags`"
 		PTHREAD_LIBS="`pthread-config --ldflags` `pthread-config --libs`"
 		;;
@@ -272,7 +288,7 @@ if test "x$acx_pthread_ok" = xyes; then
             *solaris* | *-osf* | *-hpux*) flag="-D_REENTRANT";;
         esac
         AC_MSG_RESULT(${flag})
-        if test "x$flag" != xno; then
+        if test "x$flag" != x"no"; then
             PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
         fi
 
@@ -306,7 +322,7 @@ AC_LANG_RESTORE
 
 ACX_PTHREAD()
 
-if test x"$acx_pthread_ok" == xno
+if test x"$acx_pthread_ok" = x"no"
 then
    AC_MSG_ERROR([No pthreads found])
 fi
@@ -318,7 +334,7 @@ fi
 AC_CHECK_HEADERS(ev.h)
 AC_CHECK_LIB(ev, ev_loop_new)
 
-if test x"$ac_cv_lib_ev_ev_loop_new" == xno
+if test x"$ac_cv_lib_ev_ev_loop_new" = x"no"
 then
    AC_MSG_ERROR([No libev found])
 fi
@@ -329,12 +345,12 @@ fi
 
 AC_ARG_WITH(vpopmail, [  --with-vpopmail=/home/vpopmail ], [], [with_vpopmail=/home/vpopmail])
 
-if test x"$with_vpopmail" == xno
+if test x"$with_vpopmail" = xno
 then
    AC_MSG_ERROR([vpopmail is required to build the vusage package])
 fi
 
-if test x"$with_vpopmail" == xyes
+if test x"$with_vpopmail" = xyes
 then
    AC_MSG_ERROR([--with-vpopmail should be a path to the vpopmail home directory])
 fi
@@ -352,22 +368,22 @@ AC_CHECK_LIB(vpopmail, vauth_getall)
 AC_CHECK_LIB(vpopmail, get_domain_entries)
 AC_CHECK_LIB(vpopmail, client_query_quick)
 
-if test x"$ac_cv_lib_vpopmail_vauth_getpw" == xno
+if test x"$ac_cv_lib_vpopmail_vauth_getpw" = xno
 then
    AC_MSG_ERROR([No vauth_getpw in libvpopmail])
 fi
 
-if test x"$ac_cv_lib_vpopmail_vauth_getall" == xno
+if test x"$ac_cv_lib_vpopmail_vauth_getall" = xno
 then
    AC_MSG_ERROR([No vauth_getall in libvpopmail])
 fi
 
-if test x"$ac_cv_lib_vpopmail_get_domain_entries" == xno
+if test x"$ac_cv_lib_vpopmail_get_domain_entries" = xno
 then
    AC_MSG_ERROR([No get_domain_entires in libvpopmail])
 fi
 
-if test x"$ac_cv_lib_vpopmail_client_query_quick" == xno
+if test x"$ac_cv_lib_vpopmail_client_query_quick" = xno
 then
    AC_MSG_ERROR([No usage daemon client API found in libvpopmail -- Please upgrade vpopmail])
 fi

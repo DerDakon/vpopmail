@@ -25,7 +25,7 @@
    #include <assert.h>
 #endif
 #include <pthread.h>
-#include "storage.h"
+#include "../storage.h"
 #include "cache.h"
 #include "domain.h"
 
