@@ -160,9 +160,9 @@ int main( int argc, char **argv)
        * Note that the popular Courier-IMAP does not use vchkpw, it
        * links libvpopmail directly into its server.
        */
-      if (strstr (argv[1], "true") != NULL)  /* used as STMP AUTH */
+      if (strstr (argv[1] ? argv[1] : "", "true") != NULL)  /* used as STMP AUTH */
         ConnType = SMTP_CONN;
-      else if (strstr (argv[1], "imap") != NULL)  /* used with IMAP */
+      else if (strstr (argv[1] ? argv[1] : "", "imap") != NULL)  /* used with IMAP */
         ConnType = IMAP_CONN;
       else  /* default to POP */
         ConnType = POP_CONN;
