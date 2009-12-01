@@ -189,6 +189,12 @@
 /* Define to 1 if you have the `warn' function. */
 #undef HAVE_WARN
 
+#undef HAVE_BYTESWAP_H
+#undef HAVE_ENDIAN_H
+#undef HAVE_MACHINE_ENDIAN_H
+#undef HAVE_SYS_ENDIAN_H
+#undef HAVE_BSWAP64
+
 /* "" */
 #undef IP_ALIAS_DOMAINS
 

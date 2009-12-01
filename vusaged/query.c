@@ -22,7 +22,7 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
-#include "storage.h"
+#include "../storage.h"
 #include "packet.h"
 #include "user.h"
 #include "query.h"

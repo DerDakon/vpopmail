@@ -25,7 +25,7 @@ BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
 INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h group.h
 INSTALL_DIRS = $(DESTDIR)@VPOPMAIL_DIR_BIN@ $(DESTDIR)@VPOPMAIL_DIR_ETC@ $(DESTDIR)@VPOPMAIL_DIR_INCLUDE@ \
 			   $(DESTDIR)@VPOPMAIL_DIR_LIB@ $(DESTDIR)@VPOPMAIL_DIR_DOMAINS@
-CDB_OBJECTS = cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
+CDB_OBJECTS = cdb/uint32.h cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
@@ -50,6 +50,8 @@ cdb: $(CDB_OBJECTS)
 	(cd cdb;make)
 cdb/%.o:
 	(cd cdb;make)
+cdb/uint32.h:
+	(cd cdb;make uint32.h)
 
 #
 # vusage daemon

@@ -33,7 +33,7 @@
 #include <vauthmodule.h>
 #include <conf.h>
 #include "path.h"
-#include "storage.h"
+#include "../storage.h"
 #include "cache.h"
 #include "userstore.h"
 #include "domain.h"

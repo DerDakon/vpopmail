@@ -56,7 +56,7 @@ AC_CHECK_LIB(dl, dlopen)
 #
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h dlfcn.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h machine/endian.h sys/endian.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h dlfcn.h])
 
 #
 # Compiler language support
@@ -88,6 +88,22 @@ AC_FUNC_REALLOC
 AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
 AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn chdir umask strtok strchr strstr close execv write read fopen fputs atoi atol malloc memset strcmp strncmp strcasecmp waitpid strncat strcpy fflush kill rename chmod free srand rand getenv gmtime strtoll])
+AC_MSG_CHECKING(for bswap64)
+AC_TRY_LINK([
+	#ifdef HAVE_SYS_ENDIAN_H
+		#include <sys/endian.h>
+	#endif
+	#ifdef HAVE_MACHINE_ENDIAN_H
+		#include <machine/endian.h>
+	#endif
+	],[ bswap64(0); ],
+[ 
+	AC_MSG_RESULT(yes)
+	AC_DEFINE(HAVE_BSWAP64,1)
+], 
+[ 
+	AC_MSG_RESULT(no)
+])
 
 #
 # Operating system specific settings
@@ -777,10 +793,12 @@ case $ENABLE_MD5_PASSWORDS in
 
 	  AC_MSG_CHECKING(whether system supports MD5 passwords)
 	  AC_TRY_RUN([
-		 #include <stdio.h>
+	     #include <stdio.h>
 	     #include <string.h>
 	     #include <unistd.h>
-		 #include <crypt.h>
+	     #ifdef HAVE_CRYPT_H
+		#include <crypt.h>
+	     #endif
 
 	     int main(int argc, char *argv[])
 	     {
@@ -1468,7 +1486,7 @@ for flag in $acx_pthread_flags; do
         CFLAGS="$save_CFLAGS"
 
         AC_MSG_RESULT($acx_pthread_ok)
-        if test "x$acx_pthread_ok" = xyes; then
+        if test "x$acx_pthread_ok" = x"yes"; then
                 break;
         fi
 
@@ -1478,7 +1496,7 @@ done
 fi
 
 # Various other checks:
-if test "x$acx_pthread_ok" = xyes; then
+if test "x$acx_pthread_ok" = x"yes"; then
         save_LIBS="$LIBS"
         LIBS="$PTHREAD_LIBS $LIBS"
         save_CFLAGS="$CFLAGS"
@@ -1505,7 +1523,7 @@ if test "x$acx_pthread_ok" = xyes; then
             *solaris* | *-osf* | *-hpux*) flag="-D_REENTRANT";;
         esac
         AC_MSG_RESULT(${flag})
-        if test "x$flag" != xno; then
+        if test "x$flag" != x"no"; then
             PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
         fi
 
@@ -1513,7 +1531,7 @@ if test "x$acx_pthread_ok" = xyes; then
         CFLAGS="$save_CFLAGS"
 
         # More AIX lossage: must compile with xlc_r or cc_r
-	if test x"$GCC" != xyes; then
+	if test x"$GCC" != x"yes"; then
           AC_CHECK_PROGS(PTHREAD_CC, xlc_r cc_r, ${CC})
         else
           PTHREAD_CC=$CC
@@ -1527,7 +1545,7 @@ AC_SUBST(PTHREAD_CFLAGS)
 AC_SUBST(PTHREAD_CC)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
-if test x"$acx_pthread_ok" = xyes; then
+if test x"$acx_pthread_ok" = x"yes"; then
         ifelse([$1],,AC_DEFINE(HAVE_PTHREAD,1,[Define if you have POSIX threads libraries and header files.]),[$1])
         :
 else
@@ -1545,7 +1563,7 @@ ACX_PTHREAD()
 
 AC_SUBST(vusagedbuild, "vusaged/vusaged")
 
-if test x"$acx_pthread_ok" == xno
+if test x"$acx_pthread_ok" == x"no"
 then
    AC_MSG_WARN([===                                                       ===])
    AC_MSG_WARN([===               pthreads not found                      ===])
