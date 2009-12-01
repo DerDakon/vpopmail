@@ -33,7 +33,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h memory.h sys/endian.h machine/endian.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
+AC_CHECK_HEADERS([arpa/inet.h endian.h byteswap.h fcntl.h memory.h sys/endian.h machine/endian.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
 
 #----------------------------------------------------------------------
 
