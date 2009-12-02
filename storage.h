@@ -51,6 +51,7 @@
 	#include <inttypes.h>
 #endif
 
+#if !defined(HAVE_HTONLL) || !defined(HAVE_NTOHLL)
 #if defined(__LITTLE_ENDIAN) || defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__)
 # ifndef ntohll
 # if defined(__DARWIN__)
@@ -103,6 +104,7 @@
    #else
 		#define htonll(x) __bswap_64(x)
    #endif
+#endif
 #endif
 
 /*
