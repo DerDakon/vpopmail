@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Added preferred make binary selection to configure script
   - Renamed queue_t to wqueue_t for Solaris
   - Renamed local domain socket variable (again)
   - Added default LLONG_MAX definition

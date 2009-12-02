@@ -607,6 +607,7 @@ LIBOBJS
 EGREP
 GREP
 CPP
+MAKE
 RANLIB
 INSTALL_DATA
 INSTALL_SCRIPT
@@ -3410,6 +3411,43 @@ if test "$ac_res" != no; then :
 
 fi
 
+
+#
+# Prefer GNU make
+#
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking preferred make binary" >&5
+$as_echo_n "checking preferred make binary... " >&6; }
+
+f_makegnu=""
+for i in "$MAKE" make gmake gnumake
+do
+	f_makegnu=`/bin/sh -c "$i --version" 2> /dev/null | grep GNU`
+	if test -n "$f_makegnu"
+	then
+		f_makegnu=$i
+		break
+	fi
+done
+
+if test -n "$f_makegnu"
+then
+	MAKE=$f_makegnu
+else
+	if test -z "$MAKE"
+	then
+
+cat >>confdefs.h <<_ACEOF
+#define MAKE "make"
+_ACEOF
+
+	fi
+fi
+
+MAKE="$MAKE"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $MAKE" >&5
+$as_echo "$MAKE" >&6; }
 
 #
 # Libraries

@@ -12,6 +12,7 @@ LLIBS = @LIBS@
 LDFLAGS = @LDFLAGS@
 DEPS = Makefile
 INSTALL = @INSTALL@
+MAKE = @MAKE@
 IDCOMMAND = @idcommand@
 CCC = $(CC) $(CFLAGS)
 PICC = $(CC) $(CFLAGS) -fPIC
@@ -47,18 +48,18 @@ all: $(BUILD_ALL) post-compile
 # 
 
 cdb: $(CDB_OBJECTS)
-	(cd cdb;make)
+	(cd cdb;$(MAKE))
 cdb/%.o:
-	(cd cdb;make)
+	(cd cdb;$(MAKE))
 cdb/uint32.h:
-	(cd cdb;make uint32.h)
+	(cd cdb;$(MAKE) uint32.h)
 
 #
 # vusage daemon
 #
 
 vusaged/vusaged:
-	(cd vusaged;make)
+	(cd vusaged;$(MAKE))
 
 #
 # Library
@@ -244,7 +245,7 @@ vconfig.o: $(DEPS) vconfig.c config.h vpopmail.h
 post-compile:
 	@echo
 	@echo "    vpopmail is compiled        "
-	@echo "(Type 'make install' to install)"
+	@echo "(Type '$(MAKE) install' to install)"
 	@echo
 
 install-strip: install
@@ -349,7 +350,7 @@ install: pre-install $(BUILD_ALL)
 	@#
 	
 	if test -x vusaged/vusaged; then \
-	   (cd vusaged;make install); \
+	   (cd vusaged;$(MAKE) install); \
     fi
 	
 	@#
@@ -369,7 +370,7 @@ install: pre-install $(BUILD_ALL)
 	@#
 	
 	@if ! test -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vpopmail.authmodule; then \
-	   (make authmodule); \
+	   ($(MAKE) authmodule); \
     fi
 
 authmodule:
@@ -384,7 +385,7 @@ authmodule:
 	@echo "  ** backends directory and compile it with the following      **"
 	@echo "  ** command:                                                  **"
 	@echo "  **                                                           **"
-	@echo "  ** cd backends/module && ./configure && make && make install **"
+	@echo "  ** cd backends/module && ./configure && $(MAKE) && $(MAKE) install **"
 	@echo "  **                                                           **"
 	@echo "  ***************************************************************"
 	@echo
@@ -396,19 +397,19 @@ authmodule:
 # 
 
 clean:
-	@if test -r backends/postgres/Makefile; then (cd backends/postgres;make clean); fi
-	@if test -r backends/ldap/Makefile; then (cd backends/ldap;make clean); fi
-	@if test -r backends/cdb/Makefile; then (cd backends/cdb;make clean); fi
-	@if test -r backends/mysql/Makefile; then (cd backends/mysql;make clean); fi
+	@if test -r backends/postgres/Makefile; then (cd backends/postgres;$(MAKE) clean); fi
+	@if test -r backends/ldap/Makefile; then (cd backends/ldap;$(MAKE) clean); fi
+	@if test -r backends/cdb/Makefile; then (cd backends/cdb;$(MAKE) clean); fi
+	@if test -r backends/mysql/Makefile; then (cd backends/mysql;$(MAKE) clean); fi
 	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
-	(cd cdb;make clean)
-	(cd vusaged;make clean)
+	(cd cdb;$(MAKE) clean)
+	(cd vusaged;$(MAKE) clean)
 
 distclean: clean
-	@if test -r backends/postgres/Makefile; then (cd backends/postgres;make distclean); fi
-	@if test -r backends/ldap/Makefile; then (cd backends/ldap;make distclean); fi
-	@if test -r backends/cdb/Makefile; then (cd backends/cdb;make distclean); fi
-	@if test -r backends/mysql/Makefile; then (cd backends/mysql;make distclean); fi
+	@if test -r backends/postgres/Makefile; then (cd backends/postgres;$(MAKE) distclean); fi
+	@if test -r backends/ldap/Makefile; then (cd backends/ldap;$(MAKE) distclean); fi
+	@if test -r backends/cdb/Makefile; then (cd backends/cdb;$(MAKE) distclean); fi
+	@if test -r backends/mysql/Makefile; then (cd backends/mysql;$(MAKE) distclean); fi
 	rm -rf stamp-h1 config.h Makefile autom4te.cache config.log config.status backends/module.mk
-	(cd cdb;make distclean)
-	(cd vusaged; make distclean)
+	(cd cdb;$(MAKE) distclean)
+	(cd vusaged;$(MAKE) distclean)
