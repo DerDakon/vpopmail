@@ -56,7 +56,7 @@ AC_CHECK_LIB(dl, dlopen)
 #
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h machine/endian.h sys/endian.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h dlfcn.h])
+AC_CHECK_HEADERS([arpa/inet.h assert.h byteswap.h crypt.h ctype.h dirent.h machine/endian.h sys/endian.h endian.h err.h errno.h fcntl.h memory.h netinet/in.h pwd.h shadow.h signal.h stdarg.h stdint.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h sys/param.h sys/socket.h sys/stat.h sys/time.h sys/types.h sys/uio.h sys/un.h sys/wait.h time.h unistd.h utime.h dlfcn.h inttypes.h])
 
 #
 # Compiler language support

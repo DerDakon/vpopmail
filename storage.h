@@ -44,6 +44,13 @@
 	#include <machine/endian.h>
 #endif
 
+#include <sys/types.h>
+#include <netinet/in.h>
+
+#ifdef HAVE_INTTYPES_H
+	#include <inttypes.h>
+#endif
+
 #if defined(__LITTLE_ENDIAN) || defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__)
 # ifndef ntohll
 # if defined(__DARWIN__)
