@@ -45,6 +45,36 @@ AC_PROG_RANLIB
 AC_ISC_POSIX
 
 #
+# Prefer GNU make
+#
+
+AC_MSG_CHECKING(preferred make binary)
+
+f_makegnu=""
+for i in "$MAKE" make gmake gnumake
+do
+	f_makegnu=`/bin/sh -c "$i --version" 2> /dev/null | grep GNU`
+	if test -n "$f_makegnu"
+	then
+		f_makegnu=$i
+		break
+	fi
+done
+
+if test -n "$f_makegnu"
+then
+	MAKE=$f_makegnu
+else
+	if test -z "$MAKE"
+	then
+		AC_DEFINE_UNQUOTED(MAKE, "make", "")
+	fi
+fi
+
+AC_SUBST(MAKE, "$MAKE")
+AC_MSG_RESULT($MAKE)
+	
+#
 # Libraries
 #
 

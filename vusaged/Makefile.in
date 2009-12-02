@@ -7,9 +7,10 @@ CC = @PTHREAD_CC@
 CFLAGS = @CFLAGS@ -I..
 DEFS = $(CFLAGS) @PTHREAD_CFLAGS@
 LIBS = -L.. -lvpopmail @VUSAGEDLIBS@ @LDFLAGS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @LIBS@
-INSTALL = install
+INSTALL = @INSTALL@
 DEPS = Makefile
 BINS = vusaged
+MAKE = @MAKE@
 VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
 VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 
@@ -19,7 +20,7 @@ vusaged: ../libvpopmail.so vusaged.o socket.o grow.o signal.o packet.o query.o c
 	$(CC) -o vusaged vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o $(LIBS)
 
 ../libvpopmail.so:
-	(cd ..;make)
+	(cd ..;$(MAKE))
 
 vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h user.h
 	$(CC) $(DEFS) -o vusaged.o -c vusaged.c
