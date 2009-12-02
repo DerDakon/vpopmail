@@ -484,7 +484,7 @@ static inline storage_t directory_filesize(const char *file, int fnlen)
 			*/
 
 			size = strtoll(h + 3, NULL, 10);
-			if (size == LONG_MAX) {
+			if (size == LLONG_MAX) {
 			   fprintf(stderr, "directory_filesize: syntax error in Maildir++ filename: %s\n", file);
 			   break;
 			}

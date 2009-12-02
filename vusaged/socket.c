@@ -139,7 +139,7 @@ int socket_init(config_t *config)
    uid_t uid = 0;
    gid_t gid = 0;
    mode_t modes = 0;
-   struct sockaddr_un sun;
+   struct sockaddr_un lun;
    struct sockaddr_in addr;
    struct passwd *pw = NULL;
    struct group *grp = NULL;
@@ -321,7 +321,7 @@ int socket_init(config_t *config)
 		 Setup the unix structure
 	  */
 
-	  memset(&sun, 0, sizeof(sun));
+	  memset(&lun, 0, sizeof(lun));
 
 	  ret = strlen(socket_file);
 	  if (ret > 107) {
@@ -329,9 +329,9 @@ int socket_init(config_t *config)
 		 return 0;
 	  }
 
-	  memcpy(sun.sun_path, socket_file, ret);
+	  memcpy(lun.sun_path, socket_file, ret);
 
-	  sun.sun_family = PF_UNIX;
+	  lun.sun_family = PF_UNIX;
    }
 
    socket_poll_timeout = SOCKET_POLL_TIMEOUT;
@@ -398,7 +398,7 @@ int socket_init(config_t *config)
 	  fprintf(stderr, "socket_init: warning: SO_REUSEADDR failed\n");
 
    if (socket_file)
-	  ret = bind(ls, (struct sockaddr *)&sun, sizeof(sun));
+	  ret = bind(ls, (struct sockaddr *)&lun, sizeof(lun));
    else
 	  ret = bind(ls, (struct sockaddr *)&addr, sizeof(addr));
 

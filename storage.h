@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 /*
    htonll() and ntohll()
@@ -49,6 +50,10 @@
 
 #ifdef HAVE_INTTYPES_H
 	#include <inttypes.h>
+#endif
+
+#if !defined(LLONG_MAX)
+	#define LLONG_MAX 9223372036854775807LL
 #endif
 
 #if !defined(HAVE_HTONLL) || !defined(HAVE_NTOHLL)
