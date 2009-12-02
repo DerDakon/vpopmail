@@ -1954,5 +1954,5 @@ echo "${CC} -O2" > cdb/conf-cc
 echo "${CC} -s" > cdb/conf-ld
 
 echo ""
-echo "(Type 'make' to compile)"
+echo "(Type '$MAKE' to compile)"
 echo ""
