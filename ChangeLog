@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Renamed local domain socket variable (again)
+  - Added default LLONG_MAX definition
+  - Updated strtoll error checking to check for LLONG_MAX instead of LONG_MAX
   - Made yet more modifications in storage.h for htonll and ntohll compatibility
   - Fixed vchkpw calling strstr with NULL value
   - Fixed some slight output issues and test issues in configure.ac
