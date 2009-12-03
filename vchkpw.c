@@ -689,20 +689,20 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
   if ( (verror == VLOG_ERROR_PASSWD) && 
        ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || 
          ENABLE_LOGGING==4 ) ) {
-    syslog(LOG_NOTICE,sysc(LogLine));
+    syslog(LOG_NOTICE,"%s",sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s",sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_LOGON ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s",sysc(LogLine));
 
   } else if ( verror == VLOG_ERROR_ACCESS ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s",sysc(LogLine));
 
   } else if ( verror == VLOG_AUTH && 
             ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
-    syslog(LOG_NOTICE, sysc(LogLine));
+    syslog(LOG_NOTICE, "%s",sysc(LogLine));
   }
 
 #ifdef ENABLE_SQL_LOGGING
@@ -712,26 +712,26 @@ void vlog(int verror, char *TheUser, char *TheDomain, char *ThePass,
 
   if ( (verror == VLOG_ERROR_PASSWD) && ( ENABLE_LOGGING==1 || ENABLE_LOGGING==2 || ENABLE_LOGGING==3 || ENABLE_LOGGING==4 ) ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+          syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-          syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+          syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_INTERNAL ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+        syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_LOGON ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+        syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_ERROR_ACCESS ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+        syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
   } else if ( verror == VLOG_AUTH && ( ENABLE_LOGGING == 1 || ENABLE_LOGGING == 4 ) ) {
       if ( (logsql(verror, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine) ) != 0 ) {
-        syslog(LOG_NOTICE,"vchkpw: can't write SQL logs");
+        syslog(LOG_NOTICE,"%s","vchkpw: can't write SQL logs");
       }
   }
 #endif

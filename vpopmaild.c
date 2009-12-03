@@ -294,7 +294,7 @@ int main(int argc, char **argv)
     exit( -1 );
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   wait_write();
 
   /* authenticate first or drop connection */
@@ -435,8 +435,8 @@ int login()
   AuthVpw.pw_shell = strdup(tmpvpw->pw_shell);
   AuthVpw.pw_clear_passwd = strdup(tmpvpw->pw_clear_passwd);
 
-  snprintf( TheUserDir, sizeof(TheUserDir), AuthVpw.pw_dir);
-  snprintf( TheDomainDir, sizeof(TheDomainDir), 
+  snprintf( TheUserDir, sizeof(TheUserDir), "%s",AuthVpw.pw_dir);
+  snprintf( TheDomainDir, sizeof(TheDomainDir), "%s",
     vget_assign(TheDomain,NULL,0,&uid,&gid));
   snprintf(TheVpopmailDomains, sizeof(TheVpopmailDomains), "%s/domains", 
     VPOPMAILDIR);
@@ -1279,7 +1279,7 @@ int validate_path(char *newpath, char *path)
 
   /* expand the path */
   if ( path[0] == '/' ) {
-    snprintf(newpath, MAXPATH, path);
+    snprintf(newpath, MAXPATH, "%s", path);
   } else { 
     slash = strchr( path, '/');
     if ( slash == NULL ) {
@@ -1325,7 +1325,7 @@ int validate_path(char *newpath, char *path)
           return(8);
         }
       }
-      snprintf(newpath, MAXPATH, myvpw->pw_dir);
+      snprintf(newpath, MAXPATH, "%s",myvpw->pw_dir);
       strncat(newpath, &path[i], MAXPATH );
     } else {     /*  may be domain name   */
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
@@ -1336,7 +1336,7 @@ int validate_path(char *newpath, char *path)
         show_error( ERR_NOT_AUTH_DOMAIN, 1509 );
         return(9);
       } 
-      snprintf(newpath, MAXPATH, thedir);
+      snprintf(newpath, MAXPATH, "%s", thedir);
       strncat(newpath, &path[i], MAXPATH );
     }
   }
@@ -1388,7 +1388,7 @@ int mk_dir()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s",RET_OK);
   return(0);
 }
 
@@ -1412,7 +1412,7 @@ int rm_dir()
       strerror(errno));
     return(-1);
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   return(0);
 }
 
@@ -1444,7 +1444,7 @@ int list_dir()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   while((mydirent=readdir(mydir))!=NULL){
@@ -1457,7 +1457,7 @@ int list_dir()
       printf("error on stat of %s\n", mydirent->d_name);
       exit(-1);
     }
-    snprintf( WriteBuf, sizeof(WriteBuf), mydirent->d_name);
+    snprintf( WriteBuf, sizeof(WriteBuf), "%s", mydirent->d_name);
     if ( S_ISREG(statbuf.st_mode ) ) {
       strncat(WriteBuf," file", sizeof(WriteBuf));
     } else if ( S_ISDIR(statbuf.st_mode ) ) {
@@ -1482,7 +1482,7 @@ int list_dir()
     /* oh well, at least we might die soon */
   }
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -1513,7 +1513,7 @@ int rename_file()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   return(0);
 
 }
@@ -1540,7 +1540,7 @@ int rm_file()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   return(0);
 }
 
@@ -1573,7 +1573,7 @@ int write_file()
   }
   fclose(fs);
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   return(0);
 }
 
@@ -1598,12 +1598,12 @@ int read_file()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   while(fgets(tmpbuf,sizeof(tmpbuf),fs)!=NULL){
     if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || strcmp(tmpbuf, ".\n") == 0 ) {
-      snprintf(WriteBuf, sizeof(WriteBuf), ".");
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s", ".");
       strncat(WriteBuf, tmpbuf, sizeof(WriteBuf));
     } else {
       memcpy(WriteBuf,tmpbuf,sizeof(tmpbuf));
@@ -1613,9 +1613,9 @@ int read_file()
   fclose(fs);
 
   if ( tmpbuf[0] != 0 && tmpbuf[strlen(tmpbuf)-1] != '\n' ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_CRLF "." RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_CRLF "." RET_CRLF);
   } else {
-    snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   }
   return(0);
 }
@@ -1640,7 +1640,7 @@ int stat_file()
       strerror(errno));
     return(-1);
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
   snprintf(WriteBuf,sizeof(WriteBuf), "uid: %d\n", mystat.st_uid); 
   wait_write();
@@ -1687,7 +1687,7 @@ int list_domains()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   count = 0;
@@ -1709,7 +1709,7 @@ int list_domains()
     entry=get_domain_entries(NULL);
     
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -1746,7 +1746,7 @@ int find_domain()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   count = 0;
@@ -1764,7 +1764,7 @@ int find_domain()
   }
 
   if( miss ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
     return(0);
   } else if( per_page > 0 ) {
     page = ( count / per_page ) + 1;
@@ -1775,7 +1775,7 @@ int find_domain()
   snprintf(WriteBuf,sizeof(WriteBuf), "page %i" RET_CRLF, page );
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -1796,7 +1796,7 @@ int domain_count()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   count = 0;
@@ -1808,7 +1808,7 @@ int domain_count()
   snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -1841,7 +1841,7 @@ int user_count()
      return(-1);
    }
  
-   snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+   snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
    wait_write();
  
    first=1;
@@ -1853,7 +1853,7 @@ int user_count()
 
    snprintf(WriteBuf,sizeof(WriteBuf), "count %i" RET_CRLF, count);
    wait_write();
-   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+   snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
    return(0);
  }
   	 
@@ -1907,7 +1907,7 @@ int list_users()
     return(-1);
   }
 
-  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   first=1;
@@ -1924,13 +1924,13 @@ int list_users()
       send_user_info(tmpvpw);
     }
 
-    snprintf(WriteBuf, sizeof(WriteBuf), RET_CRLF );
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_CRLF );
     wait_write();
 
     ++count;
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -1985,7 +1985,7 @@ list_alias()
   /*  print all aliases  */
   if (strstr(Email, "@") == NULL) {
     tmpalias = valias_select_all(Alias, Email);
-    snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
     wait_write();
       
     while (tmpalias != NULL) {
@@ -1998,9 +1998,9 @@ list_alias()
   } else {
     tmpalias = valias_select(Alias, Domain);
     if (tmpalias == NULL) {
-      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK);
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK);
     } else {
-      snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
       wait_write();
       
       while (tmpalias != NULL) {
@@ -2011,7 +2011,7 @@ list_alias()
     }
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -2074,7 +2074,7 @@ int list_lists()
     return(-1);
   }
 
-  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   j = bkscandir(".", &namelist, 0, qa_sort);
@@ -2103,7 +2103,7 @@ int list_lists()
     }
     ++count;
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -2129,12 +2129,12 @@ int get_ip_map()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf),RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf),"%s", RET_OK_MORE);
   wait_write();
  
   snprintf(WriteBuf,sizeof(WriteBuf),"%s %s" RET_CRLF, ip, tmpdomain);
   wait_write();
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
 
 #else
   show_error( ERR_NOT_AVAIL, 3004 );
@@ -2170,11 +2170,11 @@ int add_ip_map()
   }
 
   if ( vadd_ip_map(ip,domain) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0.3105 error" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_ERR "0.3105 error" RET_CRLF);
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf),"%s",RET_OK);
 #else
   show_error( ERR_NOT_AVAIL, 3106 );
 #endif
@@ -2203,11 +2203,11 @@ int del_ip_map()
   }
 
   if ( vdel_ip_map(ip,domain) < 0 ) {
-    snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0.3204 error" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_ERR "0.3204 error" RET_CRLF);
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf),"%s",RET_OK);
 
 #else
   show_error( ERR_NOT_AVAIL, 3205 );
@@ -2227,7 +2227,7 @@ int show_ip_map()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   first = 1;
@@ -2237,7 +2237,7 @@ int show_ip_map()
     snprintf(WriteBuf, sizeof(WriteBuf), "%s %s" RET_CRLF, r_ip, r_domain);
     wait_write();
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
 
 #else
   show_error( ERR_NOT_AVAIL, 3302 );
@@ -2266,7 +2266,7 @@ int get_limits()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   snprintf(WriteBuf,sizeof(WriteBuf), "max_popaccounts %d" RET_CRLF, 
@@ -2289,64 +2289,64 @@ int get_limits()
     mylimits.defaultmaxmsgcount); wait_write();
 
   if (mylimits.disable_pop) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_pop 1" RET_CRLF); 
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_pop 1" RET_CRLF); 
   else 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_pop 0" RET_CRLF); 
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_pop 0" RET_CRLF); 
 
   wait_write();
 
   if (mylimits.disable_imap) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_imap 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_imap 1" RET_CRLF);
   else
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_imap 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_imap 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_dialup) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_dialup 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_dialup 1" RET_CRLF);
   else 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_dialup 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_dialup 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_passwordchanging) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_password_changing 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_password_changing 1" RET_CRLF);
   else 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_password_changing 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_password_changing 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_webmail)
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_webmail 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_webmail 1" RET_CRLF);
   else
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_webmail 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_webmail 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_relay)
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_external_relay 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_external_relay 1" RET_CRLF);
   else
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_external_relay 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_external_relay 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_smtp)
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_smtp 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_smtp 1" RET_CRLF);
   else
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_smtp 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_smtp 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_spamassassin) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_spamassassin 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_spamassassin 1" RET_CRLF);
   else 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_spamassassin 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_spamassassin 0" RET_CRLF);
   wait_write();
 
   if (mylimits.delete_spam)
-    snprintf(WriteBuf,sizeof(WriteBuf), "delete_spam 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "delete_spam 1" RET_CRLF);
   else
-    snprintf(WriteBuf,sizeof(WriteBuf), "delete_spam 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "delete_spam 0" RET_CRLF);
   wait_write();
 
   if (mylimits.disable_maildrop) 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_maildrop 1" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_maildrop 1" RET_CRLF);
   else 
-    snprintf(WriteBuf,sizeof(WriteBuf), "disable_maildrop 0" RET_CRLF);
+    snprintf(WriteBuf,sizeof(WriteBuf), "%s", "disable_maildrop 0" RET_CRLF);
   wait_write();
 
   snprintf(WriteBuf,sizeof(WriteBuf), "perm_account %d" RET_CRLF, 
@@ -2369,7 +2369,7 @@ int get_limits()
     mylimits.perm_defaultquota); wait_write();
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   return(0);
 }
 
@@ -2391,14 +2391,14 @@ int set_limits()
     return(-1);
   }
 
-  snprintf(domain,sizeof(domain), param);
+  snprintf(domain,sizeof(domain), "%s", param);
 
   if ((ret=vget_limits(domain,&mylimits))!=0){
     show_error( ERR_NO_GET_LIMITS, 3505 );
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   wait_write();
 
   while(fgets(ReadBuf,sizeof(ReadBuf),stdin)!=NULL ) {
@@ -2406,7 +2406,7 @@ int set_limits()
 
     if ( (param = strtok(ReadBuf,PARAM_TOKENS)) == NULL ) continue;
     if ( (value = strtok(NULL,PARAM_TOKENS)) == NULL )  {
-      snprintf(WriteBuf,sizeof(WriteBuf), 
+      snprintf(WriteBuf,sizeof(WriteBuf), "%s",
         "  Warning: missing value" RET_CRLF);
       wait_write();
       continue;
@@ -2469,7 +2469,7 @@ int set_limits()
     } else if ( strcmp(param,"perm_defaultquota") == 0 ) {
       mylimits.perm_defaultquota = atoi(value);
     } else {
-      snprintf(WriteBuf,sizeof(WriteBuf), 
+      snprintf(WriteBuf,sizeof(WriteBuf), "%s", 
         "  Warning: invalid option" RET_CRLF);
       wait_write();
     }
@@ -2479,7 +2479,7 @@ int set_limits()
   if ( vset_limits(domain,&mylimits) < 0 ) {
     show_error( ERR_NO_SET_LIMITS, 3504 );
   } else {
-    snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
+    snprintf(WriteBuf,sizeof(WriteBuf),"%s",RET_OK);
   }
   return(0);
 }
@@ -2505,7 +2505,7 @@ int del_limits()
     return(-1);
   }
 
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   return(0);
 }
 
@@ -2540,9 +2540,9 @@ int get_lastauth()
   } 
 
 #ifndef ENABLE_AUTH_LOGGING
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
 #else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,
@@ -2553,7 +2553,7 @@ int get_lastauth()
     vget_lastauthip(tmpvpw, TmpDomain));
   wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
 #endif
 
   return(0);
@@ -2584,31 +2584,31 @@ int get_user_size()
   long bytes;
 
   if (!(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    snprintf(WriteBuf, sizeof(WriteBuf), RET_ERR "3801 not authorized" RET_CRLF);
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_ERR "3801 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((email_address = strtok(NULL, TOKENS)) == NULL) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3802 email_address required" RET_CRLF);
     return(-1);
   }
 
   if (parse_email(email_address, TmpUser, TmpDomain, AUTH_SIZE) != 0) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3803 invalid email address" RET_CRLF);
     return(-1);
   }
 
   if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN) 
     && (strcmp(TheDomain, TmpDomain) != 0)) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3804 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
   if ((tmpvpw = vauth_getpw(TmpUser, TmpDomain)) == NULL) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3805 user does not exist" RET_CRLF);
     return(-1);
   }
@@ -2616,18 +2616,18 @@ int get_user_size()
   bytes = 0;
   cnt = 0;
   if ((ret = readuserquota(tmpvpw->pw_dir, &bytes, &cnt)) != 0) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3806 unable to fetch size of user account" RET_CRLF);
     return(-1);
   }
 
-  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
   snprintf(WriteBuf, sizeof(WriteBuf), "size %ld" RET_CRLF, bytes);
   wait_write();
   snprintf(WriteBuf, sizeof(WriteBuf), "count %d" RET_CRLF, cnt);
   wait_write();
-  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", "." RET_CRLF);
 
   return(0);
 }
@@ -2641,25 +2641,25 @@ int get_domain_size()
   unsigned long long totalbytes;
 
   if (!(AuthVpw.pw_gid & QA_ADMIN) && !(AuthVpw.pw_gid & SA_ADMIN)) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3901 not authorized" RET_CRLF);
     return(-1);
   }
 
   if ((domain = strtok(NULL, TOKENS)) == NULL) {
-    snprintf(WriteBuf, sizeof(WriteBuf), 
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3902 domain required" RET_CRLF);
     return(-1);
   }
 
   if (!(AuthVpw.pw_gid & SA_ADMIN) && (AuthVpw.pw_gid & QA_ADMIN) 
     && (strcmp(TheDomain, domain) != 0)) {
-    snprintf(WriteBuf, sizeof(WriteBuf),
+    snprintf(WriteBuf, sizeof(WriteBuf), "%s",
       RET_ERR "3903 not authorized for domain" RET_CRLF);
     return(-1);
   }
 
-  snprintf(WriteBuf, sizeof(WriteBuf), RET_OK_MORE);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", RET_OK_MORE);
   wait_write();
 
   totalbytes = 0;
@@ -2692,14 +2692,14 @@ int get_domain_size()
   wait_write();
   snprintf(WriteBuf, sizeof(WriteBuf), "count %u" RET_CRLF, totalcnt);
   wait_write();
-  snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf, sizeof(WriteBuf), "%s", "." RET_CRLF);
 
   return(0);
 }
 
 int quit()
 {
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", RET_OK);
   wait_write();
   vclose();
 
@@ -2725,7 +2725,7 @@ int login_help()
     }
     wait_write();
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
   
   return(1); 
 }
@@ -2751,7 +2751,7 @@ int help()
       wait_write();
     }
   }
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  snprintf(WriteBuf,sizeof(WriteBuf), "%s", "." RET_CRLF);
 
   return(1); 
 }
