@@ -602,7 +602,7 @@ static int user_storage_load(void)
 	  Check initial values
    */
 
-   if (strncmp(header.id, USER_STORAGE_ID, 3)) {
+   if (strncmp((const char *)header.id, USER_STORAGE_ID, 3)) {
 	  close(fd);
 	  printf("user: not a vusaged database file\n");
 	  return 0;
@@ -648,7 +648,7 @@ static int user_storage_load(void)
 		 Load domain
 	  */
 
-	  d = domain_load(entry.domain);
+	  d = domain_load((const char *)entry.domain);
 	  if (d == NULL) {
 		 fprintf(stderr, "user_storage_load: domain_load failed\n");
 		 break;
@@ -670,14 +670,14 @@ static int user_storage_load(void)
 		 Copy entry values
 	  */
 
-	  u->home = strdup(entry.home);
+	  u->home = strdup((const char *)entry.home);
 	  if (u->home == NULL) {
 		 fprintf(stderr, "user_storage_load: strdup failed\n");
 		 user_free(u);
 		 break;
 	  }
 
-	  u->user = strdup(entry.user);
+	  u->user = strdup((const char *)entry.user);
 	  if (u->user == NULL) {
 		 fprintf(stderr, "user_storage_load: strdup failed\n");
 		 user_free(u);

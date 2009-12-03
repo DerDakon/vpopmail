@@ -48,7 +48,7 @@ main(int argc, char **argv)
 	FILE           *fp;
 	char           *domain = 0, *handler = 0;
 	char            TheDir[MAX_BUFF], tmpbuf[MAX_BUFF], lockfile[MAX_BUFF];
-	int             fd, ret = 0;
+	int             fd;
 #ifdef FILE_LOCKING
 	int             lockfd;
 #endif
