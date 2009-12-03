@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 /*
    htonll() and ntohll()
@@ -44,6 +45,18 @@
 	#include <machine/endian.h>
 #endif
 
+#include <sys/types.h>
+#include <netinet/in.h>
+
+#ifdef HAVE_INTTYPES_H
+	#include <inttypes.h>
+#endif
+
+#if !defined(LLONG_MAX)
+	#define LLONG_MAX 9223372036854775807LL
+#endif
+
+#if !defined(HAVE_HTONLL) || !defined(HAVE_NTOHLL)
 #if defined(__LITTLE_ENDIAN) || defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__)
 # ifndef ntohll
 # if defined(__DARWIN__)
@@ -96,6 +109,7 @@
    #else
 		#define htonll(x) __bswap_64(x)
    #endif
+#endif
 #endif
 
 /*

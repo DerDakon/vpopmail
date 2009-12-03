@@ -21,6 +21,7 @@
 AC_INIT(vusage, 1.0.0)
 AC_PROG_CC
 AC_LANG(C)
+AC_CANONICAL_HOST
 
 #
 # Default CFLAGS
@@ -39,6 +40,27 @@ if test -z "$LDFLAGS"
 then
    AC_SUBST(LDFLAGS, "")
 fi
+
+AC_MSG_CHECKING(if we're building on Solaris)
+
+case "$host" in
+  *-*-solaris*)
+    extralibflags="-lm -lnsl -lsocket"
+        AC_MSG_RESULT(yes)
+
+        #
+        # Check for Solaris libraries
+        #
+
+        AC_CHECK_LIB(m, sqrt)
+        AC_CHECK_LIB(nsl, gethostbyname)
+        AC_CHECK_LIB(socket, connect)
+    ;;
+  *)
+    AC_MSG_RESULT(no)
+    extralibflags=""
+    ;;
+esac
 
 #
 # Check for pthreads support

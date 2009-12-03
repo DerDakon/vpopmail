@@ -51,7 +51,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h endian.h byteswap.h fcntl.h memory.h sys/endian.h machine/endian.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
+AC_CHECK_HEADERS([inttypes.h arpa/inet.h endian.h byteswap.h fcntl.h memory.h sys/endian.h machine/endian.h netinet/in.h shadow.h stdlib.h string.h sys/file.h sys/param.h sys/socket.h sys/time.h syslog.h unistd.h utime.h crypt.h err.h])
 
 #----------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ AC_FUNC_CLOSEDIR_VOID
 AC_TYPE_SIGNAL
 #AC_FUNC_STAT
 AC_FUNC_UTIME_NULL
-AC_CHECK_FUNCS([bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
+AC_CHECK_FUNCS([htonll ntohll bzero dup2 fdatasync getcwd gethostname getpass getspnam memset mkdir putenv rmdir socket strchr strdup strerror strncasecmp strrchr strspn strstr utime warn])
 AC_MSG_CHECKING(for bswap64)
 AC_TRY_LINK([
         #ifdef HAVE_SYS_ENDIAN_H
@@ -230,12 +230,23 @@ AC_DEFINE_UNQUOTED(PS_COMMAND,"$PS_COMMAND","")
 
 #----------------------------------------------------------------------
 
+AC_MSG_CHECKING(if we're building on Solaris)
+
 case "$host" in
   *-*-solaris*)
-    extralibflags="-R$libdir -lm -lnsl -lsocket"
-    AC_MSG_WARN(Solaris install detected.  Using extralibflags for linking: $extralibflags)
+    extralibflags="-lm -lnsl -lsocket"
+        AC_MSG_RESULT(yes)
+
+        #
+        # Check for Solaris libraries
+        #
+
+        AC_CHECK_LIB(m, sqrt)
+        AC_CHECK_LIB(nsl, gethostbyname)
+        AC_CHECK_LIB(socket, connect)
     ;;
   *)
+    AC_MSG_RESULT(no)
     extralibflags=""
     ;;
 esac

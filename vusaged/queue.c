@@ -45,7 +45,7 @@ extern int directory_minimum_poll_time;
 typedef struct __queue_ {
    user_t *user;
    struct __queue_ *next;
-} queue_t;
+} wqueue_t;
 
 /*
    New user queue structure
@@ -58,7 +58,7 @@ typedef struct __newuser_ {
 
 static int queue_workers = 0;
 static pthread_t **threads = NULL, controller;
-static queue_t *queue = NULL;
+static wqueue_t *queue = NULL;
 static newuser_t *newusers = NULL;
 static int queue_max_size = 0, queue_size = 0, queue_proc = 0;
 static pthread_cond_t c_queue = PTHREAD_COND_INITIALIZER;
@@ -67,11 +67,11 @@ static pthread_mutex_t m_newusers = PTHREAD_MUTEX_INITIALIZER;
 
 static void *queue_controller(void *);
 static void *queue_worker(void *);
-static inline queue_t *queue_pop(void);
+static inline wqueue_t *queue_pop(void);
 static inline int queue_lock(void);
 static inline int queue_unlock(void);
 static inline int queue_spin(int);
-static inline void queue_free(queue_t *);
+static inline void queue_free(wqueue_t *);
 
 /*
    Initialize update queue
@@ -223,7 +223,7 @@ int queue_shutdown(void)
 int queue_push(user_t *user)
 {
    int ret = 0;
-   queue_t *q = NULL;
+   wqueue_t *q = NULL;
 
 #ifdef ASSERT_DEBUG
    assert(user != NULL);
@@ -236,7 +236,7 @@ int queue_push(user_t *user)
 	  Allocate new queue structure
    */
 
-   q = malloc(sizeof(queue_t));
+   q = malloc(sizeof(wqueue_t));
    if (q == NULL) {
 	  fprintf(stderr, "queue_add: malloc failed\n");
 	  return 0;
@@ -246,7 +246,7 @@ int queue_push(user_t *user)
 	  Fill values
    */
 
-   memset(q, 0, sizeof(queue_t));
+   memset(q, 0, sizeof(wqueue_t));
    q->user = user;
 
    /*
@@ -274,9 +274,9 @@ int queue_push(user_t *user)
    Assumes queue is locked
 */
 
-queue_t *queue_pop(void)
+wqueue_t *queue_pop(void)
 {
-   queue_t *q = NULL;
+   wqueue_t *q = NULL;
 
 #ifdef ASSERT_DEBUG
    assert(queue != NULL);
@@ -600,7 +600,7 @@ static void *queue_controller(void *self)
 static void *queue_worker(void *self)
 {
    int ret = 0;
-   queue_t *q = NULL;
+   wqueue_t *q = NULL;
 
    q = NULL;
 
@@ -746,7 +746,7 @@ static inline int queue_spin(int stime)
    Deallocate queue structure
 */
 
-static inline void queue_free(queue_t *q)
+static inline void queue_free(wqueue_t *q)
 {
 #ifdef ASSERT_DEBUG
    assert(q != NULL);

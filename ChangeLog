@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.4.29 - Current
    Matt Brookings
+   - Numerous fixes to compile on Solaris
    - Fixed some format string issues
    - Fixed strstr being used with NULL value in vchkpw
    - Numerous fixes to compile on FreeBSD

@@ -115,6 +115,22 @@ vmoddomlimits_LDADD = libvpopmail.a  @auth_libs@
 
 DEFS=-I. @auth_inc@ 
 
+install: install-recursive vusage-msg
+
+vusage-msg:
+	@echo ""
+	@echo "****************************************************"
+	@echo ""
+	@echo "     If you plan to use the vpopmail usage daemon"
+	@echo "     run the following commands:"
+	@echo ""
+	@echo "   cd vusaged && ./configure && make"
+	@echo ""
+	@echo "     Then follow the INSTALL file to install"
+	@echo ""
+	@echo "****************************************************"
+	@echo ""                                                                                                                                                                     
+
 install-exec-am:
 	for d in bin doc etc include lib ; do \
 	  if test ! -d $(DESTDIR)@vpopmaildir@/$$d; then \
@@ -132,10 +148,16 @@ install-data-local:
 	echo "-L@vpopmaildir@/lib -lvpopmail @auth_libs@ @LIBS@" > \
 	 $(DESTDIR)@vpopmaildir@/etc/lib_deps
 
+	if test ! -r $(VUSAGECCONF); then \
+		$(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \
+		vusagec.conf $(VUSAGECCONF); \
+	fi
+
 	if test ! -r $(VLIMITS); then \
 	  $(INSTALL) -o @vpopuser@ -m 0644 -g @vpopgroup@ \
 	    vlimits.default $(VLIMITS); \
 	fi
+
 	if test "@USE_MYSQL@" = "1"; then \
 	  if test ! -r $(MYSQLCONF); then \
 	    echo "# MYSQL CONNECTION SETTINGS FOR VPOPMAIL" >> $(MYSQLCONF); \
@@ -167,7 +189,7 @@ install-data-local:
 	$(INSTALL) -o root -m 0444 \
 	  config.h $(DESTDIR)@vpopmaildir@/include/vpopmail_config.h
 
-	for include in vpopmail.h config.h vauth.h vlimits.h ; do \
+	for include in vpopmail.h config.h vauth.h vlimits.h storage.h client.h conf.h ippp.h ; do \
 	    $(INSTALL) -o root -m 0444 $$include \
 		$(DESTDIR)@vpopmaildir@/include/ ; \
 	done
