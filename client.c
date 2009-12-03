@@ -57,7 +57,7 @@ typedef struct __client_handle_ {
 void *client_connect(void)
 {
    struct timeval tv;
-   struct sockaddr_un sun;
+   struct sockaddr_un lun;
    struct sockaddr_in addr;
    config_t *config = NULL;
    char *str = NULL, socket_file[107] = { 0 };
@@ -167,9 +167,9 @@ void *client_connect(void)
    */
 
    if (*socket_file) {
-	  memset(&sun, 0, sizeof(sun));
-	  sun.sun_family = PF_UNIX;
-	  memcpy(sun.sun_path, socket_file, strlen(socket_file));
+	  memset(&lun, 0, sizeof(lun));
+	  lun.sun_family = PF_UNIX;
+	  memcpy(lun.sun_path, socket_file, strlen(socket_file));
    }
 
    /*
@@ -177,7 +177,7 @@ void *client_connect(void)
    */
 
    if (*socket_file)
-	  ret = connect(s, (struct sockaddr *)&sun, sizeof(sun));
+	  ret = connect(s, (struct sockaddr *)&lun, sizeof(lun));
    else
 	  ret = connect(s, (struct sockaddr *)&addr, sizeof(addr));
    
