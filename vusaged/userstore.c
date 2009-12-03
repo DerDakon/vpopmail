@@ -122,7 +122,7 @@ userstore_t *userstore_load(const char *path)
 {
    userstore_t *u = NULL;
    directory_t **dlist = NULL;
-   int items = 0, i = 0, ret = 0;
+   int items = 0, i = 0;
 
 #ifdef ASSERT_DEBUG
    assert(path != NULL);

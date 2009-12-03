@@ -37,7 +37,7 @@
 */
 
 struct __setting_ {
-   unsigned char c,
+   char c,
 				 type,
 				 *desc;
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
    const char *p = NULL;
    const char *fret = NULL;
    const char *(*func)(void);
-   int i = 0, ac = 0, newline = 0, num = 0, ret = 0;
+   int i = 0, ac = 0, newline = 0, num = 0;
 
    if (argc < 2) {
 	  usage(argv[0]);

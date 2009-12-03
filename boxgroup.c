@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include "vpopmail.h"
 #include "vauthmodule.h"
 #include "group.h"
 
