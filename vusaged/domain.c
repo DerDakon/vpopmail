@@ -237,15 +237,3 @@ int domain_update(domain_t *d, storage_t before, storage_t after, storage_t cbef
    pthread_mutex_unlock(&d->m_usage);
    return 1;
 }
-
-// XXX
-#if 0
-/*
-   Return list of domains
-*/
-
-domain_t *domain_get_list(void)
-{
-   return domainlist;
-}
-#endif
