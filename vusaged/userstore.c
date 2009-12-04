@@ -29,11 +29,11 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
+#include <storage.h>
+#include <conf.h>
 #include "path.h"
-#include "../storage.h"
 #include "directory.h"
 #include "list.h"
-#include "conf.h"
 #include "userstore.h"
 
 /*

@@ -31,9 +31,9 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
-#include "conf.h"
+#include <conf.h>
+#include <storage.h>
 #include "path.h"
-#include "../storage.h"
 #include "directory.h"
 
 /*

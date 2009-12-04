@@ -13,16 +13,17 @@ BINS = vusaged
 MAKE = @MAKE@
 VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
 VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
+VPOPMAIL_DIR_LIB = @VPOPMAIL_DIR_LIB@
 
 all: $(BINS)
 
-vusaged: ../libvpopmail.so vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o
-	$(CC) -o vusaged vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o $(LIBS)
+vusaged: ../libvpopmail.so vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o vdb.o
+	$(CC) -o vusaged vusaged.o socket.o grow.o signal.o packet.o query.o cache.o user.o directory.o userstore.o list.o domain.o queue.o shutdown.o vdb.o $(LIBS) -Xlinker -R -Xlinker $(VPOPMAIL_DIR_LIB)
 
 ../libvpopmail.so:
 	(cd ..;$(MAKE))
 
-vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h user.h
+vusaged.o: $(DEPS) vusaged.c socket.h signal.h cache.h directory.h queue.h shutdown.h userstore.h user.h vdb.h
 	$(CC) $(DEFS) -o vusaged.o -c vusaged.c
 
 socket.o: $(DEPS) socket.c socket.h packet.h grow.h
@@ -51,6 +52,8 @@ queue.o: $(DEPS) queue.c queue.h  user.h domain.h userstore.h shutdown.h
 	$(CC) $(DEFS) -o queue.o -c queue.c
 shutdown.o: $(DEPS) shutdown.c shutdown.h queue.h
 	$(CC) $(DEFS) -o shutdown.o -c shutdown.c
+vdb.o: $(DEPS) vdb.c vdb.h ../conf.h ../storage.h
+	$(CC) $(DEFS) -o vdb.o -c vdb.c
 
 clean:
 	rm -f *.o *.core core $(BINS)

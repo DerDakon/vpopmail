@@ -22,7 +22,7 @@
    #define __USER_H_
 
 #include <time.h>
-#include "config.h"
+#include "../conf.h"
 #include "storage.h"
 #include "domain.h"
 #include "userstore.h"
@@ -55,6 +55,8 @@ typedef struct __user_ {
 typedef struct __user_storage_header_ {
    unsigned char id[3];
    unsigned char version;
+   storage_t num_domains;
+   storage_t num_users;
    storage_t num_entries;
 } user_storage_header_t;
 
@@ -78,7 +80,8 @@ storage_t user_usage(user_t *);
 storage_t user_get_usage(const char *);
 int user_get_use(const char *, storage_t *, storage_t *);
 int user_poll(user_t *);
-user_t *user_get_userlist(void);
+// XXX
+//user_t *user_get_userlist(void);
 int user_verify(user_t *);
 int user_storage_save(void);
 
