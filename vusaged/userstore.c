@@ -55,9 +55,16 @@
 
 #define USERSTORE_MAX_AGE 720
 
+/*
+   Follow symlinks?
+*/
+
+#define USERSTORE_FOLLOW_SYMLINKS 0
+
 static int userstore_age = USERSTORE_AGE;
 static int userstore_day_age = USERSTORE_DAY_AGE;
 static int userstore_max_age = USERSTORE_MAX_AGE;
+static int userstore_follow_symlinks = USERSTORE_FOLLOW_SYMLINKS;
 
 static int userstore_find_directories(userstore_t *);
 static int userstore_monitors_directory(userstore_t *, const char *);
@@ -107,6 +114,22 @@ int userstore_init(config_t *config)
 
 	  if (userstore_max_age == -1) {
 		 fprintf(stderr, "userstore_init: invalid configuration: Polling::Maximum Age: %s\n", str);
+		 return 0;
+	  }
+   }
+
+   userstore_follow_symlinks = USERSTORE_FOLLOW_SYMLINKS;
+
+   str = config_fetch_by_name(config, "Polling", "Follow symlinks");
+   if (str) {
+	  if (!(strcasecmp(str, "True")))
+		 userstore_follow_symlinks = 1;
+
+	  else if (!(strcasecmp(str, "False")))
+		 userstore_follow_symlinks = 0;
+
+	  else {
+		 fprintf(stderr, "userstore_init: invalid configuration: Polling::Follow symlinks: %s\n", str);
 		 return 0;
 	  }
    }
@@ -238,7 +261,12 @@ int userstore_poll(userstore_t *u)
    */
 
    memset(&st, 0, sizeof(st));
-   ret = stat(u->path, &st);
+
+   if (userstore_follow_symlinks)
+	  ret = stat(u->path, &st);
+   else
+	  ret = lstat(u->path, &st);
+
    if (ret == -1) {
 	  if (errno != ENOENT)
 		 fprintf(stderr, "userstore_poll: stat(%s) failed: %d\n", u->path, errno);
@@ -335,7 +363,12 @@ int userstore_poll(userstore_t *u)
    tdays = 0;
 
    snprintf(lastauth, sizeof(lastauth), "%s/../lastauth", u->path);
-   ret = stat(lastauth, &st);
+
+   if (userstore_follow_symlinks)
+	  ret = stat(lastauth, &st);
+   else
+	  ret = lstat(lastauth, &st);
+
    if (ret != -1) {
 	  tdays = ((tend - (time_t)st.st_mtime) / (time_t)60 / (time_t)60 / (time_t)24);
 
@@ -475,7 +508,12 @@ static int userstore_find_directories(userstore_t *u)
 	  */
 
 	  memset(&st, 0, sizeof(st));
-	  ret = stat(b, &st);
+
+	  if (userstore_follow_symlinks)
+		 ret = stat(b, &st);
+	  else
+		 ret = lstat(b, &st);
+
 	  if (ret == -1) {
 		 if ((errno != ENOENT) && (errno != ENOTDIR)) {
 			fprintf(stderr, "userstore_find_directories: stat: %s: error %d\n", b, errno);
@@ -523,7 +561,12 @@ static int userstore_find_directories(userstore_t *u)
 		 continue;
 
 	  memset(&st, 0, sizeof(st));
-	  ret = stat(b, &st);
+
+	  if (userstore_follow_symlinks)
+		 ret = stat(b, &st);
+	  else
+		 ret = lstat(b, &st);
+
 	  if (ret == -1) {
 		 if ((errno != ENOENT) && (errno != ENOTDIR)) {
 			fprintf(stderr, "userstore_find_directories: stat: %s: error %d\n", b, errno);
