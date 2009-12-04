@@ -32,8 +32,8 @@
 #include <vauth.h>
 #include <vauthmodule.h>
 #include <conf.h>
+#include <storage.h>
 #include "path.h"
-#include "../storage.h"
 #include "cache.h"
 #include "userstore.h"
 #include "domain.h"
@@ -44,8 +44,8 @@
    Linked list of all users currently allocated
 */
 
-static user_t *userlist = NULL;
-static storage_t userlist_num = 0;
+user_t *userlist = NULL;
+storage_t userlist_num = 0;
 
 /*
    Location of storage file
@@ -58,6 +58,13 @@ static void user_remove(user_t *);
 static void user_free(user_t *);
 static int user_storage_load(void);
 static inline int user_userlist_add(user_t *);
+
+/*
+   Domain data
+*/
+
+extern domain_t *domainlist;
+extern storage_t domainlist_num;
 
 /*
    Initialize user system
@@ -79,6 +86,7 @@ int user_init(config_t *config)
    userlist_num = 0;
    userlist = NULL;
 
+#if 0
    /*
 	  Load configurations
    */
@@ -104,6 +112,7 @@ int user_init(config_t *config)
    ret = user_storage_load();
    if (!ret)
 	  fprintf(stderr, "user_init: warning: user_storage_load failed\n");
+#endif
 
    return 1;
 }
@@ -315,6 +324,11 @@ static user_t *user_load(const char *email)
    */
 
    len = (strlen(pw->pw_dir) + strlen("/Maildir"));
+   if ((len + 1) >= PATH_MAX) {
+	  fprintf(stderr, "user_get: home directory too long\n");
+	  return NULL;
+   }
+
    home = malloc(len + 1);
    if (home == NULL) {
 	  fprintf(stderr, "user_get: malloc failed\n");
@@ -478,6 +492,8 @@ int user_poll(user_t *u)
    return 1;
 }
 
+// XXX
+#if 0
 /*
    Return pointer to userlist
 */
@@ -486,6 +502,7 @@ user_t *user_get_userlist(void)
 {
    return userlist;
 }
+#endif
 
 /*
    Returns if a user exists within vpopmail
@@ -767,9 +784,11 @@ int user_storage_save(void)
 {
    int fd = 0, ret = 0;
    user_t *u = NULL;
-   storage_t num = 0;
+   storage_t num = 0, v_storage = 0;
+   domain_t *d = NULL;
    user_storage_entry_t entry;
    user_storage_header_t header;
+   char domain_name[DOMAIN_MAX_DOMAIN] = { 0 };
 
    /*
 	  No storage configured
@@ -796,9 +815,12 @@ int user_storage_save(void)
 
    memset(&header, 0, sizeof(header));
 
-   header.version = 1;
+   header.version = 0x02;
    memcpy(header.id, USER_STORAGE_ID, 3);
-   header.num_entries = htonll(userlist_num);
+   header.num_domains = htonll(domainlist_num);
+   header.num_users = htonll(userlist_num);
+   // XXX remove this later
+   header.num_entries = 0;
 
    /*
 	  Write header
@@ -816,14 +838,77 @@ int user_storage_save(void)
 	  Fix values
    */
 
-   header.num_entries = ntohll(header.num_entries);
+   header.num_domains = domainlist_num;
+   header.num_users = userlist_num;
 
    /*
-	  Write userlist
+	  Write database
    */
 
    /*
-	  Run through userlist
+	  Write domains
+   */
+
+#ifdef ASSERT_DEBUG
+   if (header.num_domains)
+	  assert(domainlist != NULL);
+   else
+	  assert(domainlist == NULL);
+#endif
+
+   for (d = domainlist; d; d = d->next) {
+	  ret = strlen(d->domain);
+	  if (ret >= sizeof(domain_name)) {
+		 printf("domain: error: cannot write long domain entry\n");
+		 continue;
+	  }
+
+	  memcpy(domain_name, d->domain, ret);
+	  *(domain_name + ret) = '\0';
+
+	  /*
+		 <domain>
+	  */
+
+	  ret = write(fd, domain_name, sizeof(domain_name));
+	  if (ret != sizeof(domain_name)) {
+		 unlink(user_storage);
+		 close(fd);
+		 fprintf(stderr, "user_storage_save: write failed: %d\n", errno);
+		 return 0;
+	  }
+
+	  /*
+		 <bytes count><messages count>
+		 XXX TODO: make these network order
+	  */
+
+	  v_storage = htonll(d->usage);
+
+	  ret = write(fd, &v_storage, sizeof(v_storage));
+	  if (ret != sizeof(v_storage)) {
+		 unlink(user_storage);
+		 close(fd);
+		 fprintf(stderr, "user_storage_save: write failed: %d\n", errno);
+		 return 0;
+	  }
+
+	  v_storage = htonll(d->count);
+
+	  ret = write(fd, &v_storage, sizeof(v_storage));
+	  if (ret != sizeof(v_storage)) {
+		 unlink(user_storage);
+		 close(fd);
+		 fprintf(stderr, "user_storage_save: write failed: %d\n", errno);
+		 return 0;
+	  }
+   }
+
+   /*
+	  Write userlist
+
+	  <username><domain><dir><stat><last updated><time taken><lastauth><bytes><count><num directories>
+	  <directory><stat><last updated><time taken><lastauth><bytes><count>
    */
 
    num = 0;
@@ -842,6 +927,7 @@ int user_storage_save(void)
 		 continue;
 	  }
 
+#if 0
 	  /*
 		 Fill entry structure
 	  */
@@ -896,6 +982,7 @@ int user_storage_save(void)
 	  }
 
 	  num++;
+#endif
    }
 
    /*
@@ -904,6 +991,7 @@ int user_storage_save(void)
 
    close(fd);
 
+#if 0
    /*
 	  Sanity check
    */
@@ -912,6 +1000,7 @@ int user_storage_save(void)
 	  printf("user: warning: saved %llu/%llu entries\n", num, userlist_num);
    else
 	  printf("user: saved %llu user(s)\n", userlist_num);
+#endif
 
    return 1;
 }

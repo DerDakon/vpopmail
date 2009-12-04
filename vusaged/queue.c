@@ -36,6 +36,7 @@
 #include "shutdown.h"
 #include "queue.h"
 
+extern user_t *userlist;
 extern char shutdown_flag;
 extern int directory_minimum_poll_time;
 
@@ -378,7 +379,8 @@ static void *queue_controller(void *self)
 {
    int ret = 0;
    time_t last = 0, diff = 0;
-   user_t *u = NULL, *userlist = NULL;
+   //user_t *u = NULL, *userlist = NULL;
+   user_t *u = NULL;
    struct vqpasswd *vpw = NULL;
    domain_entry *e = NULL;
    char b[USER_MAX_USERNAME] = { 0 };
@@ -397,8 +399,7 @@ static void *queue_controller(void *self)
 	  If userlist is empty, begin a stage one load
    */
 
-   if (user_get_userlist() == NULL) {
-
+   if (userlist == NULL) {
 	  printf("controller: stage one\n");
 
 	  /*
@@ -554,7 +555,8 @@ static void *queue_controller(void *self)
 
 	  if (userlist == NULL) {
 		 last = time(NULL);
-		 u = userlist = user_get_userlist();
+//		 u = userlist = user_get_userlist();
+		 u = userlist;
 	  }
 
 	  /*
@@ -575,7 +577,8 @@ static void *queue_controller(void *self)
 			   printf("controller: %s@%s might be a lost user\n", u->user, u->domain->domain);
 #endif
 			   if (!(user_verify(u))) {
-				  u = userlist = user_get_userlist();
+//				  u = userlist = user_get_userlist();
+				  u = userlist;
 				  continue;
 			   }
 			}
@@ -597,11 +600,15 @@ static void *queue_controller(void *self)
 	  */
 
 	  if (u == NULL) {
-		 userlist = NULL;
+		 //userlist = NULL;
 
 		 diff = (directory_minimum_poll_time - ((time(NULL) - last)));
 		 if (diff < 1)
 			diff = 1;
+
+#ifdef QUEUE_DEBUG
+		 printf("controller: going to sleep for %lu seconds\n", diff);
+#endif
 
 		 ret = shutdown_wait(diff);
 		 if (ret)
