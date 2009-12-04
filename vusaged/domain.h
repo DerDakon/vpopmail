@@ -51,7 +51,5 @@ storage_t domain_usage(domain_t *);
 storage_t domain_get_usage(const char *);
 int domain_get_use(const char *, storage_t *, storage_t *);
 int domain_update(domain_t *, storage_t, storage_t, storage_t, storage_t);
-// XXX
-//domain_t *domain_get_list(void);
 
 #endif
