@@ -379,8 +379,7 @@ static void *queue_controller(void *self)
 {
    int ret = 0;
    time_t last = 0, diff = 0;
-   //user_t *u = NULL, *userlist = NULL;
-   user_t *u = NULL;
+   user_t *u = NULL, *l_userlist = NULL;
    struct vqpasswd *vpw = NULL;
    domain_entry *e = NULL;
    char b[USER_MAX_USERNAME] = { 0 };
@@ -553,10 +552,9 @@ static void *queue_controller(void *self)
 		 because new items are added to the front of the list
 	  */
 
-	  if (userlist == NULL) {
+	  if (l_userlist == NULL) {
 		 last = time(NULL);
-//		 u = userlist = user_get_userlist();
-		 u = userlist;
+		 u = l_userlist = userlist;
 	  }
 
 	  /*
@@ -577,8 +575,7 @@ static void *queue_controller(void *self)
 			   printf("controller: %s@%s might be a lost user\n", u->user, u->domain->domain);
 #endif
 			   if (!(user_verify(u))) {
-//				  u = userlist = user_get_userlist();
-				  u = userlist;
+				  u = l_userlist = userlist;
 				  continue;
 			   }
 			}
@@ -600,7 +597,7 @@ static void *queue_controller(void *self)
 	  */
 
 	  if (u == NULL) {
-		 //userlist = NULL;
+		 l_userlist = NULL;
 
 		 diff = (directory_minimum_poll_time - ((time(NULL) - last)));
 		 if (diff < 1)

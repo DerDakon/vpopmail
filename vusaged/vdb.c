@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -18,6 +20,7 @@
 #include "domain.h"
 #include "userstore.h"
 #include "directory.h"
+#include "list.h"
 #include "vdb.h"
 
 extern user_t *userlist;
@@ -28,6 +31,7 @@ static int vdb_fd = -1;
 static char *vdb_database = NULL;
 
 static inline int vdb_write(void *, size_t);
+static inline int vdb_read(void *, size_t);
 static inline int vdb_close(void);
 static inline int vdb_remove(void);
 
@@ -385,6 +389,331 @@ int vdb_save(void)
 }
 
 /*
+   Read data file
+*/
+
+int vdb_load(void)
+{
+   int ret = 0, j = 0, l_int = 0;
+   vdb_header_t header;
+   domain_t *d = NULL;
+   user_t *u = NULL;
+   storage_t i = 0, l_usage = 0, l_count = 0;
+   time_t l_time = 0;
+   struct stat l_stat;
+   directory_t *di = NULL;
+   char l_domain[DOMAIN_MAX_DOMAIN] = { 0 }, l_path[PATH_MAX] = { 0 }, l_user[USER_MAX_USERNAME] = { 0 };
+
+   if (vdb_database == NULL)
+	  return 1;
+
+   vdb_fd = open(vdb_database, O_RDONLY, 0600);
+   if (vdb_fd == -1) {
+	  if (errno != ENOENT) {
+		 fprintf(stderr, "vdb_load: open(%s) failed: %d\n", vdb_database, errno);
+		 return 0;
+	  }
+
+	  return 1;
+   }
+
+   /*
+	  Read header
+   */
+
+   ret = vdb_read(&header, sizeof(header));
+   if (!ret)
+	  return 0;
+
+   if (strncmp(header.id, VDB_HEADER_ID, sizeof(header.id))) {
+	  vdb_close();
+	  fprintf(stderr, "vdb_load: %s does not appear to be a vusaged datafile\n", vdb_database);
+	  return 0;
+   }
+
+   if (header.version != 0x02) {
+	  vdb_close();
+	  fprintf(stderr, "vdb_load: cannot process version %d vusaged datafiles\n", header.version);
+	  return 0;
+   }
+
+   /*
+	  Begin processing
+   */
+
+   /*
+	  Domains
+   */
+
+   for (i = 0; i < header.num_domains; i++) {
+	  /*
+		 <domain><usage><count>
+	  */
+
+	  ret = vdb_read(l_domain, sizeof(l_domain));
+	  if (!ret)
+		 return 0;
+
+	  ret = vdb_read(&l_usage, sizeof(l_usage));
+	  if (!ret)
+		 return 0;
+
+	  ret = vdb_read(&l_count, sizeof(l_count));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 Allocate domain
+	  */
+
+	  d = domain_load(l_domain);
+	  if (d == NULL) {
+		 fprintf(stderr, "vdb_load: domain_load failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+#ifdef ASSERT_DEBUG
+	  assert(d->usage == 0):
+	  assert(d->count == 0);
+#endif
+
+	  /*
+		 Restore saved data
+	  */
+
+	  d->usage = l_usage;
+	  d->count = l_count;
+   }
+
+   /*
+	  Users and directories
+   */
+
+   for (i = 0; i < header.num_users; i++) {
+	  /*
+		 username
+	  */
+
+	  ret = vdb_read(l_user, sizeof(l_user));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 domain
+	  */
+
+	  ret = vdb_read(l_domain, sizeof(l_domain));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 home directory
+	  */
+
+	  ret = vdb_read(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 Allocate user
+	  */
+
+	  u = malloc(sizeof(user_t));
+	  if (u == NULL) {
+		 fprintf(stderr, "vdb_load: malloc failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  memset(u, 0, sizeof(user_t));
+
+	  u->user = strdup(l_user);
+	  if (u->user == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  u->domain = domain_load(l_domain);
+	  if (u->domain == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: domain_load failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  u->home = strdup(l_path);
+	  if (u->home == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 Allocate userstore
+	  */
+
+	  u->userstore = malloc(sizeof(userstore_t));
+	  if (u->userstore == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: malloc failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  memset(u->userstore, 0, sizeof(userstore_t));
+
+	  u->userstore->path = strdup(u->home);
+	  if (u->userstore->path == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 userstore:stat
+	  */
+
+	  ret = vdb_read(&u->userstore->st, sizeof(l_stat));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:last_updated
+	  */
+
+	  ret = vdb_read(&u->userstore->last_updated, sizeof(time_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:time_taken
+	  */
+
+	  ret = vdb_read(&u->userstore->time_taken, sizeof(time_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:lastauth
+	  */
+
+	  ret = vdb_read(&u->userstore->lastauth, sizeof(time_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:usage
+	  */
+
+	  ret = vdb_read(&u->userstore->usage, sizeof(storage_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:count
+	  */
+
+	  ret = vdb_read(&u->userstore->count, sizeof(storage_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:num_directories
+	  */
+
+	  ret = vdb_read(&l_int, sizeof(l_int));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 userstore:directories
+	  */
+
+	  for (j = 0; j < l_int; j++) {
+		 /*
+			directory:directory
+		 */
+
+		 ret = vdb_read(l_path, sizeof(l_path));
+		 if (!ret)
+			return 0;
+
+		 di = directory_alloc(l_path);
+		 if (di == NULL) {
+			vdb_close();
+			fprintf(stderr, "vdb_load: directory_alloc failed\n");
+			return 0;
+		 }
+
+		 /*
+			directory:last_update
+		 */
+
+		 ret = vdb_read(&di->last_update, sizeof(time_t));
+		 if (!ret) {
+			directory_free(di);
+			return 0;
+		 }
+
+		 /*
+			directory:stat
+		 */
+
+		 ret = vdb_read(&di->st, sizeof(struct stat));
+		 if (!ret) {
+			directory_free(di);
+			return 0;
+		 }
+
+		 /*
+			directory:usage
+		 */
+
+		 ret = vdb_read(&di->usage, sizeof(storage_t));
+		 if (!ret) {
+			directory_free(di);
+			return 0;
+		 }
+
+		 /*
+			directory:count
+		 */
+
+		 ret = vdb_read(&di->count, sizeof(storage_t));
+		 if (!ret) {
+			directory_free(di);
+			return 0;
+		 }
+
+		 /*
+			Add to userstore list
+		 */
+
+		 u->userstore->directory = (directory_t **)list_add((void *)u->userstore->directory, &(u->userstore->num_directories), di);
+	  }
+
+	  /*
+		 Add user to userlist
+	  */
+
+	  ret = user_userlist_add(u);
+	  if (!ret) {
+		 vdb_close();
+		 fprintf(stderr, "vdb_read: user_userlist_add failed\n");
+		 return 0;
+	  }
+   }
+
+   vdb_close();
+   return 1;
+}
+
+/*
    Write value to vdb descriptor
    If a failure occurs, back out and print error
 */
@@ -400,7 +729,30 @@ static inline int vdb_write(void *data, size_t len)
    wret = write(vdb_fd, data, len);
    if (wret != len) {
 	  vdb_remove();
-	  printf("vdb_write: write failed: %d (%d)\n", wret, errno);
+	  fprintf(stderr, "vdb_write: write failed: %d/%d (%d)\n", wret, len, errno);
+	  return 0;
+   }
+
+   return 1;
+}
+
+/*
+   Read value from vdb descriptor
+   If a failure occurs, back out and print error
+*/
+
+static inline int vdb_read(void *b, size_t len)
+{
+   ssize_t rret = 0;
+
+#ifdef ASSERT_DEBUG
+   assert(vdb_fd != -1);
+#endif
+
+   rret = read(vdb_fd, b, len);
+   if (rret != len) {
+	  vdb_close();
+	  fprintf(stderr, "vdb_read: read failed: %d/%d (%d)\n", rret, len, errno);
 	  return 0;
    }
 

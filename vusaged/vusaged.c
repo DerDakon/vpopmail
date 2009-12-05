@@ -114,6 +114,12 @@ int main(int argc, char *argv[])
 	  return 1;
    }
 
+   ret = vdb_load();
+   if (!ret) {
+	  fprintf(stderr, "vdb_load failed\n");
+	  return 1;
+   }
+
    config_kill(config);
 
    printf("vusaged: begin\n");
@@ -147,12 +153,6 @@ int main(int argc, char *argv[])
    /*
 	  Save database
    */
-
-#if 0
-   ret = user_storage_save();
-   if (!ret)
-	  fprintf(stderr, "user_storage_save failed\n");
-#endif
 
    ret = vdb_save();
    if (!ret)

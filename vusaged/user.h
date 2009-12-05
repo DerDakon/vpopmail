@@ -53,5 +53,7 @@ storage_t user_get_usage(const char *);
 int user_get_use(const char *, storage_t *, storage_t *);
 int user_poll(user_t *);
 int user_verify(user_t *);
+void user_free(user_t *);
+int user_userlist_add(user_t *);
 
 #endif

@@ -65,7 +65,6 @@ static int directory_use_maildirpp_format = DIRECTORY_USE_MAILDIRPP_FORMAT;
 static int directory_count_entry_size = DIRECTORY_COUNT_ENTRY_SIZE;
 int directory_minimum_poll_time = DIRECTORY_MINIMUM_POLL_TIME;
 
-static directory_t *directory_alloc(const char *);
 static inline storage_t directory_filesize(const char *, int fnlen);
 
 /*
