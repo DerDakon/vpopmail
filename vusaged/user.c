@@ -49,8 +49,6 @@ storage_t userlist_num = 0;
 
 static user_t *user_load(const char *);
 static void user_remove(user_t *);
-static void user_free(user_t *);
-static inline int user_userlist_add(user_t *);
 
 /*
    Domain data
@@ -390,7 +388,7 @@ static void user_remove(user_t *u)
    Deallocate a user structure
 */
 
-static void user_free(user_t *u)
+void user_free(user_t *u)
 {
 #ifdef ASSERT_DEBUG
    assert(u != NULL);
@@ -457,18 +455,6 @@ int user_poll(user_t *u)
    return 1;
 }
 
-// XXX
-#if 0
-/*
-   Return pointer to userlist
-*/
-
-user_t *user_get_userlist(void)
-{
-   return userlist;
-}
-#endif
-
 /*
    Returns if a user exists within vpopmail
    This function should only be called by the controller
@@ -532,7 +518,7 @@ int user_verify(user_t *u)
    Add user to userlist
 */
 
-static inline int user_userlist_add(user_t *u)
+int user_userlist_add(user_t *u)
 {
    int ret = 0;
    char b[384] = { 0 };

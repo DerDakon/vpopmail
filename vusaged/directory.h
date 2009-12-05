@@ -43,5 +43,6 @@ directory_t *directory_load(const char *);
 void directory_free(directory_t *);
 int directory_exists(const char *, const char *);
 int directory_poll(directory_t *);
+directory_t *directory_alloc(const char *);
 
 #endif
