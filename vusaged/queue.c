@@ -492,21 +492,22 @@ static void *queue_controller(void *self)
 			   
 			else {
 			   /*
-				  Set processing state on user to avoid duplicate queue items
+				  Check processing state on user to avoid duplicate queue items
 			   */
 
 			   pthread_mutex_lock(&u->m_processing);
-#ifdef ASSERT_DEBUG
-			   assert(u->processing == 0);
-#endif
-			   u->processing = 1;
+
+			   if (u->processing == 0) {
+				  u->processing = 1;
+
+				  /*
+					 Add to the work queue
+				  */
+
+				  queue_push(u);
+			   }
+
 			   pthread_mutex_unlock(&u->m_processing);
-
-			   /*
-				  Add to the work queue
-			   */
-
-			   queue_push(u);
 			}
 
 			queue_unlock();
