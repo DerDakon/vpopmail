@@ -66,6 +66,13 @@ void *client_connect(void)
    client_handle_t *handle = NULL;
 
    /*
+	  Initialize values to their defaults
+   */
+
+   timeout = CLIENT_SERVER_TIMEOUT;
+   memset(socket_file, 0, sizeof(socket_file));
+
+   /*
 	  Load configuration file
    */
 
@@ -77,60 +84,61 @@ void *client_connect(void)
 	  Disabled check
    */
 
-   str = config_fetch_by_name(config, "Server", "Disable");
-   if ((str) && (*str)) {
-	  if (!(strcasecmp(str, "True"))) {
-		 config_kill(config);
-		 return NULL;
-	  }
-   }
-
-   /*
-	  Get timeout
-   */
-
-   timeout = CLIENT_SERVER_TIMEOUT;
-   str = config_fetch_by_name(config, "Server", "Timeout");
-   if (str) {
-	  fl = atoi(str);
-	  if ((fl == -1) || (fl == 0))
-		 fprintf(stderr, "client_connect: configuration error: Server::Timeout: %s\n", str);
-	  else
-		 timeout = fl;
-   }
-
-   /*
-	  Determine connection type
-   */
-
-   memset(socket_file, 0, sizeof(socket_file));
-
-   str = config_fetch_by_name(config, "Server", "Remote");
-   if (str) {
-	  ret = ippp_parse(str, &addr);
-	  if (!ret) {
-		 config_kill(config);
-		 fprintf(stderr, "client_connect: configuration error: Server::Remote: %s\n", str);
-		 return NULL;
-	  }
-   }
-
    else {
-	  str = config_fetch_by_name(config, "Server", "Filename");
-	  if ((str) && (!(*str))) {
-		 config_kill(config);
-		 fprintf(stderr, "client_connect: configuration error: Server::Filename\n");
-		 return NULL;
+	  str = config_fetch_by_name(config, "Server", "Disable");
+	  if ((str) && (*str)) {
+		 if (!(strcasecmp(str, "True"))) {
+			config_kill(config);
+			return NULL;
+		 }
 	  }
 
-	  fl = strlen(str);
-	  if (fl >= sizeof(socket_file))
-		 fl = (sizeof(socket_file) - 1);
+	  /*
+		 Get timeout
+	  */
 
-	  memcpy(socket_file, str, fl);
+	  str = config_fetch_by_name(config, "Server", "Timeout");
+	  if (str) {
+		 fl = atoi(str);
+		 if ((fl == -1) || (fl == 0))
+			fprintf(stderr, "client_connect: configuration error: Server::Timeout: %s\n", str);
+		 else
+			timeout = fl;
+	  }
+
+	  /*
+		 Determine connection type
+	  */
+
+	  str = config_fetch_by_name(config, "Server", "Remote");
+	  if (str) {
+		 ret = ippp_parse(str, &addr);
+		 if (!ret) {
+			config_kill(config);
+			fprintf(stderr, "client_connect: configuration error: Server::Remote: %s\n", str);
+			return NULL;
+		 }
+	  }
+
+	  else {
+		 str = config_fetch_by_name(config, "Server", "Filename");
+		 if (str) {
+			if (!(*str)) {
+			   config_kill(config);
+			   fprintf(stderr, "client_connect: configuration error: Server::Filename\n");
+			   return NULL;
+			}
+
+			fl = strlen(str);
+			if (fl >= sizeof(socket_file))
+			   fl = (sizeof(socket_file) - 1);
+
+			memcpy(socket_file, str, fl);
+		 }
+	  }
+
+	  config_kill(config);
    }
-
-   config_kill(config);
 
    /*
 	  Allocate a socket
