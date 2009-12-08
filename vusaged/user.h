@@ -22,6 +22,7 @@
    #define __USER_H_
 
 #include <time.h>
+#include <pthread.h>
 #include "../conf.h"
 #include "storage.h"
 #include "domain.h"
@@ -43,6 +44,10 @@ typedef struct __user_ {
 
    domain_t *domain;
    userstore_t *userstore;
+
+   char processing;
+   pthread_mutex_t m_processing;
+
    struct __user_ *next, *prev;
 } user_t;
 

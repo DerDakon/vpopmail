@@ -489,8 +489,25 @@ static void *queue_controller(void *self)
 			u = user_get(b);
 			if (u == NULL)
 			   fprintf(stderr, "controller: user_get(%s) failed\n", b);
-			else
+			   
+			else {
+			   /*
+				  Set processing state on user to avoid duplicate queue items
+			   */
+
+			   pthread_mutex_lock(&u->m_processing);
+#ifdef ASSERT_DEBUG
+			   assert(u->processing == 0);
+#endif
+			   u->processing = 1;
+			   pthread_mutex_unlock(&u->m_processing);
+
+			   /*
+				  Add to the work queue
+			   */
+
 			   queue_push(u);
+			}
 
 			queue_unlock();
 		 }
@@ -566,6 +583,24 @@ static void *queue_controller(void *self)
 			break;
 
 		 /*
+			Check if user is in processing
+		 */
+
+		 pthread_mutex_lock(&u->m_processing);
+
+		 if (u->processing) {
+			pthread_mutex_unlock(&u->m_processing);
+			continue;
+		 }
+
+		 /*
+			Set processing state
+		 */
+
+		 u->processing = 1;
+		 pthread_mutex_unlock(&u->m_processing);
+
+		 /*
 			Detect lost users
 		 */
 
@@ -584,6 +619,14 @@ static void *queue_controller(void *self)
 		 queue_lock();
 
 		 if (queue_size >= queue_max_size) {
+			/*
+			   Set user not in processing since there's no room in the queue for the job
+			*/
+
+			pthread_mutex_lock(&u->m_processing);
+			u->processing = 0;
+			pthread_mutex_unlock(&u->m_processing);
+
 			queue_unlock();
 			break;
 		 }
@@ -698,7 +741,18 @@ static void *queue_worker(void *self)
 #ifdef QUEUE_DEBUG
 	  printf("queue: %p: processed %s@%s\n", self, q->user->user, q->user->domain->domain);
 #endif
-   }
+
+	  /*
+		 Unset processing on the user
+	  */
+
+	  pthread_mutex_lock(&q->user->m_processing);
+#ifdef ASSERT_DEBUG
+	  assert(q->user->processing == 1);
+#endif
+	  q->user->processing = 0;
+	  pthread_mutex_unlock(&q->user->m_processing);
+   } 
 
    pthread_exit(NULL);
    return NULL;
