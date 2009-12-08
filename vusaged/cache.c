@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
@@ -35,6 +36,7 @@ int cache_init(config_t *config)
 
 int cache_add(const char *key, const void *ptr)
 {
+   char *p = NULL;
    item_t *i = NULL;
 
 #ifdef ASSERT_DEBUG
@@ -54,6 +56,11 @@ int cache_add(const char *key, const void *ptr)
    if (i->key == NULL) {
 	  fprintf(stderr, "cache_add: strdup failed\n");
 	  return 0;
+   }
+
+   for (p = i->key; *p; p++) {
+	  if ((*p >= 'A') && (*p <= 'Z'))
+		 tolower(*p);
    }
 
    i->ptr = (void *)ptr;
