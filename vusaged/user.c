@@ -325,6 +325,22 @@ static user_t *user_load(const char *email)
    memset(u, 0, sizeof(user_t));
 
    /*
+	  Initialize processing mutex
+   */
+
+   ret = pthread_mutex_init(&u->m_processing, NULL);
+   if (ret != 0) {
+	  free(u);
+	  free(home);
+	  userstore_free(userstore);
+#if 0
+	  domain_free(dom);
+#endif
+	  fprintf(stderr, "user_load: pthread_mutex_init failed\n");
+	  return NULL;
+   }
+
+   /*
 	  Copy username
    */
 
@@ -335,7 +351,9 @@ static user_t *user_load(const char *email)
 	  free(u);
 	  free(home);
 	  userstore_free(userstore);
+#if 0
 	  domain_free(dom);
+#endif
 	  return NULL;
    }
 
@@ -393,6 +411,8 @@ void user_free(user_t *u)
 #ifdef ASSERT_DEBUG
    assert(u != NULL);
 #endif
+
+   pthread_mutex_destroy(&u->m_processing);
 
    if (u->home)
 	  free(u->home);
