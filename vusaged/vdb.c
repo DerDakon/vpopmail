@@ -474,7 +474,7 @@ int vdb_load(void)
 	  }
 
 #ifdef ASSERT_DEBUG
-	  assert(d->usage == 0):
+	  assert(d->usage == 0);
 	  assert(d->count == 0);
 #endif
 
