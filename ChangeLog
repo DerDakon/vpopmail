@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Fixed a bug in client functions that tried to evaluate a NULL string
   - Fixed several bugs in vusaged relating to duplicate items in the work queue
   - Added entirely new code for saving and loading snapshot of current items in vusaged memory
   - Added preferred make binary selection to configure script
