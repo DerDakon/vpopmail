@@ -385,6 +385,10 @@ int vdb_save(void)
    }
 
    vdb_close();
+
+   printf("vdb: wrote snapshot of %llu user(s) on %llu domain(s)\n",
+		 header.num_users, header.num_domains);
+
    return 1;
 }
 
@@ -710,6 +714,10 @@ int vdb_load(void)
    }
 
    vdb_close();
+
+   printf("vdb: loaded %llu user(s) on %llu domain(s)\n",
+		 header.num_users, header.num_domains);
+
    return 1;
 }
 
