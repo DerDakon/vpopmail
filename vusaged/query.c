@@ -45,7 +45,7 @@ int query_parse(void *handle, char *data, int len)
 
    for (p = data; *p; p++) {
 	  if ((*p >= 'A') && (*p <= 'Z'))
-		 tolower(*p);
+		 *p = tolower(*p);
    }
 
 #ifdef QUERY_DEBUG

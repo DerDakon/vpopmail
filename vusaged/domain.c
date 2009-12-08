@@ -150,7 +150,7 @@ domain_t *domain_get(const char *domain)
 
    for (p = b; *p; p++) {
 	  if ((*p >= 'A') && (*p <= 'Z'))
-		 tolower(*p);
+		 *p = tolower(*p);
    }
 
    return cache_lookup(b);

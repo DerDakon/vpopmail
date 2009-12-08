@@ -60,7 +60,7 @@ int cache_add(const char *key, const void *ptr)
 
    for (p = i->key; *p; p++) {
 	  if ((*p >= 'A') && (*p <= 'Z'))
-		 tolower(*p);
+		 *p = tolower(*p);
    }
 
    i->ptr = (void *)ptr;
