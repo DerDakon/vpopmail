@@ -148,7 +148,7 @@ domain_t *domain_get(const char *domain)
    memset(b, 0, sizeof(b));
    snprintf(b, sizeof(b), "@%s", domain);
 
-   for (p = domain; *p; p++) {
+   for (p = b; *p; p++) {
 	  if ((*p >= 'A') && (*p <= 'Z'))
 		 tolower(*p);
    }
