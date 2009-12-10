@@ -28,6 +28,8 @@
 #include "queue.h"
 #include "userstore.h"
 #include "shutdown.h"
+#include "domain.h"
+#include "vdb.h"
 
 extern char shutdown_flag;
 
@@ -94,9 +96,27 @@ int main(int argc, char *argv[])
 	  return 1;
    }
 
+   ret = domain_init();
+   if (!ret) {
+	  fprintf(stderr, "domain_init failed\n");
+	  return 1;
+   }
+
    ret = user_init(config);
    if (!ret) {
 	  fprintf(stderr, "user_init failed\n");
+	  return 1;
+   }
+
+   ret = vdb_init(config);
+   if (!ret) {
+	  fprintf(stderr, "vdb_init failed\n");
+	  return 1;
+   }
+
+   ret = vdb_load();
+   if (!ret) {
+	  fprintf(stderr, "vdb_load failed\n");
 	  return 1;
    }
 
@@ -131,12 +151,12 @@ int main(int argc, char *argv[])
 	  fprintf(stderr, "queue_shutdown failed\n");
 
    /*
-	  Save userlist
+	  Save database
    */
 
-   ret = user_storage_save();
+   ret = vdb_save();
    if (!ret)
-	  fprintf(stderr, "user_storage_save failed\n");
+	  fprintf(stderr, "vdb_save failed\n");
 
    printf("vusaged: end\n");
    return 0;

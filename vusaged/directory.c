@@ -31,9 +31,9 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
-#include "conf.h"
+#include <conf.h>
+#include <storage.h>
 #include "path.h"
-#include "../storage.h"
 #include "directory.h"
 
 /*
@@ -54,11 +54,17 @@
 
 #define DIRECTORY_USE_MAILDIRPP_FORMAT 1
 
+/*
+   Follow symlinks?
+*/
+
+#define DIRECTORY_FOLLOW_SYMLINKS 0
+
+static int directory_follow_symlinks = DIRECTORY_FOLLOW_SYMLINKS;
 static int directory_use_maildirpp_format = DIRECTORY_USE_MAILDIRPP_FORMAT;
 static int directory_count_entry_size = DIRECTORY_COUNT_ENTRY_SIZE;
 int directory_minimum_poll_time = DIRECTORY_MINIMUM_POLL_TIME;
 
-static directory_t *directory_alloc(const char *);
 static inline storage_t directory_filesize(const char *, int fnlen);
 
 /*
@@ -73,6 +79,11 @@ int directory_init(config_t *config)
 #ifdef ASSERT_DEBUG
    assert(config != NULL);
 #endif
+
+   directory_follow_symlinks = DIRECTORY_FOLLOW_SYMLINKS;
+   directory_use_maildirpp_format = DIRECTORY_USE_MAILDIRPP_FORMAT;
+   directory_count_entry_size = DIRECTORY_COUNT_ENTRY_SIZE;
+   directory_minimum_poll_time = DIRECTORY_MINIMUM_POLL_TIME;
 
    str = config_fetch_by_name(config, "Polling", "Use Maildir++ format");
    if (str) {
@@ -124,6 +135,25 @@ int directory_init(config_t *config)
 
 	  else {
 		 fprintf(stderr, "directory_init: Polling::Count directory entry size: invalid configuration\n");
+		 return 0;
+	  }
+   }
+
+   str = config_fetch_by_name(config, "Polling", "Follow symlinks");
+   if (str) {
+	  if (!(*str)) {
+		 fprintf(stderr, "directory_init: Polling::Follow symlinks: invalid configuration\n");
+		 return 0;
+	  }
+
+	  if (!(strcasecmp(str, "True")))
+		 directory_follow_symlinks = 1;
+
+	  else if (!(strcasecmp(str, "False")))
+		 directory_follow_symlinks = 0;
+
+	  else {
+		 fprintf(stderr, "directory_init: Polling::Follow symlinks: invalid configuration\n");
 		 return 0;
 	  }
    }
@@ -219,7 +249,11 @@ int directory_exists(const char *path, const char *subdir)
 
    memset(&st, 0, sizeof(st));
 
-   ret = stat(path, &st);
+   if (directory_follow_symlinks)
+	  ret = stat(path, &st);
+   else
+	  ret = lstat(path, &st);
+
    if (ret == -1) {
 #ifdef DIRECTORY_DEBUG
 	  if (errno != ENOENT)
@@ -246,7 +280,11 @@ int directory_exists(const char *path, const char *subdir)
 
    memset(&st, 0, sizeof(st));
 
-   ret = stat(b, &st);
+   if (directory_follow_symlinks)
+	  ret = stat(b, &st);
+   else
+	  ret = lstat(b, &st);
+
    if (ret == -1) {
 	  if (errno != ENOENT)
 		 fprintf(stderr, "directory_exists: %s: error: %d\n", b, errno);
@@ -301,7 +339,11 @@ int directory_poll(directory_t *d)
 
    d->last_update = time(NULL);
 
-   ret = stat(d->directory, &st);
+   if (directory_follow_symlinks)
+	  ret = stat(d->directory, &st);
+   else
+	  ret = lstat(d->directory, &st);
+
    if (ret == -1) {
 #ifdef DIRECTORY_DEBUG
 	  fprintf(stderr, "directory: stat: %s: error: %d\n", d->directory, errno);
@@ -499,7 +541,12 @@ static inline storage_t directory_filesize(const char *file, int fnlen)
    */
 
    memset(&st, 0, sizeof(st));
-   ret = stat(file, &st);
+
+   if (directory_follow_symlinks)
+	  ret = stat(file, &st);
+   else
+	  ret = lstat(file, &st);
+
    if (ret == -1) {
 	  if (errno != ENOENT) {
 		 fprintf(stderr, "directory_filesize: %s: stat failed: %d\n", file, errno);

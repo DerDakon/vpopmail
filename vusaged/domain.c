@@ -25,9 +25,24 @@
    #include <assert.h>
 #endif
 #include <pthread.h>
-#include "storage.h"
+#include <storage.h>
 #include "cache.h"
 #include "domain.h"
+
+storage_t domainlist_num = 0;
+domain_t *domainlist = NULL;
+
+/*
+   Initialize domain handler
+*/
+
+int domain_init(void)
+{
+   domainlist = NULL;
+   domainlist_num = 0;
+
+   return 1;
+}
 
 /*
    Allocate a new domain structure
@@ -37,7 +52,7 @@ domain_t *domain_load(const char *domain)
 {
    int ret = 0;
    domain_t *d = NULL;
-   char b[DOMAIN_MAX_DOMAIN] = { 0 };
+   char b[DOMAIN_MAX_DOMAIN + 1] = { 0 };
 
 #ifdef ASSERT_DEBUG
    assert(domain != NULL);
@@ -75,6 +90,14 @@ domain_t *domain_load(const char *domain)
    }
 
    pthread_mutex_init(&d->m_usage, NULL);
+
+   if (domainlist)
+	  domainlist->prev = d;
+
+   d->next = domainlist;
+   domainlist = d;
+   domainlist_num++;
+
    return d;
 }
 
@@ -87,6 +110,19 @@ void domain_free(domain_t *d)
 #ifdef ASSERT_DEBUG
    assert(d != NULL);
 #endif
+
+   if ((d->next) || (d->prev)) {
+	  if (d->next)
+		 d->next->prev = d->prev;
+
+	  if (d->prev)
+		 d->prev->next = d->next;
+
+	  if (d == domainlist)
+		 domainlist = d->next;
+
+	  domainlist_num--;
+   }
 
    pthread_mutex_destroy(&d->m_usage);
 
@@ -102,7 +138,7 @@ void domain_free(domain_t *d)
 
 domain_t *domain_get(const char *domain)
 {
-   char b[DOMAIN_MAX_DOMAIN] = { 0 };
+   char b[DOMAIN_MAX_DOMAIN + 1] = { 0 }, *p = NULL;
 
 #ifdef ASSERT_DEBUG
    assert(domain != NULL);
@@ -111,6 +147,11 @@ domain_t *domain_get(const char *domain)
 
    memset(b, 0, sizeof(b));
    snprintf(b, sizeof(b), "@%s", domain);
+
+   for (p = b; *p; p++) {
+	  if ((*p >= 'A') && (*p <= 'Z'))
+		 *p = tolower(*p);
+   }
 
    return cache_lookup(b);
 }
