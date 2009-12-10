@@ -1,6 +1,10 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.31 - Released 12-10-2009
+   Matt Brookings
+   - Released to fix leftover issue that should have been addressed in 5.4.30
+
 5.4.30 - Released 12-10-2009
    Matt Brookings
    - Fixed problem where variable was declared in-function

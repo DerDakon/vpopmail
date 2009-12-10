@@ -65,13 +65,15 @@ void *client_connect(void)
    fd_set wfds;
    client_handle_t *handle = NULL;
 
+   timeout = CLIENT_SERVER_TIMEOUT;
+   memset(socket_file, 0, sizeof(socket_file));
+
    /*
 	  Load configuration file
    */
 
    config = config_begin("vusagec.conf");
-   if (config == NULL)
-	  fprintf(stderr, "client_connect: warning: config_begin failed\n");
+   if (config) {
 
    /*
 	  Disabled?
@@ -89,7 +91,6 @@ void *client_connect(void)
 	  Get timeout
    */
 
-   timeout = CLIENT_SERVER_TIMEOUT;
    str = config_fetch_by_name(config, "Server", "Timeout");
    if (str) {
 	  fl = atoi(str);
@@ -102,8 +103,6 @@ void *client_connect(void)
    /*
 	  Determine connection type
    */
-
-   memset(socket_file, 0, sizeof(socket_file));
 
    str = config_fetch_by_name(config, "Server", "Remote");
    if (str) {
@@ -131,6 +130,7 @@ void *client_connect(void)
    }
 
    config_kill(config);
+   }
 
    /*
 	  Allocate a socket
