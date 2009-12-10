@@ -11,11 +11,14 @@
 #
 
 PIDFILE=/var/run/vusaged.pid
-VUSAGED=@vpopmaildir@/bin/vusaged
+VUSAGED=@VPOPMAIL_DIR_BIN@/vusaged
+WORKINGDIR=@VPOPMAIL_DIR_ETC@
 
 case "$1" in
    start)
 	  echo -n "Starting vusaged: "
+
+	  cd $WORKINGDIR || (echo "cannot change to $WORKINGDIR"; exit 1)
 
 	  if [ -e $PIDFILE ]; then
 		 echo "already running or stale pidfile $PIDFILE"
