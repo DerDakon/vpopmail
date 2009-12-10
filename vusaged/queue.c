@@ -36,6 +36,7 @@
 #include "shutdown.h"
 #include "queue.h"
 
+extern user_t *userlist;
 extern char shutdown_flag;
 extern int directory_minimum_poll_time;
 
@@ -378,7 +379,7 @@ static void *queue_controller(void *self)
 {
    int ret = 0;
    time_t last = 0, diff = 0;
-   user_t *u = NULL, *userlist = NULL;
+   user_t *u = NULL, *l_userlist = NULL;
    struct vqpasswd *vpw = NULL;
    domain_entry *e = NULL;
    char b[USER_MAX_USERNAME] = { 0 };
@@ -397,8 +398,7 @@ static void *queue_controller(void *self)
 	  If userlist is empty, begin a stage one load
    */
 
-   if (user_get_userlist() == NULL) {
-
+   if (userlist == NULL) {
 	  printf("controller: stage one\n");
 
 	  /*
@@ -489,8 +489,26 @@ static void *queue_controller(void *self)
 			u = user_get(b);
 			if (u == NULL)
 			   fprintf(stderr, "controller: user_get(%s) failed\n", b);
-			else
-			   queue_push(u);
+			   
+			else {
+			   /*
+				  Check processing state on user to avoid duplicate queue items
+			   */
+
+			   pthread_mutex_lock(&u->m_processing);
+
+			   if (u->processing == 0) {
+				  u->processing = 1;
+
+				  /*
+					 Add to the work queue
+				  */
+
+				  queue_push(u);
+			   }
+
+			   pthread_mutex_unlock(&u->m_processing);
+			}
 
 			queue_unlock();
 		 }
@@ -552,9 +570,9 @@ static void *queue_controller(void *self)
 		 because new items are added to the front of the list
 	  */
 
-	  if (userlist == NULL) {
+	  if (l_userlist == NULL) {
 		 last = time(NULL);
-		 u = userlist = user_get_userlist();
+		 u = l_userlist = userlist;
 	  }
 
 	  /*
@@ -566,6 +584,24 @@ static void *queue_controller(void *self)
 			break;
 
 		 /*
+			Check if user is in processing
+		 */
+
+		 pthread_mutex_lock(&u->m_processing);
+
+		 if (u->processing) {
+			pthread_mutex_unlock(&u->m_processing);
+			continue;
+		 }
+
+		 /*
+			Set processing state
+		 */
+
+		 u->processing = 1;
+		 pthread_mutex_unlock(&u->m_processing);
+
+		 /*
 			Detect lost users
 		 */
 
@@ -575,7 +611,7 @@ static void *queue_controller(void *self)
 			   printf("controller: %s@%s might be a lost user\n", u->user, u->domain->domain);
 #endif
 			   if (!(user_verify(u))) {
-				  u = userlist = user_get_userlist();
+				  u = l_userlist = userlist;
 				  continue;
 			   }
 			}
@@ -584,6 +620,14 @@ static void *queue_controller(void *self)
 		 queue_lock();
 
 		 if (queue_size >= queue_max_size) {
+			/*
+			   Set user not in processing since there's no room in the queue for the job
+			*/
+
+			pthread_mutex_lock(&u->m_processing);
+			u->processing = 0;
+			pthread_mutex_unlock(&u->m_processing);
+
 			queue_unlock();
 			break;
 		 }
@@ -597,11 +641,15 @@ static void *queue_controller(void *self)
 	  */
 
 	  if (u == NULL) {
-		 userlist = NULL;
+		 l_userlist = NULL;
 
 		 diff = (directory_minimum_poll_time - ((time(NULL) - last)));
 		 if (diff < 1)
 			diff = 1;
+
+#ifdef QUEUE_DEBUG
+		 printf("controller: going to sleep for %lu seconds\n", diff);
+#endif
 
 		 ret = shutdown_wait(diff);
 		 if (ret)
@@ -694,7 +742,18 @@ static void *queue_worker(void *self)
 #ifdef QUEUE_DEBUG
 	  printf("queue: %p: processed %s@%s\n", self, q->user->user, q->user->domain->domain);
 #endif
-   }
+
+	  /*
+		 Unset processing on the user
+	  */
+
+	  pthread_mutex_lock(&q->user->m_processing);
+#ifdef ASSERT_DEBUG
+	  assert(q->user->processing == 1);
+#endif
+	  q->user->processing = 0;
+	  pthread_mutex_unlock(&q->user->m_processing);
+   } 
 
    pthread_exit(NULL);
    return NULL;

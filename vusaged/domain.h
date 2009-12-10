@@ -39,7 +39,9 @@ typedef struct __domain_ {
 
    storage_t usage,
 			 count;
+
    pthread_mutex_t m_usage;
+   struct __domain_ *next, *prev;
 } domain_t;
 
 domain_t *domain_load(const char *);
