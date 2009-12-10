@@ -102,7 +102,7 @@ void domain_free(domain_t *d)
 
 domain_t *domain_get(const char *domain)
 {
-   char b[DOMAIN_MAX_DOMAIN] = { 0 };
+   char b[DOMAIN_MAX_DOMAIN] = { 0 }, *p = NULL;
 
 #ifdef ASSERT_DEBUG
    assert(domain != NULL);
@@ -111,6 +111,11 @@ domain_t *domain_get(const char *domain)
 
    memset(b, 0, sizeof(b));
    snprintf(b, sizeof(b), "@%s", domain);
+
+   for (p = b; *p; p++) {
+	  if ((*p >= 'A') && (*p <= 'Z'))
+		 *p = tolower(*p);
+   }
 
    return cache_lookup(b);
 }

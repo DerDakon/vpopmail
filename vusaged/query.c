@@ -22,6 +22,7 @@
 #ifdef ASSERT_DEBUG
    #include <assert.h>
 #endif
+#include <ctype.h>
 #include "../storage.h"
 #include "packet.h"
 #include "user.h"
@@ -35,12 +36,18 @@
 int query_parse(void *handle, char *data, int len)
 {
    int ret = 0;
+   char *p = NULL;
    storage_t susage = 0, cusage = 0;
 
 #ifdef ASSERT_DEBUG
    assert(handle != NULL);
    assert(data != NULL);
 #endif
+
+   for (p = data; *p; p++) {
+	  if ((*p >= 'A') && (*p <= 'Z'))
+		 *p = tolower(*p);
+   }
 
 #ifdef QUERY_DEBUG
    printf("query: %s\n", data);

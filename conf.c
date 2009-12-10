@@ -799,12 +799,11 @@ char *config_fetch_by_name(config_t *c, char *label, char *aname)
 char *config_fetch_by_num(config_t *c, char *label, int num)
 {  
   int cur = 0;
+  config_label_t *l = NULL;
+  config_atom_t *a = NULL;
 
   if (c == NULL)
 	 return NULL;
-
-  config_label_t *l = NULL;
-  config_atom_t *a = NULL;
 
   if (c->labels == NULL)
      return NULL;
