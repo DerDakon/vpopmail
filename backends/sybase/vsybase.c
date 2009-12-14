@@ -581,6 +581,9 @@ int vauth_setpw_size( struct vqpasswd *inpw, char *domain, int site_size)
        }
 #endif
 
+	if (!(strcasecmp(inpw->pw_shell, "NOQUOTA")))
+	   remove_maildirsize(inpw->pw_dir);
+
 	return(0);
 }
 

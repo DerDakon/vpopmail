@@ -662,6 +662,9 @@ int auth_setpw( struct vqpasswd *inpw, char *domain )
        }
 #endif
 
+	if (!(strcasecmp(inpw->pw_shell, "NOQUOTA")))
+	   remove_maildirsize(inpw->pw_dir);
+
     return(0);
 }
 
