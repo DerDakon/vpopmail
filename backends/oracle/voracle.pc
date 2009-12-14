@@ -757,6 +757,9 @@ int vauth_setpw( struct vqpasswd *inpw, char *domain )
     vsqwebmail_pass( inpw->pw_dir, inpw->pw_passwd, uid, gid);
 #endif
 
+	if (!(strcasecmp(inpw->pw_shell, "NOQUOTA")))
+	   remove_maildirsize(inpw->pw_dir);
+
     return(0);
 }
 
