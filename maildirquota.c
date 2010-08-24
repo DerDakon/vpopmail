@@ -586,12 +586,19 @@ time_t	tm;
 time_t	maxtime;
 DIR	*dirp;
 struct dirent *de;
+int ret = 0;
+uid_t vuid = 0;
+gid_t vgid = 0;
 
    /*
 	  Old-style
    */
 
    fprintf(stderr, "warning: program using deprecated quota function at %s:%d\n", __FILE__, __LINE__);
+
+   ret = vpopmail_uidgid(&vuid, &vgid);
+   if (!ret)
+	  return(VA_UNKNOWN_UIDGID);
 
 	if (checkfolder == 0)	return (-1);
 	*maildirsize_fdptr= -1;
@@ -670,6 +677,7 @@ struct dirent *de;
 		return (-1);
 	}
 
+	chown(newmaildirsizename, vuid, vgid);
 	*maildirsize_fdptr=maildirsize_fd;
 
 	if (doaddquota(dir, maildirsize_fd, quota_type, maildirsize_size,
