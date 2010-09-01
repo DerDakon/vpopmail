@@ -27,9 +27,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include "config.h"
-#ifdef ENABLE_AUTH_LOGGING
 #include <time.h>
-#endif
 #include "vpopmail.h"
 #include "vauth.h"
 #include "quota.h"
@@ -140,9 +138,7 @@ void usage()
 #ifdef CLEAR_PASS
 	printf("         -C (display clear text password)\n");
 #endif
-#ifdef ENABLE_AUTH_LOGGING
 	printf("         -l (display last authentication time)\n");
-#endif
 	printf("         -D domainname (show all users on this domain)\n");
 }
 
@@ -252,9 +248,15 @@ void display_limit (struct vqpasswd *pw, unsigned int flag, char *message)
 
 void display_lastlogin (struct vqpasswd *pw, char *domain)
 {
-#ifdef ENABLE_AUTH_LOGGING
  time_t mytime;
  char  *authip;
+
+ if (!(vauth_module_feature("AUTH_LOGGING"))) {
+	if (DisplayLastAuth)
+	   printf("Backend module not configured with authentication logging\n");
+
+	return;
+ }
 
 	/* There should be a new function that retrieves both
 	 * auth time and IP in a single call (and single DB lookup)
@@ -275,7 +277,6 @@ void display_lastlogin (struct vqpasswd *pw, char *domain)
           }
         }
 
-#endif
 }
 
 void display_user(struct vqpasswd *mypw, char *domain)

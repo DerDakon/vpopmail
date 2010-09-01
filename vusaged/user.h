@@ -27,6 +27,7 @@
 #include "storage.h"
 #include "domain.h"
 #include "userstore.h"
+#include "../vauth.h"
 
 /*
    Maximum length of a username
@@ -41,6 +42,7 @@
 typedef struct __user_ {
    char *user,
 		*home;                          // Home directory of user
+   struct vqpasswd *pw;					// Copy of last vqpasswd from vpopmail
 
    domain_t *domain;
    userstore_t *userstore;

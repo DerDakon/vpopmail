@@ -47,6 +47,12 @@
 #define TOKENS " \n"
 
 const char auth_module_name[] = "cdb";
+const char *auth_module_features[] = {
+#ifdef ENABLE_AUTH_LOGGING
+   "AUTH_LOGGING",
+#endif
+   NULL
+};
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid);
 void vcdb_strip_char( char *instr );
@@ -1065,7 +1071,6 @@ int del_dir_control(char *domain)
     return(unlink(dir_control_file));
 }
 
-#ifdef ENABLE_AUTH_LOGGING
 int set_lastauth(char *user, char *domain, char *remoteip )
 {
  char *tmpbuf;
@@ -1117,7 +1122,6 @@ char *get_lastauthip( struct vqpasswd *pw, char *domain)
         fclose(fs);
         return(tmpbuf);
 }
-#endif /* ENABLE_AUTH_LOGGING */
 
 char *dc_filename(char *domain, uid_t uid, gid_t gid)
 {

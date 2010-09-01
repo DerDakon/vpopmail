@@ -2571,22 +2571,23 @@ int get_lastauth()
     return(-1);
   } 
 
-#ifndef ENABLE_AUTH_LOGGING
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
-#else
-  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
-  wait_write();
+  if (!(vauth_module_feature("AUTH_LOGGING")))
+	  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK);
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,
-    (long int) vget_lastauth(tmpvpw, TmpDomain));
-  wait_write();
+  else {
+	  snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
+	  wait_write();
 
-  snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF,
-    vget_lastauthip(tmpvpw, TmpDomain));
-  wait_write();
+	  snprintf(WriteBuf, sizeof(WriteBuf), "time %ld" RET_CRLF,
+		 (long int) vget_lastauth(tmpvpw, TmpDomain));
+	  wait_write();
 
-  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
-#endif
+	  snprintf(WriteBuf, sizeof(WriteBuf), "ip %s" RET_CRLF,
+		 vget_lastauthip(tmpvpw, TmpDomain));
+	  wait_write();
+
+	  snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  }
 
   return(0);
 }

@@ -15,6 +15,7 @@
 #endif
 #include <storage.h>
 #include <conf.h>
+#include <vpopmail.h>
 #include "path.h"
 #include "user.h"
 #include "domain.h"
@@ -82,7 +83,8 @@ int vdb_save(void)
    struct stat l_stat;
    time_t l_time = 0;
    char l_domain[DOMAIN_MAX_DOMAIN] = { 0 }, l_user[USER_MAX_USERNAME] = { 0 },
-		l_path[PATH_MAX] = { 0 };
+		l_path[PATH_MAX] = { 0 }, l_gecos[MAX_PW_GECOS] = { 0 },
+		l_pass[MAX_PW_PASS] = { 0 };
 
    if (vdb_database == NULL)
 	  return 1;
@@ -134,6 +136,8 @@ int vdb_save(void)
 	  assert(d->domain != NULL);
 	  assert(*(d->domain) != '\0');
 #endif
+
+	  printf("WRITING DOMAIN: {%s]\n", d->domain);
 
 	  len = strlen(d->domain);
 	  if (len >= sizeof(l_domain)) {
@@ -232,6 +236,160 @@ int vdb_save(void)
 	  memcpy(l_path, u->home, len);
 
 	  ret = vdb_write(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 vqpasswd structure
+	  */
+
+	  /*
+		 pw:name
+	  */
+
+	  memset(l_user, 0, sizeof(l_user));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_name);
+		 if (len >= sizeof(l_user)) {
+			fprintf(stderr, "vdb_save: name too long: %s\n", u->pw->pw_name);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_user, u->pw->pw_name, len);
+	  }
+
+	  ret = vdb_write(l_user, sizeof(l_user));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:passwd
+	  */
+
+	  memset(l_pass, 0, sizeof(l_pass));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_passwd);
+		 if (len >= sizeof(l_pass)) {
+			fprintf(stderr, "vdb_save: passwd too long: %s\n", u->pw->pw_passwd);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_pass, u->pw->pw_passwd, len);
+	  }
+
+	  ret = vdb_write(l_pass, sizeof(l_pass));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:uid
+	  */
+
+	  ret = vdb_write(u->pw ? &u->pw->pw_uid : 0, sizeof(uid_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:gid
+	  */
+
+	  ret = vdb_write(u->pw ? &u->pw->pw_gid : 0, sizeof(gid_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:flags
+	  */
+
+	  ret = vdb_write(u->pw ? &u->pw->pw_flags : 0, sizeof(gid_t));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:gecos
+	  */
+
+	  memset(l_gecos, 0, sizeof(l_gecos));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_gecos);
+		 if (len >= sizeof(l_gecos)) {
+			fprintf(stderr, "vdb_save: gecos too long: %s\n", u->pw->pw_gecos);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_gecos, u->pw->pw_gecos, len);
+	  }
+
+	  ret = vdb_write(l_gecos, sizeof(l_gecos));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:dir
+	  */
+
+	  memset(l_path, 0, sizeof(l_path));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_dir);
+		 if (len >= sizeof(l_path)) {
+			fprintf(stderr, "vdb_save: dir too long: %s\n", u->pw->pw_dir);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_path, u->pw->pw_dir, len);
+	  }
+
+	  ret = vdb_write(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:shell
+	  */
+
+	  memset(l_path, 0, sizeof(l_path));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_shell);
+		 if (len >= sizeof(l_path)) {
+			fprintf(stderr, "vdb_save: shell too long: %s\n", u->pw->pw_shell);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_path, u->pw->pw_shell, len);
+	  }
+
+	  ret = vdb_write(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  /*
+		 pw:clear_passwd
+	  */
+
+	  memset(l_pass, 0, sizeof(l_pass));
+
+	  if (u->pw) {
+		 len = strlen(u->pw->pw_clear_passwd);
+		 if (len >= sizeof(l_pass)) {
+			fprintf(stderr, "vdb_save: clear passwd too long: %s\n", u->pw->pw_clear_passwd);
+			vdb_remove();
+			return 0;
+		 }
+
+		 memcpy(l_pass, u->pw->pw_clear_passwd, len);
+	  }
+
+	  ret = vdb_write(l_pass, sizeof(l_pass));
 	  if (!ret)
 		 return 0;
 
@@ -406,7 +564,8 @@ int vdb_load(void)
    time_t l_time = 0;
    struct stat l_stat;
    directory_t *di = NULL;
-   char l_domain[DOMAIN_MAX_DOMAIN] = { 0 }, l_path[PATH_MAX] = { 0 }, l_user[USER_MAX_USERNAME] = { 0 };
+   char l_domain[DOMAIN_MAX_DOMAIN] = { 0 }, l_path[PATH_MAX] = { 0 }, l_user[USER_MAX_USERNAME] = { 0 },
+		l_gecos[MAX_PW_GECOS] = { 0 }, l_pass[MAX_PW_PASS] = { 0 };
 
    if (vdb_database == NULL)
 	  return 1;
@@ -557,6 +716,158 @@ int vdb_load(void)
 	  }
 
 	  /*
+		 Load vqpasswd structure
+	  */
+
+	  u->pw = malloc(sizeof(struct vqpasswd));
+	  if (u->pw == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: malloc failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:name
+	  */
+
+	  ret = vdb_read(l_user, sizeof(l_user));
+	  if (!ret)
+		 return 0;
+
+	  u->pw->pw_name = strdup(l_user);
+	  if (u->pw->pw_name == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+	  
+	  /*
+		 pw:passwd
+	  */
+
+	  ret = vdb_read(l_pass, sizeof(l_pass));
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: vdb_read failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  u->pw->pw_passwd = strdup(l_pass);
+	  if (u->pw->pw_passwd == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+	  
+	  /*
+		 pw:uid
+	  */
+
+	  ret = vdb_read(&u->pw->pw_uid, sizeof(uid_t));
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: vdb_read failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:gid
+	  */
+
+	  ret = vdb_read(&u->pw->pw_gid, sizeof(gid_t));
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: vdb_read failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:flags
+	  */
+
+	  ret = vdb_read(&u->pw->pw_flags, sizeof(gid_t));
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: vdb_read failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:gecos
+	  */
+
+	  ret = vdb_read(l_gecos, sizeof(l_gecos));
+	  if (!ret)
+		 return 0;
+
+	  u->pw->pw_gecos = strdup(l_gecos);
+	  if (u->pw->pw_gecos == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:dir
+	  */
+
+	  ret = vdb_read(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  u->pw->pw_dir = strdup(l_path);
+	  if (u->pw->pw_dir == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:shell
+	  */
+
+	  ret = vdb_read(l_path, sizeof(l_path));
+	  if (!ret)
+		 return 0;
+
+	  u->pw->pw_shell = strdup(l_path);
+	  if (u->pw->pw_shell == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
+		 pw:clear_passwd
+	  */
+
+	  ret = vdb_read(l_pass, sizeof(l_pass));
+	  if (!ret) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: vdb_read failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  u->pw->pw_clear_passwd = strdup(l_pass);
+	  if (u->pw->pw_clear_passwd == NULL) {
+		 user_free(u);
+		 fprintf(stderr, "vdb_load: strdup failed\n");
+		 vdb_close();
+		 return 0;
+	  }
+
+	  /*
 		 Allocate userstore
 	  */
 
@@ -577,6 +888,9 @@ int vdb_load(void)
 		 vdb_close();
 		 return 0;
 	  }
+
+	  printf("%s:%s:%s:%s\n",
+			u->pw->pw_name, u->pw->pw_shell, u->pw->pw_clear_passwd, u->userstore->path);
 
 	  /*
 		 userstore:stat

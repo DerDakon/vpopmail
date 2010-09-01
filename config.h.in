@@ -13,9 +13,6 @@
 #undef DOMAIN_QUOTAS
 
 /* "" */
-#undef ENABLE_AUTH_LOGGING
-
-/* "" */
 #undef ENABLE_LEARN_PASSWORDS
 
 /* "" */

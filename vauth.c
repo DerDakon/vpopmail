@@ -84,10 +84,9 @@ static struct vauth_required_func vauth_required_functions[] = {
    { "alias_remove", &valias_remove, VAUTH_MF_OPTIONAL, &vpalias_remove },
    { "alias_delete", &valias_delete, VAUTH_MF_OPTIONAL, &vpalias_delete },
    { "alias_delete_domain", &valias_delete_domain, VAUTH_MF_OPTIONAL, &vpalias_delete_domain },
-#ifdef ENABLE_AUTH_LOGGING
-   { "set_lastauth", &vset_lastauth, 0, NULL },
-   { "get_lastauth", &vget_lastauth, 0, NULL },
-#endif
+   { "set_lastauth", &vset_lastauth, VAUTH_MF_OPTIONAL, NULL },
+   { "get_lastauth", &vget_lastauth, VAUTH_MF_OPTIONAL, NULL },
+   { "get_lastauthip", &vget_lastauthip, VAUTH_MF_OPTIONAL, NULL },
 #ifdef IP_ALIAS_DOMAINS
    { "get_ip_map", &vget_ip_map, 0, NULL },
    { "add_ip_map", &vadd_ip_map, 0, NULL },
@@ -107,6 +106,7 @@ static int vauth_find_module_function(const char *);
 
 static void *auth_module_handle = NULL;
 static char *auth_module_name = NULL;
+static char **auth_module_features = NULL;
 
 /*
    Load an authentication module
@@ -150,6 +150,16 @@ int vauth_load_module(const char *module)
    }
 
    auth_module_name = sym;
+
+   /*
+	  Get module features
+   */
+
+   auth_module_features = NULL;
+
+   sym = dlsym(hand, "auth_module_features");
+   if (sym)
+	  auth_module_features = sym;
 
    /*
 	  Load exported functions
@@ -274,4 +284,23 @@ static int vauth_find_module_function(const char *name)
 const char *vauth_module_name(void)
 {
    return auth_module_name;
+}
+
+/*
+   Returns if current module supports a feature
+*/
+
+int vauth_module_feature(const char *name)
+{
+   int i = 0;
+
+   if (auth_module_features == NULL)
+	  return 0;
+
+   for (i = 0; auth_module_features[i] != NULL; i++) {
+	  if (!(strcasecmp(name, auth_module_features[i])))
+		 return 1;
+   }
+
+   return 0;
 }

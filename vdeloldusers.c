@@ -29,8 +29,6 @@
 #include "vauthmodule.h"
 #include "vauth.h"
 
-#ifdef ENABLE_AUTH_LOGGING
-
 #define DEFAULT_AGE  180
 #define TOKENS ":\n"
 
@@ -59,6 +57,11 @@ int main(int argc, char *argv[])
 
     if( vauth_open( 1 )) {
         vexiterror( stderr, "Initial open." );
+    }
+
+	if (!(vauth_module_feature("AUTH_LOGGING"))) {
+        printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
+        return(vexit(-1));
     }
 
 	/*
@@ -223,18 +226,3 @@ void process_all_domains(time_t nowt)
         entry = get_domain_entries(NULL);
     }
 }
-
-#else
-
-int main()
-{
-   int ret;
-
-	  ret = vauth_load_module(NULL);
-	  if (!ret)
-		 vexiterror(stderr, "could not load authentication module");
-
-        printf("auth logging was not enabled, reconfigure with --enable-auth-logging=y\n");
-        return(vexit(-1));
-}
-#endif /* ENABLE_AUTH_LOGGING */

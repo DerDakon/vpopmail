@@ -36,6 +36,12 @@
 #include "vldap.h"
 
 const char auth_module_name[] = "ldap";
+const char *auth_module_features[] = {
+#ifdef ENABLE_AUTH_LOGGING
+   "AUTH_LOGGING",
+#endif
+   NULL
+};
 
 LDAP *ld = NULL;
 LDAPMessage *glm = NULL;
@@ -1197,7 +1203,6 @@ int del_dir_control(char *domain)
 
 /***************************************************************************/
 
-#ifdef ENABLE_AUTH_LOGGING
 int set_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time ) {
     char *tmpbuf;
     FILE *fs;
@@ -1258,7 +1263,6 @@ char *get_lastauthip( struct vqpasswd *pw, char *domain) {
     fclose(fs);
     return(tmpbuf);
 }
-#endif /* ENABLE_AUTH_LOGGING */
 
 /***************************************************************************/
 

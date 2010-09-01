@@ -87,6 +87,7 @@ int logsql(int verror, char *TheUser, char *TheDomain, char *ThePass, char *TheN
 
 int vauth_load_module(const char *);
 const char *vauth_module_name(void);
+int vauth_module_feature(const char *);
 int vauth_open(int);
 void vclose(void);
 

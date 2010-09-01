@@ -588,17 +588,17 @@ void login_virtual_user()
    *  MIN_LOGIN_GRACE
    */
 
-#ifdef ENABLE_AUTH_LOGGING
+  if (vauth_module_feature("AUTH_LOGGING")) {
 #ifdef MIN_LOGIN_INTERVAL
-  last_time = vget_lastauth(vpw, TheDomain );
+	  last_time = vget_lastauth(vpw, TheDomain );
 #endif
-  vset_lastauth(TheUser,TheDomain,IpAddr);
+	  vset_lastauth(TheUser,TheDomain,IpAddr);
 #ifdef MIN_LOGIN_INTERVAL
-  if(( vget_lastauth(vpw,TheDomain ) - last_time ) < MIN_LOGIN_INTERVAL ) { 
-    vchkpw_exit(1);
+	  if(( vget_lastauth(vpw,TheDomain ) - last_time ) < MIN_LOGIN_INTERVAL ) { 
+		 vchkpw_exit(1);
+	  }
+#endif
   }
-#endif
-#endif
 
 #ifdef POP_AUTH_OPEN_RELAY
   /* Check if we should open up relay for this account
