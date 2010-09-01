@@ -35,6 +35,12 @@
 #include "vpgsql.h"
 
 char auth_module_name[] = "postgres";
+char *auth_module_features[] = {
+#ifdef ENABLE_AUTH_LOGGING
+   "AUTH_LOGGING",
+#endif
+   NULL
+};
 
 //  Variables to control debug output
 #ifdef VPOPMAIL_DEBUG

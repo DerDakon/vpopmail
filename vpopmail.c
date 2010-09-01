@@ -745,14 +745,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   }
 #endif
 
-#ifdef ENABLE_AUTH_LOGGING
-  if (vset_lastauth(username,domain,NULL_REMOTE_IP) !=0) {
-    /* should we back out of all the work we have done so far? */
-    chdir(calling_dir);
-    fprintf (stderr, "Failed to create create lastauth entry\n");
-    return (VA_NO_AUTH_CONNECTION);
+  if (vauth_module_feature("AUTH_LOGGING")) {
+	  if (vset_lastauth(username,domain,NULL_REMOTE_IP) !=0) {
+		 /* should we back out of all the work we have done so far? */
+		 chdir(calling_dir);
+		 fprintf (stderr, "Failed to create create lastauth entry\n");
+		 return (VA_NO_AUTH_CONNECTION);
+	  }
   }
-#endif
 
   /* jump back into the dir from which the vadduser was run */
   chdir(calling_dir);

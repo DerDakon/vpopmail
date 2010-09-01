@@ -76,7 +76,7 @@ AC_ARG_ENABLE(libdir,
 )
 
 AC_SUBST(libdir)
-AC_CHECK_LIB(mysqlclient, mysql_real_connect, [], [ AC_MSG_ERROR(Can't find MySQL library.  Please use --enable-libdir=/path to specifcy location.) ])
+AC_CHECK_LIB(mysqlclient, mysql_real_connect, [], [ AC_MSG_ERROR(MySQL library not found.  Please use --enable-libdir=/path to specify location.) ])
 
 #
 # Authentication logging

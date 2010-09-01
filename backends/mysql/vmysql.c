@@ -35,6 +35,12 @@
 void vvclose();
 
 const char auth_module_name[] = "mysql";
+const char *auth_module_features[] = {
+#ifdef ENABLE_AUTH_LOGGING
+   "AUTH_LOGGING",
+#endif
+   NULL
+};
 
 static MYSQL mysql_update;
 static MYSQL mysql_read_getall;
@@ -90,9 +96,7 @@ void vcreate_relay_table();
 void vcreate_valias_table();
 #endif
 
-#ifdef ENABLE_AUTH_LOGGING
 void vcreate_lastauth_table();
-#endif
 
 
 /************************************************************************/

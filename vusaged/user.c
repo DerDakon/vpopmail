@@ -222,7 +222,7 @@ static user_t *user_load(const char *email)
 {
    user_t *u = NULL;
    int ret = 0, len = 0;
-   struct vqpasswd *pw = NULL;
+   struct vqpasswd *pw = NULL, *npw = NULL;
    char *home = NULL;
    const char *p = NULL;
    char user[USER_MAX_USERNAME] = { 0 }, domain[DOMAIN_MAX_DOMAIN] = { 0 };
@@ -283,17 +283,104 @@ static user_t *user_load(const char *email)
    }
 
    /*
+	  Create copy of vqpasswd structure
+   */
+
+   npw = malloc(sizeof(struct vqpasswd));
+   if (npw == NULL) {
+	  fprintf(stderr, "user_get: malloc failed\n");
+	  return NULL;
+   }
+
+   if (1) {
+	  npw->pw_name = strdup(pw->pw_name);
+	  if (npw->pw_name == NULL) {
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_passwd = strdup(pw->pw_passwd);
+	  if (npw->pw_passwd == NULL) {
+		 free(npw->pw_name);
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_gecos = strdup(pw->pw_gecos);
+	  if (npw->pw_gecos == NULL) {
+		 free(npw->pw_passwd);
+		 free(npw->pw_name);
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_dir = strdup(pw->pw_dir);
+	  if (npw->pw_dir == NULL) {
+		 free(npw->pw_gecos);
+		 free(npw->pw_passwd);
+		 free(npw->pw_name);
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_shell = strdup(pw->pw_shell);
+	  if (npw->pw_shell == NULL) {
+		 free(npw->pw_dir);
+		 free(npw->pw_gecos);
+		 free(npw->pw_passwd);
+		 free(npw->pw_name);
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_clear_passwd = strdup(pw->pw_clear_passwd);
+	  if (npw->pw_clear_passwd == NULL) {
+		 free(npw->pw_shell);
+		 free(npw->pw_dir);
+		 free(npw->pw_gecos);
+		 free(npw->pw_passwd);
+		 free(npw->pw_name);
+		 free(npw);
+		 fprintf(stderr, "user_get: strdup failed\n");
+		 return NULL;
+	  }
+
+	  npw->pw_uid = pw->pw_uid;
+	  npw->pw_gid = pw->pw_gid;
+	  npw->pw_flags = pw->pw_flags;
+   }
+
+   /*
 	  Our root directory is the Maildir of the user
    */
 
    len = (strlen(pw->pw_dir) + strlen("/Maildir"));
    if ((len + 1) >= PATH_MAX) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  fprintf(stderr, "user_get: home directory too long\n");
 	  return NULL;
    }
 
    home = malloc(len + 1);
    if (home == NULL) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  fprintf(stderr, "user_get: malloc failed\n");
 	  return NULL;
    }
@@ -307,6 +394,13 @@ static user_t *user_load(const char *email)
 
    dom = domain_load(domain);
    if (dom == NULL) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  fprintf(stderr, "user_get: domain_load failed\n");
 	  free(home);
 	  return NULL;
@@ -318,6 +412,13 @@ static user_t *user_load(const char *email)
 
    u = malloc(sizeof(user_t));
    if (u == NULL) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  fprintf(stderr, "user_load: malloc failed\n");
 	  return NULL;
    }
@@ -330,6 +431,13 @@ static user_t *user_load(const char *email)
 
    ret = pthread_mutex_init(&u->m_processing, NULL);
    if (ret != 0) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  free(u);
 	  free(home);
 	  userstore_free(userstore);
@@ -347,6 +455,13 @@ static user_t *user_load(const char *email)
    len = (p - email);
    u->user = malloc(len + 1);
    if (u->user == NULL) {
+	  free(npw->pw_clear_passwd);
+	  free(npw->pw_shell);
+	  free(npw->pw_dir);
+	  free(npw->pw_gecos);
+	  free(npw->pw_passwd);
+	  free(npw->pw_name);
+	  free(npw);
 	  fprintf(stderr, "user_load: malloc failed\n");
 	  free(u);
 	  free(home);
@@ -362,6 +477,7 @@ static user_t *user_load(const char *email)
 
    u->home = home;
    u->domain = dom;
+   u->pw = npw;
    u->userstore = NULL;
 
    /*
@@ -422,6 +538,28 @@ void user_free(user_t *u)
 
    if (u->userstore)
 	  userstore_free(u->userstore);
+
+   if (u->pw) {
+	  if (u->pw->pw_name)
+		 free(u->pw->pw_name);
+
+	  if (u->pw->pw_passwd)
+		 free(u->pw->pw_passwd);
+
+	  if (u->pw->pw_gecos)
+		 free(u->pw->pw_gecos);
+
+	  if (u->pw->pw_dir)
+		 free(u->pw->pw_dir);
+
+	  if (u->pw->pw_shell)
+		 free(u->pw->pw_shell);
+
+	  if (u->pw->pw_clear_passwd)
+		 free(u->pw->pw_clear_passwd);
+
+	  free(u->pw);
+   }
 
    free(u);
 }

@@ -3,6 +3,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Updated vusage daemon to store cached copy of vpopmail user authentication
+    structure
+  - Updated cdb module auth-logging feature to be on by default
+  - Updated vusage daemon to use module API to get last authentication time
+  - Added authentication module feature API which provides optional module
+    feature information to callers.
   - Updated old maildirsize creation function to set proper uid/gid on target
   - Updated authentication modules to remove maildirsize file when a quota is set to NOQUOTA
   - Fixed a bug in client functions that tried to evaluate a NULL string
