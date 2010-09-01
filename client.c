@@ -73,7 +73,8 @@ void *client_connect(void)
    */
 
    config = config_begin("vusagec.conf");
-   if (config) {
+   if (config == NULL)
+	  return NULL;
 
    /*
 	  Disabled?
@@ -110,7 +111,7 @@ void *client_connect(void)
 	  if (!ret) {
 		 config_kill(config);
 		 fprintf(stderr, "client_connect: configuration error: Server::Remote: %s\n", str);
-		 return 0;
+		 return NULL;
 	  }
    }
 
@@ -119,7 +120,7 @@ void *client_connect(void)
 	  if ((str) && (!(*str))) {
 		 config_kill(config);
 		 fprintf(stderr, "client_connect: configuration error: Server::Filename\n");
-		 return 0;
+		 return NULL;
 	  }
 
 	  fl = strlen(str);
@@ -130,7 +131,6 @@ void *client_connect(void)
    }
 
    config_kill(config);
-   }
 
    /*
 	  Allocate a socket

@@ -1,6 +1,15 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.32 -
+  Matt Brookings
+  - Updated maildirsize creation to set uid/gid on target
+  - Updated maildirsize_read to enforce Maildir++ specifications related
+    to maildirsize filesize and maildirsize modification time.
+  - Fixed returning of 0 rather than NULL in client_connect
+  - Updated vusage client API not to try to connect to the daemon if
+    vusagec.conf does not exist
+
 5.4.31 - Released 12-10-2009
    Matt Brookings
    - Released to fix leftover issue that should have been addressed in 5.4.30

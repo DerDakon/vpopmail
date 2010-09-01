@@ -338,11 +338,24 @@ static int maildirsize_read(const char *filename,	/* The filename */
  unsigned l;
  int n;
  int first;
+ int ret = 0;
 
 	if ((f=maildir_safeopen(filename, O_RDWR|O_APPEND, 0)) < 0)
 		return (-1);
 	p=buf;
 	l=sizeof(buf);
+
+	/*
+		 Maildir++ specification says to rebuild the maildirsize file if the
+		 file is 5120 or more bytes, or is more than 15 minutes old
+    */
+
+	ret = fstat(f, statptr);
+	if ((ret != -1) && ((statptr->st_size >= 5120) || (time(NULL) > statptr->st_mtime + (15*60)))) {
+	   unlink(filename);
+	   close(f);
+	   return -1;
+    }
 
 	while (l)
 	{
@@ -356,7 +369,7 @@ static int maildirsize_read(const char *filename,	/* The filename */
 		p += n;
 		l -= n;
 	}
-	if (l == 0 || fstat(f, statptr))	/* maildir too big */
+	if (l == 0 || ret)	/* maildir too big */
 	{
 		close(f);
 		return (-1);
@@ -624,6 +637,7 @@ struct dirent *de;
 		return (-1);
 	}
 
+	chown(newmaildirsizename, VPOPMAILUID, VPOPMAILGID);
 	*maildirsize_fdptr=maildirsize_fd;
 
 	if (doaddquota(dir, maildirsize_fd, quota_type, maildirsize_size,
