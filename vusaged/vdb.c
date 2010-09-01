@@ -105,7 +105,7 @@ int vdb_save(void)
 
    memset(&header, 0, sizeof(header));
 
-   header.version = 0x02;
+   header.version = 0x03;
    memcpy(header.id, VDB_HEADER_ID, 3);
    header.num_domains = domainlist_num;
    header.num_users = userlist_num;
@@ -136,8 +136,6 @@ int vdb_save(void)
 	  assert(d->domain != NULL);
 	  assert(*(d->domain) != '\0');
 #endif
-
-	  printf("WRITING DOMAIN: {%s]\n", d->domain);
 
 	  len = strlen(d->domain);
 	  if (len >= sizeof(l_domain)) {
@@ -594,7 +592,7 @@ int vdb_load(void)
 	  return 0;
    }
 
-   if (header.version != 0x02) {
+   if (header.version != 0x03) {
 	  vdb_close();
 	  fprintf(stderr, "vdb_load: cannot process version %d vusaged datafiles\n", header.version);
 	  return 0;
@@ -888,9 +886,6 @@ int vdb_load(void)
 		 vdb_close();
 		 return 0;
 	  }
-
-	  printf("%s:%s:%s:%s\n",
-			u->pw->pw_name, u->pw->pw_shell, u->pw->pw_clear_passwd, u->userstore->path);
 
 	  /*
 		 userstore:stat
