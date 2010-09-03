@@ -193,8 +193,8 @@ int default_options( listInfoType *LI, char *Address, int DomainOnly ) {
 
     if( DomainOnly ) {    //   Have domain
         if ( strstr( Address, "@") != NULL ) return(4);
-        snprintf( LI->Name,   MAX_FILE_NAME, "%s", "" );
-        snprintf( LI->Domain, MAX_FILE_NAME, "%s", Address );
+        snprintf( LI->Name,   sizeof(LI->Name), "%s", "" );
+        snprintf( LI->Domain, sizeof(LI->Domain), "%s", Address );
     }
 
     else {                //   Have mail list
@@ -206,13 +206,13 @@ int default_options( listInfoType *LI, char *Address, int DomainOnly ) {
 
     if(( LI->entry = get_domain_entries( LI->Domain )) == NULL ) return(3);
 
-    snprintf( LI->OwnerEmail,   MAX_FILE_NAME, "postmaster@%s", LI->Domain ); 
-    snprintf( LI->ReplyTo_Addr, MAX_FILE_NAME, "%s", "" );
-    snprintf( LI->SQLBase,      MAX_FILE_NAME, "ezmlm" );
-    snprintf( LI->SQLHost,      MAX_FILE_NAME, "localhost" );
-    snprintf( LI->SQLPass,      MAX_FILE_NAME, "dbpass" );
-    snprintf( LI->SQLTable,     MAX_FILE_NAME, "ezmlm" );
-    snprintf( LI->SQLUser,      MAX_FILE_NAME, "dbUser" );
+    snprintf( LI->OwnerEmail,   sizeof(LI->OwnerEmail), "postmaster@%s", LI->Domain ); 
+    snprintf( LI->ReplyTo_Addr, sizeof(LI->ReplyTo_Addr), "%s", "" );
+    snprintf( LI->SQLBase,      sizeof(LI->SQLBase), "ezmlm" );
+    snprintf( LI->SQLHost,      sizeof(LI->SQLHost), "localhost" );
+    snprintf( LI->SQLPass,      sizeof(LI->SQLPass), "dbpass" );
+    snprintf( LI->SQLTable,     sizeof(LI->SQLTable), "ezmlm" );
+    snprintf( LI->SQLUser,      sizeof(LI->SQLUser), "dbUser" );
 
 //    printf( "before make name\n" );
 
