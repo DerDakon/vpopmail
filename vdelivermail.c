@@ -122,9 +122,9 @@ int main(int argc, char **argv)
    int ret;
     char loopcheck[255];
 
-	ret =vauth_load_module(NULL);
-	if (!ret)
-	  vexiterror(stderr, "could not load authentication module");
+	ret = vauth_open(1);
+	if (ret != VA_SUCCESS)
+	  vexiterror(stderr, "could not open authentication backend");
 
     /* get the arguments to the program and setup things */
     get_arguments(argc, argv);
