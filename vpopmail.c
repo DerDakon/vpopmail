@@ -71,6 +71,8 @@ int OptimizeAddDomain = 0;
 int host_in_locals(char *domain);
 #endif
 
+static int rand_seeded = 0;
+
 static char gen_chars[] = "abcdefghijklmnopqrstuvwxyz" \
                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
                           "0123456789.@!#%*";
@@ -775,6 +777,11 @@ char randltr(void)
   static const char saltchar[] =
     "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+  if (!rand_seeded) {
+    rand_seeded = 1;
+    srand (time(NULL)^(getpid()<<15));
+  }
+
   return saltchar[(rand() % 64)];
 }
 
@@ -799,10 +806,9 @@ int mkpasswd3( char *clearpass, char *crypted, int ssize )
 {
  char *tmpstr;
  char salt[12];
- static int seeded = 0;
 
- if (!seeded) {
-   seeded = 1;
+ if (!rand_seeded) {
+   rand_seeded = 1;
    srand (time(NULL)^(getpid()<<15));
  }
 
@@ -2949,12 +2955,16 @@ char *verror(int va_err )
     return("can't read domain limits");
    case VA_CANNOT_READ_ASSIGN:
     return("can't read users/assign file");
+   case VA_CANNOT_OPEN_DATABASE:
+	return("can't open database");
    case VA_CANNOT_DELETE_CATCHALL:
     return("can't delete catchall account");
    case VA_NO_AUTH_MODULE:
 	return("no authentication module loaded");
    case VA_UNKNOWN_UIDGID:
 	return("cannot determine my uid or gid");
+   case VA_INTERNAL_BUFFER_EXCEEDED:
+	return("internal buffer limit exceeded");
    default:
     return("Unknown error");
   }
@@ -3764,14 +3774,13 @@ char *vrandom_pass(char *buffer, int len)
 {
   int gen_char_len; 
   int i, k; 
-  static int seeded = 0;
 
   if (buffer == NULL) return buffer;
 
   gen_char_len = strlen(gen_chars);
 
-  if (!seeded) {
-    seeded = 1;
+  if (!rand_seeded) {
+    rand_seeded = 1;
     srand(time(NULL)^(getpid()<<15));
   }
 
