@@ -206,6 +206,14 @@ It is not for runnning on the command line.\n", VchkpwLogName);
         vchkpw_exit(20);
   }
 
+  ret = vauth_open(1);
+  if (ret != VA_SUCCESS) {
+	 snprintf(LogLine, sizeof(LogLine), "%s: %s\n",
+		   VchkpwLogName, verror(ret));
+	 vlog(VLOG_ERROR_LOGON, TheUser, TheDomain, ThePass, TheName, IpAddr, LogLine);
+	 vchkpw_exit(24);
+   }
+
   /* check if this virtual domain is in the system 
    * we look in /var/qmail/users/cdb file
    * and while we are at it, let's get the domains
