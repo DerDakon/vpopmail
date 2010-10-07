@@ -30,7 +30,7 @@ CDB_OBJECTS = cdb/uint32.h cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o c
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
-					  quota.o group.o $(CDB_OBJECTS)
+					  quota.o group.o base64.o $(CDB_OBJECTS)
 VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
 VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 VPOPMAIL_DIR_INCLUDE = @VPOPMAIL_DIR_INCLUDE@
@@ -165,6 +165,8 @@ md5.o: $(DEPS) md5.c md5.h cdb
 seek.o: $(DEPS) seek.c seek.h
 	$(PICC) -o $@ -c $*.c
 group.o: $(DEPS) group.c group.h vauth.h
+	$(PICC) -o $@ -c $*.c
+base64.o: $(DEPS) base64.h base64.c vpopmail.h
 	$(PICC) -o $@ -c $*.c
 
 vaddaliasdomain.o: $(DEPS) vaddaliasdomain.c config.h vpopmail.h vauth.h
@@ -399,6 +401,7 @@ authmodule:
 clean:
 	@if test -r backends/postgres/Makefile; then (cd backends/postgres;$(MAKE) clean); fi
 	@if test -r backends/ldap/Makefile; then (cd backends/ldap;$(MAKE) clean); fi
+	@if test -r backends/openldap/Makefile; then (cd backends/openldap;$(MAKE) clean); fi
 	@if test -r backends/cdb/Makefile; then (cd backends/cdb;$(MAKE) clean); fi
 	@if test -r backends/mysql/Makefile; then (cd backends/mysql;$(MAKE) clean); fi
 	rm -f *.o *.core core $(BUILD_BINS) $(BUILD_LIBS)
@@ -408,6 +411,7 @@ clean:
 distclean: clean
 	@if test -r backends/postgres/Makefile; then (cd backends/postgres;$(MAKE) distclean); fi
 	@if test -r backends/ldap/Makefile; then (cd backends/ldap;$(MAKE) distclean); fi
+	@if test -r backends/openldap/Makefile; then (cd backends/openldap;$(MAKE) distclean); fi
 	@if test -r backends/cdb/Makefile; then (cd backends/cdb;$(MAKE) distclean); fi
 	@if test -r backends/mysql/Makefile; then (cd backends/mysql;$(MAKE) distclean); fi
 	rm -rf stamp-h1 config.h Makefile autom4te.cache config.log config.status backends/module.mk
