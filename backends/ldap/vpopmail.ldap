@@ -1,11 +1,11 @@
 #
 # $Id$
-# Copyright (C) 2009 Inter7 Internet Technologies, Inc.
+# Copyright (C) 2009,2010 Inter7 Internet Technologies, Inc.
 #
 # LDAP connection information
 #
 # Format:
-#          ldap server|ldap port|ldap user|ldap password|ldap basedn
+#          host|port|bind dn|bind password|basedn
 #
 
-localhost|389|cn=vpopmailuser,o=vpopmail|vpoppasswd|o=vpopmail
+localhost|389|cn=vpopmail,o=vpopmail|vpoppasswd|o=vpopmail
