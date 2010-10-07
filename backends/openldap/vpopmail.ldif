@@ -1,0 +1,69 @@
+#
+# $Id$
+#
+
+dn: dc=inter7,dc=com
+objectclass: dcObject
+o: Inter7 Internet Technologies, Inc.
+dc: inter7
+
+dn: ou=vpopmail,dc=inter7,dc=com
+objectClass: organizationalUnit
+ou: vpopmail
+
+#
+# Example domain, user, and valias entry
+#
+
+#
+# example.com
+#
+
+dn: o=example.com,ou=vpopmail,dc=inter7,dc=com
+o: example.com
+objectClass: organization
+
+#
+# postmaster@example.com
+#
+
+dn: uid=postmaster,o=example.com,ou=vpopmail,dc=inter7,dc=com
+objectClass: vpopmail
+uid: postmaster
+mail: postmaster@example.com
+pw-clear-passwd: example
+pw-uid: 0
+pw-gid: 0
+pw-dir: /home/vpopmail/domains/example.com/postmaster
+pw-shell: NOQUOTA
+userPassword:: e1NNRDV9eWprcm5ZNUd3dnhMQ1NoSnh4ZVduV2d5VDAwPQ==
+cn: Postmaster
+sn: user
+givenName: Postmaster
+
+#
+# joe.test@example.com
+#
+
+dn: uid=joe.test,o=example.com,ou=vpopmail,dc=inter7,dc=com
+objectClass: vpopmail
+uid: joe.test
+mail: joe.test@example.com
+pw-clear-passwd: jOet3s7
+pw-uid: 0
+pw-gid: 0
+pw-dir: /home/vpopmail/domains/example.com/joe.test
+pw-shell: NOQUOTA
+userPassword:: e1NNRDV9OHBSeFpxdlRKKzB3Sk9jMmliMElaR0ZCZUhjPQ==
+cn: Joe Test
+sn: Test
+givenName: Joe
+
+#
+# valias forward from joe@example.com to joe.test@example.com
+#
+
+dn: aa=joe,o=example.com,ou=vpopmail,dc=inter7,dc=com
+objectClass: valias
+aa: joe
+di: /home/vpopmail/domains/example.com/joe.test/Maildir/

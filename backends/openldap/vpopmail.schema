@@ -1,0 +1,109 @@
+#
+# $Id$
+# vpopmail LDAP schema
+# <inter7.com>
+#
+
+#
+# attributes
+# 
+
+#
+# Following the vpopmail names as closely as possible,
+# but underscores ('_') are not allowed in DN's
+# 
+
+#
+# pw_name provided by directory
+# 1.3.6.4.1.31234.1.0.1 reserved for pw_name
+#
+
+#
+# pw_passwd provided by directory
+# 1.3.6.4.1.31234.1.0.2 reserved for pw_passwd
+#
+
+attributetype ( 1.3.6.4.1.31234.1.0.3
+   NAME ( 'pw-uid' )
+   DESC 'user uid'
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+attributetype ( 1.3.6.4.1.31234.1.0.4
+   NAME ( 'pw-gid' )
+   DESC 'user gid'
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+#
+# Provided by inetOrgPerson
+# 1.3.6.4.1.31234.1.0.5 is reserved for pw-gecos
+# 
+# attributetype ( 1.3.6.4.1.31234.1.0.5
+#    NAME ( 'pw-gecos' )
+#    DESC 'GECOS'
+#    EQUALITY caseIgnoreIA5Match
+#    SUBSTR caseIgnoreIA5SubstringsMatch
+#    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+#
+
+attributetype ( 1.3.6.4.1.31234.1.0.6
+   NAME ( 'pw-dir' )
+   DESC 'user mailstore directory'
+   EQUALITY caseExactIA5Match
+   SUBSTR caseExactIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( 1.3.6.4.1.31234.1.0.7
+   NAME ( 'pw-shell' 'quota' )
+   DESC 'user quota'
+   EQUALITY caseIgnoreIA5Match
+   SUBSTR caseIgnoreIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{50} )
+
+attributetype ( 1.3.6.4.1.31234.1.0.8
+   NAME ( 'pw-clear-passwd' )
+   DESC 'user plaintext password'
+   EQUALITY caseExactIA5Match
+   SUBSTR caseIgnoreIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+#
+# objectclass
+#
+
+objectclass ( 1.3.6.4.1.31234.1.0
+   NAME 'vpopmail'
+   DESC 'vpopmail virtual user entry'
+   SUP inetOrgPerson
+   MUST ( pw-uid $ pw-gid $ pw-dir $ pw-shell )
+   MAY ( pw-clear-passwd ) )
+
+#
+# vpopmail LDAP valias schema
+#
+
+#
+# attributes
+#
+
+attributetype ( 1.3.6.4.1.31234.1.1.1
+   NAME ( 'aa' 'aliasAddress' )
+   DESC 'rfc822 alias address'
+   EQUALITY caseIgnoreIA5Match
+   SUBSTR caseIgnoreIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( 1.3.6.4.1.31234.1.1.2
+   NAME ( 'di' 'deliveryInstruction' )
+   DESC 'delivery instruction'
+   EQUALITY caseExactIA5Match
+   SUBSTR caseExactIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{512} )
+
+#
+# objectclass
+#
+
+objectclass ( 1.3.6.4.1.31234.1.1 NAME 'valias'
+   DESC 'valias entry'
+   MUST ( aa )
+   MAY ( di ) )
