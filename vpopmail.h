@@ -119,6 +119,7 @@
 #define VA_CANNOT_DELETE_CATCHALL       -55
 #define VA_NO_AUTH_MODULE				-66
 #define VA_UNKNOWN_UIDGID				-67
+#define VA_INTERNAL_BUFFER_EXCEEDED		-68
 
 
 /* gid flags */
