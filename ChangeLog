@@ -3,6 +3,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Added initial OpenLDAP module entry to replace the "ldap" module
+  - Updated some vpopmail daemon formatting calls to check buffer bounds
   - Updated vusage daemon to store cached copy of vpopmail user authentication
     structure
   - Updated cdb module auth-logging feature to be on by default
@@ -116,6 +118,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Updated MySQL module to use "INSERT INTO .. ON DUPLICATE KEY UPDATE" instead of "REPLACE INTO"
   - Fixed overflow in PostgreSQL module
   - Updated MySQL queries to use uppercase characters for SQL syntax
+
+  Johannes Weberhofer
+  - Patches to fix some compiler warnings
 
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
