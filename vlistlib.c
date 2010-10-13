@@ -458,7 +458,7 @@ void ezmlm_decode( listInfoType *LI ) {
     }  // if fopen
 
 
-    LI->Indexed = OtherReject = UserPostOnly = LI->Indexed = 0;
+    LI->Indexed = OtherReject = UserPostOnly = 0;
 
     // figure out some options in the -accept-default file
     sprintf(TmpBuf, "%s-accept-default", LI->Dot );

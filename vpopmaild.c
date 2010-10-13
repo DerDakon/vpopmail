@@ -1349,7 +1349,7 @@ int validate_path(char *newpath, char *path)
         }
       }
       snprintf(newpath, MAXPATH, "%s", myvpw->pw_dir);
-      strncat(newpath, &path[i], MAXPATH );
+      strncat(newpath, &path[i], MAXPATH - strlen(newpath));
     } else {     /*  may be domain name   */
       for(i=0;path[i]!='/'&&path[i]!=0&&i<256;++i) {
         thedomain[i] = path[i];
@@ -1360,7 +1360,7 @@ int validate_path(char *newpath, char *path)
         return(9);
       } 
       snprintf(newpath, MAXPATH, "%s", thedir);
-      strncat(newpath, &path[i], MAXPATH );
+      strncat(newpath, &path[i], MAXPATH - strlen(newpath));
     }
   }
 
@@ -1491,23 +1491,23 @@ int list_dir()
     }
     snprintf( WriteBuf, sizeof(WriteBuf), "%s", mydirent->d_name);
     if ( S_ISREG(statbuf.st_mode ) ) {
-      strncat(WriteBuf," file", sizeof(WriteBuf));
+      strncat(WriteBuf," file", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISDIR(statbuf.st_mode ) ) {
-      strncat(WriteBuf," dir", sizeof(WriteBuf));
+      strncat(WriteBuf," dir", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISCHR(statbuf.st_mode ) ) {
-      strncat(WriteBuf," chardev", sizeof(WriteBuf));
+      strncat(WriteBuf," chardev", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISBLK(statbuf.st_mode ) ) {
-      strncat(WriteBuf," blkdev", sizeof(WriteBuf));
+      strncat(WriteBuf," blkdev", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISFIFO(statbuf.st_mode ) ) {
-      strncat(WriteBuf," fifo", sizeof(WriteBuf));
+      strncat(WriteBuf," fifo", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISLNK(statbuf.st_mode ) ) {
-      strncat(WriteBuf," link", sizeof(WriteBuf));
+      strncat(WriteBuf," link", sizeof(WriteBuf) - strlen(WriteBuf));
     } else if ( S_ISSOCK(statbuf.st_mode ) ) {
-      strncat(WriteBuf," sock", sizeof(WriteBuf));
+      strncat(WriteBuf," sock", sizeof(WriteBuf) - strlen(WriteBuf));
     } else {
-      strncat(WriteBuf," unknown", sizeof(WriteBuf));
+      strncat(WriteBuf," unknown", sizeof(WriteBuf) - strlen(WriteBuf));
     }
-    strncat(WriteBuf,RET_CRLF, sizeof(WriteBuf));
+    strncat(WriteBuf,RET_CRLF, sizeof(WriteBuf) - strlen(WriteBuf));
     wait_write();
   }
   if ( closedir(mydir) < 0 ) {
@@ -1635,8 +1635,8 @@ int read_file()
 
   while(fgets(tmpbuf,sizeof(tmpbuf),fs)!=NULL){
     if ( strcmp(tmpbuf, "." RET_CRLF) == 0 || strcmp(tmpbuf, ".\n") == 0 ) {
-      snprintf(WriteBuf, sizeof(WriteBuf), ".");
-      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf)-strlen(WriteBuf)-1);
+      snprintf(WriteBuf, sizeof(WriteBuf), "%s", ".");
+      strncat(WriteBuf, tmpbuf, sizeof(WriteBuf) - strlen(WriteBuf) - 1);
     } else {
       memcpy(WriteBuf,tmpbuf,sizeof(tmpbuf));
     }
