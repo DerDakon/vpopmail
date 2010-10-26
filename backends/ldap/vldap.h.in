@@ -21,6 +21,7 @@
 #define VPOPMAIL_LDAP_H
 
 #undef VALIAS
+#undef IP_ALIAS_DOMAINS
 #undef ENABLE_AUTH_LOGGING
 
 char *VLDAP_SERVER;

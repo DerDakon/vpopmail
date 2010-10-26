@@ -26,10 +26,8 @@
 #include <sys/types.h>
 #include <time.h>
 
-#ifdef IP_ALIAS_DOMAINS
 #define IP_ALIAS_MAP_FILE "ip_alias_map"
 #define IP_ALIAS_TOKENS " \t\n"
-#endif
 
 #define NULL_REMOTE_IP "0.0.0.0"
 

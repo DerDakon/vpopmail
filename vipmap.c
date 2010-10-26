@@ -41,10 +41,8 @@ char Domain[MAX_BUFF];
 int main(int argc, char *argv[])
 {
    int ret;
-#ifdef IP_ALIAS_DOMAINS
  int result;
  int first;
-#endif
 
    ret = vauth_load_module(NULL);
    if (!ret)
@@ -57,34 +55,33 @@ int main(int argc, char *argv[])
 
 	get_options(argc,argv);
 
-#ifdef IP_ALIAS_DOMAINS
-	switch(Action) {
-	  case ADD_IT:
-	  	result = vadd_ip_map(Ip, Domain);
-	  	break;
-	  case DELETE_IT:
-	  	result = vdel_ip_map(Ip, Domain);
-	  	break;
-	  case PRINT_IT:
-	  	first = 1;
-	  	while( (result=vshow_ip_map( first, Ip, Domain)) == 1 ) {
-			first = 0;
-			printf("%s %s\n", Ip, Domain);
-		}
-	  	break;
-	  default:
-	  	usage();
-		vexit(-1);
-	  	break;
-	}
-#else
-    printf("IP aliases are not compiled into vpopmail\n");
-    printf("You will need to do the following steps\n");
-    printf("make distclean\n");
-    printf("./configure --enable-ip-alias-domains=y [your other options]\n");
-    printf("make\n");
-    printf("make install-strip\n");
-#endif
+	if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
+	  switch(Action) {
+		 case ADD_IT:
+			result = vadd_ip_map(Ip, Domain);
+			break;
+	    case DELETE_IT:
+			result = vdel_ip_map(Ip, Domain);
+			break;
+		 case PRINT_IT:
+			first = 1;
+			while( (result=vshow_ip_map( first, Ip, Domain)) == 1 ) {
+				  first = 0;
+				  printf("%s %s\n", Ip, Domain);
+			}
+			break;
+		 default:
+			usage();
+			vexit(-1);
+			break;
+	  }
+   }
+
+	else {
+	  printf("IP alias domains are not supported by your backend module,\n");
+	  printf("or the feature was not enabled when compiling.\n");
+	  printf("Current module: %s\n", vauth_module_name() ? vauth_module_name() : "(none selected)");
+    }
 
 	return(vexit(0));
 }

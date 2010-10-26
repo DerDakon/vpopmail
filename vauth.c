@@ -87,12 +87,10 @@ static struct vauth_required_func vauth_required_functions[] = {
    { "set_lastauth", &vset_lastauth, VAUTH_MF_OPTIONAL, NULL },
    { "get_lastauth", &vget_lastauth, VAUTH_MF_OPTIONAL, NULL },
    { "get_lastauthip", &vget_lastauthip, VAUTH_MF_OPTIONAL, NULL },
-#ifdef IP_ALIAS_DOMAINS
-   { "get_ip_map", &vget_ip_map, 0, NULL },
-   { "add_ip_map", &vadd_ip_map, 0, NULL },
-   { "del_ip_map", &vdel_ip_map, 0, NULL },
-   { "show_ip_map", &vshow_ip_map, 0, NULL },
-#endif
+   { "get_ip_map", &vget_ip_map, VAUTH_MF_OPTIONAL, NULL },
+   { "add_ip_map", &vadd_ip_map, VAUTH_MF_OPTIONAL, NULL },
+   { "del_ip_map", &vdel_ip_map, VAUTH_MF_OPTIONAL, NULL },
+   { "show_ip_map", &vshow_ip_map, VAUTH_MF_OPTIONAL, NULL },
    { NULL, NULL }
 };
 

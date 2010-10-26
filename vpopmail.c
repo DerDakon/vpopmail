@@ -67,9 +67,7 @@ int OptimizeAddDomain = 0;
 #define PS_TOKENS " \t"
 #define CDB_TOKENS ":\n\r"
 
-#ifdef IP_ALIAS_DOMAINS
 int host_in_locals(char *domain);
-#endif
 
 static int rand_seeded = 0;
 
@@ -2657,9 +2655,7 @@ char *default_domain()
 void vset_default_domain( char *domain ) 
 {
  char *tmpstr, *cp;
-#ifdef IP_ALIAS_DOMAINS
  char host[MAX_BUFF];
-#endif
 
   if (domain != NULL) {
     if (strlen(domain)>0) {
@@ -2685,7 +2681,7 @@ void vset_default_domain( char *domain )
     return;
   }
 
-#ifdef IP_ALIAS_DOMAINS
+  if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
   tmpstr = getenv("TCPLOCALIP");
 
   /* courier-imap uses IPv6 */
@@ -2722,7 +2718,7 @@ void vset_default_domain( char *domain )
     }
     return;
   }
-#endif /* IP_ALIAS_DOMAINS */
+  }
 
   /* Michael Bowe 14th August 2003
    * How can we prevent possible buffer overflows here
@@ -2738,11 +2734,8 @@ void vset_default_domain( char *domain )
 
 void vset_default_domain_safe(char *domain, int dlen) 
 {
-#ifdef IP_ALIAS_DOMAINS
    int ret = 0;
    char host[256] = { 0 };
-#endif
-
    int len = 0;
    char *tmpstr = NULL;
 
@@ -2774,7 +2767,7 @@ void vset_default_domain_safe(char *domain, int dlen)
 	  return;
    }
 
-#ifdef IP_ALIAS_DOMAINS
+   if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
    tmpstr = getenv("TCPLOCALIP");
 
    /*
@@ -2794,7 +2787,7 @@ void vset_default_domain_safe(char *domain, int dlen)
 		 *(domain + dlen) = '\0';
 	  }
    }
-#endif
+   }
 
    /*
 	  Default domain
@@ -2814,7 +2807,6 @@ void vset_default_domain_safe(char *domain, int dlen)
 
 /************************************************************************/
 
-#ifdef IP_ALIAS_DOMAINS
 /* look to see if the nominated domain is is locals file
  * return 1 if there is a match
  * return 0 if there is no match
@@ -2853,7 +2845,6 @@ int host_in_locals(char *domain)
   fclose(fs);
   return(0);
 }
-#endif
 
 /************************************************************************/
 

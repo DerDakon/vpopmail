@@ -1018,28 +1018,6 @@ esac
 
 #----------------------------------------------------------------------
 
-AC_MSG_CHECKING(whether ip-alias-domains is enabled)
-AC_ARG_ENABLE(ip-alias-domains,
-        [  --enable-ip-alias-domains  Enable mapping of default domain via reverse ip lookup table.],
-        IPALIAS=$enableval,
-                [
-                        IPALIAS=no
-                ]
-)
-
-case $IPALIAS in
-  1*|y*|Y*)
-        AC_MSG_RESULT(yes)
-        IPALIAS=1
-        AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,$IPALIAS,"")
-        ;;
-  *)
-        AC_MSG_RESULT(no)
-        ;;
-esac
-
-#----------------------------------------------------------------------
-
 AC_MSG_CHECKING(whether onchange script is enabled)
 AC_ARG_ENABLE(onchange-script,
         [  --enable-onchange-script   Enable onchange script. See README.onchange for more info.],
@@ -1746,6 +1724,13 @@ AC_ARG_ENABLE(auth-logging, [],
 			   ]
 )
 
+AC_ARG_ENABLE(ip-alias-domains, [],
+			  [
+				  AC_MSG_RESULT(yes)
+				  AC_MSG_ERROR(--enable-ip-alias-domains is a module option.  Please use --enable-ip-alias-domains when compiling a backend module)
+			  ]
+)
+
 AC_MSG_RESULT(no)
 
 #----------------------------------------------------------------------
@@ -1870,16 +1855,6 @@ case $QMAIL_EXT in
     ;;
   *)
     echo "address extensions = OFF --disable-qmail-ext (default)"
-    ;;
-esac
-
-
-case $IPALIAS in
-  1*|y*|Y*)
-    echo "          ip alias = ON  --enable-ip-alias-domains"
-    ;;
-  *)
-    echo "          ip alias = OFF --disable-ip-alias-domains (default)"
     ;;
 esac
 

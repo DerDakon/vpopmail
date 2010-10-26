@@ -50,6 +50,18 @@ fi
 AC_MSG_RESULT(found)
 
 #
+# IP alias domains
+#
+
+AC_MSG_CHECKING(whether ip alias domains is enabled)
+AC_ARG_ENABLE(ip-alias-domains,
+			  [  --enable-ip-alias-domains         Enable mappings of IPs to domain names ],
+			  [ 
+			    AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,1,"")
+			    AC_MSG_RESULT(yes)
+			  ], AC_MSG_RESULT(no))
+
+#
 # Authentication logging
 #
 
