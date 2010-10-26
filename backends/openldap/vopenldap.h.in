@@ -22,5 +22,6 @@
 
 #undef VALIAS
 #undef ENABLE_AUTH_LOGGING
+#undef IP_ALIAS_DOMAINS
 
 #endif
