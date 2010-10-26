@@ -99,6 +99,16 @@ int queue_init(config_t *config)
    }
 
    /*
+	  Open database for read-only
+   */
+
+   ret = vauth_open(0);
+   if (ret != VA_SUCCESS) {
+	  fprintf(stderr, "queue_init: vauth_open failed\n");
+	  return 0;
+   }
+
+   /*
 	  Initialize
    */
 
