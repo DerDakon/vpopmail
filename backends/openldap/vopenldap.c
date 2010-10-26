@@ -5,7 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/param.h>
+#include <utime.h>
+#include <unistd.h>
 #include <errno.h>
 #include <ldap.h>
 #include "config.h"
@@ -68,8 +72,11 @@ static int password_scheme_smd5_decode_salt(const char *, char *, int);
    vpopmail authentication module exports
 */
 
-const char auth_module_name[] = "ldap";
+const char auth_module_name[] = "openldap";
 const char *auth_module_features[] = {
+#ifdef IP_ALIAS_DOMAINS
+   "IP_ALIAS_DOMAINS",
+#endif
 #ifdef ENABLE_AUTH_LOGGING
    "AUTH_LOGGING",
 #endif
@@ -93,6 +100,12 @@ struct vqpasswd *auth_getpw(char *user, char *domain)
    free_user_result(&g_pw);
 
    /*
+	  Support default domain
+   */
+
+   vset_default_domain(domain);
+
+   /*
 	  Generate dn
    */
 
@@ -106,7 +119,7 @@ struct vqpasswd *auth_getpw(char *user, char *domain)
 	  Search
    */
 
-   ret = ldap_search_ext_s(ldap, dn, LDAP_SCOPE_BASE, NULL, user_attrs, 0, NULL, NULL, NULL, 0, &res);
+   ret = ldap_search_ext_s(ldap, dn, LDAP_SCOPE_BASE, "(objectClass=vpopmail)", user_attrs, 0, NULL, NULL, NULL, 0, &res);
    if (ret != LDAP_SUCCESS) {
 	  if (ret == LDAP_NO_SUCH_OBJECT)
 		 return NULL;
@@ -167,9 +180,10 @@ struct vqpasswd *auth_getall(char *domain, int first, int sortit)
 
 	  /*
 		 Search
+		 objectClass must be set here because valias objects exist in the same scope
 	  */
 
-	  ret = ldap_search_ext_s(ldap, dn, LDAP_SCOPE_ONELEVEL, NULL, user_attrs, 0, NULL, NULL, NULL, 0, &msg);
+	  ret = ldap_search_ext_s(ldap, dn, LDAP_SCOPE_ONELEVEL, "(objectClass=vpopmail)", user_attrs, 0, NULL, NULL, NULL, 0, &msg);
 	  if (ret != LDAP_SUCCESS) {
 		 if (ret == LDAP_NO_SUCH_OBJECT)
 			return NULL;
@@ -396,6 +410,10 @@ int auth_deldomain(char *domain)
 	  fprintf(stderr, "auth_deldomain: %s\n", ldap_err2string(ret));
 	  return VA_QUERY_FAILED;
    }
+
+#ifdef VALIAS
+   valias_delete_domain(domain);
+#endif
 
    return VA_SUCCESS;
 }
@@ -803,39 +821,225 @@ int write_dir_control(vdir_type *vdir, char *domain, uid_t uid, gid_t gid)
 
 int del_dir_control(char *domain)
 {
- char dir_control_file[MAX_DIR_NAME];
+   char dir_control_file[MAX_DIR_NAME];
 
-    vget_assign(domain, dir_control_file, 156, NULL,NULL);
-    strncat(dir_control_file,"/.dir-control", MAX_DIR_NAME);
-    return(unlink(dir_control_file));
+   vget_assign(domain, dir_control_file, sizeof(dir_control_file), NULL,NULL);
+   strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME - strlen(dir_control_file));
+
+   return(unlink(dir_control_file));
 }
 
-int set_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time)
-{
-   return 0;
+int set_lastauth_time(char *user, char *domain, char *remoteip, time_t cur_time ) {
+    FILE *fs;
+    struct vqpasswd *vpw;
+    struct utimbuf ubuf;
+	char fn[PATH_MAX] = { 0 };
+    uid_t uid;
+    gid_t gid;
+
+    if ((vpw = auth_getpw( user, domain )) == NULL)
+        return (0);
+
+    snprintf(fn, sizeof(fn), "%s/lastauth", vpw->pw_dir);
+    if ((fs = fopen(fn,"w+")) == NULL)
+        return(-1);
+
+	if (remoteip)
+	   fprintf(fs, "%s", remoteip);
+
+    fclose(fs);
+    ubuf.actime = cur_time;
+    ubuf.modtime = cur_time;
+    utime(fn, &ubuf);
+    vget_assign(domain,NULL,0,&uid,&gid);
+    chown(fn,uid,gid);
+    return(0);
 }
 
-int set_lastauth(char *user, char *domain, char *remoteip)
-{
-   return 0;
+int set_lastauth(char *user, char *domain, char *remoteip ) {
+    return(set_lastauth_time(user, domain, remoteip, time(NULL) ));
 }
 
-time_t get_lastauth(struct vqpasswd *pw, char *domain)
-{
-   return 0;
+time_t get_lastauth( struct vqpasswd *pw, char *domain) {
+    struct stat mystatbuf;
+    char tmpbuf[PATH_MAX] = { 0 };
+
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s/lastauth", pw->pw_dir);
+    if (stat(tmpbuf,&mystatbuf) == -1)
+        return(0);
+
+    return(mystatbuf.st_mtime);
 }
 
-char *get_lastauthip(struct vqpasswd *pw, char *domain)
-{
-   return NULL;
+char *get_lastauthip( struct vqpasswd *pw, char *domain) {
+    static char tmpbuf[MAX_BUFF];
+    FILE *fs;
+
+    snprintf(tmpbuf, MAX_BUFF, "%s/lastauth", pw->pw_dir);
+    if ( (fs=fopen(tmpbuf,"r"))==NULL)
+        return(NULL);
+
+    fgets(tmpbuf,MAX_BUFF,fs);
+    fclose(fs);
+    return(tmpbuf);
 }
 
 #ifdef IP_ALIAS_DOMAINS
+int get_ip_map( char *ip, char *domain, int domain_size) {
+    FILE *fs;
+    char tmpbuf[156];
+    char *tmpstr;
+
+    if ( ip == NULL || strlen(ip) <= 0 )
+        return(-1);
+
+    /* open the ip_alias_map file */
+    snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
+    if ( (fs = fopen(tmpbuf,"r")) == NULL )
+        return(-1);
+
+    while( fgets(tmpbuf, 156, fs) != NULL ) {
+        tmpstr = strtok(tmpbuf, IP_ALIAS_TOKENS);
+        if ( tmpstr == NULL )
+            continue;
+        if ( strcmp(ip, tmpstr) != 0 )
+            continue;
+
+        tmpstr = strtok(NULL, IP_ALIAS_TOKENS);
+        if ( tmpstr == NULL )
+            continue;
+        strncpy(domain, tmpstr, domain_size);
+        fclose(fs);
+        return(0);
+
+    }
+    fclose(fs);
+    return(-1);
+}
+
+/***************************************************************************/
+
 /*
-   XXX
-   XXX Import IP alias domain code as is
-   XXX
-*/
+ * Add an ip to domain mapping
+ * It will remove any duplicate entry before adding it
+ *
+ */
+int add_ip_map( char *ip, char *domain) {
+    FILE *fs;
+    char tmpbuf[156];
+
+    if ( ip == NULL || strlen(ip) <= 0 )
+        return(-1);
+    if ( domain == NULL || strlen(domain) <= 0 )
+        return(-10);
+
+    del_ip_map( ip, domain );
+
+    snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
+    if ( (fs = fopen(tmpbuf,"a+")) == NULL )
+        return(-1);
+    fprintf( fs, "%s %s\n", ip, domain);
+    fclose(fs);
+
+    return(0);
+}
+
+int del_ip_map( char *ip, char *domain) {
+    FILE *fs;
+    FILE *fs1;
+    char file1[156];
+    char file2[156];
+    char tmpbuf[156];
+    char tmpbuf1[156];
+    char *ip_f;
+    char *domain_f;
+
+    if ( ip == NULL || strlen(ip) <= 0 )
+        return(-1);
+    if ( domain == NULL || strlen(domain) <= 0 )
+        return(-1);
+
+    snprintf(file1, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
+    if ( (fs = fopen(file1,"r")) == NULL )
+        return(-1);
+
+    snprintf(file2, 156,
+             "%s/%s.%d", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE, getpid());
+    if ( (fs1 = fopen(file2,"w")) == NULL ) {
+        fclose(fs);
+        return(-1);
+    }
+
+    while( fgets(tmpbuf, 156, fs) != NULL ) {
+        strncpy(tmpbuf1,tmpbuf, 156);
+
+        ip_f = strtok(tmpbuf, IP_ALIAS_TOKENS);
+        if ( ip_f == NULL )
+            continue;
+
+        domain_f = strtok(NULL, IP_ALIAS_TOKENS);
+        if ( domain_f == NULL )
+            continue;
+
+        if ( strcmp(ip, ip_f) == 0 && strcmp(domain,domain_f) == 0)
+            continue;
+
+        fprintf(fs1, "%s", tmpbuf1);
+
+    }
+    fclose(fs);
+    fclose(fs1);
+
+    if ( rename( file2, file1) < 0 )
+        return(-1);
+
+    return(0);
+}
+
+int show_ip_map( int first, char *ip, char *domain) {
+    static FILE *fs = NULL;
+    char tmpbuf[156];
+    char *tmpstr;
+
+    if ( ip == NULL )
+        return(-1);
+    if ( domain == NULL )
+        return(-1);
+
+    if ( first == 1 ) {
+        if ( fs != NULL ) {
+            fclose(fs);
+            fs = NULL;
+        }
+        snprintf(tmpbuf, 156, "%s/%s", VPOPMAIL_DIR_ETC, IP_ALIAS_MAP_FILE);
+        if ( (fs = fopen(tmpbuf,"r")) == NULL )
+            return(-1);
+    }
+    if ( fs == NULL )
+        return(-1);
+
+    while (1) {
+        if (fgets(tmpbuf, 156, fs) == NULL ) {
+            fclose(fs);
+            fs = NULL;
+            return(0);
+        }
+
+        tmpstr = strtok(tmpbuf, IP_ALIAS_TOKENS);
+        if ( tmpstr == NULL )
+            continue;
+        strcpy( ip, tmpstr);
+
+        tmpstr = strtok(NULL, IP_ALIAS_TOKENS);
+        if ( tmpstr == NULL )
+            continue;
+        strcpy( domain, tmpstr);
+
+        return(1);
+    }
+    return(-1);
+
+}
 #endif
 
 /*
@@ -873,11 +1077,92 @@ int auth_crypt(char *user,char *domain,char *clear_pass,struct vqpasswd *vpw)
 }
 
 #ifdef VALIAS
+
 /*
-   XXX
-   XXX Bring in existing valias code working with new vpopmail schema
-   XXX
+   Returns the first deliveryInstruction entry in an existing valias object
 */
+
+char *alias_select(char *alias, char *domain)
+{
+   return NULL;
+}
+
+/*
+   Return next deliveryInstruction under a valias object
+*/
+
+char *alias_select_next(void)
+{
+   return NULL;
+}
+
+/*
+   Add a deliveryInstruction to an existing aliasAddress
+   If an aliasAddress does not exist, first add it
+*/
+
+int alias_insert(char *alias, char *domain, char *di)
+{
+   return -1;
+}
+
+/*
+   Remove an existing deliveryInstruction from an existing
+   aliasAddress entry
+*/
+
+int alias_remove(char *alias, char *domain, char *di)
+{
+   return -1;
+}
+
+
+/*
+   Remove an existing aliasAddress
+*/
+
+int alias_delete(char *alias, char *domain)
+{
+   return -1;
+}
+
+/*
+   Remove all valias entries under a domain
+*/
+
+int alias_delete_domain(char *domain)
+{
+   return -1;
+}
+
+char *alias_select_all(char *alias, char *domain)
+{
+   return NULL;
+}
+
+char *alias_select_all_next(char *alias)
+{
+   return NULL;
+}
+
+char *alias_select_names(char *alias, char *domain)
+{
+   return NULL;
+}
+
+char *alias_select_names_next(char *alias)
+{
+   return NULL;
+}
+
+/*
+   Not used by this module
+*/
+
+void alias_select_names_end(void)
+{
+}
+
 #endif
 
 /*
