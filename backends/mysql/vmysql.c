@@ -36,6 +36,9 @@ void vvclose();
 
 const char auth_module_name[] = "mysql";
 const char *auth_module_features[] = {
+#ifdef IP_ALIAS_DOMAINS
+   "IP_ALIAS_DOMAINS",
+#endif
 #ifdef ENABLE_AUTH_LOGGING
    "AUTH_LOGGING",
 #endif

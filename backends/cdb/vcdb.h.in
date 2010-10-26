@@ -21,6 +21,7 @@
 #define VPOPMAIL_CDB_H
 
 #undef ENABLE_AUTH_LOGGING
+#undef IP_ALIAS_DOMAINS
 
 #define VPASSWD_FILE         "vpasswd"
 #define VPASSWD_BAK_FILE     "vpasswd.bak"

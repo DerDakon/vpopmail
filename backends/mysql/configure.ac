@@ -175,6 +175,22 @@ AC_SUBST(incdir)
 # Options
 #
 
+#
+# IP alias domains
+#
+
+AC_MSG_CHECKING(whether ip alias domains is enabled)
+AC_ARG_ENABLE(ip-alias-domains,
+			  [  --enable-ip-alias-domains         Enable mappings of IPs to domain names ],
+			  [ 
+			    AC_DEFINE_UNQUOTED(IP_ALIAS_DOMAINS,1,"")
+			    AC_MSG_RESULT(yes)
+			  ], AC_MSG_RESULT(no))
+
+#
+# valias
+#
+
 AC_MSG_CHECKING(whether to use native valias)
 AC_ARG_ENABLE(valias,
 			  [  --enable-valias         Enable native valias, storage of dotqmail data in the MySQL database ],

@@ -2142,7 +2142,6 @@ int list_lists()
 
 int get_ip_map()
 {
-#ifdef IP_ALIAS_DOMAINS
  char *ip;
  static char  tmpdomain[256];
 
@@ -2156,6 +2155,7 @@ int get_ip_map()
     return(-1);
   }
 
+  if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
   if ( vget_ip_map(ip,tmpdomain,sizeof(tmpdomain)) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0.3003 error" RET_CRLF);
     return(-1);
@@ -2167,17 +2167,16 @@ int get_ip_map()
   snprintf(WriteBuf,sizeof(WriteBuf),"%s %s" RET_CRLF, ip, tmpdomain);
   wait_write();
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  }
 
-#else
-  show_error( ERR_NOT_AVAIL, 3004 );
-#endif
+  else
+   show_error( ERR_NOT_AVAIL, 3004 );
   
   return(0);
 }
 
 int add_ip_map()
 {
-#ifdef IP_ALIAS_DOMAINS
  char *ip;
  char *domain;
 
@@ -2196,6 +2195,7 @@ int add_ip_map()
     return(-1);
   }
 
+   if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
   if ( vget_assign(domain, NULL,0,NULL,NULL) == NULL ) {
     show_error( ERR_INVALID_DOMAIN, 3104 );
     return(-1);
@@ -2207,15 +2207,16 @@ int add_ip_map()
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
-#else
-  show_error( ERR_NOT_AVAIL, 3106 );
-#endif
+   }
+
+   else
+	  show_error( ERR_NOT_AVAIL, 3106 );
+
   return(0);
 }
 
 int del_ip_map()
 {
-#ifdef IP_ALIAS_DOMAINS
  char *ip;
  char *domain;
 
@@ -2234,22 +2235,23 @@ int del_ip_map()
     return(-1);
   }
 
+  if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
   if ( vdel_ip_map(ip,domain) < 0 ) {
     snprintf(WriteBuf,sizeof(WriteBuf), RET_ERR "0.3204 error" RET_CRLF);
     return(-1);
   }
 
   snprintf(WriteBuf,sizeof(WriteBuf),RET_OK);
+  }
 
-#else
-  show_error( ERR_NOT_AVAIL, 3205 );
-#endif
+  else
+	  show_error( ERR_NOT_AVAIL, 3205 );
+
   return(0);
 }
 
 int show_ip_map()
 {
-#ifdef IP_ALIAS_DOMAINS
  int first;
  static char r_ip[256];
  static char r_domain[256];
@@ -2259,6 +2261,7 @@ int show_ip_map()
     return(-1);
   }
 
+  if (vauth_module_feature("IP_ALIAS_DOMAINS")) {
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
   wait_write();
 
@@ -2270,10 +2273,11 @@ int show_ip_map()
     wait_write();
   }
   snprintf(WriteBuf,sizeof(WriteBuf), "." RET_CRLF);
+  }
 
-#else
-  show_error( ERR_NOT_AVAIL, 3302 );
-#endif
+  else
+	  show_error( ERR_NOT_AVAIL, 3302 );
+
   return(0);
 }
 

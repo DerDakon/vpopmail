@@ -38,14 +38,10 @@ int (*valias_insert)( char *alias, char *domain, char *alias_line);
 int (*valias_remove)( char *alias, char *domain, char *alias_line);
 int (*valias_delete)( char *alias, char *domain);
 int (*valias_delete_domain)( char *domain);
-
-
-#ifdef IP_ALIAS_DOMAINS
 int (*vget_ip_map)( char *ip, char *domain, int domain_size);
 int (*vadd_ip_map)( char *ip, char *domain);
 int (*vdel_ip_map)( char *ip, char *domain); 
 int (*vshow_ip_map)( int first, char *ip, char *domain);
-#endif
 
 #endif
 #endif
