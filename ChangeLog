@@ -3,6 +3,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Updated vusaged to call vauth_open
+  - Fixed OpenLDAP module reporting itself as "ldap" rather than "openldap"
+  - Updated all modules to export module feature IP_ALIAS_DOMAINS
+  - Updated all module configure scripts to have --enable-ip-alias-domains
+  - Updated main source to look for module exported feature IP_ALIAS_DOMAINS
+  - Updated main source configure script to disallow --enable-ip-alias-domains
   - Added initial OpenLDAP module entry to replace the "ldap" module
   - Updated some vpopmail daemon formatting calls to check buffer bounds
   - Updated vusage daemon to store cached copy of vpopmail user authentication
