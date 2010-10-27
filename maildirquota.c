@@ -480,8 +480,13 @@ int	dummy, ret = 0;
    */
 
    ret = client_query_quick(" ", NULL, NULL);
-   if (ret)
-      return vmaildir_readquota(dir, quota_type);
+   if (ret) {
+      ret = vmaildir_readquota(dir, quota_type);
+	  if (ret >= 100)
+		 return -1;
+
+	  return 0;
+   }
 
    /*
 	  Fall back
