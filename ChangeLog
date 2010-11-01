@@ -14,6 +14,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   aledr <matrixworkstation@gmail.com>
   - Patch to secure against possible overflows when reading ezmlm configurations
 
+  <alessio@skye.it>
+  - Patch to vpopmaild to fix return value in wait_read
+
 5.4.31 - Released 12-10-2009
    Matt Brookings
    - Released to fix leftover issue that should have been addressed in 5.4.30

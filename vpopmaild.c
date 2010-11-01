@@ -244,8 +244,8 @@ int wait_read()
 
   memset(ReadBuf,0,sizeof(ReadBuf));
   if (select(2,&rfds,(fd_set *) 0,(fd_set *)0,&tv)>=1) {
-    fgets(ReadBuf,sizeof(ReadBuf),stdin);
-    return(1);
+    if (fgets(ReadBuf,sizeof(ReadBuf),stdin) != NULL)
+	  return(1);
   }
   return(-1);
 }
