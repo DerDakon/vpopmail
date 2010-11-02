@@ -1610,6 +1610,7 @@ int parse_email_safe(const char *email, char *user, int ulen, char *domain, int 
  */
 int vpasswd( char *username, char *domain, char *password, int apop )
 {
+   int ret = 0;
  struct vqpasswd *mypw;
  char Crypted[MAX_BUFF];
 #ifdef SQWEBMAIL_PASS
@@ -1623,6 +1624,14 @@ int vpasswd( char *username, char *domain, char *password, int apop )
 #endif
   if ( strlen(domain) > MAX_PW_DOMAIN ) return(VA_DOMAIN_NAME_TOO_LONG);
   if ( strlen(password) > MAX_PW_CLEAR_PASSWD ) return(VA_PASSWD_TOO_LONG);
+
+  /*
+     Check password strength
+  */
+
+  ret = pw_strength(password);
+  if (ret != 1)
+	 return ret;
 
   lowerit(username);
   lowerit(domain);
@@ -2956,6 +2965,14 @@ char *verror(int va_err )
 	return("cannot determine my uid or gid");
    case VA_INTERNAL_BUFFER_EXCEEDED:
 	return("internal buffer limit exceeded");
+   case VA_PWSTR_EMPTY:
+   case VA_PWSTR_LENGTH:
+   case VA_PWSTR_ALPHA:
+   case VA_PWSTR_NUMERIC:
+   case VA_PWSTR_OTHER:
+   case VA_PWSTR_DELTA:
+	return (char *)pw_strength_error();
+	break;
    default:
     return("Unknown error");
   }

@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Added configurable password strength enforcement
   - Updated vusaged to call vauth_open
   - Fixed OpenLDAP module reporting itself as "ldap" rather than "openldap"
   - Updated all modules to export module feature IP_ALIAS_DOMAINS
