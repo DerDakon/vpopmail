@@ -23,14 +23,14 @@ BUILD_BINS = vchkpw vdelivermail clearopensmtp vadddomain vdeldomain vpasswd vad
 	   vipmap vdominfo vconvert vkill vmoddomlimits vchangepw dotqmail2valias vpopmaild \
 	   vlist vusagec vmoduserflags vmoddomain boxgroup vconfig
 BUILD_ALL = $(BUILD_LIBS) $(BUILD_BINS) @vusagedbuild@
-INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h group.h
+INSTALL_HEADERS = vpopmail.h config.h vauth.h vlimits.h storage.h client.h ippp.h conf.h quota.h vauthmodule.h group.h pwstr.h
 INSTALL_DIRS = $(DESTDIR)@VPOPMAIL_DIR_BIN@ $(DESTDIR)@VPOPMAIL_DIR_ETC@ $(DESTDIR)@VPOPMAIL_DIR_INCLUDE@ \
 			   $(DESTDIR)@VPOPMAIL_DIR_LIB@ $(DESTDIR)@VPOPMAIL_DIR_DOMAINS@
 CDB_OBJECTS = cdb/uint32.h cdb/cdb_hash.o cdb/cdbmake_add.o cdb/cdbmake_hash.o cdb/cdbmake_pack.o \
 			  cdb/cdb_seek.o cdb/cdb_unpack.o
 LIBVPOPMAIL_OBJECTS = md5.o bigdir.o vauth.o file_lock.o vpalias.o seek.o vlimits.o maildirquota.o \
 					  vutil.o vlistlib.o client.o conf.o ippp.o backfill.o vpopmail.o \
-					  quota.o group.o base64.o $(CDB_OBJECTS)
+					  quota.o group.o base64.o pwstr.o $(CDB_OBJECTS)
 VPOPMAIL_DIR_ETC = @VPOPMAIL_DIR_ETC@
 VPOPMAIL_DIR_BIN = @VPOPMAIL_DIR_BIN@
 VPOPMAIL_DIR_INCLUDE = @VPOPMAIL_DIR_INCLUDE@
@@ -168,6 +168,8 @@ group.o: $(DEPS) group.c group.h vauth.h
 	$(PICC) -o $@ -c $*.c
 base64.o: $(DEPS) base64.h base64.c vpopmail.h
 	$(PICC) -o $@ -c $*.c
+pwstr.o: $(DEPS) pwstr.h pwstr.c
+	$(PICC) -o $@ -c $*.c
 
 vaddaliasdomain.o: $(DEPS) vaddaliasdomain.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -213,7 +215,7 @@ vmoduser.o: $(DEPS) vmoduser.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
 vpalias.o: $(DEPS) vpalias.c vpopmail.h vauth.h vpalias.h
 	$(PICC) -o $@ -c $*.c
-vpasswd.o: $(DEPS) vpasswd.c config.h vpopmail.h vauth.h
+vpasswd.o: $(DEPS) vpasswd.c config.h vpopmail.h vauth.h pwstr.h
 	$(CCC) -o $@ -c $*.c
 vpopbull.o: $(DEPS) vpopbull.c config.h vpopmail.h vauth.h
 	$(CCC) -o $@ -c $*.c
@@ -334,6 +336,10 @@ install: pre-install $(BUILD_ALL)
 	
 	if test ! -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vlimits.default; then \
 	  $(INSTALL) -m 644 vlimits.default $(DESTDIR)$(VPOPMAIL_DIR_ETC)/vlimits.default; \
+    fi
+	 
+	if test ! -r $(DESTDIR)$(VPOPMAIL_DIR_ETC)/password_strength.conf; then \
+	   $(INSTALL) -m 644 password_strength.conf $(DESTDIR)$(VPOPMAIL_DIR_ETC)/password_strength.conf; \
     fi
 	
 	@#

@@ -30,6 +30,7 @@
 #include "vpopmail.h"
 #include "vauthmodule.h"
 #include "vauth.h"
+#include "pwstr.h"
 
 
 char Email[MAX_BUFF];
@@ -68,6 +69,10 @@ int main(int argc, char *argv[])
 
 	if ( (i=vpasswd( User, Domain, Passwd, apop )) != 0 ) {
 		printf("Error: %s\n", verror(i));
+
+		if (((i <= -69) && (i >= -74)) && (pw_strength_policy() != NULL))
+		   printf("A password policy is in place:\n\t%s\n", pw_strength_policy());
+
 		vexit(i);
 	}
 	if (RandomPw) printf("Random password: %s\n", Passwd);

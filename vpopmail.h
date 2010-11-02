@@ -120,7 +120,12 @@
 #define VA_NO_AUTH_MODULE				-66
 #define VA_UNKNOWN_UIDGID				-67
 #define VA_INTERNAL_BUFFER_EXCEEDED		-68
-
+#define VA_PWSTR_EMPTY					-69
+#define VA_PWSTR_LENGTH					-70
+#define VA_PWSTR_ALPHA					-71
+#define VA_PWSTR_NUMERIC				-72
+#define VA_PWSTR_OTHER					-73
+#define VA_PWSTR_DELTA					-74
 
 /* gid flags */
 #define NO_PASSWD_CHNG 0x01
