@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Updated default password policy
   - Updated vadduser call and vadduser binary to enforce password strength
   - Added configurable password strength enforcement
   - Updated vusaged to call vauth_open
