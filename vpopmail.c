@@ -43,6 +43,7 @@
 #include "vlimits.h"
 #include "maildirquota.h"
 #include "vauthmodule.h"
+#include "pwstr.h"
 
 #ifdef VPOPMAIL_DEBUG
 int show_trace=0;
@@ -676,6 +677,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
   if ( is_domain_valid(domain) != 0 ) return(VA_INVALID_DOMAIN_NAME);
 
   if ( vauth_getpw( username, domain ) != NULL ) return(VA_USERNAME_EXISTS);
+
+  /*
+     Check password strength
+  */
+
+  ret = pw_strength(password);
+  if (ret != 1)
+	 return ret;
 
   /* record the dir where the vadduser command was run from */
   getcwd(calling_dir, sizeof(calling_dir));
