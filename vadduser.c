@@ -112,6 +112,10 @@ int main(int argc,char **argv)
     /* add the user */
     if ( (i=vadduser(User, Domain, Passwd, Gecos, apop )) < 0 ) {
         printf("Error: %s\n", verror(i));
+
+	   if (((i <= -69) && (i >= -74)) && (pw_strength_policy() != NULL))
+		 printf("A password policy is in place:\n\t%s\n", pw_strength_policy());
+
         vexit(i);
     }
     
