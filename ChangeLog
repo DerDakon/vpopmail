@@ -3,6 +3,11 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Modified some password strength return string generation to be a bit more
+    clear
+  - Changed all floats to doubles in password strength variables to
+    avoid having to compile with -std=c99
+  - Updated vadddomain to check password strength before adding domain
   - Updated default password policy
   - Updated vadduser call and vadduser binary to enforce password strength
   - Added configurable password strength enforcement

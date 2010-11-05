@@ -22,7 +22,7 @@
 
 typedef struct __rule_ {
    int test;				/* Test to perform 				*/
-   float value;				/* Value that triggers the rule */
+   double value;				/* Value that triggers the rule */
 } rule_t;
 
 static char rule_desc[512] = { 0 };
@@ -30,7 +30,7 @@ static int rule_ret = 0, rules_loaded = 0;
 static rule_t rule_alpha, rule_alphadelta, rule_numeric, rule_other, rule_length, *rule_last = NULL;
 
 static int load_rules(const char *);
-static int rule_is_true(rule_t *, float);
+static int rule_is_true(rule_t *, double);
 
 /*
    Load password strength rules from a file
@@ -206,7 +206,7 @@ static int load_rules(const char *filename)
 	  */
 
 	  r->test = test;
-	  r->value = strtof(v, NULL);
+	  r->value = strtod(v, NULL);
    }
 
    fclose(stream);
@@ -217,7 +217,7 @@ static int load_rules(const char *filename)
    Returns if a rule evalutes as true
 */
 
-static int rule_is_true(rule_t *r, float value)
+static int rule_is_true(rule_t *r, double value)
 {
    /*
 	  Default to true
@@ -284,9 +284,9 @@ int pw_strength(const char *password)
 {
    char b[512] = { 0 };
    const char *p = NULL;
-   float len = 0, score = 0, n_lower = 0, n_upper = 0, n_numeric = 0, n_other = 0, n_alpha = 0;
-   float r_lower = 0, r_upper = 0, r_numeric = 0, r_other = 0, r_alpha = 0;
-   float alphadelta = 0;
+   double len = 0, score = 0, n_lower = 0, n_upper = 0, n_numeric = 0, n_other = 0, n_alpha = 0;
+   double r_lower = 0, r_upper = 0, r_numeric = 0, r_other = 0, r_alpha = 0;
+   double alphadelta = 0;
    
    /*
 	  Load rules
@@ -340,11 +340,11 @@ int pw_strength(const char *password)
 	  Calculate character set to length ratios
    */
 
-   r_alpha = (float)(n_alpha / len);
-   r_lower = (float)(n_lower / len);
-   r_upper = (float)(n_upper / len);
-   r_numeric = (float)(n_numeric / len);
-   r_other = (float)(n_other / len);
+   r_alpha = (double)(n_alpha / len);
+   r_lower = (double)(n_lower / len);
+   r_upper = (double)(n_upper / len);
+   r_numeric = (double)(n_numeric / len);
+   r_other = (double)(n_other / len);
 
 #if 0
    printf("AR:%f LR:%f UR:%f NR:%f PR:%f\n",
@@ -388,7 +388,9 @@ int pw_strength(const char *password)
 const char *pw_strength_error(void)
 {
    static char b[512] = { 0 }, val[127] = { 0 };
-   const char *condition = NULL, *name = NULL;
+   const char *condition = NULL, *name = NULL, *adjust = NULL;
+
+   adjust = NULL;
 
    if (rule_last == NULL)
 	  return "password suitable";
@@ -396,7 +398,7 @@ const char *pw_strength_error(void)
    switch(rule_last->test) {
 	  case RULE_T_LESS:
 	  case RULE_T_LESS_EQUAL:
-		 condition = "requires less";
+		 condition = "should have less";
 		 break;
 
 	  case RULE_T_EQUAL:
@@ -419,10 +421,10 @@ const char *pw_strength_error(void)
 
    else if (rule_last == &rule_alphadelta) {
 	  name = "uppercase and lowercase character diversity";
-	  if (condition == "requires less")
+	  if (condition == "should have less")
 		 condition = "requires more";
 	  else
-		 condition = "requires less";
+		 condition = "should have less";
    }
 
    else if (rule_last == &rule_other)
@@ -442,7 +444,7 @@ const char *pw_strength_error(void)
    else
 	  return "unknown password failure";
 
-   snprintf(b, sizeof(b), "password %s %s", condition, name);
+   snprintf(b, sizeof(b), "password %s %s %s", condition, name, adjust ? adjust : "");
    return (const char *)b;
 }
 
