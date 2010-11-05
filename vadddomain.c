@@ -30,6 +30,7 @@
 #include "vpopmail.h"
 #include "vauthmodule.h"
 #include "vauth.h"
+#include "pwstr.h"
 
 
 char Domain[MAX_BUFF];
@@ -264,5 +265,20 @@ void get_options(int argc,char **argv)
     } else if (!RandomPw) {
       /* if no postmaster password specified, then prompt user to enter one */
 	vgetpasswd("postmaster", Passwd, sizeof(Passwd));
+    }
+
+	/*
+	   Check password strength before adding domain so that we don't fail
+	   adding the postmaster user later
+    */
+
+	ret = pw_strength(Passwd);
+	if (ret != 1) {
+	   printf("Error: %s\n", verror(ret));
+
+	   if (pw_strength_policy() != NULL)
+		 printf("A password policy is in place:\n\t%s\n", pw_strength_policy());
+
+	   vexit(ret);
     }
 }
