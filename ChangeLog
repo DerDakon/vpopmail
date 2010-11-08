@@ -1,7 +1,7 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.32 -
+5.4.32 - Released 11-08-2010
   Matt Brookings
   - Updated maildirsize creation to set uid/gid on target
   - Updated maildirsize_read to enforce Maildir++ specifications related
