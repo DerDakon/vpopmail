@@ -231,7 +231,7 @@ void display_all_domains()
         printf("Can't get domain entries - %s\n", verror( verrori ));
         vexit(-1);
       } else {
-        printf("What now - %s\n", verror( verrori ));
+		 printf("No domains configured.\n");
         vexit(0);
       }
     }
