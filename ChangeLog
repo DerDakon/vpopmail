@@ -3,6 +3,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Added disk block size support to vusage daemon
   - Updated vopenldap module to enable auth-logging by default
   - Updated vdominfo to say "No domains" when there are no domains configured
     under vpopmail

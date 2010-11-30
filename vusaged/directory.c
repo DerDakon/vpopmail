@@ -60,9 +60,16 @@
 
 #define DIRECTORY_FOLLOW_SYMLINKS 0
 
+/*
+   Block size
+*/
+
+#define DIRECTORY_BLOCK_SIZE 1
+
 static int directory_follow_symlinks = DIRECTORY_FOLLOW_SYMLINKS;
 static int directory_use_maildirpp_format = DIRECTORY_USE_MAILDIRPP_FORMAT;
 static int directory_count_entry_size = DIRECTORY_COUNT_ENTRY_SIZE;
+static int directory_block_size = DIRECTORY_BLOCK_SIZE;
 int directory_minimum_poll_time = DIRECTORY_MINIMUM_POLL_TIME;
 
 static inline storage_t directory_filesize(const char *, int fnlen);
@@ -156,6 +163,22 @@ int directory_init(config_t *config)
 		 fprintf(stderr, "directory_init: Polling::Follow symlinks: invalid configuration\n");
 		 return 0;
 	  }
+   }
+
+   str = config_fetch_by_name(config, "Polling", "Block size");
+   if (str) {
+	  if (!(*str)) {
+		 fprintf(stderr, "directory_init: Polling::Block size: invalid configuration\n");
+		 return 0;
+	  }
+
+	  pt = atoi(str);
+	  if ((pt == -1) || (pt < 1)) {
+		 fprintf(stderr, "directory_init: Polling::Block size: invalid configuration: %s\n", str);
+		 return 0;
+	  }
+
+	  directory_block_size = pt;
    }
 
    return 1;
@@ -478,9 +501,10 @@ directory_t *directory_alloc(const char *path)
 
 static inline storage_t directory_filesize(const char *file, int fnlen)
 {
+   div_t d;
    int ret = 0;
    struct stat st;
-   storage_t size = 0;
+   storage_t size = 0, blocks = 0;
    const char *h = NULL, *t = NULL;
 
 #ifdef ASSERT_DEBUG
@@ -529,6 +553,17 @@ static inline storage_t directory_filesize(const char *file, int fnlen)
 			if (size == LLONG_MAX) {
 			   fprintf(stderr, "directory_filesize: syntax error in Maildir++ filename: %s\n", file);
 			   break;
+			}
+
+			/*
+			   Calculate blocksize usage
+			*/
+
+			if (directory_block_size > 1) {
+			   d = div(size, directory_block_size);
+			   size = (d.quot * directory_block_size);
+			   if (d.rem != 0)
+				  size += directory_block_size;
 			}
 
 			return size;
