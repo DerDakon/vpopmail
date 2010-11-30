@@ -3,6 +3,9 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
 5.5.0 - Current
   Matt Brookings
+  - Updated vopenldap module to enable auth-logging by default
+  - Updated vdominfo to say "No domains" when there are no domains configured
+    under vpopmail
   - Modified some password strength return string generation to be a bit more
     clear
   - Changed all floats to doubles in password strength variables to
