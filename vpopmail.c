@@ -701,13 +701,13 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 
   if (limits.defaultquota > 0) {
     if (limits.defaultmaxmsgcount > 0)
-      snprintf (quota, sizeof(quota), "%dS,%dC", limits.defaultquota,
+      snprintf (quota, sizeof(quota), "%lluS,%lluC", limits.defaultquota,
         limits.defaultmaxmsgcount);
     else
-      snprintf (quota, sizeof(quota), "%dS", limits.defaultquota);
+      snprintf (quota, sizeof(quota), "%lluS", limits.defaultquota);
   } else {
     if (limits.defaultmaxmsgcount > 0)
-      snprintf (quota, sizeof(quota), "%dC", limits.defaultmaxmsgcount);
+      snprintf (quota, sizeof(quota), "%lluC", limits.defaultmaxmsgcount);
     else
       strcpy (quota, "NOQUOTA");
   }

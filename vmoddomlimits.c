@@ -207,10 +207,10 @@ int main(int argc, char *argv[])
             printf ((limits.perm_defaultquota & VLIMIT_DISABLE_DELETE ? "DENY_DELETE  " :"ALLOW_DELETE ") );
             
             printf("\n");
-            printf("Domain Quota: %d MB\n", limits.diskquota);
-            printf("Default User Quota: %d bytes\n", limits.defaultquota);
-            printf("Max Domain Messages: %d\n", limits.maxmsgcount);
-            printf("Default Max Messages per User: %d\n", limits.defaultmaxmsgcount);
+            printf("Domain Quota: %llu MB\n", limits.diskquota);
+            printf("Default User Quota: %llu bytes\n", limits.defaultquota);
+            printf("Max Domain Messages: %llu\n", limits.maxmsgcount);
+            printf("Default Max Messages per User: %llu\n", limits.defaultmaxmsgcount);
             return(vexit(0));
         }
                 
@@ -232,16 +232,16 @@ int main(int argc, char *argv[])
         
         /* quota & message count limits */
         if (DomainQuota[0] != 0) {
-            limits.diskquota = atoi(DomainQuota);
+            limits.diskquota = strtoll(DomainQuota, NULL, 10);
         }
         if (DomainMaxMsgCount[0] != 0) {
-            limits.maxmsgcount = atoi(DomainMaxMsgCount);
+            limits.maxmsgcount = strtoll(DomainMaxMsgCount, NULL, 10);
         }
         if (DefaultUserQuota[0] != 0) {
-            limits.defaultquota = atoi(format_maildirquota(DefaultUserQuota));
+            limits.defaultquota = strtoll(format_maildirquota(DefaultUserQuota), NULL, 10);
         }
         if (DefaultUserMaxMsgCount[0] != 0) {
-            limits.defaultmaxmsgcount = atoi(DefaultUserMaxMsgCount);
+            limits.defaultmaxmsgcount = strtoll(DefaultUserMaxMsgCount, NULL, 10);
         }
         
         if (GidFlag == 1) {

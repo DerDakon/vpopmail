@@ -18,6 +18,7 @@ INSTALL_STRIP_PROGRAM=${INSTALL_PROGRAM} -s
 
 MYSQLCONF=$(DESTDIR)@vpopmaildir@/etc/vpopmail.mysql
 VLIMITS=$(DESTDIR)@vpopmaildir@/etc/vlimits.default
+VUSAGECCONF=$(DESTDIR)@vpopmaildir@/etc/vusagec.conf
 
 noinst_LIBRARIES=libvpopmail.a
 

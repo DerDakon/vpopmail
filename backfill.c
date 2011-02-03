@@ -13,7 +13,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include "vpopmail.h"
+#include "file_lock.h"
 #include "vauth.h"
 
 /*
@@ -36,6 +38,7 @@ remove_line(char *template, char *filename, mode_t mode, int once_only)
 	int             fd;
 #ifdef FILE_LOCKING
 	int             lockfd;
+	char 			lockfile[MAX_BUFF];
 #endif
 
 	if (stat(filename, &statbuf))

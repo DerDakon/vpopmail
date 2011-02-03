@@ -187,22 +187,22 @@ int vlimits_read_limits_file(const char *dir, struct vlimits * limits)
 
 			else if (!strcmp(s1, "quota")) {
                 if (s2)
-                limits->diskquota = atoi(s2);
+                limits->diskquota = strtoll(s2, NULL, 10);
             }
 
 			else if (!strcmp(s1, "maxmsgcount")) {
                 if (s2)
-                limits->maxmsgcount = atoi(s2);
+                limits->maxmsgcount = strtoll(s2, NULL, 10);
             }
 
             if (!strcmp(s1, "default_quota")) {
                 if (s2)
-                limits->defaultquota = atoi(s2);
+                limits->defaultquota = strtoll(s2, NULL, 10);
             }
 
 			else if (!strcmp(s1, "default_maxmsgcount")) {
                 if (s2)
-                limits->defaultmaxmsgcount = atoi(s2);
+                limits->defaultmaxmsgcount = strtoll(s2, NULL, 10);
             }
 
 			else if (!strcmp(s1, "disable_pop")) {
@@ -480,10 +480,10 @@ int vlimits_write_limits_file(const char *dir, const struct vlimits *limits)
         fprintf(fs, "maxforwards: %d\n", limits->maxforwards);
         fprintf(fs, "maxautoresponders: %d\n", limits->maxautoresponders);
         fprintf(fs, "maxmailinglists: %d\n", limits->maxmailinglists);
-        fprintf(fs, "quota: %d\n", limits->diskquota);
-        fprintf(fs, "maxmsgcount: %d\n", limits->maxmsgcount);
-        fprintf(fs, "default_quota: %d\n", limits->defaultquota);
-        fprintf(fs, "default_maxmsgcount: %d\n", limits->defaultmaxmsgcount);
+        fprintf(fs, "quota: %llu\n", limits->diskquota);
+        fprintf(fs, "maxmsgcount: %llu\n", limits->maxmsgcount);
+        fprintf(fs, "default_quota: %llu\n", limits->defaultquota);
+        fprintf(fs, "default_maxmsgcount: %llu\n", limits->defaultmaxmsgcount);
         if (limits->disable_pop) fprintf(fs, "disable_pop\n");
         if (limits->disable_imap) fprintf(fs, "disable_imap\n");
         if (limits->disable_dialup) fprintf(fs, "disable_dialup\n");

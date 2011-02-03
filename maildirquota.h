@@ -8,6 +8,8 @@
    -Bill Shupp
  */
 
+#include "storage.h"
+
 #define QUOTA_WARN_PERCENT 90
 
 /* I've removed pretty much the whole file execept for
@@ -15,8 +17,8 @@
    I"ve made the courier functions static.
    - Brian Kolaci
 */
-int readdomainquota(const char *dir, long *sizep, int *cntp);
-int readuserquota(const char* dir, long *sizep, int *cntp);
+int readdomainquota(const char *dir, storage_t *sizep, storage_t *cntp);
+int readuserquota(const char* dir, storage_t *sizep, storage_t *cntp);
 int domain_over_maildirquota(const char *userdir);
 int user_over_maildirquota(const char *dir, const char *quota);
 int vmaildir_readquota(const char *dir,	const char *quota);
@@ -24,8 +26,8 @@ int vmaildir_readquota(const char *dir,	const char *quota);
 int maildir_addquota(const char *,	/* Pointer to the maildir */
 	int,	/* Must be the int pointed to by 2nd arg to checkquota */
 	const char *,	/* The quota */
-	long,	/* +/- bytes */
-	int);	/* +/- files */
+	storage_t,	/* +/- bytes */
+	storage_t);	/* +/- files */
 
 /* skip the rest... */
 #if 0

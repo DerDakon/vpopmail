@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>		// for uid_t
+#include "storage.h"
 
 /*  Enable expanded debug information.  Consider these for ./configure options  */
 //  Show entry and parms when hitting vpopmail library functions
@@ -326,7 +327,7 @@ int vvalidchar( char inchar );
 char *format_maildirquota(const char *q);
 char *date_header();
 int qnprintf (char *buffer, size_t size, const char *format, ...);
-int readuserquota(const char* dir, long *sizep, int *cntp);
+int readuserquota(const char* dir, storage_t *sizep, storage_t *cntp);
 #ifndef HAVE_WARN
 #define warn(...) fprintf(stderr, __VA_ARGS__)
 #endif

@@ -1,6 +1,14 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
+5.4.33 -
+  Matt Brookings
+  - Defaulted to Server::Disable=True in vusagec.conf
+  - Fixed bug that didn't install vusagec.conf
+  - Changed relevant quota code to use storage_t 64bit type
+  - Fixed bug where backfill code wouldn't compile when FILE_LOCKING was
+    enabled
+
 5.4.32 - Released 11-08-2010
   Matt Brookings
   - Updated maildirsize creation to set uid/gid on target

@@ -17,6 +17,8 @@
 #define VLIMIT_DISABLE_ALL (VLIMIT_DISABLE_CREATE|VLIMIT_DISABLE_MODIFY|VLIMIT_DISABLE_DELETE)
 #define VLIMIT_DISABLE_BITS 3
 
+#include "storage.h"
+
 struct vlimits {
       /* max service limits */
       int       maxpopaccounts;
@@ -26,10 +28,10 @@ struct vlimits {
       int       maxmailinglists;
 
       /* quota & message count limits */
-      int       diskquota;
-      int       maxmsgcount;
-      int       defaultquota;
-      int       defaultmaxmsgcount;
+      storage_t diskquota;
+      storage_t maxmsgcount;
+      storage_t defaultquota;
+      storage_t defaultmaxmsgcount;
 
       /* the following are 0 (false) or 1 (true) */
       short     disable_pop;
