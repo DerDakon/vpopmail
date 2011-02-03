@@ -35,7 +35,6 @@
 
 /* max buffer sizes */
 #define MAX_BUFF 300
-#define MAX_DOM_ALIAS 100
 
 /* max field sizes */
 #define MAX_PW_NAME          32
@@ -158,6 +157,16 @@
 #define REPLYTO_LIST 2
 #define REPLYTO_ADDRESS 3
 
+/*   List of strings */
+typedef struct string_list {
+    int size;
+    int count;
+    char **values;
+} string_list;
+
+void string_list_init(string_list *a, int first);
+int string_list_add(string_list *a, char *value);
+void string_list_free(string_list *a);
 
 /*   Domain entry  */
 typedef struct domain_entry {
@@ -166,9 +175,7 @@ typedef struct domain_entry {
         int             uid;
         int             gid;
         char    *path;
-        char    *aliases[MAX_DOM_ALIAS];
 } domain_entry;
-
 
 
 /*   Structure for mailing list data  */
@@ -285,11 +292,11 @@ int mkpasswd3( char *, char *, int);
 int add_domain_assign( char *alias_domain, char *real_domain, 
                        char *dir, uid_t uid, gid_t gid);
 //int del_control( char *);
-int del_control( char *aliases[MAX_DOM_ALIAS], int aliascount);
-int del_domain_assign( char *aliasies[MAX_DOM_ALIAS], int aliascount, 
+int del_control( char **aliases, int aliascount);
+int del_domain_assign( char **aliasies, int aliascount, 
                        char *real_domain,
                        char *dir, uid_t uid, gid_t gid);
-int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount);
+int remove_lines( char *filename, char **aliases, int aliascount);
 int signal_process( char *, int );
 int update_newu();
 int add_user_assign( char *, char *);

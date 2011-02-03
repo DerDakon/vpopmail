@@ -87,6 +87,44 @@ static char ok_env_chars[] = "abcdefghijklmnopqrstuvwxyz" \
    char *value;
  } sortrec;
 
+/************************************************************************/
+
+void string_list_init(string_list *a, int initial) {
+  a->count = 0;
+  a->size = ((initial + 3) / 4) * 4;
+  if (a->size <= 0) a->size = 4;
+  a->values = calloc(a->size, sizeof(char **));
+  if (a->values == NULL) a->size = 0;
+}
+
+int string_list_add(string_list *a, char *value) {
+  if (a->count >= (a->size - 2)) {
+    char **new;
+
+    a->size += 8;
+    new = realloc(a->values, a->size * sizeof(char **));
+    if (new != NULL) {
+      a->values = new;
+      return a->size;
+    }
+    return 0;
+  }
+
+  if ((a->values[a->count] = strdup(value)) == NULL)
+    return 0;
+  a->count++;
+  return 1;
+}
+
+void string_list_free(string_list *a) {
+ int i;
+
+  if (a->values == NULL) return;
+  for (i = 0; i < a->count; i++)
+    free(a->values[i]);
+  free(a->values);
+}
+
 
 /************************************************************************/
 
@@ -106,22 +144,13 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
  char dir_control_for_uid[MAX_BUFF];
  char tmpbuf[MAX_BUFF];
  char Dir[MAX_BUFF];
- char calling_dir[MAX_BUFF];
-
- char *aliases[1];
- int aliascount=0;
+ int call_dir;
+ string_list aliases;
  
 #ifdef ONCHANGE_SCRIPT
   /*  Don't execute any implied onchange in called functions  */
   allow_onchange = 0;
 #endif
-
-  /*
-   * In case we need to use delete_line, build an array and count 
-   * to use as its parameters 
-   *
-   */
-  aliases[aliascount++]=strdup(domain);
 
   /* we only do lower case */
   lowerit(domain);
@@ -152,7 +181,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   umask(VPOPMAIL_UMASK);
 
   /* store the calling directory */
-  getcwd(calling_dir, sizeof(calling_dir));
+  call_dir = open(".", O_RDONLY);
+
 
   /* go to the directory where our Domains dir is to be stored 
    * check for error and return error on error
@@ -164,7 +194,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     /* if it's not there, no problem, just try to create it */
     if ( mkdir(DOMAINS_DIR, VPOPMAIL_DIR_MODE) != 0 ) {
-      chdir(calling_dir);
+      fchdir(call_dir); close(call_dir);
       return(VA_CAN_NOT_MAKE_DOMAINS_DIR);
     }
 
@@ -173,7 +203,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     /* now try moving into the Domains subdir again */
     if ( chdir(DOMAINS_DIR) != 0 ) {
-      chdir(calling_dir);
+      fchdir(call_dir); close(call_dir);
       return(VA_BAD_D_DIR);
     }
   }
@@ -206,7 +236,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if (strlen(dir)+strlen(DOMAINS_DIR)+strlen(DomainSubDir) > MAX_PW_DIR) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_DIR_TOO_LONG);
   }
 
@@ -214,7 +244,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
   if ( r_mkdir(DomainSubDir, uid, gid ) != 0 ) {
     /* back out of changes made so far */
     dec_dir_control(dir_control_for_uid, uid, gid);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_COULD_NOT_MAKE_DOMAIN_DIR);
   }
   
@@ -222,7 +252,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     /* back out of changes made so far */
     vdelfiles(DomainSubDir);
     dec_dir_control(dir_control_for_uid, uid, gid);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_BAD_D_DIR);
   }
 
@@ -236,7 +266,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
       fprintf(stderr, "Failed to delete directory tree :%s\n", DomainSubDir);
     }
     dec_dir_control(dir_control_for_uid, uid, gid);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_COULD_NOT_OPEN_QMAIL_DEFAULT);
   } else {
     fprintf(fs, "| %s/bin/vdelivermail '' bounce-no-mailbox\n", VPOPMAILDIR);
@@ -252,7 +282,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
       fprintf(stderr, "Failed to delete directory tree: %s\n", DomainSubDir);
     }
     dec_dir_control(dir_control_for_uid, uid, gid);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     fprintf (stderr, "Error. Failed to add domain to assign file\n");
     return (VA_COULD_NOT_UPDATE_FILE);
   }
@@ -283,11 +313,14 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 
     vget_assign(domain, Dir, sizeof(Dir), &uid, &gid );
 
-    if ( del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
+    string_list_init(&aliases, 1);
+    string_list_add(&aliases, domain);
+
+    if ( del_domain_assign(aliases.values, 1, domain, Dir, uid, gid) != 0) {
       fprintf(stderr, "Failed while attempting to remove domain from assign file\n");
     }
 
-    if (del_control(aliases,aliascount) !=0) {
+    if (del_control(aliases.values,1) !=0) {
       fprintf(stderr, "Failed while attempting to delete domain from the qmail control files\n");
     }
 
@@ -300,6 +333,8 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
     /* send a HUP signal to qmail-send process to reread control files */
     signal_process("qmail-send", SIGHUP);
 
+    fchdir(call_dir); close(call_dir);
+    string_list_free(&aliases);
     return (VA_NO_AUTH_CONNECTION);
   }	
  
@@ -318,9 +353,7 @@ int vadddomain( char *domain, char *dir, uid_t uid, gid_t gid )
 #endif
 
   /* return back to the callers directory and return success */
-  chdir(calling_dir);
-
-  free( aliases[0] );
+  fchdir(call_dir); close(call_dir);
 
   return(VA_SUCCESS);
 }
@@ -343,9 +376,10 @@ int vdeldomain( char *domain )
  char dircontrol[MAX_BUFF];
  uid_t uid;
  gid_t gid;
- char *aliases[MAX_DOM_ALIAS];
+ string_list aliases;
  domain_entry *entry;
- int i=0, aliascount=0;
+ int i = 0;
+ int call_dir;
 
   /* we always convert domains to lower case */
   lowerit(domain);
@@ -380,7 +414,8 @@ int vdeldomain( char *domain )
       *  that are about to be deleted.  It will be the only one
       *  but I will use the same code as multi domains anyway.
       */
-     aliases[aliascount++] = strdup( domain_to_del );
+     string_list_init(&aliases, 1);
+     string_list_add(&aliases, domain_to_del);
 
 #ifdef ONCHANGE_SCRIPT
      /* tell other programs that data has changed */
@@ -428,13 +463,15 @@ int vdeldomain( char *domain )
        }
      }
 
+     string_list_init(&aliases, 10);
+
      while( entry ) {
-       aliases[aliascount++] = strdup(entry->domain);
+       string_list_add(&aliases, entry->domain);
        entry = get_domain_entries(NULL);
      }
 
 //   Dump the alias list
-//     for(i=0;i<aliascount;i++) {
+//     for(i=0;i<aliases.count;i++) {
 //       fprintf(stderr,"alias %s\n", aliases[i]);
 //     }
 
@@ -481,20 +518,20 @@ int vdeldomain( char *domain )
 
     /* Now remove domain from filesystem */
     /* if it's a symbolic link just remove the link */
-    if ( S_ISLNK(statbuf.st_mode) ) {
+    if ( readlink(Dir, (char *) &call_dir, sizeof(call_dir)) != -1) {
       if ( unlink(Dir) !=0) {
         fprintf (stderr, "Warning: Failed to remove symlink for %s\n", domain);
       }
     } else {
-      char cwdbuff[MAX_BUFF];
-      char *cwd;
       /* Not a symlink.. so we have to del some files structure now */
       /* zap the domain's directory tree */
-      cwd = getcwd (cwdbuff, sizeof(cwdbuff));  /* save calling directory */
+      call_dir = open(".", O_RDONLY);
+
       if ( vdelfiles(Dir) != 0 ) {
         fprintf(stderr, "Warning: Failed to delete directory tree: %s\n", domain);
       }
-      if (cwd != NULL) chdir (cwd);
+      
+      fchdir(call_dir); close(call_dir);
     }
 
     /* decrement the master domain control info */
@@ -507,12 +544,12 @@ int vdeldomain( char *domain )
   /* delete the email domain from the qmail control files :
    * rcpthosts, morercpthosts, virtualdomains
    */
-  if (del_control(aliases,aliascount) != 0) {
+  if (del_control(aliases.values,aliases.count) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from qmail's control files\n");
   }
 
   /* delete the assign file line */
-  if (del_domain_assign(aliases, aliascount, domain, Dir, uid, gid) != 0) {
+  if (del_domain_assign(aliases.values, aliases.count, domain, Dir, uid, gid) != 0) {
     fprintf (stderr, "Warning: Failed to delete domain from the assign file\n");
   }
 
@@ -520,10 +557,7 @@ int vdeldomain( char *domain )
   signal_process("qmail-send", SIGHUP);
 
   /*  clean up memory used by the alias list  */
-  for(i=0;i<aliascount;i++) {
-    free( aliases[i] );
-  }
-
+  string_list_free(&aliases);
 
   return(VA_SUCCESS);
 
@@ -629,7 +663,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 {
  char Dir[MAX_BUFF];
  char *user_hash;
- char calling_dir [MAX_BUFF];
+ int call_dir;
  uid_t uid = VPOPMAILUID;
  gid_t gid = VPOPMAILGID;
  struct vlimits limits;
@@ -663,9 +697,6 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 
   if ( vauth_getpw( username, domain ) != NULL ) return(VA_USERNAME_EXISTS);
 
-  /* record the dir where the vadduser command was run from */
-  getcwd(calling_dir, sizeof(calling_dir));
-
   /* lookup the home dir, uid and gid for the domain */
   if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid)==NULL) {
     return(VA_DOMAIN_DOES_NOT_EXIST);
@@ -676,15 +707,19 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     return(VA_CANNOT_READ_LIMITS);
   }
 
+  /* record the dir where the vadduser command was run from */
+  call_dir = open(".", O_RDONLY);
+
   /* go to the domain's home dir (ie test it exists) */
   /* would a stat be a better option here? */
   if ( chdir(Dir) != 0 ) {
+    close(call_dir);
     return(VA_BAD_D_DIR);
   }
 
   /* create dir for the the user */ 
   if ( (user_hash=make_user_dir(username, domain, uid, gid)) == NULL ) {
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     if (verrori != 0 ) return(verrori);
     else return(VA_BAD_U_DIR);
   }
@@ -695,7 +730,7 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
     fprintf(stderr, "Failed while attempting to add user to auth backend\n");
     /* back out of changes made so far */
     chdir(Dir); if (strlen(user_hash)>0) { chdir(user_hash);} vdelfiles(username);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_NO_AUTH_CONNECTION);
   }
 
@@ -734,14 +769,14 @@ int vadduser( char *username, char *domain, char *password, char *gecos,
 #ifdef ENABLE_AUTH_LOGGING
   if (vset_lastauth(username,domain,NULL_REMOTE_IP) !=0) {
     /* should we back out of all the work we have done so far? */
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     fprintf (stderr, "Failed to create create lastauth entry\n");
     return (VA_NO_AUTH_CONNECTION);
   }
 #endif
 
   /* jump back into the dir from which the vadduser was run */
-  chdir(calling_dir);
+  fchdir(call_dir); close(call_dir);
 
 #ifdef ONCHANGE_SCRIPT
   allow_onchange = temp_onchange;
@@ -985,10 +1020,10 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  struct stat mystat;
  char tmpstr1[MAX_BUFF];
  char tmpstr2[MAX_BUFF];
- char *aliases[1];
- int aliascount=0;
+ string_list aliases;
 
- aliases[aliascount++]=strdup(alias_domain);
+  string_list_init(&aliases, 1);
+  string_list_add(&aliases,alias_domain);
 
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/users/assign", QMAILDIR);
 
@@ -1059,13 +1094,13 @@ int add_domain_assign( char *alias_domain, char *real_domain,
 
   /* make sure it's not in locals and set mode */
   snprintf(tmpstr1, sizeof(tmpstr1), "%s/control/locals", QMAILDIR);
-  if (remove_lines( tmpstr1, aliases, aliascount) < 0) {
+  if (remove_lines( tmpstr1, aliases.values, aliases.count) < 0) {
     fprintf (stderr, "Failure while attempting to remove_lines() the locals file\n");
     return(-1);
   }
   chmod(tmpstr1, VPOPMAIL_QMAIL_MODE ); 
 
-  free( aliases[0] );
+  string_list_free(&aliases);
 
   return(0);
 }
@@ -1078,12 +1113,12 @@ int add_domain_assign( char *alias_domain, char *real_domain,
  * - /var/qmail/control/rcpthosts
  * - /var/qmail/control/virtualdomains
  */
-int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount ) 
+int del_control(char **aliases, int aliascount ) 
 {
  char tmpbuf1[MAX_BUFF];
  char tmpbuf2[MAX_BUFF];
  struct stat statbuf;
- char *virthosts[MAX_DOM_ALIAS];
+ string_list virthosts;
 
  int problem_occurred = 0, i=0;
 
@@ -1141,21 +1176,20 @@ int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount )
   } /* switch for rcpthosts */
 
   /* delete entry from control/virtualdomains (if it exists) */
+  string_list_init(&virthosts, 10);
   
   for(i=0;i<aliascount;i++) {
     snprintf(tmpbuf1, sizeof(tmpbuf1), "%s:%s", aliases[i], aliases[i]);
-    virthosts[i]=strdup(tmpbuf1);
+    string_list_add(&virthosts, tmpbuf1);
   }
 
   snprintf(tmpbuf2, sizeof(tmpbuf2), "%s/control/virtualdomains", QMAILDIR);
-  if (remove_lines( tmpbuf2, virthosts, aliascount) < 0 ) {
+  if (remove_lines( tmpbuf2, virthosts.values, virthosts.count) < 0 ) {
     fprintf(stderr, "Failed while attempting to remove_lines() the virtualdomains file\n"); 
     problem_occurred = 1; 
   }
 
-  for(i=0;i<aliascount;i++) {
-    free( virthosts[i] );
-  }
+  string_list_free(&virthosts);
 
   /* make sure correct permissions are set on virtualdomains */
   chmod(tmpbuf2, VPOPMAIL_QMAIL_MODE ); 
@@ -1178,30 +1212,35 @@ int del_control(char *aliases[MAX_DOM_ALIAS], int aliascount )
  *          greater than 0 = number of aliases deleted
  *
  */
-int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount, 
+int del_domain_assign( char **aliases, int aliascount, 
                        char *real_domain, 
                        char *dir, gid_t uid, gid_t gid )  
 {
  char search_string[MAX_BUFF];
  char assign_file[MAX_BUFF];
- char *virthosts[MAX_DOM_ALIAS];
+ string_list virthosts;
  int i;
+
+  string_list_init(&virthosts, 10);
 
   /* format the removal string */ 
   for(i=0;i<aliascount;i++) {
   snprintf(search_string, sizeof(search_string), "+%s-:%s:%lu:%lu:%s:-::",
       aliases[i], real_domain, (long unsigned)uid, (long unsigned)gid, dir);
-    virthosts[i] = strdup( search_string );
+    string_list_add(&virthosts, search_string);
   }
 
   /* format the assign file name */
   snprintf(assign_file, sizeof(assign_file), "%s/users/assign", QMAILDIR);
 
   /* remove the formatted string from the file */
-  if (remove_lines( assign_file, virthosts, aliascount ) < 0) {
+  if (remove_lines( assign_file, virthosts.values, virthosts.count ) < 0) {
     fprintf(stderr, "Failed while attempting to remove_lines() the assign file\n");
+    string_list_free(&virthosts);
     return (-1);
   }
+
+  string_list_free(&virthosts);
 
   /* force the permission on the file */
   chmod(assign_file, VPOPMAIL_QMAIL_MODE ); 
@@ -1224,7 +1263,7 @@ int del_domain_assign( char *aliases[MAX_DOM_ALIAS], int aliascount,
  *          0 on success, no match found
  *          1 on success, match was found
  */
-int remove_lines( char *filename, char *aliases[MAX_DOM_ALIAS], int aliascount )
+int remove_lines( char *filename, char **aliases, int aliascount )
 {
  FILE *fs = NULL;
  FILE *fs1 = NULL;
@@ -1699,7 +1738,7 @@ int vdeluser( char *user, char *domain )
  char Dir[MAX_BUFF];
  uid_t uid;
  gid_t gid;
- char calling_dir[MAX_BUFF];
+ int call_dir;
 
   if ( user == 0 || strlen(user)<=0) return(VA_ILLEGAL_USERNAME);
 
@@ -1728,7 +1767,7 @@ int vdeluser( char *user, char *domain )
   lowerit(domain);
 
   /* backup the dir where the vdeluser was run from */
-  getcwd(calling_dir, sizeof(calling_dir));
+  call_dir = open(".", O_RDONLY);
 
   /* lookup the location of this domain's directory */
   if ( vget_assign(domain, Dir, sizeof(Dir), &uid, &gid ) == NULL ) {
@@ -1737,7 +1776,7 @@ int vdeluser( char *user, char *domain )
 
   /* change into that directory */
   if ( chdir(Dir) != 0 ) {
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_BAD_D_DIR);
   }
 
@@ -1761,7 +1800,7 @@ int vdeluser( char *user, char *domain )
   /* del the user from the auth system */
   if (vauth_deluser( user, domain ) !=0 ) {
     fprintf (stderr, "Failed to delete user from auth backend\n");
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return (-1);
   }
 
@@ -1774,14 +1813,13 @@ int vdeluser( char *user, char *domain )
    */
   if ( vdelfiles(mypw->pw_dir) != 0 ) {
     fprintf(stderr, "could not remove %s\n", mypw->pw_dir);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(VA_BAD_DIR);
   }
 
   /* go back to the callers directory */
-  chdir(calling_dir);
+  fchdir(call_dir); close(call_dir);
   return(VA_SUCCESS);
-
 }
 
 /************************************************************************/
@@ -2345,7 +2383,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 {
  char *user_hash;
  struct vqpasswd *mypw;
- char calling_dir[MAX_BUFF];
+ int call_dir;
  char domain_dir[MAX_BUFF];
  const char *dirnames[] = {"Maildir", "Maildir/new", "Maildir/cur", 
 	"Maildir/tmp"};
@@ -2353,7 +2391,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
 
   verrori = 0;
   /* record the dir where the command was run from */
-  getcwd(calling_dir, sizeof(calling_dir));
+  call_dir = open(".", O_RDONLY);
 
   /* retrieve the dir that stores this domain */
   if (vget_assign(domain, domain_dir, sizeof(domain_dir), NULL, NULL) == NULL) {
@@ -2380,7 +2418,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
      long to save back to the auth backend */
   if ((strlen(domain_dir)+strlen(user_hash)+strlen(username)) > MAX_PW_DIR) {
     fprintf (stderr, "Error. Path exceeds maximum permitted length\n");
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return (NULL);
   }
 
@@ -2388,14 +2426,14 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
   if ( mkdir(username, VPOPMAIL_DIR_MODE) != 0 ) {
     /* need to add some code to remove the hashed dirs we created above... */
     verrori = VA_EXIST_U_DIR;
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     return(NULL);
   }
 
   if ( chdir(username) != 0 ) {
     /* back out of changes made above */
     chdir(domain_dir); chdir(user_hash); vdelfiles(username);
-    chdir(calling_dir);
+    fchdir(call_dir); close(call_dir);
     fprintf(stderr, "make_user_dir: error 2\n");
     return(NULL);
   }
@@ -2406,7 +2444,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
       /* back out of changes made above */
       chdir("..");
       vdelfiles(username);
-      chdir(calling_dir);
+      fchdir(call_dir); close(call_dir);
       return(NULL);
     }
   }
@@ -2434,7 +2472,7 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
     free (mypw->pw_dir);
   }
 
-  chdir(calling_dir);
+  fchdir(call_dir); close(call_dir);
   return(user_hash);
 }
 
@@ -3065,14 +3103,14 @@ int vget_real_domain (char *domain, int len)
 int vmake_maildir(char *domain, char *dir )
 {
  char tmpbuf[MAX_BUFF];
- char calling_dir[MAX_BUFF];
+ int call_dir;
  uid_t uid;
  gid_t gid;
  char *tmpstr;
  int i;
 
   /* record which dir the command was launched from */
-  getcwd(calling_dir, sizeof(calling_dir));
+  call_dir = open(".", O_RDONLY);
 
   /* set the mask for file creation */
   umask(VPOPMAIL_UMASK);
@@ -3081,6 +3119,7 @@ int vmake_maildir(char *domain, char *dir )
    * if domain exists, store the dir into tmpbuf, and store uid and gid
    */
   if ( vget_assign(domain, tmpbuf, sizeof(tmpbuf), &uid, &gid ) == NULL ) {
+    close(call_dir);
     return( VA_DOMAIN_DOES_NOT_EXIST );
   }
 
@@ -3098,7 +3137,7 @@ int vmake_maildir(char *domain, char *dir )
   /* tmpstr should now contain : [x]/someuser */
 
   /* so 1st cd into the domain dir (which should already exist) */
-  if ( chdir(tmpbuf) == -1 ) { chdir(calling_dir); return( VA_BAD_DIR); }
+  if ( chdir(tmpbuf) == -1 ) { fchdir(call_dir); close(call_dir); return( VA_BAD_DIR); }
 
   /* Next, create the user's dir
    * ie [x]/someuser
@@ -3106,21 +3145,21 @@ int vmake_maildir(char *domain, char *dir )
   r_mkdir(tmpstr, uid, gid);
 
   /* we should now be able to cd into the user's dir */
-  if ( chdir(dir) != 0 ) { chdir(calling_dir); return(-1); }
+  if ( chdir(dir) != 0 ) { fchdir(call_dir); close(call_dir); return(-1); }
 
   /* now create the Maildir */
-  if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1) { chdir(calling_dir); return(-1); }
-  if (chdir("Maildir") == -1) { chdir(calling_dir); return(-1); }
-  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) { chdir(calling_dir); return(-1); }
-  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { chdir(calling_dir); return(-1); }
-  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) { chdir(calling_dir); return(-1); }
+  if (mkdir("Maildir",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (chdir("Maildir") == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
 
   /* set permissions on the user's dir */
   chdir(dir);
   r_chown(dir, uid, gid);
 
   /* change back to the orignal dir */
-  chdir(calling_dir);
+  fchdir(call_dir); close(call_dir);
   return(0);
 }
 
@@ -4171,3 +4210,4 @@ int call_onchange ( const char *cmd )
 	return(0);
 }
 #endif
+

@@ -207,8 +207,8 @@ void display_all_domains()
 void display_one_domain( char * Domain )
 {
  domain_entry *entry;
- char *aliases[MAX_DOM_ALIAS];
- int  i, aliascount=0;
+ string_list aliases;
+ int  i;
 
     entry = get_domain_entries( Domain );
     if (entry==NULL) {
@@ -221,11 +221,13 @@ void display_one_domain( char * Domain )
       }
     }
 
+    string_list_init(&aliases, 10);
+
     while( entry ) {
 	if (strcmp(entry->domain, entry->realdomain) != 0) {
 // 		printf ("Note:   %s is an alias for %s\n",
 //                         entry->domain, entry->realdomain);
-                aliases[aliascount++] = strdup(entry->domain);
+                string_list_add(&aliases, entry->domain);
 
         } else {
 		display_domain(entry->domain, entry->path, entry->uid, 
@@ -235,9 +237,9 @@ void display_one_domain( char * Domain )
         entry = get_domain_entries(NULL);
     }
 
-    for(i=0;i<aliascount;i++) {
- 	printf ("alias: %s\n", aliases[i]);
-        free( aliases[i] );
+    for(i=0;i<aliases.count;i++) {
+ 	printf ("alias: %s\n", aliases.values[i]);
     } 
+    string_list_free(&aliases);
 }
 

@@ -9,6 +9,12 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed bug where backfill code wouldn't compile when FILE_LOCKING was
     enabled
 
+  Tullio Andreatta
+  - Dynamic allocation of valias data
+  - Use of open/fchdir rather than getcwd/chdir to maintain current working
+    directory
+  - Fixed a broken symbolic link check
+
 5.4.32 - Released 11-08-2010
   Matt Brookings
   - Updated maildirsize creation to set uid/gid on target
