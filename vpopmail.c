@@ -3891,16 +3891,28 @@ char *get_remote_ip()
 char *maildir_to_email (const char *maildir)
 {
 	static char email[256];
+	char calling_dir[MAX_BUFF];
 	int i;
 	char *pnt, *last;
 	char *mdcopy;
 	char *user;
 	int sawdot;
-	
-	mdcopy = malloc (strlen (maildir) + 1);
-	if (mdcopy == NULL) return "";
-	strcpy (mdcopy, maildir);
-	
+
+	/* prepend the cwd if the maildir starts with ./ */
+	if (strlen (maildir) > 1 && maildir[0] == '.' && maildir[1] == '/')
+	{
+		getcwd(calling_dir, sizeof(calling_dir));
+		mdcopy = malloc (strlen (maildir) + strlen (calling_dir) + 1);
+		if (mdcopy == NULL) return "";
+		strcat (strcpy (mdcopy, calling_dir), maildir + 1);
+	}
+	else
+	{
+		mdcopy = malloc (strlen (maildir) + 1);
+		if (mdcopy == NULL) return "";
+		strcpy (mdcopy, maildir);
+	}
+
 	/* find the last occurrence of /Maildir/ */
 	pnt = mdcopy;
 	do {
