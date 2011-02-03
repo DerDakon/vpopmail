@@ -1202,8 +1202,8 @@ int dom_info()
 {
  char *domain;
  domain_entry *entry;
- char *aliases[MAX_DOM_ALIAS];
- int  i, aliascount=0;
+ string_list aliases;
+ int i;
 
   if ( !(AuthVpw.pw_gid & SA_ADMIN) ) {
     show_error( ERR_NOT_AUTHORIZED, 1401 );
@@ -1232,9 +1232,11 @@ int dom_info()
   snprintf(WriteBuf,sizeof(WriteBuf), RET_OK_MORE);
   wait_write();
 
+  string_list_init(&aliases, 10);
+
   while( entry ) {
     if (strcmp(entry->domain, entry->realdomain) != 0) {
-      aliases[aliascount++] = strdup(entry->domain);
+      string_list_add(&aliases, entry->domain);
 
     } else {
       snprintf(WriteBuf,sizeof(WriteBuf),"domain %s" RET_CRLF, 
@@ -1258,14 +1260,13 @@ int dom_info()
     entry = get_domain_entries(NULL);
   }
 
-  for(i=0;i<aliascount;i++) {
+  for(i=0;i<aliases.count;i++) {
     snprintf(WriteBuf,sizeof(WriteBuf),"alias %s" RET_CRLF, 
-             aliases[i]);
+             aliases.values[i]);
     wait_write();
-    free( aliases[i] );
   } 
 
-
+  string_list_free(&aliases);
 
   snprintf(WriteBuf, sizeof(WriteBuf), "." RET_CRLF);
   return(0);

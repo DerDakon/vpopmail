@@ -143,6 +143,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   Drew Wells
   - Patch to vdelivermail to accept relative Maildir paths
 
+  Tullio Andreatta
+  - Dynamic allocation of valias data
+  - Usage of open/fchdir rather than getcwd/chdir to maintain working directory
+
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient

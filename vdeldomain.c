@@ -43,9 +43,9 @@ int main(int argc, char *argv[])
  int err=0;
 
  domain_entry *entry;
- char *aliases[MAX_DOM_ALIAS];
+ string_list aliases;
  char parent[MAX_BUFF];
- int  i, aliascount=0, doit=1;
+ int  i, doit=1;
 
    err = vauth_load_module(NULL);
    if (!err)
@@ -69,9 +69,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	string_list_init(&aliases, 10);
+
 	while( entry ) {
 		if (strcmp(entry->domain, entry->realdomain) != 0) {
-			aliases[aliascount++] = strdup(entry->domain);
+			string_list_add(&aliases, entry->domain);
 		} else {
 			snprintf(parent,sizeof(parent),"%s",entry->domain);
 		}
@@ -79,7 +81,7 @@ int main(int argc, char *argv[])
 		entry = get_domain_entries(NULL);
 	}
 
-	if( aliascount > 0 && 0 == strncmp(Domain,parent,MAX_BUFF)) {  
+	if( aliases.count > 0 && 0 == strncmp(Domain,parent,MAX_BUFF)) {  
 		//  Have aliases
 		if( force ) {
 			printf("Warning: Alias domains deleted:\n");
@@ -88,11 +90,12 @@ int main(int argc, char *argv[])
 			doit=0;
 		}
 
-		for(i=0;i<aliascount;i++) {
-			printf ("   %s\n", aliases[i]);
-			free( aliases[i] );
+		for(i=0;i<aliases.count;i++) {
+			printf ("   %s\n", aliases.values[i]);
 		} 
 	}
+
+	string_list_free(&aliases);
 
         if( doit ) {
 	if ( (err=vdeldomain(Domain)) != VA_SUCCESS) {
