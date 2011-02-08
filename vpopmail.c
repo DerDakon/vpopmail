@@ -42,6 +42,7 @@
 #include "vauth.h"
 #include "vlimits.h"
 #include "maildirquota.h"
+#include "storage.h"
 
 #ifndef MD5_PASSWORDS
 #define MAX_PW_CLEAR_PASSWD 8
@@ -3787,8 +3788,8 @@ int vaddaliasdomain( char *alias_domain, char *real_domain)
 
 char *format_maildirquota(const char *q) {
 int     i;
-double	quota_size;
-long	quota_count;
+storage_t quota_size;
+storage_t quota_count;
 char	*p;
 static char    tempquota[128];
 
@@ -3798,34 +3799,34 @@ static char    tempquota[128];
     }
 
     /* translate the quota to a number, or leave it */
-    quota_size = -1.0;
-    quota_count = -1;
+    quota_size = 0;
+    quota_count = 0;
     snprintf (tempquota, sizeof(tempquota), "%s", q);
     p = strtok (tempquota, ",");
     while (p != NULL) {
       i = strlen(p) - 1;
       if (p[i] == 'C') { /* specify a limit on the number of messages (COUNT) */
-        quota_count = atol(p);
+        quota_count = strtoll(p, NULL, 10);
       } else { /* specify a limit on the size */
         /* strip optional trailing S */
         if ((p[i] == 'S') || (p[i] == 's')) p[i--] = '\0';
         /* strip optional trailing B (for KB, MB) */
         if ((p[i] == 'B') || (p[i] == 'b')) p[i--] = '\0';
 
-        quota_size = atof(p);
+        quota_size = strtoll(p, NULL, 10);
         if ((p[i] == 'M') || (p[i] == 'm')) quota_size *= 1024 * 1024;
         if ((p[i] == 'K') || (p[i] == 'k')) quota_size *= 1024;
       }
       p = strtok (NULL, ",");
     }
 
-    if (quota_count == -1)
-      if (quota_size == -1.0) strcpy (tempquota, ""); /* invalid quota */
-      else sprintf (tempquota, "%.0fS", quota_size);
-    else if (quota_size == -1.0)
-      sprintf (tempquota, "%luC", quota_count);
+    if (quota_count == 0)
+      if (quota_size == 0) strcpy (tempquota, ""); /* invalid quota */
+      else sprintf (tempquota, "%lluS", quota_size);
+    else if (quota_size == 0)
+      sprintf (tempquota, "%lluC", quota_count);
     else
-      sprintf (tempquota, "%.0fS,%luC", quota_size, quota_count);
+      sprintf (tempquota, "%lluS,%lluC", quota_size, quota_count);
 
     return tempquota;
 }
@@ -4016,7 +4017,7 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 	int printed;   /* number of characters printed */
 	const char *f; /* current position in format string */
 	char *b;       /* current position in output buffer */
-	char n[20];    /* buffer to hold string representation of number */
+	char n[60];    /* buffer to hold string representation of number */
 	
         int argn = 0;  /* used for numbered arguments */
         char argstr[10];
@@ -4048,9 +4049,14 @@ int qnprintf (char *buffer, size_t size, const char *format, ...)
 				case 'u':
 					snprintf (n, sizeof(n), "%u", va_arg (ap, unsigned int));
 					break;
+
+			    case 'S':
+					snprintf(n, sizeof(n), "%llu", va_arg(ap, storage_t));
+					break;
 					
 				case 'l':
 					f++;
+
 					switch (*f) {
 						case 'd':
 						case 'i':

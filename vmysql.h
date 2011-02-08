@@ -283,10 +283,10 @@ valias_line text not null, index (alias, domain)"
       maxforwards              INT(10) NOT NULL DEFAULT -1, \
       maxautoresponders        INT(10) NOT NULL DEFAULT -1, \
       maxmailinglists          INT(10) NOT NULL DEFAULT -1, \
-      diskquota                INT(12) NOT NULL DEFAULT 0, \
-      maxmsgcount              INT(12) NOT NULL DEFAULT 0, \
-      defaultquota             INT(12) NOT NULL DEFAULT 0, \
-      defaultmaxmsgcount       INT(12) NOT NULL DEFAULT 0, \
+      diskquota                BIGINT UNSIGNED NOT NULL DEFAULT 0, \
+      maxmsgcount              BIGINT UNSIGNED NOT NULL DEFAULT 0, \
+      defaultquota             BIGINT UNSIGNED NOT NULL DEFAULT 0, \
+      defaultmaxmsgcount       BIGINT UNSIGNED NOT NULL DEFAULT 0, \
       disable_pop              TINYINT(1) NOT NULL DEFAULT 0, \
       disable_imap             TINYINT(1) NOT NULL DEFAULT 0, \
       disable_dialup           TINYINT(1) NOT NULL DEFAULT 0, \
@@ -296,6 +296,7 @@ valias_line text not null, index (alias, domain)"
       disable_smtp             TINYINT(1) NOT NULL DEFAULT 0, \
       disable_spamassassin     TINYINT(1) NOT NULL DEFAULT 0, \
       delete_spam              TINYINT(1) NOT NULL DEFAULT 0, \
+      disable_maildrop		   TINYINT(1) NOT NULL DEFAULT 0, \
       perm_account             TINYINT(2) NOT NULL DEFAULT 0, \
       perm_alias               TINYINT(2) NOT NULL DEFAULT 0, \
       perm_forward             TINYINT(2) NOT NULL DEFAULT 0, \

@@ -10,6 +10,8 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
     enabled
   - Updated MySQL module to support larger quota sizes
   - Fixed typo
+  - Added disable_maildrop flag to MySQL limits feature
+  - More changes to allow for larger quota sizes in MySQL module
 
   Tullio Andreatta
   - Dynamic allocation of valias data

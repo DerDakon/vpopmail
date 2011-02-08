@@ -480,6 +480,9 @@ static int maildir_checkquota(const char *dir,
 {
 int	dummy, ret = 0;
 
+   if ((xtra_size == 0) || (xtra_cnt == 0))
+	  return 0;
+
    /*
 	  Ping the daemon
    */

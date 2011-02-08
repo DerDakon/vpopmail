@@ -53,8 +53,8 @@ struct vlimits {
       short     perm_maillist;
       short     perm_maillist_users;
       short     perm_maillist_moderators;
-      short     perm_quota;
-      short     perm_defaultquota;
+      short		perm_quota;
+      short		perm_defaultquota;
 };
 
 void vdefault_limits(struct vlimits *limits);
