@@ -9,6 +9,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed bug where backfill code wouldn't compile when FILE_LOCKING was
     enabled
   - Updated MySQL module to support larger quota sizes
+  - Fixed typo
 
   Tullio Andreatta
   - Dynamic allocation of valias data

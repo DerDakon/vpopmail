@@ -1755,7 +1755,7 @@ int vget_limits(const char *domain, struct vlimits *limits)
         limits->maxforwards = atoi(row[2]);
         limits->maxautoresponders = atoi(row[3]);
         limits->maxmailinglists = atoi(row[4]);
-        limits->diskquota = stroll(row[5], NULL, 10);
+        limits->diskquota = strtoll(row[5], NULL, 10);
         limits->maxmsgcount = strtoll(row[6], NULL, 10);
         limits->defaultquota = strtoll(row[7], NULL, 10);
         limits->defaultmaxmsgcount = strtoll(row[8], NULL, 10);
