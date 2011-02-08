@@ -1755,10 +1755,10 @@ int vget_limits(const char *domain, struct vlimits *limits)
         limits->maxforwards = atoi(row[2]);
         limits->maxautoresponders = atoi(row[3]);
         limits->maxmailinglists = atoi(row[4]);
-        limits->diskquota = atoi(row[5]);
-        limits->maxmsgcount = atoi(row[6]);
-        limits->defaultquota = atoi(row[7]);
-        limits->defaultmaxmsgcount = atoi(row[8]);
+        limits->diskquota = stroll(row[5], NULL, 10);
+        limits->maxmsgcount = strtoll(row[6], NULL, 10);
+        limits->defaultquota = strtoll(row[7], NULL, 10);
+        limits->defaultmaxmsgcount = strtoll(row[8], NULL, 10);
         limits->disable_pop = atoi(row[9]);
         limits->disable_imap = atoi(row[10]);
         limits->disable_dialup = atoi(row[11]);
@@ -1802,7 +1802,7 @@ int vset_limits(const char *domain, const struct vlimits *limits)
         "perm_alias, perm_forward, perm_autoresponder, perm_maillist, "
         "perm_quota, perm_defaultquota) \n"
         "VALUES \n"
-        "('%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+        "('%s', %d, %d, %d, %d, %d, %llu, %llu, %llu, %llu, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
         domain,
         limits->maxpopaccounts,
         limits->maxaliases,

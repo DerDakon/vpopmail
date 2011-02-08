@@ -8,6 +8,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Changed relevant quota code to use storage_t 64bit type
   - Fixed bug where backfill code wouldn't compile when FILE_LOCKING was
     enabled
+  - Updated MySQL module to support larger quota sizes
 
   Tullio Andreatta
   - Dynamic allocation of valias data
