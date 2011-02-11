@@ -7022,6 +7022,7 @@ esac
 
 #----------------------------------------------------------------------
 
+WARN_LIMITS=0
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether mysql-limits is enabled" >&5
 $as_echo_n "checking whether mysql-limits is enabled... " >&6; }
 # Check whether --enable-mysql-limits was given.
@@ -7043,6 +7044,7 @@ $as_echo "yes" >&6; }
       then
           as_fn_error "mysql-limits is only supported in the MySQL authentication module" "$LINENO" 5
       else
+		  WARN_LIMITS=1
           ENABLE_MYSQL_LIMITS=1
 
 cat >>confdefs.h <<_ACEOF
@@ -9035,3 +9037,8 @@ echo "${CC} -s" > cdb/conf-ld
 echo ""
 echo ""
 
+if test $WARN_LIMITS -eq 1; then
+   echo "*** You have MySQL limits enabled.  If you are upgrading, please see doc/UPGRADE for information on database schema changes ****"
+   echo ""
+   echo ""
+fi

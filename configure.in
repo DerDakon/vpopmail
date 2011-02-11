@@ -1370,6 +1370,7 @@ esac
 
 #----------------------------------------------------------------------
 
+WARN_LIMITS=0
 AC_MSG_CHECKING(whether mysql-limits is enabled)
 AC_ARG_ENABLE(mysql-limits,
         [  --enable-mysql-limits      Use MySQL to store limits instead of .qmailadmin-limits files.],
@@ -1386,6 +1387,7 @@ case $ENABLE_MYSQL_LIMITS in
       then
           AC_MSG_ERROR(mysql-limits is only supported in the MySQL authentication module)
       else
+		  WARN_LIMITS=1
           ENABLE_MYSQL_LIMITS=1
           AC_DEFINE_UNQUOTED(ENABLE_MYSQL_LIMITS,$ENABLE_MYSQL_LIMITS,"")
       fi
@@ -1870,3 +1872,8 @@ echo "${CC} -s" > cdb/conf-ld
 echo ""
 echo ""
 
+if test $WARN_LIMITS -eq 1; then
+   echo "*** You have MySQL limits enabled.  If you are upgrading, please see doc/UPGRADE for information on database schema changes ****"
+   echo ""
+   echo ""
+fi

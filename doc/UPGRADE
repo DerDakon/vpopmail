@@ -4,6 +4,15 @@ When recompiling vpopmail, you need to recompile all binaries that link
 into the vpopmail libraries.  These include QmailAdmin, qmail-smtpd (if 
 you have the chkuser patch applied), Courier-IMAP etc.
 
+Upgrading to vpopmail-5.4.33
+----------------------------
+If you are storing limits in MySQL, the following schema changes must be made:
+
+ALTER TABLE `limits` ADD `disable_maildrop` TINYINT(1) DEFAULT '0' NOT NULL AFTER `disable_spamassassin`;
+ALTER TABLE `limits` MODIFY `diskquota` BIGINT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE `limits` MODIFY `maxmsgcount` BIGINT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE `limits` MODIFY `defaultquota` BIGINT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE `limits` MODIFY `defaultmaxmsgcount` BIGINT UNSIGNED NOT NULL DEFAULT 0;
 
 Upgrading to vpopmail-5.4.18
 ----------------------------
