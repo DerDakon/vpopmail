@@ -806,9 +806,6 @@ int	n;
 		niov=2;
 	}
 
-
-	printf("*** UPDATING MAILDIRSIZE ****\n");
-
 	sprintf(u.buf, "%llu %llu\n", maildirsize_size, maildirsize_cnt);
 	iov[niov].iov_base=u.buf;
 	iov[niov].iov_len=strlen(u.buf);
