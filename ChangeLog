@@ -147,6 +147,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Dynamic allocation of valias data
   - Usage of open/fchdir rather than getcwd/chdir to maintain working directory
 
+  <kenji@kens.fm>
+  - Removed call to maildir_addquota inside user_over_maildirquota causing duplicate
+    maildirsize entries
+
 5.4.28 - Released 10-Mar-2009
    Matt Brookings
    - Updated vlimits_read_vlimits_file to be much more efficient

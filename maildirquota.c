@@ -315,7 +315,6 @@ int     ret_value = 0;
                         if (quotafd >= 0)       close(quotafd);
                         ret_value = 1;
                 } else {
-                        maildir_addquota(dir, quotafd, q, stat_buf.st_size, 1);
                         if (quotafd >= 0)       close(quotafd);
                         ret_value = 0;
                 }
