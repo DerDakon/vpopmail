@@ -22,6 +22,10 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   Drew Wells
   - Modification to vdelivermail to properly handle Maildir paths that begin with "./"
 
+  <kenji@kens.fm>
+  - Removed call to maildir_addquota inside user_over_maildirquota causing duplicate
+    maildirsize entries
+
 5.4.32 - Released 11-08-2010
   Matt Brookings
   - Updated maildirsize creation to set uid/gid on target
