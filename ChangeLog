@@ -12,6 +12,7 @@ or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
   - Fixed typo
   - Added disable_maildrop flag to MySQL limits feature
   - More changes to allow for larger quota sizes in MySQL module
+  - Updated to signal_process to understand "runsv" as a supervise-type process manager
 
   Tullio Andreatta
   - Dynamic allocation of valias data
