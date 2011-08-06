@@ -392,10 +392,10 @@ int vauth_deldomain( char *domain )
 #endif
 
 #ifdef ENABLE_SQL_LOGGING
-    qnprintf( sqlBufUpdate, SQL_BUF_SIZE,
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
        "delete from vlog where domain = '%s'", domain );
     pgres=PQexec(pgc, SqlBufUpdate);
-    if( !pgres || PGresultStatus(pgres)!=PGRES_COMMAND_OK) {
+    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK) {
       return(-1);
     }
 #endif
@@ -445,11 +445,11 @@ int vauth_deluser( char *user, char *domain )
 #endif
 
 #ifdef ENABLE_SQL_LOGGING
-    qnprintf( sqlBufUpdate, SQL_BUF_SIZE,
+    qnprintf( SqlBufUpdate, SQL_BUF_SIZE,
         "delete from vlog where domain = '%s' and user='%s'", 
        domain, user );
     pgres=PQexec(pgc, SqlBufUpdate);
-    if( !pgres || PGresultStatus(pgres)!=PGRES_COMMAND_OK) {
+    if( !pgres || PQresultStatus(pgres)!=PGRES_COMMAND_OK) {
       err = -1;
     }
 #endif
@@ -1554,6 +1554,64 @@ char *valias_select_all_next(char *alias)
     strcpy (alias, valias_current->d2);
     return valias_current->data; 
   }
+}
+
+char *valias_select_names( char *alias, char *domain )
+{
+	PGresult *pgres;
+	int err;
+	unsigned ntuples, ctuple;
+	struct linklist *temp_entry = NULL;
+
+	/* remove old entries as necessary */
+	while (valias_current != NULL)
+		valias_current = linklist_del (valias_current);
+
+	if ( (err =vauth_open(0)) != 0 ) return (NULL);
+
+	qnprintf( SqlBufRead, SQL_BUF_SIZE,
+		"select distinct alias from valias where domain = '%s' order by alias", domain);
+	if ( ! (pgres=PQexec(pgc, SqlBufRead))
+		|| PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
+		if(pgres) PQclear(pgres);
+		vcreate_valias_table();
+		if ( ! (pgres=PQexec(pgc, SqlBufRead))
+			|| PQresultStatus(pgres) != PGRES_TUPLES_OK ) {
+				fprintf(stderr,"vpgsql: sql error[o]: %s\n",
+				PQerrorMessage(pgc));
+				if (pgres) PQclear (pgres);
+				return(NULL);
+		}
+	}
+	ntuples = PQntuples (pgres);
+	for (ctuple = 0; ctuple < ntuples; ctuple++) {
+		temp_entry = linklist_add (temp_entry, PQgetvalue (pgres, ctuple, 1), PQgetvalue (pgres, ctuple, 0));
+		if (valias_current == NULL) valias_current = temp_entry;
+	}
+	PQclear (pgres);
+	pgres = NULL; 
+
+	if (valias_current == NULL) return NULL; /* no results */
+	else {
+		strcpy (alias, valias_current->d2);
+		return(valias_current->data);
+	}
+}
+
+char *valias_select_names_next(char *alias)
+{
+	if (valias_current == NULL) return NULL;
+	valias_current = linklist_del (valias_current);
+
+	if (valias_current == NULL) return NULL; /* no results */
+	else {
+		strcpy(alias, valias_current->d2);
+		return(valias_current->data);
+	}
+}
+
+void valias_select_names_end() {
+	// not needed with PostgreSQL
 }
 #endif
 
