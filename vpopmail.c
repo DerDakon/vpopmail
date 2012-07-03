@@ -106,9 +106,9 @@ int string_list_add(string_list *a, char *value) {
     new = realloc(a->values, a->size * sizeof(char **));
     if (new != NULL) {
       a->values = new;
-      return a->size;
+    } else {
+      return 0;
     }
-    return 0;
   }
 
   if ((a->values[a->count] = strdup(value)) == NULL)
