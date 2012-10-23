@@ -1,7 +1,9 @@
 Numbers in square brackets ([]) are tracker items on SourceForge with patch
 or info related to the entry. <http://sourceforge.net/projects/vpopmail/>
 
-5.4.33 -
+5.4.34 -
+
+5.4.33 - Released 10-23-2012
   Matt Brookings
   - Defaulted to Server::Disable=True in vusagec.conf
   - Fixed bug that didn't install vusagec.conf
