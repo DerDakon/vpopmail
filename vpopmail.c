@@ -1473,9 +1473,9 @@ int update_newu()
 {
  int pid;
 
-  pid=vfork();
+  pid=fork();
   if ( pid==0){
-			  umask(022);
+    umask(022);
     execl(QMAILNEWU,"qmail-newu", NULL);
     exit(127);
   } else {
@@ -3361,9 +3361,9 @@ long unsigned tcprules_open()
   /* create a pair of filedescriptors for our pipe */
   if (pipe(pim) == -1)  { return(-1);}
 
-  switch( pid=vfork()){
+  switch( pid=fork()){
    case -1:
-    /* vfork error. close pipes and exit */
+    /* fork error. close pipes and exit */
     close(pim[0]); close(pim[1]);
     return(-1);
    case 0:
