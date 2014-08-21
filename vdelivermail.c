@@ -351,6 +351,12 @@ static pid_t qmail_inject_open(char *address)
     return(pid);
 }
 
+/**
+ * @returns if delivery worked
+ * @retval 0 message was delivered as is
+ * @retval 1 the file has changed the size during delivery
+ * @retval -1 error
+ */
 static int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t headerlen, char *address)
 {
   char msgbuf[4096];
@@ -360,6 +366,7 @@ static int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t 
   long unsigned pid;
   int  pim[2];
 #endif
+  int has_changed_size = 0;
 
     /* write the Return-Path: and Delivered-To: headers */
     if (headerlen > 0) {
@@ -399,6 +406,7 @@ static int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t 
           close(pim[1]);
           dup2(pim[0], 0);
           close(pim[0]);
+          has_changed_size = 1;
         }
     }
 #endif
@@ -431,7 +439,7 @@ static int fdcopy (int write_fd, int read_fd, const char *extra_headers, size_t 
         if ( write(write_fd, msgbuf, file_count) == -1 ) return -1;
     }
     
-    return 0;
+    return has_changed_size;
 }
 
 void read_quota_from_maildir (const char *maildir, char *qbuf, size_t qlen)
@@ -493,6 +501,7 @@ int deliver_to_maildir (
   size_t headerlen;
   int write_fd;
   char quota[80];
+  int fdr;
 
     headerlen = strlen (extra_headers);
     msgsize += headerlen;
@@ -518,7 +527,8 @@ int deliver_to_maildir (
     }
 
     local = 1;
-    if (fdcopy(write_fd, read_fd, extra_headers, headerlen, maildir_to_email(maildir)) != 0) {
+    fdr = fdcopy(write_fd, read_fd, extra_headers, headerlen, maildir_to_email(maildir));
+    if (fdr < 0) {
         /* Did the write fail because we were over quota? */
         if ( errno == EDQUOT ) {
             close(write_fd);
@@ -530,6 +540,14 @@ int deliver_to_maildir (
             unlink (local_file_tmp);
             return -2;
         }
+    } else if (fdr == 1) {
+       /* the file has changed it's size during delivery, e.g. because
+        * SpamAssassin has written it's report to it. */
+        struct stat st;
+
+        if (fstat(write_fd, &st) == 0 && st.st_size != msgsize)
+            snprintf(local_file_new, sizeof(local_file_new), "%snew/%lu.%lu.%.32s,S=%lu",
+                maildir, tm, pid, hostname, (long unsigned) st.st_size);
     }
 
     /* completed write to tmp directory, now move it into the new directory */
@@ -777,7 +795,7 @@ void deliver_mail(char *address, char *quota)
       }
       
       local = 0;
-      if (fdcopy (fdm, 0, DeliveredTo, strlen(DeliveredTo), address) != 0) {
+      if (fdcopy (fdm, 0, DeliveredTo, strlen(DeliveredTo), address) < 0) {
           printf ("write to qmail-inject failed: %d\n", errno);
           close(fdm);
           waitpid(inject_pid,&child,0);
