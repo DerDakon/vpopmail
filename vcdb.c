@@ -271,7 +271,7 @@ struct vqpasswd *vauth_getpw(char *user, char *domain)
     }
 
     strncpy(line,user,sizeof(line)); 
-    strncat(line,":",sizeof(line));
+    strncat(line,":",sizeof(line)-strlen(line)-1);
     ptr = line;
     while (*ptr != ':') { ptr++; }
     ptr++;
@@ -1055,7 +1055,7 @@ int vdel_dir_control(char *domain)
  char dir_control_file[MAX_DIR_NAME];
 
     vget_assign(domain, dir_control_file, 156, NULL,NULL);
-    strncat(dir_control_file,"/.dir-control", MAX_DIR_NAME);
+    strncat(dir_control_file,"/.dir-control", MAX_DIR_NAME-strlen(dir_control_file)-1);
     return(unlink(dir_control_file));
 }
 
@@ -1120,7 +1120,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
 
     /* if we are lucky the domain is in the assign file */
     if ( vget_assign(domain,dir_control_file,MAX_DIR_NAME,NULL,NULL)!=NULL ) { 
-	strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME);
+	strncat(dir_control_file, "/.dir-control", MAX_DIR_NAME-strlen(dir_control_file)-1);
 
     /* it isn't in the assign file so we have to get it from /etc/passwd */
     } else {
@@ -1139,7 +1139,7 @@ char *dc_filename(char *domain, uid_t uid, gid_t gid)
         }
 
         /* stick on the rest of the path */
-        strncat(dir_control_file, "/" DOMAINS_DIR "/.dir-control", MAX_DIR_NAME); 
+        strncat(dir_control_file, "/" DOMAINS_DIR "/.dir-control", MAX_DIR_NAME-strlen(dir_control_file)-1);
     }
     return(dir_control_file);
 }
