@@ -488,7 +488,7 @@ void ezmlm_decode( listInfoType *LI ) {
         if( (fs=fopen(TmpBuf, "r")) !=NULL ) {
             if(fgets(TmpBuf2, sizeof(TmpBuf2), fs)) {
                 Tmp = strtok( TmpBuf2, ":" );
-                printf( "    First Token: %s Len: %d\n", Tmp, strlen( Tmp ));
+                printf( "    First Token: %s Len: %zu\n", Tmp, strlen( Tmp ));
                 if( NULL != Tmp ) { 
                    for(i=0; i<strlen(Tmp); i++) LI->SQLHost[i] = Tmp[i];
                    LI->SQLHost[i] = (char) 0;
