@@ -1456,7 +1456,7 @@ int valias_delete_domain( char *domain)
 #ifdef ONCHANGE_SCRIPT
   if( allow_onchange ) {
      /* tell other programs that data has changed */
-     snprintf ( onchange_buf, MAX_BUFF, "%s@%s - %s", alias, domain, alias_line);
+     snprintf ( onchange_buf, MAX_BUFF, "%s", domain );
      call_onchange ( "valias_delete_domain" );
      }
 #endif
