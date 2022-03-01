@@ -981,6 +981,7 @@ int vdelfiles(char *dir)
 
           /* print error message and return and error */
           fprintf (stderr, "Failed to delete directory %s", mydirent->d_name);
+	  closedir(mydir);
           return(-1);
         }
       }
@@ -1604,7 +1605,7 @@ while(( s[i]==' ')||(s[i]=='\t')) {
    i++;
    }
 
-k = strlen(s) - i - 1; 
+k = strlen(s) - i;
 
 if( i>0 ) {
    for( j=0; j<k; j++ )  {
@@ -1616,7 +1617,7 @@ if( i>0 ) {
 
 //  trim spaces and tabs from end
 i = strlen(s) - 1;
-while(( s[i] == ' ' ) || ( s[i] == '\t' )) {
+while(i >= 0 && ( s[i] == ' ' || s[i] == '\t' )) {
    i--;
    }
 
@@ -2388,7 +2389,12 @@ char *make_user_dir(char *username, char *domain, uid_t uid, gid_t gid)
  int call_dir;
  char domain_dir[MAX_BUFF];
  const char *dirnames[] = {"Maildir", "Maildir/new", "Maildir/cur", 
-	"Maildir/tmp"};
+	"Maildir/tmp",
+#ifdef SPAM_JUNKFOLDER
+	"Maildir/.Junk", "Maildir/.Junk/new", "Maildir/.Junk/cur",
+	"Maildir/.Junk/tmp",
+#endif
+	};
  int i;
 
   verrori = 0;
@@ -3155,6 +3161,13 @@ int vmake_maildir(char *domain, char *dir )
   if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
   if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
   if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+#ifdef SPAM_JUNKFOLDER
+  if (mkdir(".Junk",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (chdir(".Junk") == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("cur",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("new",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+  if (mkdir("tmp",VPOPMAIL_DIR_MODE) == -1) { fchdir(call_dir); close(call_dir); return(-1); }
+#endif
 
   /* set permissions on the user's dir */
   chdir(dir);
@@ -4221,12 +4234,20 @@ int call_onchange ( const char *cmd )
 	}
 	else if ( pid > 0 )
 	{
-		wait(&rv);
-		return(rv);
+		if (waitpid ( pid, &rv, 0 ) < 0 ||
+		    !WIFEXITED( rv ) || WEXITSTATUS( rv ) != 0 ) {
+			fprintf(stderr,
+			    "ONCHANGE script %s did not exit gracefully.\n",
+			    path);
+			return(rv);
+		}
+		return(0);
 	}
 
-	fprintf(stderr, "ONCHANGE script %s unable to fork.\n", path);
-	return(0);
+	rv = errno;
+	fprintf(stderr, "ONCHANGE script %s unable to fork: %s\n", path,
+	    strerror(rv));
+	return(rv);
 }
 #endif
 
