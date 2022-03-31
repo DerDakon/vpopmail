@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * Copyright (C) 2022 TLK Games
  * Copyright (C) 2000-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
