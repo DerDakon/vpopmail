@@ -113,6 +113,7 @@ Unreleased -
     - Remove unneeded forward declaration in vchkpw.c
     - Add static in vdelivermail.c
     - Clean up calling maildrop in vdelivermail.c
+    - fix ,S= tag in case spamassassin changed the file size
 
   - Merge patch by Jory Pratt :
     - patched for lazy binding for quality assurance
