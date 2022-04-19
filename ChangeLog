@@ -119,6 +119,7 @@ Unreleased -
   - Merge patch by Jory Pratt :
     - patched for lazy binding for quality assurance
 
+  Patrice Duhamel
   - Add an option --enable-onchange-script-before-and-after to call onchange
     script before and after a change
   - Add SQLite module, adapted from MySQL module code
