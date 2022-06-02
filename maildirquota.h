@@ -1,5 +1,4 @@
 /* 
-   $Id$
    Copyright (C) 2009 Inter7 Internet Technologies, Inc.
  
    This is a composite of deliverquota's maildirquota.h, maildirmisc.h, and 
@@ -50,7 +49,7 @@ int maildir_addquota(const char *,	/* Pointer to the maildir */
 extern "C" {
 #endif
 
-static const char maildirquota_h_rcsid[]="$Id$";
+static const char maildirquota_h_rcsid[]="$Id: maildirquota.h 1014 2011-02-03 16:04:37Z volz0r $";
 
 int maildir_checkquota(const char *,	/* Pointer to directory */
 	int *,	/* Initialized to -1, or opened descriptor for maildirsize */
@@ -89,7 +88,7 @@ int maildir_parsequota(const char *, unsigned long *);
 extern "C" {
 #endif
 
-static const char maildirmisc_h_rcsid[]="$Id$";
+static const char maildirmisc_h_rcsid[]="$Id: maildirquota.h 1014 2011-02-03 16:04:37Z volz0r $";
 
 /*
 **
@@ -240,7 +239,7 @@ int maildir_hasflag(const char *filename, char);
 extern "C" {
 #endif
 
-static const char numlib_h_rcsid[]="$Id$";
+static const char numlib_h_rcsid[]="$Id: maildirquota.h 1014 2011-02-03 16:04:37Z volz0r $";
 
 #define	NUMBUFSIZE	60
 

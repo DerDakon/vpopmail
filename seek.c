@@ -1,5 +1,4 @@
 /*
- * $Id$
  * Copyright (C) 2009 Inter7 Internet Technologies, Inc.
  *
  * Copyright (c) 1987 University of Maryland Computer Science Department.

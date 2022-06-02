@@ -1,5 +1,4 @@
 /*
- * $Id$
  * Copyright (C) 2004-2009 Inter7 Internet Technologies, Inc.
  *
  * Copyright (C) 2003-2004 Tom Collins

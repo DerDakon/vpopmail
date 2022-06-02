@@ -1,5 +1,4 @@
 /*
- * $Id$
  * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +17,6 @@
  */
 /******************************************************************************
 **
-** $Id$
 ** Change a domain's password file to a CDB database
 **
 ** Chris Johnson, July 1998

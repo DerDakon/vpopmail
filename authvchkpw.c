@@ -1,5 +1,4 @@
 /*
- * $Id$
  * Copyright (C) 1999-2009 Inter7 Internet Technologies, Inc.
  *
  * Revision 2.2  2008-08-24 17:43:44+05:30  Cprogrammer
@@ -46,7 +45,7 @@
 #include "vauth.h"
 
 #ifndef lint
-static char     sccsid[] = "$Id$";
+static char     sccsid[] = "$Id: authvchkpw.c 1014 2011-02-03 16:04:37Z volz0r $";
 #endif
 #ifdef AUTH_SIZE
 #undef AUTH_SIZE
