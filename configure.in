@@ -423,6 +423,8 @@ AC_TRY_RUN( [
   #include <stdio.h>
   #include <pwd.h>
   #include <stdlib.h>
+  #include <string.h>
+  #include <unistd.h>
 
   int main() {
     struct passwd *pw;
